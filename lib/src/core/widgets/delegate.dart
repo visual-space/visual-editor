@@ -3,7 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-import '../../flutter_quill.dart';
+import '../../../flutter_quill.dart';
 import 'text_selection.dart';
 
 typedef EmbedBuilder = Widget Function(BuildContext context,

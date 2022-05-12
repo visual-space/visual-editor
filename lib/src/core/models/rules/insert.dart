@@ -1,6 +1,6 @@
 import 'package:tuple/tuple.dart';
 
-import '../../models/documents/document.dart';
+import '../documents/document.dart';
 import '../documents/attribute.dart';
 import '../documents/nodes/embeddable.dart';
 import '../documents/style.dart';

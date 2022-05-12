@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../flutter_quill.dart';
+import '../../../../flutter_quill.dart';
 
 class HistoryButton extends StatefulWidget {
   const HistoryButton({

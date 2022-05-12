@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../flutter_quill.dart';
+import '../../../../flutter_quill.dart';
 
 const _DEFAULT_HIGHLIGHT_COLOR = Color.fromRGBO(0xFF, 0xC1, 0x17, .3);
 const _HOVERED_HIGHLIGHT_COLOR = Color.fromRGBO(0xFF, 0xC1, 0x17, .5);

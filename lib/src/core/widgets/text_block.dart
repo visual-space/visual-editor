@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:tuple/tuple.dart';
 
-import '../../flutter_quill.dart';
+import '../../../flutter_quill.dart';
 import '../models/documents/nodes/block.dart';
 import '../models/documents/nodes/line.dart';
 import '../utils/delta.dart';

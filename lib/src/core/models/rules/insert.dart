@@ -1,7 +1,7 @@
 import 'package:tuple/tuple.dart';
 
-import '../documents/document.dart';
 import '../documents/attribute.dart';
+import '../documents/document.dart';
 import '../documents/nodes/embeddable.dart';
 import '../documents/style.dart';
 import '../quill_delta.dart';

@@ -11,11 +11,11 @@ linter:
     - annotate_overrides
     - avoid_empty_else
     - avoid_escaping_inner_quotes
-    - avoid_print
+    - avoid_print: false (!) # To be restored once refactoring is over
     - avoid_redundant_argument_values
     - avoid_types_on_closure_parameters
     - avoid_void_async
-    - cascade_invocations
+    - cascade_invocations: false
     - directives_ordering
     - lines_longer_than_80_chars
     - omit_local_variable_types
@@ -34,3 +34,5 @@ linter:
     - unnecessary_lambdas
     - unnecessary_parenthesis
     - unnecessary_string_interpolations
+    - invalid_use_of_visible_for_testing_member: false # To be restored once refactoring is over
+    - invalid_use_of_protected_member: false # To be restored once refactoring is over

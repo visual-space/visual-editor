@@ -22,9 +22,10 @@ class _ReadOnlyPageState extends State<ReadOnlyPage> {
       builder: _buildContent,
       showToolbar: _edit == true,
       floatingActionButton: FloatingActionButton.extended(
-          label: Text(_edit == true ? 'Done' : 'Edit'),
-          onPressed: _toggleEdit,
-          icon: Icon(_edit == true ? Icons.check : Icons.edit)),
+        label: Text(_edit == true ? 'Done' : 'Edit'),
+        onPressed: _toggleEdit,
+        icon: Icon(_edit == true ? Icons.check : Icons.edit),
+      ),
     );
   }
 
@@ -41,15 +42,16 @@ class _ReadOnlyPageState extends State<ReadOnlyPage> {
     );
     if (kIsWeb) {
       quillEditor = QuillEditor(
-          controller: controller,
-          scrollController: ScrollController(),
-          scrollable: true,
-          focusNode: _focusNode,
-          autoFocus: true,
-          readOnly: !_edit,
-          expands: false,
-          padding: EdgeInsets.zero,
-          embedBuilder: defaultEmbedBuilderWeb);
+        controller: controller,
+        scrollController: ScrollController(),
+        scrollable: true,
+        focusNode: _focusNode,
+        autoFocus: true,
+        readOnly: !_edit,
+        expands: false,
+        padding: EdgeInsets.zero,
+        embedBuilder: defaultEmbedBuilderWeb,
+      );
     }
     return Padding(
       padding: const EdgeInsets.all(8),

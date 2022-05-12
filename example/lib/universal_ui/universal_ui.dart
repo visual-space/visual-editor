@@ -2,7 +2,7 @@ library universal_ui;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_quill/flutter_quill.dart' hide Text;
 import 'package:universal_html/html.dart' as html;
 
 import '../widgets/responsive_widget.dart';
@@ -50,10 +50,19 @@ Widget defaultEmbedBuilderWeb(BuildContext context, QuillController controller,
       );
 
     default:
-      throw UnimplementedError(
+      // Throwing an error here does not help at all.
+      // Even when there's only one Operation with a video attribute in the
+      // whole doc it will be flushed away from the console by a
+      // large callstack. The error that gets printed on repeat will flood the
+      // terminal filling up the entire buffer with a message that is completely
+      // misleading. by rendering this text we can save countless hours of
+      // searching for the origin of the bug.
+      // ignore: avoid_print
+      print(
         'Embeddable type "${node.value.type}" is not supported by default '
         'embed builder of QuillEditor. You must pass your own builder function '
         'to embedBuilder property of QuillEditor or QuillField widgets.',
       );
+      return const SizedBox.shrink();
   }
 }

@@ -1,4 +1,6 @@
 # Visual Editor
+**Fork of Flutter Quill - Current status, Under Major Refactoring. Expect some features here and there to be affected / disabled.**
+
 Visual Editor is a Rich Text editor for Flutter originally forked from Flutter Quill. The editor is built around the powerful Delta document format originally developed by QuillJs. Delta documents can be easily converted to JSON, the encoding is easy to read and modify and offers many extensibility options.
 
 Our core motivation to fork Quill was the severe lack of documentation and testing plus a lack of support from the maintainers when it comes to receiving technical support. Considering that we plan to release many more open source Flutter widgets, starting with the rich text editor was a no brainer.

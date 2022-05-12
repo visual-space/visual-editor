@@ -8,8 +8,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart' hide Text;
 import 'package:path_provider/path_provider.dart';
 
+import '../pages/sample_highlights_const.dart';
+
 typedef DemoContentBuilder = Widget Function(
-    BuildContext context, QuillController? controller);
+  BuildContext context,
+  QuillController? controller,
+);
 
 // Common scaffold for all examples.
 class DemoScaffold extends StatefulWidget {
@@ -56,19 +60,26 @@ class _DemoScaffoldState extends State<DemoScaffold> {
 
   Future<void> _loadFromAssets() async {
     try {
-      final result =
-          await rootBundle.loadString('assets/${widget.documentFilename}');
+      final result = await rootBundle.loadString(
+        'assets/${widget.documentFilename}',
+      );
       final doc = Document.fromJson(jsonDecode(result));
       setState(() {
         _controller = QuillController(
-            document: doc, selection: const TextSelection.collapsed(offset: 0));
+          document: doc,
+          selection: const TextSelection.collapsed(offset: 0),
+          highlights: SAMPLE_HIGHLIGHTS,
+        );
         _loading = false;
       });
     } catch (error) {
       final doc = Document()..insert(0, 'Empty asset');
       setState(() {
         _controller = QuillController(
-            document: doc, selection: const TextSelection.collapsed(offset: 0));
+          document: doc,
+          selection: const TextSelection.collapsed(offset: 0),
+          highlights: SAMPLE_HIGHLIGHTS,
+        );
         _loading = false;
       });
     }

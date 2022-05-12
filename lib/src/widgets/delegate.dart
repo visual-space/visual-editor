@@ -88,6 +88,9 @@ class EditorTextSelectionGestureDetectorBuilder {
   @protected
   RenderEditor? get renderEditor => editor?.renderEditor;
 
+  @protected
+  void onHover(PointerHoverEvent event) {}
+
   /// Handler for [EditorTextSelectionGestureDetector.onTapDown].
   ///
   /// By default, it forwards the tap to [RenderEditable.handleTapDown] and sets
@@ -313,10 +316,14 @@ class EditorTextSelectionGestureDetectorBuilder {
   /// the handlers provided by this builder.
   ///
   /// The [child] or its subtree should contain [EditableText].
-  Widget build(
-      {required HitTestBehavior behavior, required Widget child, Key? key}) {
+  Widget build({
+    required HitTestBehavior behavior,
+    required Widget child,
+    Key? key,
+  }) {
     return EditorTextSelectionGestureDetector(
       key: key,
+      onHover: onHover,
       onTapDown: onTapDown,
       onForcePressStart: delegate.forcePressEnabled ? onForcePressStart : null,
       onForcePressEnd: delegate.forcePressEnabled ? onForcePressEnd : null,

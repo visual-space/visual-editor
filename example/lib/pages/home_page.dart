@@ -14,6 +14,7 @@ import 'package:tuple/tuple.dart';
 
 import '../universal_ui/universal_ui.dart';
 import 'read_only_page.dart';
+import 'sample_highlights_const.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -36,13 +37,18 @@ class _HomePageState extends State<HomePage> {
       final doc = Document.fromJson(jsonDecode(result));
       setState(() {
         _controller = QuillController(
-            document: doc, selection: const TextSelection.collapsed(offset: 0));
+          document: doc,
+          selection: const TextSelection.collapsed(offset: 0),
+          highlights: SAMPLE_HIGHLIGHTS,
+        );
       });
     } catch (error) {
       final doc = Document()..insert(0, 'Empty asset');
       setState(() {
         _controller = QuillController(
-            document: doc, selection: const TextSelection.collapsed(offset: 0));
+          document: doc,
+          selection: const TextSelection.collapsed(offset: 0),
+        );
       });
     }
   }
@@ -92,6 +98,33 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildWelcomeEditor(BuildContext context) {
     var quillEditor = QuillEditor(
+      controller: _controller!,
+      scrollController: ScrollController(),
+      scrollable: true,
+      focusNode: _focusNode,
+      autoFocus: false,
+      readOnly: false,
+      placeholder: 'Add content',
+      expands: false,
+      padding: EdgeInsets.zero,
+      customStyles: DefaultStyles(
+        h1: DefaultTextBlockStyle(
+          const TextStyle(
+            fontSize: 32,
+            color: Colors.black,
+            height: 1.15,
+            fontWeight: FontWeight.w300,
+          ),
+          const Tuple2(16, 0),
+          const Tuple2(0, 0),
+          null,
+        ),
+        sizeSmall: const TextStyle(fontSize: 9),
+      ),
+    );
+
+    if (kIsWeb) {
+      quillEditor = QuillEditor(
         controller: _controller!,
         scrollController: ScrollController(),
         scrollable: true,
@@ -103,43 +136,22 @@ class _HomePageState extends State<HomePage> {
         padding: EdgeInsets.zero,
         customStyles: DefaultStyles(
           h1: DefaultTextBlockStyle(
-              const TextStyle(
-                fontSize: 32,
-                color: Colors.black,
-                height: 1.15,
-                fontWeight: FontWeight.w300,
-              ),
-              const Tuple2(16, 0),
-              const Tuple2(0, 0),
-              null),
-          sizeSmall: const TextStyle(fontSize: 9),
-        ));
-    if (kIsWeb) {
-      quillEditor = QuillEditor(
-          controller: _controller!,
-          scrollController: ScrollController(),
-          scrollable: true,
-          focusNode: _focusNode,
-          autoFocus: false,
-          readOnly: false,
-          placeholder: 'Add content',
-          expands: false,
-          padding: EdgeInsets.zero,
-          customStyles: DefaultStyles(
-            h1: DefaultTextBlockStyle(
-                const TextStyle(
-                  fontSize: 32,
-                  color: Colors.black,
-                  height: 1.15,
-                  fontWeight: FontWeight.w300,
-                ),
-                const Tuple2(16, 0),
-                const Tuple2(0, 0),
-                null),
-            sizeSmall: const TextStyle(fontSize: 9),
+            const TextStyle(
+              fontSize: 32,
+              color: Colors.black,
+              height: 1.15,
+              fontWeight: FontWeight.w300,
+            ),
+            const Tuple2(16, 0),
+            const Tuple2(0, 0),
+            null,
           ),
-          embedBuilder: defaultEmbedBuilderWeb);
+          sizeSmall: const TextStyle(fontSize: 9),
+        ),
+        embedBuilder: defaultEmbedBuilderWeb,
+      );
     }
+
     var toolbar = QuillToolbar.basic(
       controller: _controller!,
       // provide a callback to enable picking images from device.
@@ -151,6 +163,7 @@ class _HomePageState extends State<HomePage> {
       // mediaPickSettingSelector: _selectMediaPickSetting,
       showAlignmentButtons: true,
     );
+
     if (kIsWeb) {
       toolbar = QuillToolbar.basic(
         controller: _controller!,
@@ -271,6 +284,7 @@ class _HomePageState extends State<HomePage> {
       fontSize: 18,
       fontWeight: FontWeight.bold,
     );
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [

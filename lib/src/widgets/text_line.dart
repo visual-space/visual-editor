@@ -16,6 +16,7 @@ import '../models/documents/nodes/leaf.dart' as leaf;
 import '../models/documents/nodes/line.dart';
 import '../models/documents/nodes/node.dart';
 import '../models/documents/style.dart';
+import '../models/highlights/highlight.dart';
 import '../utils/color.dart';
 import '../utils/platform.dart';
 import 'box.dart';
@@ -378,6 +379,9 @@ class _TextLineState extends State<TextLine> {
     return res;
   }
 
+  // A system for caching recognizers
+  // TODO document why this system was created. It's not obvious from the code.
+  // Most likely for perf reasons
   GestureRecognizer _getRecognizer(Node segment) {
     if (_linkRecognizers.containsKey(segment)) {
       return _linkRecognizers[segment]!;
@@ -449,27 +453,31 @@ class _TextLineState extends State<TextLine> {
       decorations.add(b.decoration);
     }
     return a.merge(b).apply(
-        decoration: TextDecoration.combine(
-            List.castFrom<dynamic, TextDecoration>(decorations)));
+          decoration: TextDecoration.combine(
+            List.castFrom<dynamic, TextDecoration>(decorations),
+          ),
+        );
   }
 }
 
 class EditableTextLine extends RenderObjectWidget {
-  const EditableTextLine(
-    this.line,
-    this.leading,
-    this.body,
-    this.indentWidth,
-    this.verticalSpacing,
-    this.textDirection,
-    this.textSelection,
-    this.color,
-    this.enableInteractiveSelection,
-    this.hasFocus,
-    this.devicePixelRatio,
-    this.cursorCont,
-  );
+  const EditableTextLine({
+    required this.controller,
+    required this.line,
+    required this.leading,
+    required this.body,
+    required this.indentWidth,
+    required this.verticalSpacing,
+    required this.textDirection,
+    required this.textSelection,
+    required this.color,
+    required this.enableInteractiveSelection,
+    required this.hasFocus,
+    required this.devicePixelRatio,
+    required this.cursorCont,
+  });
 
+  final QuillController controller;
   final Line line;
   final Widget? leading;
   final Widget body;
@@ -492,21 +500,25 @@ class EditableTextLine extends RenderObjectWidget {
   RenderObject createRenderObject(BuildContext context) {
     final defaultStyles = DefaultStyles.getInstance(context);
     return RenderEditableTextLine(
-        line,
-        textDirection,
-        textSelection,
-        enableInteractiveSelection,
-        hasFocus,
-        devicePixelRatio,
-        _getPadding(),
-        color,
-        cursorCont,
-        defaultStyles.inlineCode!);
+      controller,
+      line,
+      textDirection,
+      textSelection,
+      enableInteractiveSelection,
+      hasFocus,
+      devicePixelRatio,
+      _getPadding(),
+      color,
+      cursorCont,
+      defaultStyles.inlineCode!,
+    );
   }
 
   @override
   void updateRenderObject(
-      BuildContext context, covariant RenderEditableTextLine renderObject) {
+    BuildContext context,
+    covariant RenderEditableTextLine renderObject,
+  ) {
     final defaultStyles = DefaultStyles.getInstance(context);
     renderObject
       ..setLine(line)
@@ -534,17 +546,20 @@ enum TextLineSlot { LEADING, BODY }
 class RenderEditableTextLine extends RenderEditableBox {
   /// Creates new editable paragraph render box.
   RenderEditableTextLine(
-      this.line,
-      this.textDirection,
-      this.textSelection,
-      this.enableInteractiveSelection,
-      this.hasFocus,
-      this.devicePixelRatio,
-      this.padding,
-      this.color,
-      this.cursorCont,
-      this.inlineCodeStyle);
+    this.controller,
+    this.line,
+    this.textDirection,
+    this.textSelection,
+    this.enableInteractiveSelection,
+    this.hasFocus,
+    this.devicePixelRatio,
+    this.padding,
+    this.color,
+    this.cursorCont,
+    this.inlineCodeStyle,
+  );
 
+  QuillController controller;
   RenderBox? _leading;
   RenderContentProxyBox? _body;
   Line line;
@@ -603,7 +618,7 @@ class RenderEditableTextLine extends RenderEditableBox {
     }
 
     color = c;
-    if (containsTextSelection()) {
+    if (_lineContainsSelection(textSelection)) {
       safeMarkNeedsPaint();
     }
   }
@@ -613,7 +628,7 @@ class RenderEditableTextLine extends RenderEditableBox {
       return;
     }
 
-    final containsSelection = containsTextSelection();
+    final containsSelection = _lineContainsSelection(textSelection);
     if (_attachedToCursorController) {
       cursorCont.removeListener(markNeedsLayout);
       cursorCont.color.removeListener(safeMarkNeedsPaint);
@@ -629,7 +644,7 @@ class RenderEditableTextLine extends RenderEditableBox {
       _attachedToCursorController = true;
     }
 
-    if (containsSelection || containsTextSelection()) {
+    if (containsSelection || _lineContainsSelection(textSelection)) {
       safeMarkNeedsPaint();
     }
   }
@@ -677,11 +692,6 @@ class RenderEditableTextLine extends RenderEditableBox {
   }
 
   // Start selection implementation
-
-  bool containsTextSelection() {
-    return line.documentOffset <= textSelection.end &&
-        textSelection.start <= line.documentOffset + line.length - 1;
-  }
 
   bool containsCursor() {
     return _containsCursor ??= cursorCont.isFloatingCursorActive
@@ -1040,6 +1050,7 @@ class RenderEditableTextLine extends RenderEditableBox {
       final parentData = _body!.parentData as BoxParentData;
       final effectiveOffset = offset + parentData.offset;
 
+      // Inline code
       if (inlineCodeStyle.backgroundColor != null) {
         for (final item in line.children) {
           if (item is! leaf.Text ||
@@ -1047,24 +1058,36 @@ class RenderEditableTextLine extends RenderEditableBox {
             continue;
           }
           final textRange = TextSelection(
-              baseOffset: item.offset, extentOffset: item.offset + item.length);
+            baseOffset: item.offset,
+            extentOffset: item.offset + item.length,
+          );
           final rects = _body!.getBoxesForSelection(textRange);
           final paint = Paint()..color = inlineCodeStyle.backgroundColor!;
           for (final box in rects) {
             final rect = box.toRect().translate(0, 1).shift(effectiveOffset);
             if (inlineCodeStyle.radius == null) {
               final paintRect = Rect.fromLTRB(
-                  rect.left - 2, rect.top, rect.right + 2, rect.bottom);
+                rect.left - 2,
+                rect.top,
+                rect.right + 2,
+                rect.bottom,
+              );
               context.canvas.drawRect(paintRect, paint);
             } else {
-              final paintRect = RRect.fromLTRBR(rect.left - 2, rect.top,
-                  rect.right + 2, rect.bottom, inlineCodeStyle.radius!);
+              final paintRect = RRect.fromLTRBR(
+                rect.left - 2,
+                rect.top,
+                rect.right + 2,
+                rect.bottom,
+                inlineCodeStyle.radius!,
+              );
               context.canvas.drawRRect(paintRect, paint);
             }
           }
         }
       }
 
+      // Cursor above text (iOS)
       if (hasFocus &&
           cursorCont.show.value &&
           containsCursor() &&
@@ -1074,6 +1097,7 @@ class RenderEditableTextLine extends RenderEditableBox {
 
       context.paintChild(_body!, effectiveOffset);
 
+      // Cursor bellow text (Android)
       if (hasFocus &&
           cursorCont.show.value &&
           containsCursor() &&
@@ -1081,23 +1105,65 @@ class RenderEditableTextLine extends RenderEditableBox {
         _paintCursor(context, effectiveOffset, line.hasEmbed);
       }
 
-      // paint the selection on the top
-      if (enableInteractiveSelection &&
-          line.documentOffset <= textSelection.end &&
-          textSelection.start <= line.documentOffset + line.length - 1) {
+      final selectionIsWithinDocBounds = _lineContainsSelection(
+        textSelection,
+      );
+
+      if (enableInteractiveSelection && selectionIsWithinDocBounds) {
         final local = localSelection(line, textSelection, false);
-        _selectedRects ??= _body!.getBoxesForSelection(
-          local,
-        );
+        _selectedRects ??= _body!.getBoxesForSelection(local);
         _paintSelection(context, effectiveOffset);
       }
+
+      // Highlights
+      controller.highlights.forEach((highlight) {
+        final highlightIsWithinDocBounds = _lineContainsSelection(
+          highlight.textSelection,
+        );
+
+        if (highlightIsWithinDocBounds) {
+          final local = localSelection(
+            line,
+            highlight.textSelection,
+            false,
+          );
+          final _highlightedRects = _body!.getBoxesForSelection(local);
+          _paintHighlights(
+            highlight,
+            _highlightedRects,
+            context,
+            effectiveOffset,
+          );
+        }
+      });
     }
+  }
+
+  bool _lineContainsSelection(TextSelection selection) {
+    return line.documentOffset <= selection.end &&
+        selection.start <= line.documentOffset + line.length - 1;
   }
 
   void _paintSelection(PaintingContext context, Offset effectiveOffset) {
     assert(_selectedRects != null);
     final paint = Paint()..color = color;
     for (final box in _selectedRects!) {
+      context.canvas.drawRect(box.toRect().shift(effectiveOffset), paint);
+    }
+  }
+
+  void _paintHighlights(
+    Highlight highlight,
+    List<TextBox> highlightedRects,
+    PaintingContext context,
+    Offset effectiveOffset,
+  ) {
+    assert(highlightedRects.isNotEmpty);
+    final isHovered = controller.hoveredHighlights.contains(highlight);
+    final paint = Paint()
+      ..color = isHovered ? highlight.hoverColor : highlight.color;
+
+    for (final box in highlightedRects) {
       context.canvas.drawRect(box.toRect().shift(effectiveOffset), paint);
     }
   }

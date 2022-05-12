@@ -117,7 +117,9 @@ class EditableTextBlock extends StatelessWidget {
   }
 
   List<Widget> _buildChildren(
-      BuildContext context, Map<int, int> indentLevelCounts) {
+    BuildContext context,
+    Map<int, int> indentLevelCounts,
+  ) {
     final defaultStyles = QuillStyles.getStyles(context, false);
     final count = block.children.length;
     final children = <Widget>[];
@@ -125,37 +127,46 @@ class EditableTextBlock extends StatelessWidget {
     for (final line in Iterable.castFrom<dynamic, Line>(block.children)) {
       index++;
       final editableTextLine = EditableTextLine(
-          line,
-          _buildLeading(context, line, index, indentLevelCounts, count),
-          TextLine(
-            line: line,
-            textDirection: textDirection,
-            embedBuilder: embedBuilder,
-            customStyleBuilder: customStyleBuilder,
-            styles: styles!,
-            readOnly: readOnly,
-            controller: controller,
-            linkActionPicker: linkActionPicker,
-            onLaunchUrl: onLaunchUrl,
-          ),
-          _getIndentWidth(),
-          _getSpacingForLine(line, index, count, defaultStyles),
-          textDirection,
-          textSelection,
-          color,
-          enableInteractiveSelection,
-          hasFocus,
-          MediaQuery.of(context).devicePixelRatio,
-          cursorCont);
+        controller: controller,
+        line: line,
+        leading: _buildLeading(context, line, index, indentLevelCounts, count),
+        body: TextLine(
+          line: line,
+          textDirection: textDirection,
+          embedBuilder: embedBuilder,
+          customStyleBuilder: customStyleBuilder,
+          styles: styles!,
+          readOnly: readOnly,
+          controller: controller,
+          linkActionPicker: linkActionPicker,
+          onLaunchUrl: onLaunchUrl,
+        ),
+        indentWidth: _getIndentWidth(),
+        verticalSpacing: _getSpacingForLine(line, index, count, defaultStyles),
+        textDirection: textDirection,
+        textSelection: textSelection,
+        color: color,
+        enableInteractiveSelection: enableInteractiveSelection,
+        hasFocus: hasFocus,
+        devicePixelRatio: MediaQuery.of(context).devicePixelRatio,
+        cursorCont: cursorCont,
+      );
       final nodeTextDirection = getDirectionOfNode(line);
       children.add(Directionality(
-          textDirection: nodeTextDirection, child: editableTextLine));
+        textDirection: nodeTextDirection,
+        child: editableTextLine,
+      ));
     }
     return children.toList(growable: false);
   }
 
-  Widget? _buildLeading(BuildContext context, Line line, int index,
-      Map<int, int> indentLevelCounts, int count) {
+  Widget? _buildLeading(
+    BuildContext context,
+    Line line,
+    int index,
+    Map<int, int> indentLevelCounts,
+    int count,
+  ) {
     final defaultStyles = QuillStyles.getStyles(context, false);
     final attrs = line.style.attributes;
     if (attrs[Attribute.list.key] == Attribute.ol) {

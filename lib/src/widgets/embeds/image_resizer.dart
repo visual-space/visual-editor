@@ -6,14 +6,14 @@ import 'package:flutter/scheduler.dart';
 import '../../translations/toolbar.i18n.dart';
 
 class ImageResizer extends StatefulWidget {
-  const ImageResizer(
-      {required this.imageWidth,
-      required this.imageHeight,
-      required this.maxWidth,
-      required this.maxHeight,
-      required this.onImageResize,
-      Key? key})
-      : super(key: key);
+  const ImageResizer({
+    required this.imageWidth,
+    required this.imageHeight,
+    required this.maxWidth,
+    required this.maxHeight,
+    required this.onImageResize,
+    Key? key,
+  }) : super(key: key);
 
   final double? imageWidth;
   final double? imageHeight;

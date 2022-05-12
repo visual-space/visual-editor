@@ -9,22 +9,68 @@ import '../models/documents/document.dart';
 import '../models/documents/nodes/embeddable.dart';
 import '../models/documents/nodes/leaf.dart';
 import '../models/documents/style.dart';
+import '../models/highlights/highlight.dart';
 import '../models/quill_delta.dart';
 import '../utils/delta.dart';
 
 typedef ReplaceTextCallback = bool Function(int index, int len, Object? data);
 typedef DeleteCallback = void Function(int cursorPosition, bool forward);
 
+/// [QuillController] stores the the state of the [Document] and the current
+/// [TextSelection]. Both [QuillEditor] and the [QuillToolbar] use the
+/// controller to synchronize their state. The controller defines several
+/// properties that represent the state of the document and the state of the
+/// editor, plus several methods that notify the listeners.
+///
+/// For ex, when users interact with the document the updateSelection() method
+/// is invoked. The method itself is one of the many that trigger
+/// notifyListeners(). Most of the listeners that subscribe to the state changes
+/// of the controller are located in the [QuillToolbar] and are directly
+/// controlling the state of the buttons.
+///
+/// Example: The [QuillToolbar] listens the notifications emitted by the
+/// controller class. If the current text selection has the bold attribute then
+/// the [QuillToolbar] react by highlighting the bold button.
+///
+/// The most important listener is located in the [RawEditorState] in the
+/// initState() and didUpdateWidget() methods. This listener triggers
+/// _onChangeTextEditingValue() which in turn has several duties, such as
+/// updating the state of the overlay selection or reconnecting to the remote
+/// input. However by far the most important step is to trigger a render by
+/// invoking setState(). Once a new build() is running then the [_Editor] starts
+/// rendering the new state of the Quill Editor. From here the entire rendering
+/// process starts executing again. In short summary, the document is parsed and
+/// converted into rendering elements, lines of text and blocks. Each line of
+/// text handles it's own styling and highlights rendering.
+///
+/// Properties:
+/// [selection] - The text selection can be configured on init
+/// [highlights] - Multiple [Highlight]s can be rendered on top of
+/// the document text. The highlights are independent of the [Delta] and can be
+/// used for tasks such as temporarily rendering a marker over important text or
+/// rendering the text selection where a custom tooltip will be placed.
+/// [keepStyleOnNewLine] - Will perpetuate the text styles when starting a new
+/// line.
+///
+/// Callbacks:
+/// [onReplaceText] - Callback executed after inserting content on top of
+/// existing  content. Multiple operations can trigger this behavior:
+/// copy/paste, inserting embeds, etc.
+/// [onDelete] - Callback executed after deleting characters.
+/// [onSelectionCompleted] - Custom behavior to be executed after completing a
+/// text selection
 class QuillController extends ChangeNotifier {
   QuillController({
     required this.document,
     required TextSelection selection,
+    List<Highlight> highlights = const [],
     bool keepStyleOnNewLine = false,
     this.onReplaceText,
     this.onDelete,
     this.onSelectionCompleted,
     this.onSelectionChanged,
   })  : _selection = selection,
+        _highlights = highlights,
         _keepStyleOnNewLine = keepStyleOnNewLine;
 
   factory QuillController.basic() {
@@ -44,6 +90,27 @@ class QuillController extends ChangeNotifier {
   /// Currently selected text within the [document].
   TextSelection get selection => _selection;
   TextSelection _selection;
+
+  /// Highlighted ranges within the [document].
+  List<Highlight> get highlights => _highlights;
+
+  set highlights(List<Highlight> highlights) {
+    _highlights = highlights;
+    notifyListeners();
+  }
+
+  List<Highlight> _highlights;
+
+  /// Highlighted ranges within the [document] that are currently hovered by
+  /// the pointer. Used to trigger the change of color when hovering.
+  List<Highlight> get hoveredHighlights => _hoveredHighlights;
+
+  set hoveredHighlights(List<Highlight> hoveredHighlights) {
+    _hoveredHighlights = hoveredHighlights;
+    notifyListeners();
+  }
+
+  List<Highlight> _hoveredHighlights = [];
 
   /// Custom [replaceText] handler
   /// Return false to ignore the event

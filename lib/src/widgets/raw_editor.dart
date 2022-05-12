@@ -38,43 +38,43 @@ import 'text_line.dart';
 import 'text_selection.dart';
 
 class RawEditor extends StatefulWidget {
-  const RawEditor(
-      {required this.controller,
-      required this.focusNode,
-      required this.scrollController,
-      required this.scrollBottomInset,
-      required this.cursorStyle,
-      required this.selectionColor,
-      required this.selectionCtrls,
-      Key? key,
-      this.scrollable = true,
-      this.padding = EdgeInsets.zero,
-      this.readOnly = false,
-      this.placeholder,
-      this.onLaunchUrl,
-      this.toolbarOptions = const ToolbarOptions(
-        copy: true,
-        cut: true,
-        paste: true,
-        selectAll: true,
-      ),
-      this.showSelectionHandles = false,
-      bool? showCursor,
-      this.textCapitalization = TextCapitalization.none,
-      this.maxHeight,
-      this.minHeight,
-      this.maxContentWidth,
-      this.customStyles,
-      this.expands = false,
-      this.autoFocus = false,
-      this.keyboardAppearance = Brightness.light,
-      this.enableInteractiveSelection = true,
-      this.scrollPhysics,
-      this.embedBuilder = defaultEmbedBuilder,
-      this.linkActionPickerDelegate = defaultLinkActionPickerDelegate,
-      this.customStyleBuilder,
-      this.floatingCursorDisabled = false})
-      : assert(maxHeight == null || maxHeight > 0, 'maxHeight cannot be null'),
+  const RawEditor({
+    required this.controller,
+    required this.focusNode,
+    required this.scrollController,
+    required this.scrollBottomInset,
+    required this.cursorStyle,
+    required this.selectionColor,
+    required this.selectionCtrls,
+    Key? key,
+    this.scrollable = true,
+    this.padding = EdgeInsets.zero,
+    this.readOnly = false,
+    this.placeholder,
+    this.onLaunchUrl,
+    this.toolbarOptions = const ToolbarOptions(
+      copy: true,
+      cut: true,
+      paste: true,
+      selectAll: true,
+    ),
+    this.showSelectionHandles = false,
+    bool? showCursor,
+    this.textCapitalization = TextCapitalization.none,
+    this.maxHeight,
+    this.minHeight,
+    this.maxContentWidth,
+    this.customStyles,
+    this.expands = false,
+    this.autoFocus = false,
+    this.keyboardAppearance = Brightness.light,
+    this.enableInteractiveSelection = true,
+    this.scrollPhysics,
+    this.embedBuilder = defaultEmbedBuilder,
+    this.linkActionPickerDelegate = defaultLinkActionPickerDelegate,
+    this.customStyleBuilder,
+    this.floatingCursorDisabled = false,
+  })  : assert(maxHeight == null || maxHeight > 0, 'maxHeight cannot be null'),
         assert(minHeight == null || minHeight >= 0, 'minHeight cannot be null'),
         assert(maxHeight == null || minHeight == null || maxHeight >= minHeight,
             'maxHeight cannot be null'),
@@ -259,6 +259,7 @@ class RawEditorState extends EditorState
 
   // Focus
   bool _didAutoFocus = false;
+
   bool get _hasFocus => widget.focusNode.hasFocus;
 
   // Theme
@@ -268,6 +269,7 @@ class RawEditorState extends EditorState
   @override
   List<Tuple2<int, Style>> get pasteStyle => _pasteStyle;
   List<Tuple2<int, Style>> _pasteStyle = <Tuple2<int, Style>>[];
+
   @override
   String get pastePlainText => _pastePlainText;
   String _pastePlainText = '';
@@ -359,7 +361,8 @@ class RawEditorState extends EditorState
         ? const BoxConstraints.expand()
         : BoxConstraints(
             minHeight: widget.minHeight ?? 0.0,
-            maxHeight: widget.maxHeight ?? double.infinity);
+            maxHeight: widget.maxHeight ?? double.infinity,
+          );
 
     return QuillStyles(
       data: _styles!,
@@ -379,7 +382,9 @@ class RawEditorState extends EditorState
   }
 
   void _handleSelectionChanged(
-      TextSelection selection, SelectionChangedCause cause) {
+    TextSelection selection,
+    SelectionChangedCause cause,
+  ) {
     final oldSelection = widget.controller.selection;
     widget.controller.updateSelection(selection, ChangeSource.LOCAL);
 
@@ -441,27 +446,28 @@ class RawEditorState extends EditorState
       } else if (node is Block) {
         final attrs = node.style.attributes;
         final editableTextBlock = EditableTextBlock(
-            block: node,
-            controller: widget.controller,
-            textDirection: _textDirection,
-            scrollBottomInset: widget.scrollBottomInset,
-            verticalSpacing: _getVerticalSpacingForBlock(node, _styles),
-            textSelection: widget.controller.selection,
-            color: widget.selectionColor,
-            styles: _styles,
-            enableInteractiveSelection: widget.enableInteractiveSelection,
-            hasFocus: _hasFocus,
-            contentPadding: attrs.containsKey(Attribute.codeBlock.key)
-                ? const EdgeInsets.all(16)
-                : null,
-            embedBuilder: widget.embedBuilder,
-            linkActionPicker: _linkActionPicker,
-            onLaunchUrl: widget.onLaunchUrl,
-            cursorCont: _cursorCont,
-            indentLevelCounts: indentLevelCounts,
-            onCheckboxTap: _handleCheckboxTap,
-            readOnly: widget.readOnly,
-            customStyleBuilder: widget.customStyleBuilder);
+          block: node,
+          controller: widget.controller,
+          textDirection: _textDirection,
+          scrollBottomInset: widget.scrollBottomInset,
+          verticalSpacing: _getVerticalSpacingForBlock(node, _styles),
+          textSelection: widget.controller.selection,
+          color: widget.selectionColor,
+          styles: _styles,
+          enableInteractiveSelection: widget.enableInteractiveSelection,
+          hasFocus: _hasFocus,
+          contentPadding: attrs.containsKey(Attribute.codeBlock.key)
+              ? const EdgeInsets.all(16)
+              : null,
+          embedBuilder: widget.embedBuilder,
+          linkActionPicker: _linkActionPicker,
+          onLaunchUrl: widget.onLaunchUrl,
+          cursorCont: _cursorCont,
+          indentLevelCounts: indentLevelCounts,
+          onCheckboxTap: _handleCheckboxTap,
+          readOnly: widget.readOnly,
+          customStyleBuilder: widget.customStyleBuilder,
+        );
         result.add(Directionality(
             textDirection: getDirectionOfNode(node), child: editableTextBlock));
       } else {
@@ -472,7 +478,9 @@ class RawEditorState extends EditorState
   }
 
   EditableTextLine _getEditableTextLineFromNode(
-      Line node, BuildContext context) {
+    Line node,
+    BuildContext context,
+  ) {
     final textLine = TextLine(
       line: node,
       textDirection: _textDirection,
@@ -485,18 +493,20 @@ class RawEditorState extends EditorState
       onLaunchUrl: widget.onLaunchUrl,
     );
     final editableTextLine = EditableTextLine(
-        node,
-        null,
-        textLine,
-        0,
-        _getVerticalSpacingForLine(node, _styles),
-        _textDirection,
-        widget.controller.selection,
-        widget.selectionColor,
-        widget.enableInteractiveSelection,
-        _hasFocus,
-        MediaQuery.of(context).devicePixelRatio,
-        _cursorCont);
+      controller: widget.controller,
+      line: node,
+      leading: null,
+      body: textLine,
+      indentWidth: 0,
+      verticalSpacing: _getVerticalSpacingForLine(node, _styles),
+      textDirection: _textDirection,
+      textSelection: widget.controller.selection,
+      color: widget.selectionColor,
+      enableInteractiveSelection: widget.enableInteractiveSelection,
+      hasFocus: _hasFocus,
+      devicePixelRatio: MediaQuery.of(context).devicePixelRatio,
+      cursorCont: _cursorCont,
+    );
     return editableTextLine;
   }
 
@@ -1422,6 +1432,7 @@ class _DocumentBoundary extends _TextBoundary {
   @override
   TextPosition getLeadingTextBoundaryAt(TextPosition position) =>
       const TextPosition(offset: 0);
+
   @override
   TextPosition getTrailingTextBoundaryAt(TextPosition position) {
     return TextPosition(

@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:i18n_extension/i18n_widget.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../flutter_quill.dart';
 import '../models/documents/document.dart';
 import '../models/documents/nodes/container.dart' as container_node;
 import '../models/documents/style.dart';
@@ -140,59 +141,58 @@ abstract class RenderAbstractEditor implements TextLayoutMetrics {
 }
 
 class QuillEditor extends StatefulWidget {
-  const QuillEditor(
-      {required this.controller,
-      required this.focusNode,
-      required this.scrollController,
-      required this.scrollable,
-      required this.padding,
-      required this.autoFocus,
-      required this.readOnly,
-      required this.expands,
-      this.showCursor,
-      this.paintCursorAboveText,
-      this.placeholder,
-      this.enableInteractiveSelection = true,
-      this.scrollBottomInset = 0,
-      this.minHeight,
-      this.maxHeight,
-      this.maxContentWidth,
-      this.customStyles,
-      this.textCapitalization = TextCapitalization.sentences,
-      this.keyboardAppearance = Brightness.light,
-      this.scrollPhysics,
-      this.onLaunchUrl,
-      this.onTapDown,
-      this.onTapUp,
-      this.onSingleLongTapStart,
-      this.onSingleLongTapMoveUpdate,
-      this.onSingleLongTapEnd,
-      this.embedBuilder = defaultEmbedBuilder,
-      this.linkActionPickerDelegate = defaultLinkActionPickerDelegate,
-      this.customStyleBuilder,
-      this.locale,
-      this.floatingCursorDisabled = false,
-      this.textSelectionControls,
-      Key? key})
-      : super(key: key);
+  const QuillEditor({
+    required this.controller,
+    required this.focusNode,
+    required this.scrollController,
+    required this.scrollable,
+    required this.padding,
+    required this.autoFocus,
+    required this.readOnly,
+    required this.expands,
+    this.showCursor,
+    this.paintCursorAboveText,
+    this.placeholder,
+    this.enableInteractiveSelection = true,
+    this.scrollBottomInset = 0,
+    this.minHeight,
+    this.maxHeight,
+    this.maxContentWidth,
+    this.customStyles,
+    this.textCapitalization = TextCapitalization.sentences,
+    this.keyboardAppearance = Brightness.light,
+    this.scrollPhysics,
+    this.onLaunchUrl,
+    this.onTapDown,
+    this.onTapUp,
+    this.onSingleLongTapStart,
+    this.onSingleLongTapMoveUpdate,
+    this.onSingleLongTapEnd,
+    this.embedBuilder = defaultEmbedBuilder,
+    this.linkActionPickerDelegate = defaultLinkActionPickerDelegate,
+    this.customStyleBuilder,
+    this.locale,
+    this.floatingCursorDisabled = false,
+    this.textSelectionControls,
+    Key? key,
+  }) : super(key: key);
 
   factory QuillEditor.basic({
     required QuillController controller,
     required bool readOnly,
     Brightness? keyboardAppearance,
-  }) {
-    return QuillEditor(
-      controller: controller,
-      scrollController: ScrollController(),
-      scrollable: true,
-      focusNode: FocusNode(),
-      autoFocus: true,
-      readOnly: readOnly,
-      expands: false,
-      padding: EdgeInsets.zero,
-      keyboardAppearance: keyboardAppearance ?? Brightness.light,
-    );
-  }
+  }) =>
+      QuillEditor(
+        controller: controller,
+        scrollController: ScrollController(),
+        scrollable: true,
+        focusNode: FocusNode(),
+        autoFocus: true,
+        readOnly: readOnly,
+        expands: false,
+        padding: EdgeInsets.zero,
+        keyboardAppearance: keyboardAppearance ?? Brightness.light,
+      );
 
   /// Controller object which establishes a link between a rich text document
   /// and this editor.
@@ -334,6 +334,7 @@ class QuillEditor extends StatefulWidget {
   // Returns whether gesture is handled
   final bool Function(LongPressMoveUpdateDetails details,
       TextPosition Function(Offset offset))? onSingleLongTapMoveUpdate;
+
   // Returns whether gesture is handled
   final bool Function(
           LongPressEndDetails details, TextPosition Function(Offset offset))?
@@ -382,7 +383,7 @@ class QuillEditorState extends State<QuillEditor>
   void initState() {
     super.initState();
     _selectionGestureDetectorBuilder =
-        _QuillEditorSelectionGestureDetectorBuilder(this);
+        _QuillEditorSelectionGestureDetectorBuilder(this, widget.controller);
   }
 
   @override
@@ -504,10 +505,15 @@ class QuillEditorState extends State<QuillEditor>
 
 class _QuillEditorSelectionGestureDetectorBuilder
     extends EditorTextSelectionGestureDetectorBuilder {
-  _QuillEditorSelectionGestureDetectorBuilder(this._state)
-      : super(delegate: _state);
+  _QuillEditorSelectionGestureDetectorBuilder(
+    this._state,
+    this._controller,
+  ) : super(delegate: _state);
 
   final QuillEditorState _state;
+  final QuillController _controller;
+  List<Highlight> hoveredHighlights = [];
+  List<Highlight> prevHoveredHighlights = [];
 
   @override
   void onForcePressStart(ForcePressDetails details) {
@@ -588,12 +594,62 @@ class _QuillEditorSelectionGestureDetectorBuilder
   }
 
   @override
+  void onHover(PointerHoverEvent event) {
+    final position = renderEditor!.getPositionForOffset(event.position);
+
+    // Multiple overlapping highlights can be intersected at the same time.
+    // Intersecting all highlights avoid "burying" highlights and making
+    // them inaccessible.
+    // If you need only the highlight hovering highest on top, you'll need to
+    // implement custom logic on the client side to select the
+    // preferred highlight.
+    hoveredHighlights.clear();
+
+    _controller.highlights.forEach((highlight) {
+      final start = highlight.textSelection.start;
+      final end = highlight.textSelection.end;
+      final isHovered = start <= position.offset && position.offset <= end;
+      final wasHovered = prevHoveredHighlights.contains(highlight);
+
+      if (isHovered) {
+        hoveredHighlights.add(highlight);
+
+        if (!wasHovered && highlight.onEnter != null) {
+          highlight.onEnter!(highlight);
+
+          // Only once at enter to avoid performance issues
+          // Could be further improved if multiple highlights overlap
+          _controller.hoveredHighlights.add(highlight);
+          _controller.notifyListeners();
+        }
+
+        if (highlight.onHover != null) {
+          highlight.onHover!(highlight);
+        }
+      } else {
+        if (wasHovered && highlight.onLeave != null) {
+          highlight.onLeave!(highlight);
+
+          // Only once at exit to avoid performance issues
+          _controller.hoveredHighlights.remove(highlight);
+          _controller.notifyListeners();
+        }
+      }
+    });
+
+    prevHoveredHighlights.clear();
+    prevHoveredHighlights.addAll(hoveredHighlights);
+  }
+
+  @override
   void onSingleTapUp(TapUpDetails details) {
     if (_state.widget.onTapUp != null &&
         renderEditor != null &&
         _state.widget.onTapUp!(details, renderEditor!.getPositionForOffset)) {
       return;
     }
+
+    _detectTapOnHighlight(details);
 
     editor!.hideToolbar();
 
@@ -638,6 +694,20 @@ class _QuillEditorSelectionGestureDetectorBuilder
     } finally {
       _state._requestKeyboard();
     }
+  }
+
+  void _detectTapOnHighlight(TapUpDetails details) {
+    final position = renderEditor!.getPositionForOffset(details.globalPosition);
+
+    _controller.highlights.forEach((highlight) {
+      final start = highlight.textSelection.start;
+      final end = highlight.textSelection.end;
+      final isTapped = start <= position.offset && position.offset <= end;
+
+      if (isTapped && highlight.onSingleTapUp != null) {
+        highlight.onSingleTapUp!(highlight);
+      }
+    });
   }
 
   @override
@@ -773,8 +843,10 @@ class RenderEditor extends RenderEditableContainerBox
 
   void _updateSelectionExtentsVisibility(Offset effectiveOffset) {
     final visibleRegion = Offset.zero & size;
-    final startPosition =
-        TextPosition(offset: selection.start, affinity: selection.affinity);
+    final startPosition = TextPosition(
+      offset: selection.start,
+      affinity: selection.affinity,
+    );
     final startOffset = _getOffsetForCaret(startPosition);
     // TODO(justinmc): https://github.com/flutter/flutter/issues/31495
     // Check if the selection is visible with an approximation because a
@@ -788,8 +860,10 @@ class RenderEditor extends RenderEditableContainerBox
         .inflate(visibleRegionSlop)
         .contains(startOffset + effectiveOffset);
 
-    final endPosition =
-        TextPosition(offset: selection.end, affinity: selection.affinity);
+    final endPosition = TextPosition(
+      offset: selection.end,
+      affinity: selection.affinity,
+    );
     final endOffset = _getOffsetForCaret(endPosition);
     _selectionEndInViewport.value = visibleRegion
         .inflate(visibleRegionSlop)
@@ -878,6 +952,7 @@ class RenderEditor extends RenderEditableContainerBox
   }
 
   double? _maxContentWidth;
+
   set maxContentWidth(double? value) {
     if (_maxContentWidth == value) return;
     _maxContentWidth = value;
@@ -922,6 +997,7 @@ class RenderEditor extends RenderEditableContainerBox
 
     final extentNode = _container.queryChild(textSelection.end, false).node;
     RenderEditableBox? extentChild = baseChild;
+
     while (extentChild != null) {
       if (extentChild.container == extentNode) {
         break;
@@ -1203,7 +1279,9 @@ class RenderEditor extends RenderEditableContainerBox
   }
 
   void _paintHandleLayers(
-      PaintingContext context, List<TextSelectionPoint> endpoints) {
+    PaintingContext context,
+    List<TextSelectionPoint> endpoints,
+  ) {
     var startPoint = endpoints[0].point;
     startPoint = Offset(
       startPoint.dx.clamp(0.0, size.width),
@@ -1268,7 +1346,10 @@ class RenderEditor extends RenderEditableContainerBox
   ///
   /// Returns `null` if the cursor is currently visible.
   double? getOffsetToRevealCursor(
-      double viewportHeight, double scrollOffset, double offsetInViewport) {
+    double viewportHeight,
+    double scrollOffset,
+    double offsetInViewport,
+  ) {
     // Endpoints coordinates represents lower left or lower right corner of
     // the selection. If we want to scroll up to reveal the caret we need to
     // adjust the dy value by the height of the line. We also add a small margin
@@ -1351,7 +1432,9 @@ class RenderEditor extends RenderEditableContainerBox
 
   /// Returns the position within the editor closest to the raw cursor offset.
   Offset calculateBoundedFloatingCursorOffset(
-      Offset rawCursorOffset, double preferredLineHeight) {
+    Offset rawCursorOffset,
+    double preferredLineHeight,
+  ) {
     var deltaPosition = Offset.zero;
     final topBound = _kFloatingCursorAddedMargin.top;
     final bottomBound =
@@ -1609,13 +1692,13 @@ class RenderEditableContainerBox extends RenderBox
             EditableContainerParentData>,
         RenderBoxContainerDefaultsMixin<RenderEditableBox,
             EditableContainerParentData> {
-  RenderEditableContainerBox(
-      {required container_node.Container container,
-      required this.textDirection,
-      required this.scrollBottomInset,
-      required EdgeInsetsGeometry padding,
-      List<RenderEditableBox>? children})
-      : assert(padding.isNonNegative),
+  RenderEditableContainerBox({
+    required container_node.Container container,
+    required this.textDirection,
+    required this.scrollBottomInset,
+    required EdgeInsetsGeometry padding,
+    List<RenderEditableBox>? children,
+  })  : assert(padding.isNonNegative),
         _container = container,
         _padding = padding {
     addAll(children);

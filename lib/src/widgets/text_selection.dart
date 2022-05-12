@@ -6,10 +6,15 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 
 import '../models/documents/nodes/node.dart';
 import 'editor.dart';
 
+/// When multiple lines of text are selected at once we need to compute the
+/// textSelection for each one of them.
+/// The local selection is computed as the union between the extent of the text
+/// selection and the extend of the line of text.
 TextSelection localSelection(Node node, TextSelection selection, fromParent) {
   final base = fromParent ? node.offset : node.documentOffset;
   assert(base <= selection.end && selection.start <= base + node.length - 1);
@@ -690,6 +695,7 @@ class EditorTextSelectionGestureDetector extends StatefulWidget {
   /// The [child] parameter must not be null.
   const EditorTextSelectionGestureDetector({
     required this.child,
+    this.onHover,
     this.onTapDown,
     this.onForcePressStart,
     this.onForcePressEnd,
@@ -705,6 +711,8 @@ class EditorTextSelectionGestureDetector extends StatefulWidget {
     this.behavior,
     Key? key,
   }) : super(key: key);
+
+  final PointerHoverEventListener? onHover;
 
   /// Called for every tap down including every tap down that's part of a
   /// double click or a long press, except touches that include enough movement
@@ -786,6 +794,12 @@ class _EditorTextSelectionGestureDetectorState
     _doubleTapTimer?.cancel();
     _dragUpdateThrottleTimer?.cancel();
     super.dispose();
+  }
+
+  void _handleHover(PointerHoverEvent event) {
+    if (widget.onHover != null) {
+      widget.onHover!(event);
+    }
   }
 
   // The down handler is force-run on success of a single tap and optimistically
@@ -994,11 +1008,14 @@ class _EditorTextSelectionGestureDetectorState
       );
     }
 
-    return RawGestureDetector(
-      gestures: gestures,
-      excludeFromSemantics: true,
-      behavior: widget.behavior,
-      child: widget.child,
+    return MouseRegion(
+      onHover: _handleHover,
+      child: RawGestureDetector(
+        gestures: gestures,
+        excludeFromSemantics: true,
+        behavior: widget.behavior,
+        child: widget.child,
+      ),
     );
   }
 }

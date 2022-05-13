@@ -7,10 +7,10 @@ import 'package:photo_view/photo_view.dart';
 import 'package:string_validator/string_validator.dart';
 import 'package:tuple/tuple.dart';
 
-import '../../core/models/documents/attribute.dart';
-import '../../core/models/documents/nodes/leaf.dart';
-import '../../core/models/documents/style.dart';
-import '../../core/widgets/controller.dart';
+import '../../controller/services/controller.dart';
+import '../../documents/models/attribute.dart';
+import '../../documents/models/nodes/leaf.dart';
+import '../../documents/models/style.dart';
 
 const List<String> imageFileExtensions = [
   '.jpeg',

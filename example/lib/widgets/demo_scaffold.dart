@@ -100,8 +100,9 @@ class _DemoScaffoldState extends State<DemoScaffold> {
     var toolbar = QuillToolbar.basic(controller: _controller!);
     if (_isDesktop()) {
       toolbar = QuillToolbar.basic(
-          controller: _controller!,
-          filePickImpl: openFileSystemPickerForDesktop);
+        controller: _controller!,
+        filePickImpl: openFileSystemPickerForDesktop,
+      );
     }
     return Scaffold(
       key: _scaffoldKey,

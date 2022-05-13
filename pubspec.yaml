@@ -1,6 +1,6 @@
 name: visual_editor
 description: A rich text editor supporting mobile and web (Demo App @ visualspace.app)
-version: 0.0.1
+version: 0.0.3
 #author: Visual Space, Adrian Moisa
 homepage: https://visualspace.app
 repository: https://github.com/visual-space/visual-editor

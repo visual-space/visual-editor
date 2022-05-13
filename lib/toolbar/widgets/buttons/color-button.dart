@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
-import '../../../core/models/documents/attribute.dart';
-import '../../../core/models/documents/style.dart';
-import '../../../core/models/themes/quill_icon_theme.dart';
-import '../../../core/utils/color.dart';
-import '../../../core/widgets/controller.dart';
+import '../../../controller/services/controller.dart';
+import '../../../documents/models/attribute.dart';
+import '../../../documents/models/style.dart';
+import '../../../shared/models/quill-icon-theme.model.dart';
 import '../../../shared/translations/toolbar.i18n.dart';
+import '../../../shared/utils/color.utils.dart';
 import '../toolbar.dart';
 
 /// Controls color styles.
-///
-/// When pressed, this button displays overlay buttons with
-/// buttons for each color.
+/// When pressed, this button displays overlay buttons with buttons for each color.
 class ColorButton extends StatefulWidget {
+  final IconData icon;
+  final double iconSize;
+  final bool background;
+  final QuillController controller;
+  final QuillIconThemeM? iconTheme;
+
   const ColorButton({
     required this.icon,
     required this.controller,
@@ -22,12 +26,6 @@ class ColorButton extends StatefulWidget {
     this.iconTheme,
     Key? key,
   }) : super(key: key);
-
-  final IconData icon;
-  final double iconSize;
-  final bool background;
-  final QuillController controller;
-  final QuillIconTheme? iconTheme;
 
   @override
   _ColorButtonState createState() => _ColorButtonState();
@@ -43,10 +41,12 @@ class _ColorButtonState extends State<ColorButton> {
 
   void _didChangeEditingValue() {
     setState(() {
-      _isToggledColor =
-          _getIsToggledColor(widget.controller.getSelectionStyle().attributes);
+      _isToggledColor = _getIsToggledColor(
+        widget.controller.getSelectionStyle().attributes,
+      );
       _isToggledBackground = _getIsToggledBackground(
-          widget.controller.getSelectionStyle().attributes);
+        widget.controller.getSelectionStyle().attributes,
+      );
       _isWhite = _isToggledColor &&
           _selectionStyle.attributes['color']!.value == '#ffffff';
       _isWhiteBackground = _isToggledBackground &&
@@ -81,8 +81,9 @@ class _ColorButtonState extends State<ColorButton> {
       oldWidget.controller.removeListener(_didChangeEditingValue);
       widget.controller.addListener(_didChangeEditingValue);
       _isToggledColor = _getIsToggledColor(_selectionStyle.attributes);
-      _isToggledBackground =
-          _getIsToggledBackground(_selectionStyle.attributes);
+      _isToggledBackground = _getIsToggledBackground(
+        _selectionStyle.attributes,
+      );
       _isWhite = _isToggledColor &&
           _selectionStyle.attributes['color']!.value == '#ffffff';
       _isWhiteBackground = _isToggledBackground &&
@@ -116,13 +117,15 @@ class _ColorButtonState extends State<ColorButton> {
             ? stringToColor('#ffffff')
             : (widget.iconTheme?.iconUnselectedFillColor ?? theme.canvasColor);
 
-    return QuillIconButton(
+    return IconBtn(
       highlightElevation: 0,
       hoverElevation: 0,
       size: widget.iconSize * kIconButtonFactor,
-      icon: Icon(widget.icon,
-          size: widget.iconSize,
-          color: widget.background ? iconColorBackground : iconColor),
+      icon: Icon(
+        widget.icon,
+        size: widget.iconSize,
+        color: widget.background ? iconColorBackground : iconColor,
+      ),
       fillColor: widget.background ? fillColorBackground : fillColor,
       borderRadius: widget.iconTheme?.borderRadius ?? 2,
       onPressed: _showColorPicker,
@@ -136,7 +139,8 @@ class _ColorButtonState extends State<ColorButton> {
     }
     hex = '#$hex';
     widget.controller.formatSelection(
-        widget.background ? BackgroundAttribute(hex) : ColorAttribute(hex));
+      widget.background ? BackgroundAttribute(hex) : ColorAttribute(hex),
+    );
     Navigator.of(context).pop();
   }
 

@@ -1,13 +1,21 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../../../core/models/documents/attribute.dart';
-import '../../../core/models/documents/style.dart';
-import '../../../core/models/themes/quill_icon_theme.dart';
-import '../../../core/widgets/controller.dart';
+import '../../../controller/services/controller.dart';
+import '../../../documents/models/attribute.dart';
+import '../../../documents/models/style.dart';
+import '../../../shared/models/quill-icon-theme.model.dart';
 import '../toolbar.dart';
 
 class SelectAlignmentButton extends StatefulWidget {
+  final QuillController controller;
+  final double iconSize;
+  final QuillIconThemeM? iconTheme;
+  final bool? showLeftAlignment;
+  final bool? showCenterAlignment;
+  final bool? showRightAlignment;
+  final bool? showJustifyAlignment;
+
   const SelectAlignmentButton({
     required this.controller,
     this.iconSize = kDefaultIconSize,
@@ -18,15 +26,6 @@ class SelectAlignmentButton extends StatefulWidget {
     this.showJustifyAlignment,
     Key? key,
   }) : super(key: key);
-
-  final QuillController controller;
-  final double iconSize;
-
-  final QuillIconTheme? iconTheme;
-  final bool? showLeftAlignment;
-  final bool? showCenterAlignment;
-  final bool? showRightAlignment;
-  final bool? showJustifyAlignment;
 
   @override
   _SelectAlignmentButtonState createState() => _SelectAlignmentButtonState();

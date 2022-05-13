@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/models/documents/attribute.dart';
-import '../../../core/models/themes/quill_icon_theme.dart';
-import '../../../core/widgets/controller.dart';
+import '../../../controller/services/controller.dart';
+import '../../../documents/models/attribute.dart';
+import '../../../shared/models/quill-icon-theme.model.dart';
 import '../toolbar.dart';
 
 class ClearFormatButton extends StatefulWidget {
+  final IconData icon;
+  final double iconSize;
+  final QuillController controller;
+  final QuillIconThemeM? iconTheme;
+
   const ClearFormatButton({
     required this.icon,
     required this.controller,
@@ -13,13 +18,6 @@ class ClearFormatButton extends StatefulWidget {
     this.iconTheme,
     Key? key,
   }) : super(key: key);
-
-  final IconData icon;
-  final double iconSize;
-
-  final QuillController controller;
-
-  final QuillIconTheme? iconTheme;
 
   @override
   _ClearFormatButtonState createState() => _ClearFormatButtonState();
@@ -33,11 +31,15 @@ class _ClearFormatButtonState extends State<ClearFormatButton> {
         widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color;
     final fillColor =
         widget.iconTheme?.iconUnselectedFillColor ?? theme.canvasColor;
-    return QuillIconButton(
+    return IconBtn(
         highlightElevation: 0,
         hoverElevation: 0,
         size: widget.iconSize * kIconButtonFactor,
-        icon: Icon(widget.icon, size: widget.iconSize, color: iconColor),
+        icon: Icon(
+          widget.icon,
+          size: widget.iconSize,
+          color: iconColor,
+        ),
         fillColor: fillColor,
         borderRadius: widget.iconTheme?.borderRadius ?? 2,
         onPressed: () {
@@ -48,7 +50,9 @@ class _ClearFormatButtonState extends State<ClearFormatButton> {
             }
           }
           for (final attr in attrs) {
-            widget.controller.formatSelection(Attribute.clone(attr, null));
+            widget.controller.formatSelection(
+              Attribute.clone(attr, null),
+            );
           }
         });
   }

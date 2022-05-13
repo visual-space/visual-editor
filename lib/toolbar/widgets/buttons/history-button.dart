@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/models/themes/quill_icon_theme.dart';
-import '../../../core/widgets/controller.dart';
+import '../../../controller/services/controller.dart';
+import '../../../shared/models/quill-icon-theme.model.dart';
 import '../toolbar.dart';
 
 class HistoryButton extends StatefulWidget {
+  final IconData icon;
+  final double iconSize;
+  final bool undo;
+  final QuillController controller;
+  final QuillIconThemeM? iconTheme;
+
   const HistoryButton({
     required this.icon,
     required this.controller,
@@ -13,12 +19,6 @@ class HistoryButton extends StatefulWidget {
     this.iconTheme,
     Key? key,
   }) : super(key: key);
-
-  final IconData icon;
-  final double iconSize;
-  final bool undo;
-  final QuillController controller;
-  final QuillIconTheme? iconTheme;
 
   @override
   _HistoryButtonState createState() => _HistoryButtonState();
@@ -38,7 +38,7 @@ class _HistoryButtonState extends State<HistoryButton> {
     widget.controller.changes.listen((event) async {
       _setIconColor();
     });
-    return QuillIconButton(
+    return IconBtn(
       highlightElevation: 0,
       hoverElevation: 0,
       size: widget.iconSize * 1.77,

@@ -1,13 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../core/models/documents/nodes/embeddable.dart';
-import '../../../core/models/themes/quill_dialog_theme.dart';
-import '../../../core/models/themes/quill_icon_theme.dart';
-import '../../../core/widgets/controller.dart';
+import '../../../controller/services/controller.dart';
+import '../../../documents/models/nodes/embeddable.dart';
+import '../../../shared/models/quill-dialog-theme.model.dart';
+import '../../../shared/models/quill-icon-theme.model.dart';
+import '../../models/media-pick.enum.dart';
+import '../../models/media-picker.type.dart';
+import '../dialogs/link-dialog.dart';
 import '../toolbar.dart';
 
 class VideoButton extends StatelessWidget {
+  final IconData icon;
+  final double iconSize;
+  final Color? fillColor;
+  final QuillController controller;
+  final OnVideoPickCallback? onVideoPickCallback;
+  final WebVideoPickImpl? webVideoPickImpl;
+  final FilePickImpl? filePickImpl;
+  final MediaPickSettingSelector? mediaPickSettingSelector;
+  final QuillIconThemeM? iconTheme;
+  final QuillDialogThemeM? dialogTheme;
+
   const VideoButton({
     required this.icon,
     required this.controller,
@@ -22,25 +36,6 @@ class VideoButton extends StatelessWidget {
     Key? key,
   }) : super(key: key);
 
-  final IconData icon;
-  final double iconSize;
-
-  final Color? fillColor;
-
-  final QuillController controller;
-
-  final OnVideoPickCallback? onVideoPickCallback;
-
-  final WebVideoPickImpl? webVideoPickImpl;
-
-  final FilePickImpl? filePickImpl;
-
-  final MediaPickSettingSelector? mediaPickSettingSelector;
-
-  final QuillIconTheme? iconTheme;
-
-  final QuillDialogTheme? dialogTheme;
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -49,7 +44,7 @@ class VideoButton extends StatelessWidget {
     final iconFillColor =
         iconTheme?.iconUnselectedFillColor ?? (fillColor ?? theme.canvasColor);
 
-    return QuillIconButton(
+    return IconBtn(
       icon: Icon(icon, size: iconSize, color: iconColor),
       highlightElevation: 0,
       hoverElevation: 0,
@@ -66,7 +61,7 @@ class VideoButton extends StatelessWidget {
           mediaPickSettingSelector ?? ImageVideoUtils.selectMediaPickSetting;
       final source = await selector(context);
       if (source != null) {
-        if (source == MediaPickSetting.Gallery) {
+        if (source == MediaPickSettingE.Gallery) {
           _pickVideo(context);
         } else {
           _typeLink(context);
@@ -89,7 +84,9 @@ class VideoButton extends StatelessWidget {
   void _typeLink(BuildContext context) {
     showDialog<String>(
       context: context,
-      builder: (_) => LinkDialog(dialogTheme: dialogTheme),
+      builder: (_) => LinkDialog(
+        dialogTheme: dialogTheme,
+      ),
     ).then(_linkSubmitted);
   }
 

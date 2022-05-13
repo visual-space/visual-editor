@@ -37,7 +37,6 @@ class _ReadOnlyPageState extends State<ReadOnlyPage> {
       focusNode: _focusNode,
       autoFocus: true,
       readOnly: !_edit,
-      expands: false,
       padding: EdgeInsets.zero,
     );
     if (kIsWeb) {
@@ -48,7 +47,6 @@ class _ReadOnlyPageState extends State<ReadOnlyPage> {
         focusNode: _focusNode,
         autoFocus: true,
         readOnly: !_edit,
-        expands: false,
         padding: EdgeInsets.zero,
         embedBuilder: defaultEmbedBuilderWeb,
       );

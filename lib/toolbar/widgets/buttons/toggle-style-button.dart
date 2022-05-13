@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/models/documents/attribute.dart';
-import '../../../core/models/documents/style.dart';
-import '../../../core/models/themes/quill_icon_theme.dart';
-import '../../../core/widgets/controller.dart';
+import '../../../controller/services/controller.dart';
+import '../../../documents/models/attribute.dart';
+import '../../../documents/models/style.dart';
+import '../../../shared/models/quill-icon-theme.model.dart';
+import '../../models/toggle-style-button-builder.type.dart';
 import '../toolbar.dart';
 
-typedef ToggleStyleButtonBuilder = Widget Function(
-  BuildContext context,
-  Attribute attribute,
-  IconData icon,
-  Color? fillColor,
-  bool? isToggled,
-  VoidCallback? onPressed, [
-  double iconSize,
-  QuillIconTheme? iconTheme,
-]);
-
 class ToggleStyleButton extends StatefulWidget {
+  final Attribute attribute;
+  final IconData icon;
+  final double iconSize;
+  final Color? fillColor;
+  final QuillController controller;
+  final ToggleStyleButtonBuilder childBuilder;
+  final QuillIconThemeM? iconTheme;
+
   const ToggleStyleButton({
     required this.attribute,
     required this.icon,
@@ -28,20 +26,6 @@ class ToggleStyleButton extends StatefulWidget {
     this.iconTheme,
     Key? key,
   }) : super(key: key);
-
-  final Attribute attribute;
-
-  final IconData icon;
-  final double iconSize;
-
-  final Color? fillColor;
-
-  final QuillController controller;
-
-  final ToggleStyleButtonBuilder childBuilder;
-
-  ///Specify an icon theme for the icons in the buttons
-  final QuillIconTheme? iconTheme;
 
   @override
   _ToggleStyleButtonState createState() => _ToggleStyleButtonState();
@@ -119,7 +103,7 @@ Widget defaultToggleStyleButtonBuilder(
   bool? isToggled,
   VoidCallback? onPressed, [
   double iconSize = kDefaultIconSize,
-  QuillIconTheme? iconTheme,
+  QuillIconThemeM? iconTheme,
 ]) {
   final theme = Theme.of(context);
   final isEnabled = onPressed != null;
@@ -138,7 +122,7 @@ Widget defaultToggleStyleButtonBuilder(
               theme.canvasColor) //Unselected icon fill color :
       : (iconTheme?.disabledIconFillColor ??
           (fillColor ?? theme.canvasColor)); //Disabled icon fill color
-  return QuillIconButton(
+  return IconBtn(
     highlightElevation: 0,
     hoverElevation: 0,
     size: iconSize * kIconButtonFactor,

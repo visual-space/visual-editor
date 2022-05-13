@@ -1,60 +1,47 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:i18n_extension/i18n_widget.dart';
 
-import '../../core/models/documents/attribute.dart';
-import '../../core/models/themes/quill_dialog_theme.dart';
-import '../../core/models/themes/quill_icon_theme.dart';
-import '../../core/widgets/controller.dart';
+import '../../controller/services/controller.dart';
+import '../../documents/models/attribute.dart';
+import '../../shared/models/quill-dialog-theme.model.dart';
+import '../../shared/models/quill-icon-theme.model.dart';
+import '../../shared/widgets/arrow-scrollable-button-list.dart';
+import '../../shared/widgets/dropdown-button.dart';
+import '../../shared/widgets/quill-icon-button.dart';
+import '../models/media-picker.type.dart';
 import '../models/quill-custom-icon.dart';
-import 'buttons/arrow-indicated-button-list.dart';
 import 'buttons/camera-button.dart';
 import 'buttons/clear-format-button.dart';
 import 'buttons/color-button.dart';
 import 'buttons/history-button.dart';
 import 'buttons/image-button.dart';
-import 'buttons/image-video-utils.dart';
 import 'buttons/indent-button.dart';
 import 'buttons/link-style-button.dart';
-import 'buttons/quill-dropdown-button.dart';
-import 'buttons/quill-icon-button.dart';
 import 'buttons/select-alignment-button.dart';
 import 'buttons/select-header-style-button.dart';
 import 'buttons/toggle-check-list-button.dart';
 import 'buttons/toggle-style-button.dart';
 import 'buttons/video-button.dart';
 
+export '../../media/services/image-video.utils.dart';
+export '../../shared/widgets/quill-icon-button.dart';
 export 'buttons/clear-format-button.dart';
 export 'buttons/color-button.dart';
 export 'buttons/history-button.dart';
 export 'buttons/image-button.dart';
-export 'buttons/image-video-utils.dart';
 export 'buttons/indent-button.dart';
 export 'buttons/link-style-button.dart';
-export 'buttons/quill-dropdown-button.dart';
-export 'buttons/quill-icon-button.dart';
 export 'buttons/select-alignment-button.dart';
 export 'buttons/select-header-style-button.dart';
 export 'buttons/toggle-check-list-button.dart';
 export 'buttons/toggle-style-button.dart';
 export 'buttons/video-button.dart';
 
-typedef OnImagePickCallback = Future<String?> Function(File file);
-typedef OnVideoPickCallback = Future<String?> Function(File file);
-typedef FilePickImpl = Future<String?> Function(BuildContext context);
-typedef WebImagePickImpl = Future<String?> Function(
-    OnImagePickCallback onImagePickCallback);
-typedef WebVideoPickImpl = Future<String?> Function(
-    OnVideoPickCallback onImagePickCallback);
-typedef MediaPickSettingSelector = Future<MediaPickSetting?> Function(
-    BuildContext context);
-
 // The default size of the icon of a button.
-const double kDefaultIconSize = 18;
+const kDefaultIconSize = 18.0;
 
 // The factor of how much larger the button is in relation to the icon.
-const double kIconButtonFactor = 1.77;
+const kIconButtonFactor = 1.77;
 
 class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
   const QuillToolbar({
@@ -118,12 +105,12 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
     Map<String, int>? fontSizeValues,
     int? initialFontSizeValue,
 
-    ///The theme to use for the icons in the buttons, uses type [QuillIconTheme]
-    QuillIconTheme? iconTheme,
+    ///The theme to use for the icons in the buttons, uses type [QuillIconThemeM]
+    QuillIconThemeM? iconTheme,
 
     ///The theme to use for the theming of the [LinkDialog()],
     ///shown when embedding an image, for example
-    QuillDialogTheme? dialogTheme,
+    QuillDialogThemeM? dialogTheme,
 
     /// The locale to use for the editor buttons, defaults to system locale
     /// More at https://github.com/singerdmx/flutter-quill#translation
@@ -196,7 +183,7 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
             iconTheme: iconTheme,
           ),
         if (showFontSize)
-          QuillDropdownButton(
+          DropdownBtn(
             iconTheme: iconTheme,
             iconSize: toolbarIconSize,
             attribute: Attribute.size,
@@ -476,7 +463,7 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
               color: Colors.grey.shade400,
             ),
         for (var customIcon in customIcons)
-          QuillIconButton(
+          IconBtn(
               highlightElevation: 0,
               hoverElevation: 0,
               size: toolbarIconSize * kIconButtonFactor,
@@ -523,10 +510,13 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
               children: children,
             )
           : Container(
-              constraints:
-                  BoxConstraints.tightFor(height: preferredSize.height),
+              constraints: BoxConstraints.tightFor(
+                height: preferredSize.height,
+              ),
               color: color ?? Theme.of(context).canvasColor,
-              child: ArrowIndicatedButtonList(buttons: children),
+              child: ArrowScrollableButtonList(
+                buttons: children,
+              ),
             ),
     );
   }

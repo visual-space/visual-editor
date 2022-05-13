@@ -102,10 +102,7 @@ class _HomePageState extends State<HomePage> {
       scrollController: ScrollController(),
       scrollable: true,
       focusNode: _focusNode,
-      autoFocus: false,
-      readOnly: false,
-      placeholder: 'Add content',
-      expands: false,
+      placeholder: 'Add blocks',
       padding: EdgeInsets.zero,
       customStyles: DefaultStyles(
         h1: DefaultTextBlockStyle(
@@ -129,10 +126,7 @@ class _HomePageState extends State<HomePage> {
         scrollController: ScrollController(),
         scrollable: true,
         focusNode: _focusNode,
-        autoFocus: false,
-        readOnly: false,
-        placeholder: 'Add content',
-        expands: false,
+        placeholder: 'Add blocks',
         padding: EdgeInsets.zero,
         customStyles: DefaultStyles(
           h1: DefaultTextBlockStyle(
@@ -160,7 +154,7 @@ class _HomePageState extends State<HomePage> {
       onImagePickCallback: _onImagePickCallback,
       onVideoPickCallback: _onVideoPickCallback,
       // uncomment to provide a custom "pick from" dialog.
-      // mediaPickSettingSelector: _selectMediaPickSetting,
+      // mediaPickSettingSelector: _selectMediaPickSettingE,
       showAlignmentButtons: true,
     );
 
@@ -189,17 +183,23 @@ class _HomePageState extends State<HomePage> {
             flex: 15,
             child: Container(
               color: Colors.white,
-              padding: const EdgeInsets.only(left: 16, right: 16),
+              padding: const EdgeInsets.only(
+                left: 16,
+                right: 16,
+              ),
               child: quillEditor,
             ),
           ),
           kIsWeb
               ? Expanded(
                   child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-                  child: toolbar,
-                ))
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 8,
+                    ),
+                    child: toolbar,
+                  ),
+                )
               : Container(child: toolbar)
         ],
       ),
@@ -254,8 +254,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   // ignore: unused_element
-  Future<MediaPickSetting?> _selectMediaPickSetting(BuildContext context) =>
-      showDialog<MediaPickSetting>(
+  Future<MediaPickSettingE?> _selectMediaPickSettingE(BuildContext context) =>
+      showDialog<MediaPickSettingE>(
         context: context,
         builder: (ctx) => AlertDialog(
           contentPadding: EdgeInsets.zero,
@@ -265,12 +265,12 @@ class _HomePageState extends State<HomePage> {
               TextButton.icon(
                 icon: const Icon(Icons.collections),
                 label: const Text('Gallery'),
-                onPressed: () => Navigator.pop(ctx, MediaPickSetting.Gallery),
+                onPressed: () => Navigator.pop(ctx, MediaPickSettingE.Gallery),
               ),
               TextButton.icon(
                 icon: const Icon(Icons.link),
                 label: const Text('Link'),
-                onPressed: () => Navigator.pop(ctx, MediaPickSetting.Link),
+                onPressed: () => Navigator.pop(ctx, MediaPickSettingE.Link),
               )
             ],
           ),

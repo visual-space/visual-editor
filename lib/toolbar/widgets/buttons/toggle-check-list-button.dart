@@ -1,12 +1,21 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/models/documents/attribute.dart';
-import '../../../core/models/documents/style.dart';
-import '../../../core/models/themes/quill_icon_theme.dart';
-import '../../../core/widgets/controller.dart';
+import '../../../controller/services/controller.dart';
+import '../../../documents/models/attribute.dart';
+import '../../../documents/models/style.dart';
+import '../../../shared/models/quill-icon-theme.model.dart';
+import '../../models/toggle-style-button-builder.type.dart';
 import '../toolbar.dart';
 
 class ToggleCheckListButton extends StatefulWidget {
+  final IconData icon;
+  final double iconSize;
+  final Color? fillColor;
+  final QuillController controller;
+  final ToggleStyleButtonBuilder childBuilder;
+  final Attribute attribute;
+  final QuillIconThemeM? iconTheme;
+
   const ToggleCheckListButton({
     required this.icon,
     required this.controller,
@@ -17,19 +26,6 @@ class ToggleCheckListButton extends StatefulWidget {
     this.iconTheme,
     Key? key,
   }) : super(key: key);
-
-  final IconData icon;
-  final double iconSize;
-
-  final Color? fillColor;
-
-  final QuillController controller;
-
-  final ToggleStyleButtonBuilder childBuilder;
-
-  final Attribute attribute;
-
-  final QuillIconTheme? iconTheme;
 
   @override
   _ToggleCheckListButtonState createState() => _ToggleCheckListButtonState();
@@ -102,8 +98,10 @@ class _ToggleCheckListButtonState extends State<ToggleCheckListButton> {
   }
 
   void _toggleAttribute() {
-    widget.controller.formatSelection(_isToggled!
-        ? Attribute.clone(Attribute.unchecked, null)
-        : Attribute.unchecked);
+    widget.controller.formatSelection(
+      _isToggled!
+          ? Attribute.clone(Attribute.unchecked, null)
+          : Attribute.unchecked,
+    );
   }
 }

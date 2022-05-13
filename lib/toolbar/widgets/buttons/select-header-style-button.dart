@@ -1,24 +1,23 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../../../core/models/documents/attribute.dart';
-import '../../../core/models/documents/style.dart';
-import '../../../core/models/themes/quill_icon_theme.dart';
-import '../../../core/widgets/controller.dart';
+import '../../../controller/services/controller.dart';
+import '../../../documents/models/attribute.dart';
+import '../../../documents/models/style.dart';
+import '../../../shared/models/quill-icon-theme.model.dart';
 import '../toolbar.dart';
 
 class SelectHeaderStyleButton extends StatefulWidget {
+  final QuillController controller;
+  final double iconSize;
+  final QuillIconThemeM? iconTheme;
+
   const SelectHeaderStyleButton({
     required this.controller,
     this.iconSize = kDefaultIconSize,
     this.iconTheme,
     Key? key,
   }) : super(key: key);
-
-  final QuillController controller;
-  final double iconSize;
-
-  final QuillIconTheme? iconTheme;
 
   @override
   _SelectHeaderStyleButtonState createState() =>
@@ -67,7 +66,9 @@ class _SelectHeaderStyleButtonState extends State<SelectHeaderStyleButton> {
       children: List.generate(4, (index) {
         return Padding(
           // ignore: prefer_const_constructors
-          padding: EdgeInsets.symmetric(horizontal: !kIsWeb ? 1.0 : 5.0),
+          padding: EdgeInsets.symmetric(
+            horizontal: !kIsWeb ? 1.0 : 5.0,
+          ),
           child: ConstrainedBox(
             constraints: BoxConstraints.tightFor(
               width: widget.iconSize * kIconButtonFactor,
@@ -79,15 +80,18 @@ class _SelectHeaderStyleButtonState extends State<SelectHeaderStyleButton> {
               elevation: 0,
               visualDensity: VisualDensity.compact,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                      widget.iconTheme?.borderRadius ?? 2)),
+                borderRadius: BorderRadius.circular(
+                  widget.iconTheme?.borderRadius ?? 2,
+                ),
+              ),
               fillColor: _valueToText[_value] == _valueString[index]
                   ? (widget.iconTheme?.iconSelectedFillColor ??
                       theme.toggleableActiveColor)
                   : (widget.iconTheme?.iconUnselectedFillColor ??
                       theme.canvasColor),
-              onPressed: () =>
-                  widget.controller.formatSelection(_valueAttribute[index]),
+              onPressed: () => widget.controller.formatSelection(
+                _valueAttribute[index],
+              ),
               child: Text(
                 _valueString[index],
                 style: style.copyWith(

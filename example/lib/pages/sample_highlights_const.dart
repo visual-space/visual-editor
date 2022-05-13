@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter-quill.dart';
 
 final SAMPLE_HIGHLIGHTS = [
-  Highlight(
+  HighlightM(
       textSelection: const TextSelection(
         baseOffset: 183,
         extentOffset: 280,
@@ -17,7 +17,7 @@ final SAMPLE_HIGHLIGHTS = [
         print('Tapped highlight 1');
       }
   ),
-  Highlight(
+  HighlightM(
     textSelection: const TextSelection(
       baseOffset: 387,
       extentOffset: 450,

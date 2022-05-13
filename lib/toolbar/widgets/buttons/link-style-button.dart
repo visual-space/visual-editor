@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 
-import '../../../core/models/documents/attribute.dart';
-import '../../../core/models/rules/insert.dart';
-import '../../../core/models/themes/quill_dialog_theme.dart';
-import '../../../core/models/themes/quill_icon_theme.dart';
-import '../../../core/widgets/controller.dart';
-import '../../../core/widgets/link.dart';
+import '../../../blocks/services/link.utils.dart';
+import '../../../controller/services/controller.dart';
+import '../../../documents/models/attribute.dart';
+import '../../../shared/models/quill-dialog-theme.model.dart';
+import '../../../shared/models/quill-icon-theme.model.dart';
 import '../../../shared/translations/toolbar.i18n.dart';
+import '../dialogs/link-style-dialog.dart';
 import '../toolbar.dart';
 
 class LinkStyleButton extends StatefulWidget {
+  final QuillController controller;
+  final IconData? icon;
+  final double iconSize;
+  final QuillIconThemeM? iconTheme;
+  final QuillDialogThemeM? dialogTheme;
+
   const LinkStyleButton({
     required this.controller,
     this.iconSize = kDefaultIconSize,
@@ -19,12 +25,6 @@ class LinkStyleButton extends StatefulWidget {
     this.dialogTheme,
     Key? key,
   }) : super(key: key);
-
-  final QuillController controller;
-  final IconData? icon;
-  final double iconSize;
-  final QuillIconTheme? iconTheme;
-  final QuillDialogTheme? dialogTheme;
 
   @override
   _LinkStyleButtonState createState() => _LinkStyleButtonState();
@@ -63,6 +63,7 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
     final theme = Theme.of(context);
     final isToggled = _getLinkAttributeValue() != null;
     final pressedHandler = () => _openLinkDialog(context);
+
     return GestureDetector(
       onTap: () async {
         final dynamic tooltip = _toolTipKey.currentState;
@@ -77,7 +78,7 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
       child: Tooltip(
         key: _toolTipKey,
         message: 'Please first select some text to transform into a link.'.i18n,
-        child: QuillIconButton(
+        child: IconBtn(
           highlightElevation: 0,
           hoverElevation: 0,
           size: widget.iconSize * kIconButtonFactor,
@@ -120,10 +121,17 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
         }
 
         final len = widget.controller.selection.end - index;
-        text ??=
-            len == 0 ? '' : widget.controller.document.getPlainText(index, len);
-        return _LinkDialog(
-            dialogTheme: widget.dialogTheme, link: link, text: text);
+        text ??= len == 0
+            ? ''
+            : widget.controller.document.getPlainText(
+                index,
+                len,
+              );
+        return LinkStyleDialog(
+          dialogTheme: widget.dialogTheme,
+          link: link,
+          text: text,
+        );
       },
     ).then(
       (value) {
@@ -155,108 +163,16 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
         length = range.end - range.start;
       }
     }
-    widget.controller.replaceText(index, length, text, null);
-    widget.controller.formatText(index, text.length, LinkAttribute(link));
-  }
-}
-
-class _LinkDialog extends StatefulWidget {
-  const _LinkDialog({this.dialogTheme, this.link, this.text, Key? key})
-      : super(key: key);
-
-  final QuillDialogTheme? dialogTheme;
-  final String? link;
-  final String? text;
-
-  @override
-  _LinkDialogState createState() => _LinkDialogState();
-}
-
-class _LinkDialogState extends State<_LinkDialog> {
-  late String _link;
-  late String _text;
-  late TextEditingController _linkController;
-  late TextEditingController _textController;
-
-  @override
-  void initState() {
-    super.initState();
-    _link = widget.link ?? '';
-    _text = widget.text ?? '';
-    _linkController = TextEditingController(text: _link);
-    _textController = TextEditingController(text: _text);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: widget.dialogTheme?.dialogBackgroundColor,
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 8),
-          TextField(
-            keyboardType: TextInputType.multiline,
-            style: widget.dialogTheme?.inputTextStyle,
-            decoration: InputDecoration(
-                labelText: 'Text'.i18n,
-                labelStyle: widget.dialogTheme?.labelTextStyle,
-                floatingLabelStyle: widget.dialogTheme?.labelTextStyle),
-            autofocus: true,
-            onChanged: _textChanged,
-            controller: _textController,
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            keyboardType: TextInputType.multiline,
-            style: widget.dialogTheme?.inputTextStyle,
-            decoration: InputDecoration(
-                labelText: 'Link'.i18n,
-                labelStyle: widget.dialogTheme?.labelTextStyle,
-                floatingLabelStyle: widget.dialogTheme?.labelTextStyle),
-            autofocus: true,
-            onChanged: _linkChanged,
-            controller: _linkController,
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: _canPress() ? _applyLink : null,
-          child: Text(
-            'Ok'.i18n,
-            style: widget.dialogTheme?.labelTextStyle,
-          ),
-        ),
-      ],
+    widget.controller.replaceText(
+      index,
+      length,
+      text,
+      null,
     );
-  }
-
-  bool _canPress() {
-    if (_text.isEmpty || _link.isEmpty) {
-      return false;
-    }
-
-    if (!AutoFormatMultipleLinksRule.linkRegExp.hasMatch(_link)) {
-      return false;
-    }
-
-    return true;
-  }
-
-  void _linkChanged(String value) {
-    setState(() {
-      _link = value;
-    });
-  }
-
-  void _textChanged(String value) {
-    setState(() {
-      _text = value;
-    });
-  }
-
-  void _applyLink() {
-    Navigator.pop(context, Tuple2(_text.trim(), _link.trim()));
+    widget.controller.formatText(
+      index,
+      text.length,
+      LinkAttribute(link),
+    );
   }
 }

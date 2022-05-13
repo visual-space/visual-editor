@@ -1,46 +1,30 @@
 # Visual Editor
-**Fork of Flutter Quill - Current status, Under Major Refactoring. Expect some features here and there to be affected / disabled.**
 
-Visual Editor is a Rich Text editor for Flutter originally forked from Flutter Quill. The editor is built around the powerful Delta document format originally developed by QuillJs. Delta documents can be easily converted to JSON, the encoding is easy to read and modify and offers many extensibility options.
+Visual Editor is a Rich Text editor for [Flutter] originally forked from [Flutter Quill]. The editor is built around the powerful [Quilljs Delta] document format originally developed by QuillJs. Delta documents can be easily converted to JSON, the encoding is easy to read and modify and offers many extensibility options.
 
-Our core motivation to fork Quill was the severe lack of documentation and testing plus a lack of support from the maintainers when it comes to receiving technical support. Considering that we plan to release many more open source Flutter widgets, starting with the rich text editor was a no brainer.
+**Why fork Flutter Quill?**
 
-## Planned Features
-- Improved, easy to digest architecture
-- Full docs
-- Full test coverage
-- Highlights
-- Code Samples
-- Tables
-- Nested bullets
-- Layouts
-- Styled blocks
-- Color coding for source code
-- Themes
-- Search
-- Bug fixes
-
-[Visual Coding] - Tutorials about Visual Editor and software architecture
-
-[FlutterQuill] - The Original repo that we forked
+While building the [Visual Space] platform we begun using [Flutter Quill] to render text content for next generation interactive tutorials and projects. However, we had to deal with issues such as severe lack of documentation and testing plus a lack of technical support from the maintainers. Therefore, we decided to fork Quill and improve it with additional features and higher quality standards. Soon we will be publishing the entire Visual Kit, a set of widgets built for productivity apps.
 
 ## How To Start
 
-Minimal example, toolbar and editor with a shared controller:
+**Minimal example**
 
-```
-QuillController _controller = QuillController.basic();
+Make sure you don't overwrite the controller on `build()` or other updates, otherwise you will lose the contents of the history. Which means no more undo, redo with the previous states.
+```dart
+final _controller = QuillController.basic();
 ```
 
 ```dart
 Column(
   children: [
-    QuillToolbar.basic(controller: _controller),
+    QuillToolbar.basic(
+      controller: _controller,
+    ),
     Expanded(
       child: Container(
         child: QuillEditor.basic(
           controller: _controller,
-          readOnly: false,
         ),
       ),
     )
@@ -48,32 +32,93 @@ Column(
 )
 ```
 
-## Input / Output
-This library uses [Quill] as an internal data format.
-
-* `_controller.document.toDelta()` - Extract the deltas.
-* `_controller.document.toPlainText()` - Extract plain text.
-
-## Saving a document as JSON
-
 **Saving a document**
-```
-var json = jsonEncode(_controller.document.toDelta().toJson());
+```dart
+final json = jsonEncode(_controller.document.toDelta().toJson());
 ```
 
 **Retrieving a document**
-```
+```dart
 const blogPost = jsonDecode(response);
 
-_controller = QuillController(
+final _controller = QuillController(
   document: Document.fromJson(blogPost),
   selection: TextSelection.collapsed(offset: 0)
 );
 ```
 
-This readme will be expanded with detailed instruction on how to use Visual Editor. Currently we are ongoing a deep cleanup effort.
+**Delta or plain text**
+
+This library uses [Quill] as an internal data format. Quill uses delta objects to describe the attributes of each fragment of text.
+
+```dart
+_controller.document.toDelta(); // Extract the deltas
+_controller.document.toPlainText(); // Extract plain text
+```
+
+## Discord
+Join us on [Visual Editor Discord] to get live advice from the maintainers and core users. Our goal is to create a friendly and active support community that shares help and resources.
+
+## Youtube
+Subscribe to our [Visual Coding] Youtube channel to learn the skills needed to use and extend Visual Editor. Our episodes go in many topics including Flutter and production ready Software Architecture.
+
+## Documentation
+Learn more about Visual Editor architecture and how to use the features.
+
+- **[Delta](https://github.com/visual-space/visual-editor/blob/main/lib/delta/delta.md)** - Delta documents are used to store text edits and styling attributes.
+- **[Toolbar](https://github.com/visual-space/visual-editor/blob/main/lib/toolbar/toolbar.md)** - Displays buttons used to edit the styling of the text.
+- **[Highlights](https://github.com/visual-space/visual-editor/blob/main/lib/highlights/highlights.md)** - Renders temporary text markers sensitive to taps.
+
+## Roadmap
+These features are currently under developed for [Visual Space]. As soon as they are stable we will release them in the open source repository.
+
+- **[Maintainable architecture](https://github.com/visual-space/visual-editor/issues/1)** - Beginner friendly source code. [WIP]
+- **[Full documentation](https://github.com/visual-space/visual-editor/issues/2)** - Improved learning materials. [WIP]
+- **[Full test coverage](https://github.com/visual-space/visual-editor/issues/3)** - Add test cases from the ground up.
+- **[Custom Highlights](https://github.com/visual-space/visual-editor/issues/4)** - Highlights custom regions of text that are sensitive to taps [WIP]
+- **Code Color Coding**
+- **Tables**
+- **Nested bullets on Tab** - Pressing tab on the web wont push the bullets into nesting mode.
+- **Layouts** - Two columns layouts or other such options.
+- **Styled blocks** - Change the styling of a block to make it standout (info, warning, etc).
+- **Search**
+- **Plugins Architecture** - Enables developers to easily attach middleware to Visual Editor.
+- **Spellchecker** 
+- **Text to speech** 
+- **Emoji Picker** 
+- **Custom emoji**
+- **Selection menu styling** - Displays a popup menu above selected text for quick common styling actions.
+- **Custom selection menu** - Enables developers to add extra buttons in teh quick actions menu.
+
+## Known Issues
+- Toolbar does not trigger cursor pointer (in example page)
+- The "embeds missing" warning should be listed only once at init. Currently it's repeated many times
+- The demo content is outdated.
+- There are 2 ways to upload images in the web build.
+- The background for the modal that uploads images is missing color.
+- Tab key does not work as expected on web.
+- Checkboxes don't show pointer cursor on web.
+- Links don't show pointer cursor on web.
+- Headings are completely overridden by the size attribute/selector. Other editors give priority to the last feature that modified the text size.
+- Switch to next input by pressing TAB (on web)
+- Typing inside a link will split the link. This is abnormal behaviour, links should ingest the new characters.
+- Links can't be edited (afaik).
+- Nest bullets when pressing Tab. Currently it's possible only with the indentation controls.
 
 [Quill]: https://quilljs.com/docs/formats
+[Quilljs Delta]: https://github.com/quilljs/delta
 [Flutter]: https://github.com/flutter/flutter
-[FlutterQuill]: https://github.com/singerdmx/flutter-quill
+[Flutter Quill]: https://github.com/singerdmx/flutter-quill
 [Visual Coding]: https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA
+[Visual Editor Discord]: https://discord.gg/XpGygmXde4
+[Visual Space]: https://visualspace.app
+
+## Who is using Visual Editor?
+
+- **[Visual Space]** - Next generation interactive tutorials and projects
+
+Send us a message on [Visual Editor Discord] if you want your app to be listed here.
+
+## Additional Resources
+[Word Processing Terminology 1](http://w.sunybroome.edu/basic-computer-skills/functions/word_processing/2wp_terminology.html) • 
+[Word Processing Terminology 2](https://www.computerhope.com/jargon/word-processor.htm)

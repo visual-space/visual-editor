@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/models/documents/attribute.dart';
-import '../../../core/models/themes/quill_icon_theme.dart';
-import '../../../core/widgets/controller.dart';
+import '../../../controller/services/controller.dart';
+import '../../../documents/models/attribute.dart';
+import '../../../shared/models/quill-icon-theme.model.dart';
 import '../toolbar.dart';
 
 class IndentButton extends StatefulWidget {
+  final IconData icon;
+  final double iconSize;
+  final QuillController controller;
+  final bool isIncrease;
+  final QuillIconThemeM? iconTheme;
+
   const IndentButton({
     required this.icon,
     required this.controller,
@@ -14,13 +20,6 @@ class IndentButton extends StatefulWidget {
     this.iconTheme,
     Key? key,
   }) : super(key: key);
-
-  final IconData icon;
-  final double iconSize;
-  final QuillController controller;
-  final bool isIncrease;
-
-  final QuillIconTheme? iconTheme;
 
   @override
   _IndentButtonState createState() => _IndentButtonState();
@@ -35,11 +34,15 @@ class _IndentButtonState extends State<IndentButton> {
         widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color;
     final iconFillColor =
         widget.iconTheme?.iconUnselectedFillColor ?? theme.canvasColor;
-    return QuillIconButton(
+    return IconBtn(
       highlightElevation: 0,
       hoverElevation: 0,
       size: widget.iconSize * 1.77,
-      icon: Icon(widget.icon, size: widget.iconSize, color: iconColor),
+      icon: Icon(
+        widget.icon,
+        size: widget.iconSize,
+        color: iconColor,
+      ),
       fillColor: iconFillColor,
       borderRadius: widget.iconTheme?.borderRadius ?? 2,
       onPressed: () {
@@ -53,13 +56,15 @@ class _IndentButtonState extends State<IndentButton> {
           return;
         }
         if (indent.value == 1 && !widget.isIncrease) {
-          widget.controller
-              .formatSelection(Attribute.clone(Attribute.indentL1, null));
+          widget.controller.formatSelection(
+            Attribute.clone(Attribute.indentL1, null),
+          );
           return;
         }
         if (widget.isIncrease) {
-          widget.controller
-              .formatSelection(Attribute.getIndentLevel(indent.value + 1));
+          widget.controller.formatSelection(
+            Attribute.getIndentLevel(indent.value + 1),
+          );
           return;
         }
         widget.controller

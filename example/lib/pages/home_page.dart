@@ -7,7 +7,7 @@ import 'package:filesystem_picker/filesystem_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_quill/flutter-quill.dart' hide Text;
+import 'package:flutter_quill/visual-editor.dart' hide Text;
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:tuple/tuple.dart';
@@ -56,7 +56,11 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     if (_controller == null) {
-      return const Scaffold(body: Center(child: Text('Loading...')));
+      return const Scaffold(
+        body: Center(
+          child: Text('Loading...'),
+        ),
+      );
     }
 
     return Scaffold(
@@ -64,14 +68,21 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.grey.shade800,
         elevation: 0,
         centerTitle: false,
-        title: const Text(
-          'Flutter Quill',
+        title: GestureDetector(
+          child: const Text(
+            'Visual Editor',
+          ),
+          onTap: () {
+            final json = jsonEncode(_controller?.document.toDelta().toJson());
+            print(json);
+          },
         ),
         actions: [],
       ),
       drawer: Container(
-        constraints:
-            BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.7,
+        ),
         color: Colors.grey.shade800,
         child: _buildMenuBar(context),
       ),
@@ -84,8 +95,9 @@ class _HomePageState extends State<HomePage> {
                 .attributes
                 .keys
                 .contains('bold')) {
-              _controller!
-                  .formatSelection(Attribute.clone(Attribute.bold, null));
+              _controller!.formatSelection(
+                Attribute.clone(Attribute.bold, null),
+              );
             } else {
               _controller!.formatSelection(Attribute.bold);
             }
@@ -179,8 +191,7 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Expanded(
-            flex: 15,
+          Flexible(
             child: Container(
               color: Colors.white,
               padding: const EdgeInsets.only(
@@ -190,17 +201,13 @@ class _HomePageState extends State<HomePage> {
               child: quillEditor,
             ),
           ),
-          kIsWeb
-              ? Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 16,
-                      horizontal: 8,
-                    ),
-                    child: toolbar,
-                  ),
-                )
-              : Container(child: toolbar)
+          Container(
+            padding: const EdgeInsets.symmetric(
+              vertical: 16,
+              horizontal: 8,
+            ),
+            child: toolbar,
+          )
         ],
       ),
     );

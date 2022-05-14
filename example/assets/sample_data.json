@@ -1,522 +1,519 @@
 [
   {
-    "insert": "Flutter Quill"
+    "insert": "Visual Editor"
   },
   {
+    "insert": "\n",
     "attributes": {
       "header": 1
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": {
-      "video": "https://www.youtube.com/watch?v=V4hgdKhIqtc&list=PLbhaS_83B97s78HsDTtplRTEhcFsqSqIK&index=1"
     }
   },
   {
-    "insert": {
-      "video": "https://user-images.githubusercontent.com/122956/126238875-22e42501-ad41-4266-b1d6-3f89b5e3b79b.mp4"
-    }
+    "insert": "This document will demonstrate the features available in Visual Editor. To see a live demo, visit "
   },
   {
-    "insert": "\nRich text editor for Flutter"
-  },
-  {
+    "insert": "Visual Space",
     "attributes": {
-      "header": 2
-    },
-    "insert": "\n"
+      "link": "https://visualspace.app/"
+    }
   },
   {
-    "insert": "Quill component for Flutter"
+    "insert": ".\n\nCustom highlights"
   },
   {
+    "insert": "\n",
     "attributes": {
       "header": 3
-    },
-    "insert": "\n"
+    }
   },
   {
-    "insert": "This "
+    "insert": "\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. \n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\nStyling"
   },
   {
+    "insert": "\n",
     "attributes": {
-      "italic": true,
-      "background": "transparent"
-    },
-    "insert": "library"
-  },
-  {
-    "insert": " supports "
-  },
-  {
-    "attributes": {
-      "bold": true,
-      "background": "#ebd6ff"
-    },
-    "insert": "mobile"
-  },
-  {
-    "insert": " platform "
-  },
-  {
-    "attributes": {
-      "underline": true,
-      "bold": true,
-      "color": "#e60000"
-    },
-    "insert": "only"
-  },
-  {
-    "attributes": {
-      "color": "rgba(0, 0, 0, 0.847)"
-    },
-    "insert": " and "
-  },
-  {
-    "attributes": {
-      "strike": true,
-      "color": "black"
-    },
-    "insert": "web"
-  },
-  {
-    "insert": " is not supported.\nYou are welcome to use "
-  },
-  {
-    "attributes": {
-      "link": "https://bulletjournal.us/home/index.html"
-    },
-    "insert": "Bullet Journal"
-  },
-  {
-    "insert": ":\nTrack personal and group journals (ToDo, Note, Ledger) from multiple views with timely reminders"
-  },
-  {
-    "attributes": {
-      "list": "ordered"
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "Share your tasks and notes with teammates, and see changes as they happen in real-time, across all devices"
-  },
-  {
-    "attributes": {
-      "list": "ordered"
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "Check out what you and your teammates are working on each day"
-  },
-  {
-    "attributes": {
-      "list": "ordered"
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "\nSplitting bills with friends can never be easier."
-  },
-  {
-    "attributes": {
-      "list": "bullet"
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "Start creating a group and invite your friends to join."
-  },
-  {
-    "attributes": {
-      "list": "bullet"
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "Create a BuJo of Ledger type to see expense or balance summary."
-  },
-  {
-    "attributes": {
-      "list": "bullet"
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "\nAttach one or multiple labels to tasks, notes or transactions. Later you can track them just using the label(s)."
-  },
-  {
-    "attributes": {
-      "blockquote": true
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "\nvar BuJo = 'Bullet' + 'Journal'"
-  },
-  {
-    "attributes": {
-      "code-block": true
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "\nStart tracking in your browser"
-  },
-  {
-    "attributes": {
-      "indent": 1
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "Stop the timer on your phone"
-  },
-  {
-    "attributes": {
-      "indent": 1
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "All your time entries are synced"
-  },
-  {
-    "attributes": {
-      "indent": 2
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "between the phone apps"
-  },
-  {
-    "attributes": {
-      "indent": 2
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "and the website."
-  },
-  {
-    "attributes": {
-      "indent": 3
-    },
-    "insert": "\n"
+      "header": 3
+    }
   },
   {
     "insert": "\n"
   },
   {
-    "insert": "\nCenter Align"
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+    "attributes": {
+      "bold": true
+    }
   },
   {
+    "insert": "\n"
+  },
+  {
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+    "attributes": {
+      "italic": true
+    }
+  },
+  {
+    "insert": "\n"
+  },
+  {
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+    "attributes": {
+      "underline": true
+    }
+  },
+  {
+    "insert": "\n"
+  },
+  {
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+    "attributes": {
+      "color": "#4caf50"
+    }
+  },
+  {
+    "insert": "\n"
+  },
+  {
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+    "attributes": {
+      "background": "#f3e5f5"
+    }
+  },
+  {
+    "insert": "\n"
+  },
+  {
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+    "attributes": {
+      "strike": true
+    }
+  },
+  {
+    "insert": "\n\nSizes"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "header": 3
+    }
+  },
+  {
+    "insert": "\n"
+  },
+  {
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+    "attributes": {
+      "size": 10
+    }
+  },
+  {
+    "insert": "\n"
+  },
+  {
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+    "attributes": {
+      "size": 12
+    }
+  },
+  {
+    "insert": "\n"
+  },
+  {
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+    "attributes": {
+      "size": 14
+    }
+  },
+  {
+    "insert": "\n"
+  },
+  {
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+    "attributes": {
+      "size": 16
+    }
+  },
+  {
+    "insert": "\n"
+  },
+  {
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+    "attributes": {
+      "size": 18
+    }
+  },
+  {
+    "insert": "\n"
+  },
+  {
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+    "attributes": {
+      "size": 20
+    }
+  },
+  {
+    "insert": "\n"
+  },
+  {
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+    "attributes": {
+      "size": 24
+    }
+  },
+  {
+    "insert": "\n\nand so on...\n\nJustify"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "header": 3
+    }
+  },
+  {
+    "insert": "\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+  },
+  {
+    "insert": "\n",
     "attributes": {
       "align": "center"
-    },
-    "insert": "\n"
+    }
   },
   {
-    "insert": "Right Align"
+    "insert": "\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
   },
   {
+    "insert": "\n",
     "attributes": {
       "align": "right"
-    },
-    "insert": "\n"
+    }
   },
   {
-    "insert": "Justify Align"
+    "insert": "\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
   },
   {
+    "insert": "\n",
     "attributes": {
       "align": "justify"
-    },
-    "insert": "\n"
+    }
   },
   {
-    "insert": "Have trouble finding things? "
+    "insert": "\nBullet List"
   },
   {
+    "insert": "\n",
     "attributes": {
-      "list": "ordered"
-    },
-    "insert": "\n"
+      "header": 3
+    }
   },
   {
-    "insert": "Just type in the search bar"
+    "insert": "\nLorem ipsum dolor sit amet, consectetur adipiscing elit"
   },
   {
-    "attributes": {
-      "indent": 1,
-      "list": "ordered"
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "and easily find contents"
-  },
-  {
-    "attributes": {
-      "indent": 2,
-      "list": "ordered"
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "across projects or folders."
-  },
-  {
-    "attributes": {
-      "indent": 2,
-      "list": "ordered"
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "It matches text in your note or task."
-  },
-  {
-    "attributes": {
-      "indent": 1,
-      "list": "ordered"
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "Enable reminders so that you will get notified by"
-  },
-  {
-    "attributes": {
-      "list": "ordered"
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "email"
-  },
-  {
-    "attributes": {
-      "indent": 1,
-      "list": "ordered"
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "message on your phone"
-  },
-  {
-    "attributes": {
-      "indent": 1,
-      "list": "ordered"
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "popup on the web site"
-  },
-  {
-    "attributes": {
-      "indent": 1,
-      "list": "ordered"
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "Create a BuJo serving as project or folder"
-  },
-  {
+    "insert": "\n",
     "attributes": {
       "list": "bullet"
-    },
-    "insert": "\n"
+    }
   },
   {
-    "insert": "Organize your"
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
   },
   {
-    "attributes": {
-      "indent": 1,
-      "list": "bullet"
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "tasks"
-  },
-  {
-    "attributes": {
-      "indent": 2,
-      "list": "bullet"
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "notes"
-  },
-  {
-    "attributes": {
-      "indent": 2,
-      "list": "bullet"
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "transactions"
-  },
-  {
-    "attributes": {
-      "indent": 2,
-      "list": "bullet"
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "under BuJo "
-  },
-  {
-    "attributes": {
-      "indent": 3,
-      "list": "bullet"
-    },
-    "insert": "\n"
-  },
-  {
-    "insert": "See them in Calendar"
-  },
-  {
+    "insert": "\n",
     "attributes": {
       "list": "bullet"
-    },
-    "insert": "\n"
+    }
   },
   {
-    "insert": "or hierarchical view"
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
   },
   {
+    "insert": "\n",
     "attributes": {
-      "indent": 1,
       "list": "bullet"
-    },
-    "insert": "\n"
+    }
   },
   {
-    "insert": "this is a check list"
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
   },
   {
+    "insert": "\n",
     "attributes": {
-      "list": "checked"
-    },
-    "insert": "\n"
+      "list": "bullet",
+      "indent": 1
+    }
   },
   {
-    "insert": "this is a uncheck list"
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
   },
   {
+    "insert": "\n",
+    "attributes": {
+      "list": "bullet",
+      "indent": 2
+    }
+  },
+  {
+    "insert": "\nNumbered List"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "header": 3
+    }
+  },
+  {
+    "insert": "\nLorem ipsum dolor sit amet, consectetur adipiscing elit"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "ordered"
+    }
+  },
+  {
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "ordered"
+    }
+  },
+  {
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "ordered"
+    }
+  },
+  {
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "ordered",
+      "indent": 1
+    }
+  },
+  {
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "ordered",
+      "indent": 2
+    }
+  },
+  {
+    "insert": "\nIndentation"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "header": 3
+    }
+  },
+  {
+    "insert": "\nLorem ipsum dolor sit amet, consectetur adipiscing elit\nLorem ipsum dolor sit amet, consectetur adipiscing elit"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "indent": 1
+    }
+  },
+  {
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "indent": 2
+    }
+  },
+  {
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "indent": 3
+    }
+  },
+  {
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "indent": 4
+    }
+  },
+  {
+    "insert": "\nCheckboxes"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "header": 3
+    }
+  },
+  {
+    "insert": "\nLorem ipsum dolor sit amet, consectetur adipiscing elit"
+  },
+  {
+    "insert": "\n",
     "attributes": {
       "list": "unchecked"
-    },
-    "insert": "\n"
+    }
   },
   {
-    "insert": "Font "
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
   },
   {
+    "insert": "\n",
     "attributes": {
-      "font": "sans-serif"
-    },
-    "insert": "Sans Serif"
+      "list": "checked"
+    }
   },
   {
-    "insert": " "
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
   },
   {
+    "insert": "\n",
     "attributes": {
-      "font": "serif"
-    },
-    "insert": "Serif"
+      "list": "checked"
+    }
   },
   {
-    "insert": " "
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
   },
   {
+    "insert": "\n",
     "attributes": {
-      "font": "monospace"
-    },
-    "insert": "Monospace"
+      "list": "unchecked"
+    }
   },
   {
-    "insert": " Size "
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
   },
   {
+    "insert": "\n",
     "attributes": {
-      "size": "small"
-    },
-    "insert": "Small"
+      "list": "unchecked"
+    }
   },
   {
-    "insert": " "
+    "insert": "\nQuote"
   },
   {
+    "insert": "\n",
     "attributes": {
-      "size": "large"
-    },
-    "insert": "Large"
+      "header": 3
+    }
   },
   {
-    "insert": " "
+    "insert": "\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
   },
   {
+    "insert": "\n",
     "attributes": {
-      "size": "huge"
-    },
-    "insert": "Huge"
+      "blockquote": true
+    }
   },
   {
+    "insert": "\nSource Code"
+  },
+  {
+    "insert": "\n",
     "attributes": {
-      "size": "15.0"
-    },
-    "insert": "font size 15"
+      "header": 3
+    }
   },
   {
-    "insert": " "
+    "insert": "\nconst blogPost = jsonDecode(response);"
   },
   {
+    "insert": "\n\n",
     "attributes": {
-      "size": "35"
-    },
-    "insert": "font size 35"
+      "code-block": true
+    }
   },
   {
-    "insert": " "
+    "insert": "final _controller = QuillController("
   },
   {
+    "insert": "\n",
     "attributes": {
-      "size": "20"
-    },
-    "insert": "font size 20"
+      "code-block": true
+    }
   },
   {
+    "insert": "  document: Document.fromJson(blogPost),"
+  },
+  {
+    "insert": "\n",
     "attributes": {
-      "token": "built_in"
-    },
-    "insert": " diff"
+      "code-block": true
+    }
   },
   {
+    "insert": "  selection: TextSelection.collapsed(offset: 0)"
+  },
+  {
+    "insert": "\n",
     "attributes": {
-      "token": "operator"
-    },
-    "insert": "-match"
+      "code-block": true
+    }
   },
   {
+    "insert": ");"
+  },
+  {
+    "insert": "\n",
     "attributes": {
-      "token": "literal"
-    },
-    "insert": "-patch"
+      "code-block": true
+    }
   },
   {
-    "insert": "\n"
+    "insert": "\nHeadings"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "header": 3
+    }
+  },
+  {
+    "insert": "\nLorem ipsum dolor sit amet, consectetur adipiscing elit\nLorem ipsum dolor sit amet, consectetur adipiscing elit"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "header": 1
+    }
+  },
+  {
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "header": 2
+    }
+  },
+  {
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "header": 3
+    }
   }
 ]

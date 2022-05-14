@@ -1,16 +1,16 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../../../controller/services/controller.dart';
+import '../../../controller/services/editor-controller.dart';
 import '../../../documents/models/attribute.dart';
 import '../../../documents/models/style.dart';
-import '../../../shared/models/quill-icon-theme.model.dart';
+import '../../../shared/models/editor-icon-theme.model.dart';
 import '../toolbar.dart';
 
 class SelectAlignmentButton extends StatefulWidget {
-  final QuillController controller;
+  final EditorController controller;
   final double iconSize;
-  final QuillIconThemeM? iconTheme;
+  final EditorIconThemeM? iconTheme;
   final bool? showLeftAlignment;
   final bool? showCenterAlignment;
   final bool? showRightAlignment;

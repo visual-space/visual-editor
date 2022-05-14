@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-class QuillBulletPoint extends StatelessWidget {
+class BulletPoint extends StatelessWidget {
   final TextStyle style;
   final double width;
 
-  const QuillBulletPoint({
+  const BulletPoint({
     required this.style,
     required this.width,
     Key? key,
@@ -17,6 +17,9 @@ class QuillBulletPoint extends StatelessWidget {
         padding: const EdgeInsetsDirectional.only(
           end: 13,
         ),
-        child: Text('•', style: style),
+        child: Text(
+          '•',
+          style: style,
+        ),
       );
 }

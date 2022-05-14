@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../controller/services/controller.dart';
+import '../../../controller/services/editor-controller.dart';
 import '../../../documents/models/attribute.dart';
 import '../../../documents/models/style.dart';
-import '../../../shared/models/quill-icon-theme.model.dart';
+import '../../../shared/models/editor-icon-theme.model.dart';
 import '../../models/toggle-style-button-builder.type.dart';
 import '../toolbar.dart';
 
@@ -11,10 +11,10 @@ class ToggleCheckListButton extends StatefulWidget {
   final IconData icon;
   final double iconSize;
   final Color? fillColor;
-  final QuillController controller;
+  final EditorController controller;
   final ToggleStyleButtonBuilder childBuilder;
   final Attribute attribute;
-  final QuillIconThemeM? iconTheme;
+  final EditorIconThemeM? iconTheme;
 
   const ToggleCheckListButton({
     required this.icon,

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../controller/services/controller.dart';
-import '../../../shared/models/quill-icon-theme.model.dart';
+import '../../../controller/services/editor-controller.dart';
+import '../../../shared/models/editor-icon-theme.model.dart';
 import '../../models/media-picker.type.dart';
 import '../toolbar.dart';
 
@@ -10,13 +10,13 @@ class CameraButton extends StatelessWidget {
   final IconData icon;
   final double iconSize;
   final Color? fillColor;
-  final QuillController controller;
+  final EditorController controller;
   final OnImagePickCallback? onImagePickCallback;
   final OnVideoPickCallback? onVideoPickCallback;
   final WebImagePickImpl? webImagePickImpl;
   final WebVideoPickImpl? webVideoPickImpl;
   final FilePickImpl? filePickImpl;
-  final QuillIconThemeM? iconTheme;
+  final EditorIconThemeM? iconTheme;
 
   const CameraButton({
     required this.icon,
@@ -64,7 +64,7 @@ class CameraButton extends StatelessWidget {
 
   Future<void> _handleCameraButtonTap(
     BuildContext context,
-    QuillController controller, {
+    EditorController controller, {
     OnImagePickCallback? onImagePickCallback,
     OnVideoPickCallback? onVideoPickCallback,
     FilePickImpl? filePickImpl,

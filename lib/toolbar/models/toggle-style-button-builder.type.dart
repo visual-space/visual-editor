@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../documents/models/attribute.dart';
-import '../../shared/models/quill-icon-theme.model.dart';
+import '../../shared/models/editor-icon-theme.model.dart';
 
 typedef ToggleStyleButtonBuilder = Widget Function(
   BuildContext context,
@@ -11,5 +11,5 @@ typedef ToggleStyleButtonBuilder = Widget Function(
   bool? isToggled,
   VoidCallback? onPressed, [
   double iconSize,
-  QuillIconThemeM? iconTheme,
+  EditorIconThemeM? iconTheme,
 ]);

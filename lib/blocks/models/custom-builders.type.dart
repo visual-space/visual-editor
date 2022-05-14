@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../../controller/services/controller.dart';
+import '../../controller/services/editor-controller.dart';
 import '../../documents/models/attribute.dart';
 import '../../documents/models/nodes/leaf.dart';
 
 typedef EmbedBuilder = Widget Function(
   BuildContext context,
-  QuillController controller,
+  EditorController controller,
   Embed node,
   bool readOnly,
 );

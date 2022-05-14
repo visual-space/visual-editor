@@ -10,21 +10,24 @@ class UpdateTextSelectionToAdjacentLineAction<
 
   final RawEditorState state;
 
-  QuillVerticalCaretMovementRun? _verticalMovementRun;
+  EditorVerticalCaretMovementRun? _verticalMovementRun;
   TextSelection? _runSelection;
 
   void stopCurrentVerticalRunIfSelectionChanges() {
     final runSelection = _runSelection;
+
     if (runSelection == null) {
       assert(_verticalMovementRun == null);
       return;
     }
+
     _runSelection = state.textEditingValue.selection;
     final currentSelection = state.widget.controller.selection;
     final continueCurrentRun = currentSelection.isValid &&
         currentSelection.isCollapsed &&
         currentSelection.baseOffset == runSelection.baseOffset &&
         currentSelection.extentOffset == runSelection.extentOffset;
+
     if (!continueCurrentRun) {
       _verticalMovementRun = null;
       _runSelection = null;
@@ -44,8 +47,9 @@ class UpdateTextSelectionToAdjacentLineAction<
     }
 
     final currentRun = _verticalMovementRun ??
-        state.renderEditor
-            .startVerticalCaretMovement(state.renderEditor.selection.extent);
+        state.renderEditor.startVerticalCaretMovement(
+          state.renderEditor.selection.extent,
+        );
 
     final shouldMove =
         intent.forward ? currentRun.moveNext() : currentRun.movePrevious();
@@ -66,6 +70,7 @@ class UpdateTextSelectionToAdjacentLineAction<
         SelectionChangedCause.keyboard,
       ),
     );
+
     if (state.textEditingValue.selection == newSelection) {
       _verticalMovementRun = currentRun;
       _runSelection = newSelection;

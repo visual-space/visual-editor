@@ -7,32 +7,32 @@ import 'package:quiver/core.dart';
 import 'data-decoder.type.dart';
 import 'operation.model.dart';
 
-/// Implementation of Quill Delta format in Dart.
-/// Delta represents a document or a modification of a document as a sequence of
-/// insert, delete and retain operations.
-///
-/// Delta consisting of only "insert" operations is usually referred to as
-/// "document delta". When delta includes also "retain" or "delete" operations
-/// it is a "change delta".
+// Implementation of Quill Delta format in Dart.
+// Delta represents a document or a modification of a document as a sequence of insert, delete and retain operations.
+// Delta consisting of only "insert" operations is usually referred to as "document delta".
+// When delta includes also "retain" or "delete" operations it is a "change delta".
 class DeltaM {
-  /// Creates new empty [DeltaM].
+  // Creates new empty DeltaM.
   factory DeltaM() => DeltaM._(<Operation>[]);
 
   DeltaM._(List<Operation> operations) : _operations = operations;
 
-  /// Creates new [DeltaM] from [other].
-  factory DeltaM.from(DeltaM other) =>
-      DeltaM._(List<Operation>.from(other._operations));
+  // Creates new DeltaM from other.
+  factory DeltaM.from(DeltaM other) => DeltaM._(
+        List<Operation>.from(other._operations),
+      );
 
   // Placeholder char for embed in diff()
   static final String _kNullCharacter = String.fromCharCode(0);
 
-  /// Transforms two attribute sets.
+  // Transforms two attribute sets.
   static Map<String, dynamic>? transformAttributes(
-      Map<String, dynamic>? a, Map<String, dynamic>? b, bool priority) {
+    Map<String, dynamic>? a,
+    Map<String, dynamic>? b,
+    bool priority,
+  ) {
     if (a == null) return b;
     if (b == null) return null;
-
     if (!priority) return b;
 
     final result = b.keys.fold<Map<String, dynamic>>({}, (attributes, key) {
@@ -43,10 +43,12 @@ class DeltaM {
     return result.isEmpty ? null : result;
   }
 
-  /// Composes two attribute sets.
+  // Composes two attribute sets.
   static Map<String, dynamic>? composeAttributes(
-      Map<String, dynamic>? a, Map<String, dynamic>? b,
-      {bool keepNull = false}) {
+    Map<String, dynamic>? a,
+    Map<String, dynamic>? b, {
+    bool keepNull = false,
+  }) {
     a ??= const {};
     b ??= const {};
 
@@ -62,9 +64,11 @@ class DeltaM {
     return result.isEmpty ? null : result;
   }
 
-  ///get anti-attr result base on base
+  // Get anti-attr result base on base
   static Map<String, dynamic> invertAttributes(
-      Map<String, dynamic>? attr, Map<String, dynamic>? base) {
+    Map<String, dynamic>? attr,
+    Map<String, dynamic>? base,
+  ) {
     attr ??= const {};
     base ??= const {};
 
@@ -75,19 +79,23 @@ class DeltaM {
       return memo;
     });
 
-    final inverted =
-        Map<String, dynamic>.from(attr.keys.fold(baseInverted, (memo, key) {
-      if (base![key] != attr![key] && !base.containsKey(key)) {
-        memo[key] = null;
-      }
-      return memo;
-    }));
+    final inverted = Map<String, dynamic>.from(
+      attr.keys.fold(baseInverted, (memo, key) {
+        if (base![key] != attr![key] && !base.containsKey(key)) {
+          memo[key] = null;
+        }
+        return memo;
+      }),
+    );
+
     return inverted;
   }
 
-  /// Returns diff between two attribute sets
+  // Returns diff between two attribute sets
   static Map<String, dynamic>? diffAttributes(
-      Map<String, dynamic>? a, Map<String, dynamic>? b) {
+    Map<String, dynamic>? a,
+    Map<String, dynamic>? b,
+  ) {
     a ??= const {};
     b ??= const {};
 
@@ -102,46 +110,53 @@ class DeltaM {
   }
 
   final List<Operation> _operations;
+
   List<Operation> get operations => _operations;
 
   int _modificationCount = 0;
+
   int get modificationCount => _modificationCount;
 
-  /// Creates [DeltaM] from de-serialized JSON representation.
-  ///
-  /// If `dataDecoder` parameter is not null then it is used to additionally
-  /// decode the operation's data object. Only applied to insert operations.
-  static DeltaM fromJson(List data, {DataDecoder? dataDecoder}) {
+  // Creates DeltaM from de-serialized JSON representation.
+  // If `dataDecoder` parameter is not null then it is used to additionally decode the operation's data object.
+  // Only applied to insert operations.
+  static DeltaM fromJson(
+    List data, {
+    DataDecoder? dataDecoder,
+  }) {
     return DeltaM._(data
-        .map((op) => Operation.fromJson(op, dataDecoder: dataDecoder))
+        .map((op) => Operation.fromJson(
+              op,
+              dataDecoder: dataDecoder,
+            ))
         .toList());
   }
 
-  /// Returns list of operations in this delta.
+  // Returns list of operations in this delta.
   List<Operation> toList() => List.from(_operations);
 
-  /// Returns JSON-serializable version of this delta.
+  // Returns JSON-serializable version of this delta.
   List toJson() => toList().map((operation) => operation.toJson()).toList();
 
-  /// Returns `true` if this delta is empty.
+  // Returns `true` if this delta is empty.
   bool get isEmpty => _operations.isEmpty;
 
-  /// Returns `true` if this delta is not empty.
+  // Returns `true` if this delta is not empty.
   bool get isNotEmpty => _operations.isNotEmpty;
 
-  /// Returns number of operations in this delta.
+  // Returns number of operations in this delta.
   int get length => _operations.length;
 
-  /// Returns [Operation] at specified [index] in this delta.
+  // Returns Operation at specified index in this delta.
   Operation operator [](int index) => _operations[index];
 
-  /// Returns [Operation] at specified [index] in this delta.
+  // Returns Operation at specified index in this delta.
   Operation elementAt(int index) => _operations.elementAt(index);
 
-  /// Returns the first [Operation] in this delta.
+  // Returns the first Operation in this delta.
   Operation get first => _operations.first;
 
-  /// Returns the last [Operation] in this delta.
+  // Returns the last Operation in this delta.
   Operation get last => _operations.last;
 
   @override
@@ -149,27 +164,30 @@ class DeltaM {
     if (identical(this, other)) return true;
     if (other is! DeltaM) return false;
     final typedOther = other;
-    const comparator = ListEquality<Operation>(DefaultEquality<Operation>());
+    const comparator = ListEquality<Operation>(
+      DefaultEquality<Operation>(),
+    );
+
     return comparator.equals(_operations, typedOther._operations);
   }
 
   @override
   int get hashCode => hashObjects(_operations);
 
-  /// Retain [count] of characters from current position.
+  // Retain count of characters from current position.
   void retain(int count, [Map<String, dynamic>? attributes]) {
     assert(count >= 0);
-    if (count == 0) return; // no-op
+    if (count == 0) return; // No-op
     push(Operation.retain(count, attributes));
   }
 
-  /// Insert [data] at current position.
+  // Insert data at current position.
   void insert(dynamic data, [Map<String, dynamic>? attributes]) {
-    if (data is String && data.isEmpty) return; // no-op
+    if (data is String && data.isEmpty) return; // No-op
     push(Operation.insert(data, attributes));
   }
 
-  /// Delete [count] characters from current position.
+  // Delete count characters from current position.
   void delete(int count) {
     assert(count >= 0);
     if (count == 0) return;
@@ -186,6 +204,7 @@ class DeltaM {
     final opText = operation.data as String;
     final resultText = lastText + opText;
     final index = _operations.length;
+
     _operations.replaceRange(
       index - 1,
       index,
@@ -195,18 +214,16 @@ class DeltaM {
     );
   }
 
-  /// Pushes new operation into this delta.
-  ///
-  /// Performs compaction by composing [operation] with current tail operation
-  /// of this delta, when possible. For instance, if current tail is
-  /// `insert('abc')` and pushed operation is `insert('123')` then existing
-  /// tail is replaced with `insert('abc123')` - a compound result of the two
-  /// operations.
+  // Pushes new operation into this delta.
+  // Performs compaction by composing [operation] with current tail operation of this delta, when possible.
+  // For instance, if current tail is `insert('abc')` and pushed operation is `insert('123')` then existing
+  // tail is replaced with `insert('abc123')` - a compound result of the two operations.
   void push(Operation operation) {
     if (operation.isEmpty) return;
 
     var index = _operations.length;
     final lastOp = _operations.isNotEmpty ? _operations.last : null;
+
     if (lastOp != null) {
       if (lastOp.isDelete && operation.isDelete) {
         _mergeWithTail(operation);
@@ -247,13 +264,13 @@ class DeltaM {
     _modificationCount++;
   }
 
-  /// Composes next operation from [thisIter] and [otherIter].
-  ///
-  /// Returns new operation or `null` if operations from [thisIter] and
-  /// [otherIter] nullify each other. For instance, for the pair `insert('abc')`
-  /// and `delete(3)` composition result would be empty string.
+  // Composes next operation from thisIter and otherIter.
+  // Returns new operation or `null` if operations from thisIter and otherIter nullify each other.
+  // For instance, for the pair `insert('abc')` and `delete(3)` composition result would be empty string.
   Operation? _composeOperation(
-      DeltaIterator thisIter, DeltaIterator otherIter) {
+    DeltaIterator thisIter,
+    DeltaIterator otherIter,
+  ) {
     if (otherIter.isNextInsert) return otherIter.next();
     if (thisIter.isNextDelete) return thisIter.next();
 
@@ -282,13 +299,12 @@ class DeltaM {
       assert(thisOp.isInsert);
       // otherOp(delete) + thisOp(insert) => null
     }
+
     return null;
   }
 
-  /// Composes this delta with [other] and returns new [DeltaM].
-  ///
-  /// It is not required for this and [other] delta to represent a document
-  /// delta (consisting only of insert operations).
+  // Composes this delta with other and returns new [DeltaM].
+  // It is not required for this and other delta to represent a document delta (consisting only of insert operations).
   DeltaM compose(DeltaM other) {
     final result = DeltaM();
     final thisIter = DeltaIterator(this);
@@ -298,34 +314,35 @@ class DeltaM {
       final newOp = _composeOperation(thisIter, otherIter);
       if (newOp != null) result.push(newOp);
     }
+
     return result..trim();
   }
 
-  /// Returns a new lazy Iterable with elements that are created by calling
-  /// f on each element of this Iterable in iteration order.
-  ///
-  /// Convenience method
+  // Returns a new lazy Iterable with elements that are created by calling
+  // if on each element of this Iterable in iteration order.
+  // Convenience method
   Iterable<T> map<T>(T Function(Operation) f) {
     return _operations.map<T>(f);
   }
 
-  /// Returns a [DeltaM] containing differences between 2 [DeltaM]s.
-  /// If [cleanupSemantic] is `true` (default), applies the following:
-  ///
-  /// The diff of "mouse" and "sofas" is
-  ///   [delete(1), insert("s"), retain(1),
-  ///   delete("u"), insert("fa"), retain(1), delete(1)].
-  /// While this is the optimum diff, it is difficult for humans to understand.
-  /// Semantic cleanup rewrites the diff,
-  /// expanding it into a more intelligible format.
-  /// The above example would become: [(-1, "mouse"), (1, "sofas")].
-  /// (source: https://github.com/google/diff-match-patch/wiki/API)
-  ///
-  /// Useful when one wishes to display difference between 2 documents
-  DeltaM diff(DeltaM other, {bool cleanupSemantic = true}) {
+  // Returns a [DeltaM] containing differences between 2 [DeltaM]s.
+  // If [cleanupSemantic] is `true` (default), applies the following:
+  // The diff of "mouse" and "sofas" is
+  //   [delete(1), insert("s"), retain(1),
+  //   delete("u"), insert("fa"), retain(1), delete(1)].
+  // While this is the optimum diff, it is difficult for humans to understand.
+  // Semantic cleanup rewrites the diff, expanding it into a more intelligible format.
+  // The above example would become: [(-1, "mouse"), (1, "sofas")].
+  // (source: https://github.com/google/diff-match-patch/wiki/API)
+  // Useful when one wishes to display difference between 2 documents
+  DeltaM diff(
+    DeltaM other, {
+    bool cleanupSemantic = true,
+  }) {
     if (_operations.equals(other._operations)) {
       return DeltaM();
     }
+
     final stringThis = map((op) {
       if (op.isInsert) {
         return op.data is String ? op.data : _kNullCharacter;
@@ -333,6 +350,7 @@ class DeltaM {
       final prep = this == other ? 'on' : 'with';
       throw ArgumentError('diff() call $prep non-document');
     }).join();
+
     final stringOther = other.map((op) {
       if (op.isInsert) {
         return op.data is String ? op.data : _kNullCharacter;
@@ -343,6 +361,7 @@ class DeltaM {
 
     final retDelta = DeltaM();
     final diffResult = dmp.diff(stringThis, stringOther);
+
     if (cleanupSemantic) {
       dmp.DiffMatchPatch().diffCleanupSemantic(diffResult);
     }
@@ -386,15 +405,17 @@ class DeltaM {
         length -= opLength;
       }
     });
+
     return retDelta..trim();
   }
 
-  /// Transforms next operation from [otherIter] against next operation in
-  /// [thisIter].
-  ///
-  /// Returns `null` if both operations nullify each other.
+  // Transforms next operation from otherIter against next operation in thisIter.
+  // Returns `null` if both operations nullify each other.
   Operation? _transformOperation(
-      DeltaIterator thisIter, DeltaIterator otherIter, bool priority) {
+    DeltaIterator thisIter,
+    DeltaIterator otherIter,
+    bool priority,
+  ) {
     if (thisIter.isNextInsert && (priority || !otherIter.isNextInsert)) {
       return Operation.retain(thisIter.next().length);
     } else if (otherIter.isNextInsert) {
@@ -421,7 +442,7 @@ class DeltaM {
     }
   }
 
-  /// Transforms [other] delta against operations in this delta.
+  // Transforms other delta against operations in this delta.
   DeltaM transform(DeltaM other, bool priority) {
     final result = DeltaM();
     final thisIter = DeltaIterator(this);
@@ -431,10 +452,11 @@ class DeltaM {
       final newOp = _transformOperation(thisIter, otherIter, priority);
       if (newOp != null) result.push(newOp);
     }
+
     return result..trim();
   }
 
-  /// Removes trailing retain operation with empty attributes, if present.
+  // Removes trailing retain operation with empty attributes, if present.
   void trim() {
     if (isNotEmpty) {
       final last = _operations.last;
@@ -442,7 +464,7 @@ class DeltaM {
     }
   }
 
-  /// Removes trailing '\n'
+  // Removes trailing '\n'
   void _trimNewLine() {
     if (isNotEmpty) {
       final lastOp = _operations.last;
@@ -458,30 +480,36 @@ class DeltaM {
     }
   }
 
-  /// Concatenates [other] with this delta and returns the result.
-  DeltaM concat(DeltaM other, {bool trimNewLine = false}) {
+  // Concatenates other with this delta and returns the result.
+  DeltaM concat(
+    DeltaM other, {
+    bool trimNewLine = false,
+  }) {
     final result = DeltaM.from(this);
+
     if (trimNewLine) {
       result._trimNewLine();
     }
+
     if (other.isNotEmpty) {
-      // In case first operation of other can be merged with last operation in
-      // our list.
+      // In case first operation of other can be merged with last operation in our list.
       result.push(other._operations.first);
       result._operations.addAll(other._operations.sublist(1));
     }
+
     return result;
   }
 
-  /// Inverts this delta against [base].
-  ///
-  /// Returns new delta which negates effect of this delta when applied to
-  /// [base]. This is an equivalent of "undo" operation on deltas.
+  // Inverts this delta against base.
+  // Returns new delta which negates effect of this delta when applied to base.
+  // This is an equivalent of "undo" operation on deltas.
   DeltaM invert(DeltaM base) {
     final inverted = DeltaM();
+
     if (base.isEmpty) return inverted;
 
     var baseIndex = 0;
+
     for (final op in _operations) {
       if (op.isInsert) {
         inverted.delete(op.length!);
@@ -507,11 +535,11 @@ class DeltaM {
       }
     }
     inverted.trim();
+
     return inverted;
   }
 
-  /// Returns slice of this delta from [start] index (inclusive) to [end]
-  /// (exclusive).
+  // Returns slice of this delta from start index (inclusive) to end (exclusive).
   DeltaM slice(int start, [int? end]) {
     final delta = DeltaM();
     var index = 0;
@@ -529,24 +557,23 @@ class DeltaM {
       }
       index += op.length!;
     }
+
     return delta;
   }
 
-  /// Transforms [index] against this delta.
-  ///
-  /// Any "delete" operation before specified [index] shifts it backward, as
-  /// well as any "insert" operation shifts it forward.
-  ///
-  /// The [force] argument is used to resolve scenarios when there is an
-  /// insert operation at the same position as [index]. If [force] is set to
-  /// `true` (default) then position is forced to shift forward, otherwise
-  /// position stays at the same index. In other words setting [force] to
-  /// `false` gives higher priority to the transformed position.
-  ///
-  /// Useful to adjust caret or selection positions.
-  int transformPosition(int index, {bool force = true}) {
+  // Transforms index against this delta.
+  // Any "delete" operation before specified index shifts it backward, as well as any "insert" operation shifts it forward.
+  // The force argument is used to resolve scenarios when there is an insert operation at the same position as index.
+  // If force is set to `true` (default) then position is forced to shift forward, otherwise position stays at the same index.
+  // In other words setting force to `false` gives higher priority to the transformed position.
+  // Useful to adjust caret or selection positions.
+  int transformPosition(
+    int index, {
+    bool force = true,
+  }) {
     final iter = DeltaIterator(this);
     var offset = 0;
+
     while (iter.hasNext && offset <= index) {
       final op = iter.next();
       if (op.isDelete) {
@@ -557,6 +584,7 @@ class DeltaM {
       }
       offset += op.length!;
     }
+
     return index;
   }
 
@@ -564,7 +592,7 @@ class DeltaM {
   String toString() => _operations.join('\n');
 }
 
-/// Specialized iterator for [DeltaM]s.
+// Specialized iterator for DeltaMs.
 class DeltaIterator {
   DeltaIterator(this.delta) : _modificationCount = delta._modificationCount;
 
@@ -591,29 +619,26 @@ class DeltaIterator {
 
   bool get hasNext => peekLength() < maxLength;
 
-  /// Returns length of next operation without consuming it.
-  ///
-  /// Returns [maxLength] if there is no more operations left to iterate.
+  // Returns length of next operation without consuming it.
+  // Returns maxLength if there is no more operations left to iterate.
   int peekLength() {
     if (_index < delta.length) {
       final operation = delta._operations[_index];
       return operation.length! - _offset;
     }
+
     return maxLength;
   }
 
-  /// Consumes and returns next operation.
-  ///
-  /// Optional [length] specifies maximum length of operation to return. Note
-  /// that actual length of returned operation may be less than specified value.
-  ///
-  /// If this iterator reached the end of the Delta then returns a retain
-  /// operation with its length set to [maxLength].
+  // Consumes and returns next operation.
+  // Optional length specifies maximum length of operation to return. Note
+  // that actual length of returned operation may be less than specified value.
+  // If this iterator reached the end of the Delta then returns a retain
+  // operation with its length set to maxLength.
+
   // TODO: Note that we used double.infinity as the default value
-  // for length here
-  //       but this can now cause a type error since operation length is
-  //       expected to be an int. Changing default length to [maxLength] is
-  //       a workaround to avoid breaking changes.
+  // For length here but this can now cause a type error since operation length is expected to be an int.
+  // Changing default length to maxLength is a workaround to avoid breaking changes.
   Operation next([int length = maxLength]) {
     if (_modificationCount != delta._modificationCount) {
       throw ConcurrentModificationError(delta);
@@ -625,12 +650,14 @@ class DeltaIterator {
       final opAttributes = op.attributes;
       final _currentOffset = _offset;
       final actualLength = math.min(op.length! - _currentOffset, length);
+
       if (actualLength == op.length! - _currentOffset) {
         _index++;
         _offset = 0;
       } else {
         _offset += actualLength;
       }
+
       final opData = op.isInsert && op.data is String
           ? (op.data as String)
               .substring(_currentOffset, _currentOffset + actualLength)
@@ -639,17 +666,18 @@ class DeltaIterator {
           opData is String ? opData.isNotEmpty : true; // embeds are never empty
       final opLength = opData is String ? opData.length : 1;
       final opActualLength = opIsNotEmpty ? opLength : actualLength;
+
       return Operation(opKey, opActualLength, opData, opAttributes);
     }
     return Operation.retain(length);
   }
 
-  /// Skips [length] characters in source delta.
-  ///
-  /// Returns last skipped operation, or `null` if there was nothing to skip.
+  // Skips length characters in source delta.
+  // Returns last skipped operation, or `null` if there was nothing to skip.
   Operation? skip(int length) {
     var skipped = 0;
     Operation? op;
+
     while (skipped < length && hasNext) {
       final opLength = peekLength();
       final skip = math.min(length - skipped, opLength);

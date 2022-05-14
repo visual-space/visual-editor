@@ -16,51 +16,45 @@ import '../../highlights/models/highlight.model.dart';
 typedef ReplaceTextCallback = bool Function(int index, int len, Object? data);
 typedef DeleteCallback = void Function(int cursorPosition, bool forward);
 
-// [QuillController] stores the the state of the [Document] and the current
-// [TextSelection]. Both [QuillEditor] and the [QuillToolbar] use the
-// controller to synchronize their state. The controller defines several
-// properties that represent the state of the document and the state of the
-// editor, plus several methods that notify the listeners.
+// EditorController stores the the state of the Document and the current TextSelection. 
+// Both EditorEditor and the EditorToolbar use the  controller to synchronize their state. 
+// The controller defines several properties that represent the state of the document and the state of the editor, 
+// plus several methods that notify the listeners.
 //
 // For ex, when users interact with the document the updateSelection() method
 // is invoked. The method itself is one of the many that trigger
 // notifyListeners(). Most of the listeners that subscribe to the state changes
-// of the controller are located in the [QuillToolbar] and are directly
+// of the controller are located in the EditorToolbar and are directly
 // controlling the state of the buttons.
 //
-// Example: The [QuillToolbar] listens the notifications emitted by the
-// controller class. If the current text selection has the bold attribute then
-// the [QuillToolbar] react by highlighting the bold button.
+// Example: The EditorToolbar listens the notifications emitted by the controller class. 
+// If the current text selection has the bold attribute then  the EditorToolbar react by highlighting the bold button.
 //
-// The most important listener is located in the [RawEditorState] in the
-// initState() and didUpdateWidget() methods. This listener triggers
-// _onChangeTextEditingValue() which in turn has several duties, such as
-// updating the state of the overlay selection or reconnecting to the remote
-// input. However by far the most important step is to trigger a render by
-// invoking setState(). Once a new build() is running then the [_Editor] starts
-// rendering the new state of the Quill Editor. From here the entire rendering
-// process starts executing again. In short summary, the document is parsed and
-// converted into rendering elements, lines of text and blocks. Each line of
-// text handles it's own styling and highlights rendering.
+// The most important listener is located in the RawEditorState in the initState() and didUpdateWidget() methods. 
+// This listener triggers  _onChangeTextEditingValue() which in turn has several duties, such as
+// - Updating the state of the overlay selection.
+// - Reconnecting to the remote  input. 
+// However by far the most important step is to trigger a render by invoking setState(). 
+// Once a new build() is running then the _Editor starts rendering the new state of the Editor Editor. 
+// From here the entire rendering process starts executing again. 
+// In short summary, the document is parsed and converted into rendering elements, lines of text and blocks. 
+// Each line of text handles it's own styling and highlights rendering.
 //
 // Properties:
-// [selection] - The text selection can be configured on init
-// [highlights] - Multiple [HighlightM]s can be rendered on top of
-// the document text. The highlights are independent of the [DeltaM] and can be
-// used for tasks such as temporarily rendering a marker over important text or
-// rendering the text selection where a custom tooltip will be placed.
-// [keepStyleOnNewLine] - Will perpetuate the text styles when starting a new
-// line.
+// selection - The text selection can be configured on init
+// highlights - Multiple HighlightMs can be rendered on top of the document text. 
+// The highlights are independent of the DeltaM and can be used for tasks such as 
+// - Temporarily rendering a marker over important text. 
+// - Rendering the text selection where a custom tooltip will be placed.
+// keepStyleOnNewLine - Will perpetuate the text styles when starting a new line.
 //
 // Callbacks:
-// [onReplaceText] - Callback executed after inserting blocks on top of
-// existing  blocks. Multiple operations can trigger this behavior:
-// copy/paste, inserting embeds, etc.
-// [onDelete] - Callback executed after deleting characters.
-// [onSelectionCompleted] - Custom behavior to be executed after completing a
-// text selection
-class QuillController extends ChangeNotifier {
-  QuillController({
+// onReplaceText - Callback executed after inserting blocks on top of existing  blocks. 
+// Multiple operations can trigger this behavior: copy/paste, inserting embeds, etc.
+// onDelete - Callback executed after deleting characters.
+// onSelectionCompleted - Custom behavior to be executed after completing a text selection
+class EditorController extends ChangeNotifier {
+  EditorController({
     required this.document,
     required TextSelection selection,
     List<HighlightM> highlights = const [],
@@ -73,8 +67,8 @@ class QuillController extends ChangeNotifier {
         _highlights = highlights,
         _keepStyleOnNewLine = keepStyleOnNewLine;
 
-  factory QuillController.basic() {
-    return QuillController(
+  factory EditorController.basic() {
+    return EditorController(
       document: Document(),
       selection: const TextSelection.collapsed(
         offset: 0,
@@ -85,15 +79,15 @@ class QuillController extends ChangeNotifier {
   // Document managed by this controller.
   final Document document;
 
-  // Tells whether to keep or reset the [toggledStyle]
+  // Tells whether to keep or reset the toggledStyle
   // when user adds a new line.
   final bool _keepStyleOnNewLine;
 
-  // Currently selected text within the [document].
+  // Currently selected text within the document.
   TextSelection get selection => _selection;
   TextSelection _selection;
 
-  // Highlighted ranges within the [document].
+  // Highlighted ranges within the document.
   List<HighlightM> get highlights => _highlights;
 
   set highlights(List<HighlightM> highlights) {
@@ -103,7 +97,7 @@ class QuillController extends ChangeNotifier {
 
   List<HighlightM> _highlights;
 
-  // Highlighted ranges within the [document] that are currently hovered by
+  // Highlighted ranges within the document that are currently hovered by
   // the pointer. Used to trigger the change of color when hovering.
   List<HighlightM> get hoveredHighlights => _hoveredHighlights;
 
@@ -114,8 +108,8 @@ class QuillController extends ChangeNotifier {
 
   List<HighlightM> _hoveredHighlights = [];
 
-  // Custom [replaceText] handler
-  // Return false to ignore the event
+  // Custom replaceText handler.
+  // Return false to ignore the event.
   ReplaceTextCallback? onReplaceText;
 
   // Custom delete handler
@@ -124,23 +118,18 @@ class QuillController extends ChangeNotifier {
   void Function()? onSelectionCompleted;
   void Function(TextSelection textSelection)? onSelectionChanged;
 
-  // Store any styles attribute that got toggled by the tap of a button
-  // and that has not been applied yet.
-  // It gets reset after each format action within the [document].
+  // Store any styles attribute that got toggled by the tap of a button and that has not been applied yet.
+  // It gets reset after each format action within the document.
   Style toggledStyle = Style();
 
   bool ignoreFocusOnTextChange = false;
 
-  // True when this [QuillController] instance has been disposed.
-  //
-  // A safety mechanism to ensure that listeners don't crash when adding,
-  // removing or listeners to this instance.
+  // True when this EditorController instance has been disposed.
+  // A safety mechanism to ensure that listeners don't crash when adding, removing or listeners to this instance.
   bool _isDisposed = false;
 
-  // item1: Document state before [change].
-  //
+  // item1: Document state before change.
   // item2: Change delta applied to the document.
-  //
   // item3: The source of this change.
   Stream<Tuple3<DeltaM, DeltaM, ChangeSource>> get changes => document.changes;
 
@@ -149,8 +138,7 @@ class QuillController extends ChangeNotifier {
         selection: selection,
       );
 
-  // Only attributes applied to all characters within this range are
-  // included in the result.
+  // Only attributes applied to all characters within this range are included in the result.
   Style getSelectionStyle() {
     return document
         .collectStyle(
@@ -194,20 +182,16 @@ class QuillController extends ChangeNotifier {
     }
   }
 
-  void _handleHistoryChange(int? len) {
-    if (len! != 0) {
-      // if (this.selection.extentOffset >= document.length) {
-      // // cursor exceeds the length of document, position it in the end
-      // updateSelection(
-      // TextSelection.collapsed(offset: document.length), ChangeSource.LOCAL);
+  void _handleHistoryChange(int? length) {
+    if (length! != 0) {
       updateSelection(
         TextSelection.collapsed(
-          offset: selection.baseOffset + len,
+          offset: selection.baseOffset + length,
         ),
         ChangeSource.LOCAL,
       );
     } else {
-      // no need to move cursor
+      // No need to move cursor
       notifyListeners();
     }
   }
@@ -223,7 +207,7 @@ class QuillController extends ChangeNotifier {
 
   bool get hasRedo => document.hasRedo;
 
-  // clear editor
+  // Clear editor
   void clear() {
     replaceText(
       0,
@@ -255,17 +239,20 @@ class QuillController extends ChangeNotifier {
           delta.isNotEmpty &&
           delta.length <= 2 &&
           delta.last.isInsert;
+      
       if (shouldRetainDelta &&
           toggledStyle.isNotEmpty &&
           delta.length == 2 &&
           delta.last.data == '\n') {
-        // if all attributes are inline, shouldRetainDelta should be false
+        
+        // If all attributes are inline, shouldRetainDelta should be false
         final anyAttributeNotInline =
             toggledStyle.values.any((attr) => !attr.isInline);
         if (!anyAttributeNotInline) {
           shouldRetainDelta = false;
         }
       }
+      
       if (shouldRetainDelta) {
         final retainDelta = DeltaM()
           ..retain(index)
@@ -291,6 +278,7 @@ class QuillController extends ChangeNotifier {
           ..insert(data)
           ..delete(len);
         final positionDelta = getPositionDelta(user, delta);
+        
         _updateSelection(
           textSelection.copyWith(
             baseOffset: textSelection.baseOffset + positionDelta,
@@ -312,7 +300,7 @@ class QuillController extends ChangeNotifier {
   // forward == false && textBefore.isEmpty
   // forward == true && textAfter.isEmpty
   // Android only
-  // see https://github.com/singerdmx/flutter-quill/discussions/514
+  // See https://github.com/singerdmx/flutter-quill/discussions/514
   void handleDelete(int cursorPosition, bool forward) =>
       onDelete?.call(cursorPosition, forward);
 
@@ -332,9 +320,8 @@ class QuillController extends ChangeNotifier {
     }
 
     final change = document.format(index, len, attribute);
-    // Transform selection against the composed change and give priority to
-    // the change. This is needed in cases when format operation actually
-    // inserts data into the document (e.g. embeds).
+    // Transform selection against the composed change and give priority to the change. 
+    // This is needed in cases when format operation actually inserts data into the document (e.g. embeds).
     final adjustedSelection = selection.copyWith(
       baseOffset: change.transformPosition(selection.baseOffset),
       extentOffset: change.transformPosition(selection.extentOffset),
@@ -407,8 +394,7 @@ class QuillController extends ChangeNotifier {
 
   @override
   void addListener(VoidCallback listener) {
-    // By using `_isDisposed`, make sure that `addListener` won't be called on a
-    // disposed `ChangeListener`
+    // By using `_isDisposed`, make sure that `addListener` won't be called on a disposed `ChangeListener`
     if (!_isDisposed) {
       super.addListener(listener);
     }
@@ -416,8 +402,7 @@ class QuillController extends ChangeNotifier {
 
   @override
   void removeListener(VoidCallback listener) {
-    // By using `_isDisposed`, make sure that `removeListener` won't be called
-    // on a disposed `ChangeListener`
+    // By using `_isDisposed`, make sure that `removeListener` won't be called on a disposed `ChangeListener`
     if (!_isDisposed) {
       super.removeListener(listener);
     }
@@ -449,8 +434,7 @@ class QuillController extends ChangeNotifier {
     return document.querySegmentLeafNode(offset).item2;
   }
 
-  // Clipboard for image url and its corresponding style
-  // item1 is url and item2 is style string
+  // Clipboard for image url and its corresponding style item1 is url and item2 is style string
   Tuple2<String, String>? _copiedImageUrl;
 
   Tuple2<String, String>? get copiedImageUrl => _copiedImageUrl;

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../../models/quill-checkbox-builder.model.dart';
+import '../../models/editor-checkbox-builder.model.dart';
 
 class CheckboxPoint extends StatefulWidget {
   final double size;
   final bool value;
   final bool enabled;
   final ValueChanged<bool> onChanged;
-  final QuillCheckboxBuilder? uiBuilder;
+  final EditorCheckboxBuilder? uiBuilder;
 
   const CheckboxPoint({
     required this.size,

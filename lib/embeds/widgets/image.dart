@@ -7,7 +7,7 @@ import 'package:photo_view/photo_view.dart';
 import 'package:string_validator/string_validator.dart';
 import 'package:tuple/tuple.dart';
 
-import '../../controller/services/controller.dart';
+import '../../controller/services/editor-controller.dart';
 import '../../documents/models/attribute.dart';
 import '../../documents/models/nodes/leaf.dart';
 import '../../documents/models/style.dart';
@@ -26,7 +26,7 @@ bool isImageBase64(String imageUrl) {
   return !imageUrl.startsWith('http') && isBase64(imageUrl);
 }
 
-Tuple2<int, Embed> getImageNode(QuillController controller, int offset) {
+Tuple2<int, Embed> getImageNode(EditorController controller, int offset) {
   var offset = controller.selection.start;
   var imageNode = controller.queryNode(offset);
   if (imageNode == null || !(imageNode is Embed)) {
@@ -40,7 +40,7 @@ Tuple2<int, Embed> getImageNode(QuillController controller, int offset) {
   return throw 'Image node not found by offset $offset';
 }
 
-String getImageStyleString(QuillController controller) {
+String getImageStyleString(EditorController controller) {
   final String? s = controller
       .getAllSelectionStyles()
       .firstWhere((s) => s.attributes.containsKey(Attribute.style.key),

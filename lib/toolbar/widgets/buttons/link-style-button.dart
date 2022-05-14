@@ -2,20 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../blocks/services/link.utils.dart';
-import '../../../controller/services/controller.dart';
+import '../../../controller/services/editor-controller.dart';
 import '../../../documents/models/attribute.dart';
-import '../../../shared/models/quill-dialog-theme.model.dart';
-import '../../../shared/models/quill-icon-theme.model.dart';
+import '../../../shared/models/editor-dialog-theme.model.dart';
+import '../../../shared/models/editor-icon-theme.model.dart';
 import '../../../shared/translations/toolbar.i18n.dart';
 import '../dialogs/link-style-dialog.dart';
 import '../toolbar.dart';
 
 class LinkStyleButton extends StatefulWidget {
-  final QuillController controller;
+  final EditorController controller;
   final IconData? icon;
   final double iconSize;
-  final QuillIconThemeM? iconTheme;
-  final QuillDialogThemeM? dialogTheme;
+  final EditorIconThemeM? iconTheme;
+  final EditorDialogThemeM? dialogTheme;
 
   const LinkStyleButton({
     required this.controller,

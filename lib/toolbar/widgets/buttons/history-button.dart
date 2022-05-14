@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
-import '../../../controller/services/controller.dart';
-import '../../../shared/models/quill-icon-theme.model.dart';
+import '../../../controller/services/editor-controller.dart';
+import '../../../shared/models/editor-icon-theme.model.dart';
 import '../toolbar.dart';
 
 class HistoryButton extends StatefulWidget {
   final IconData icon;
   final double iconSize;
   final bool undo;
-  final QuillController controller;
-  final QuillIconThemeM? iconTheme;
+  final EditorController controller;
+  final EditorIconThemeM? iconTheme;
 
   const HistoryButton({
     required this.icon,

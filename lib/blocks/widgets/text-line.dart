@@ -9,7 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../controller/services/controller.dart';
+import '../../controller/services/editor-controller.dart';
 import '../../cursor/widgets/cursor-painter.dart';
 import '../../cursor/widgets/cursor.dart';
 import '../../documents/models/attribute.dart';
@@ -55,7 +55,7 @@ class TextLine extends StatefulWidget {
   final EmbedBuilder embedBuilder;
   final DefaultStyles styles;
   final bool readOnly;
-  final QuillController controller;
+  final EditorController controller;
   final CustomStyleBuilder? customStyleBuilder;
   final ValueChanged<String>? onLaunchUrl;
   final LinkActionPicker linkActionPicker;
@@ -499,7 +499,7 @@ class EditableTextLine extends RenderObjectWidget {
     required this.cursorCont,
   });
 
-  final QuillController controller;
+  final EditorController controller;
   final Line line;
   final Widget? leading;
   final Widget body;
@@ -582,7 +582,7 @@ class RenderEditableTextLine extends RenderEditableBox {
     this.inlineCodeStyle,
   );
 
-  QuillController controller;
+  EditorController controller;
   RenderBox? _leading;
   RenderContentProxyBox? _body;
   Line line;

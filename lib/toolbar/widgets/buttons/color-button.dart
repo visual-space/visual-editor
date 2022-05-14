@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
-import '../../../controller/services/controller.dart';
+import '../../../controller/services/editor-controller.dart';
 import '../../../documents/models/attribute.dart';
 import '../../../documents/models/style.dart';
-import '../../../shared/models/quill-icon-theme.model.dart';
+import '../../../shared/models/editor-icon-theme.model.dart';
 import '../../../shared/translations/toolbar.i18n.dart';
 import '../../../shared/utils/color.utils.dart';
 import '../toolbar.dart';
@@ -15,8 +15,8 @@ class ColorButton extends StatefulWidget {
   final IconData icon;
   final double iconSize;
   final bool background;
-  final QuillController controller;
-  final QuillIconThemeM? iconTheme;
+  final EditorController controller;
+  final EditorIconThemeM? iconTheme;
 
   const ColorButton({
     required this.icon,

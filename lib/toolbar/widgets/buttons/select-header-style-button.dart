@@ -1,16 +1,16 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../../../controller/services/controller.dart';
+import '../../../controller/services/editor-controller.dart';
 import '../../../documents/models/attribute.dart';
 import '../../../documents/models/style.dart';
-import '../../../shared/models/quill-icon-theme.model.dart';
+import '../../../shared/models/editor-icon-theme.model.dart';
 import '../toolbar.dart';
 
 class SelectHeaderStyleButton extends StatefulWidget {
-  final QuillController controller;
+  final EditorController controller;
   final double iconSize;
-  final QuillIconThemeM? iconTheme;
+  final EditorIconThemeM? iconTheme;
 
   const SelectHeaderStyleButton({
     required this.controller,
@@ -118,7 +118,7 @@ class _SelectHeaderStyleButtonState extends State<SelectHeaderStyleButton> {
   Attribute<dynamic> _getHeaderValue() {
     final attr = widget.controller.toolbarButtonToggler[Attribute.header.key];
     if (attr != null) {
-      // checkbox tapping causes controller.selection to go to offset 0
+      // Checkbox tapping causes controller.selection to go to offset 0
       widget.controller.toolbarButtonToggler.remove(Attribute.header.key);
       return attr;
     }

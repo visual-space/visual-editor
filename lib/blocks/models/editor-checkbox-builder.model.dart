@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-abstract class QuillCheckboxBuilder {
+abstract class EditorCheckboxBuilder {
   Widget build({
     required BuildContext context,
     required bool isChecked,

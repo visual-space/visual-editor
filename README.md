@@ -1,6 +1,8 @@
-# Visual Editor
+![Visual-editor-teaser](https://github.com/visual-space/visual-editor/blob/develop/example/assets/visual-editor-teaser.jpg)
 
 Visual Editor is a Rich Text editor for [Flutter] originally forked from [Flutter Quill]. The editor is built around the powerful [Quilljs Delta] document format originally developed by QuillJs. Delta documents can be easily converted to JSON, the encoding is easy to read and modify and offers many extensibility options.
+
+<img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/visual-editor-demo.gif"/>
 
 **Why fork Flutter Quill?**
 
@@ -12,18 +14,18 @@ While building the [Visual Space] platform we begun using [Flutter Quill] to ren
 
 Make sure you don't overwrite the controller on `build()` or other updates, otherwise you will lose the contents of the history. Which means no more undo, redo with the previous states.
 ```dart
-final _controller = QuillController.basic();
+final _controller = EditorController.basic();
 ```
 
 ```dart
 Column(
   children: [
-    QuillToolbar.basic(
+    EditorToolbar.basic(
       controller: _controller,
     ),
     Expanded(
       child: Container(
-        child: QuillEditor.basic(
+        child: VisualEditor.basic(
           controller: _controller,
         ),
       ),
@@ -41,7 +43,7 @@ final json = jsonEncode(_controller.document.toDelta().toJson());
 ```dart
 const blogPost = jsonDecode(response);
 
-final _controller = QuillController(
+final _controller = EditorController(
   document: Document.fromJson(blogPost),
   selection: TextSelection.collapsed(offset: 0)
 );
@@ -49,25 +51,38 @@ final _controller = QuillController(
 
 **Delta or plain text**
 
-This library uses [Quill] as an internal data format. Quill uses delta objects to describe the attributes of each fragment of text.
+Visual Editor uses [Delta] objects as an internal data format to describe the attributes of each fragment of text.
 
 ```dart
 _controller.document.toDelta(); // Extract the deltas
 _controller.document.toPlainText(); // Extract plain text
 ```
 
-## Discord
-Join us on [Visual Editor Discord] to get live advice from the maintainers and core users. Our goal is to create a friendly and active support community that shares help and resources.
-
-## Youtube
-Subscribe to our [Visual Coding] Youtube channel to learn the skills needed to use and extend Visual Editor. Our episodes go in many topics including Flutter and production ready Software Architecture.
+<table cellspacing="0" cellpadding="0" border="0" style="border: 0px; border-collapse:collapse; marin: 60px 0 60px 0">
+    <tr style="border: 0px;">
+        <td width="50%" style="text-align: center; border: 0px;">
+            <a href="https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA" target="_blank" rel="Subscribe to Youtube">
+                <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/youtube.jpg"/>
+            </a>
+            <h2>Youtube</h2>
+            <p>Subscribe to our <a href="https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA" target="_blank" rel="Subscribe to Youtube">Visual Coding</a> Youtube channel to learn the skills needed to use and extend Visual Editor. Our episodes go in many topics including Flutter and production ready Software Architecture.</p>
+        </td>
+        <td width="50%" style="text-align: center; border: 0px;">
+            <a href="https://discord.gg/XpGygmXde4" target="_blank" rel="Join on Discord">
+                <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/discord.jpg"/>
+            </a>
+            <h2>Discord</h2>
+            <p>Join us on <a href="https://discord.gg/XpGygmXde4" target="_blank" rel="Join on Discord">Visual Editor Discord</a> to get live advice from the maintainers and core users. Our goal is to create a friendly and active support community that shares help and resources.</p>
+        </td>
+    </tr>
+</table>
 
 ## Documentation
 Learn more about Visual Editor architecture and how to use the features.
 
-- **[Delta](https://github.com/visual-space/visual-editor/blob/main/lib/delta/delta.md)** - Delta documents are used to store text edits and styling attributes.
-- **[Toolbar](https://github.com/visual-space/visual-editor/blob/main/lib/toolbar/toolbar.md)** - Displays buttons used to edit the styling of the text.
-- **[Highlights](https://github.com/visual-space/visual-editor/blob/main/lib/highlights/highlights.md)** - Renders temporary text markers sensitive to taps.
+- **[Delta](https://github.com/visual-space/visual-editor/blob/develop/lib/delta/delta.md)** - Delta documents are used to store text edits and styling attributes.
+- **[Toolbar](https://github.com/visual-space/visual-editor/blob/develop/lib/toolbar/toolbar.md)** - Displays buttons used to edit the styling of the text.
+- **[Highlights](https://github.com/visual-space/visual-editor/blob/develop/lib/highlights/highlights.md)** - Renders temporary text markers sensitive to taps.
 
 ## Roadmap
 These features are currently under developed for [Visual Space]. As soon as they are stable we will release them in the open source repository.
@@ -105,14 +120,6 @@ These features are currently under developed for [Visual Space]. As soon as they
 - Links can't be edited (afaik).
 - Nest bullets when pressing Tab. Currently it's possible only with the indentation controls.
 
-[Quill]: https://quilljs.com/docs/formats
-[Quilljs Delta]: https://github.com/quilljs/delta
-[Flutter]: https://github.com/flutter/flutter
-[Flutter Quill]: https://github.com/singerdmx/flutter-quill
-[Visual Coding]: https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA
-[Visual Editor Discord]: https://discord.gg/XpGygmXde4
-[Visual Space]: https://visualspace.app
-
 ## Who is using Visual Editor?
 
 - **[Visual Space]** - Next generation interactive tutorials and projects
@@ -120,5 +127,13 @@ These features are currently under developed for [Visual Space]. As soon as they
 Send us a message on [Visual Editor Discord] if you want your app to be listed here.
 
 ## Additional Resources
-[Word Processing Terminology 1](http://w.sunybroome.edu/basic-computer-skills/functions/word_processing/2wp_terminology.html) • 
+[Word Processing Terminology 1](http://w.sunybroome.edu/basic-computer-skills/functions/word_processing/2wp_terminology.html) •
 [Word Processing Terminology 2](https://www.computerhope.com/jargon/word-processor.htm)
+
+[Quill]: https://quilljs.com/docs/formats
+[Quilljs Delta]: https://github.com/quilljs/delta
+[Flutter]: https://github.com/flutter/flutter
+[Flutter Quill]: https://github.com/singerdmx/flutter-quill
+[Visual Coding]: https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA
+[Visual Editor Discord]: https://discord.gg/XpGygmXde4
+[Visual Space]: https://visualspace.app

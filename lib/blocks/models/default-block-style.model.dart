@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 
 import 'default-text-block-style.model.dart';
-import 'quill-checkbox-builder.model.dart';
+import 'editor-checkbox-builder.model.dart';
 
 class DefaultListBlockStyle extends DefaultTextBlockStyle {
-  final QuillCheckboxBuilder? checkboxUIBuilder;
+  final EditorCheckboxBuilder? checkboxUIBuilder;
 
   DefaultListBlockStyle(
     TextStyle style,

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-class QuillDialogThemeM {
+class EditorDialogThemeM {
   final TextStyle? labelTextStyle;
   final TextStyle? inputTextStyle;
   final Color? dialogBackgroundColor;
 
-  QuillDialogThemeM({
+  EditorDialogThemeM({
     this.labelTextStyle,
     this.inputTextStyle,
     this.dialogBackgroundColor,

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:gallery_saver/gallery_saver.dart';
 import 'package:tuple/tuple.dart';
 
-import '../../controller/services/controller.dart';
+import '../../controller/services/editor-controller.dart';
 import '../../documents/models/attribute.dart';
 import '../../documents/models/nodes/embeddable.dart';
 import '../../documents/models/nodes/leaf.dart' as leaf;
@@ -18,7 +18,7 @@ import 'youtube-video-app.dart';
 
 Widget defaultEmbedBuilder(
   BuildContext context,
-  QuillController controller,
+  EditorController controller,
   leaf.Embed node,
   bool readOnly,
 ) {
@@ -173,16 +173,15 @@ Widget defaultEmbedBuilder(
     default:
       // Throwing an error here does not help at all.
       // Even when there's only one Operation with a video attribute in the
-      // whole doc it will be flushed away from the console by a
-      // large callstack. The error that gets printed on repeat will flood the
-      // terminal filling up the entire buffer with a message that is completely
-      // misleading. by rendering this text we can save countless hours of
-      // searching for the origin of the bug.
+      // whole doc it will be flushed away from the console by a large callstack.
+      // The error that gets printed on repeat will flood the terminal filling up the entire
+      // buffer with a message that is completely  misleading.
+      // By rendering this text we can save countless hours of searching for the origin of the bug.
       // ignore: avoid_print
       print(
         'Embeddable type "${node.value.type}" is not supported by default web'
-        'embed builder of QuillEditor. You must pass your own builder function '
-        'to embedBuilder property of QuillEditor or QuillField widgets.',
+        'embed builder of VisualEditor. You must pass your own builder function '
+        'to embedBuilder property of VisualEditor or EditorField widgets.',
       );
       return const SizedBox.shrink();
   }

@@ -5,9 +5,9 @@ import 'package:flutter/rendering.dart';
 import '../widgets/editor-renderer.dart';
 
 // +++ DOC WHY
-class QuillVerticalCaretMovementRun
+class EditorVerticalCaretMovementRun
     extends BidirectionalIterator<TextPosition> {
-  QuillVerticalCaretMovementRun(
+  EditorVerticalCaretMovementRun(
     this._editor,
     this._currentTextPosition,
   );

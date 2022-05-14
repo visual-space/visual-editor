@@ -2,23 +2,23 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../controller/services/controller.dart';
+import '../../controller/services/editor-controller.dart';
 import '../../documents/models/document.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../inputs/services/text-selection-gesture-detector-builder-delegate.dart';
 import '../../shared/utils/platform.utils.dart';
-import '../widgets/editor.dart';
+import '../widgets/visual-editor.dart';
 
 // +++ DOC WHY
-class QuillEditorSelectionGestureDetectorBuilder
+class EditorSelectionGestureDetectorBuilder
     extends EditorTextSelectionGestureDetectorBuilder {
-  QuillEditorSelectionGestureDetectorBuilder(
+  EditorSelectionGestureDetectorBuilder(
     this._state,
     this._controller,
   ) : super(delegate: _state);
 
-  final QuillEditorState _state;
-  final QuillController _controller;
+  final VisualEditorState _state;
+  final EditorController _controller;
   List<HighlightM> hoveredHighlights = [];
   List<HighlightM> prevHoveredHighlights = [];
 
@@ -127,7 +127,7 @@ class QuillEditorSelectionGestureDetectorBuilder
           // Only once at enter to avoid performance issues
           // Could be further improved if multiple highlights overlap
           _controller.hoveredHighlights.add(highlight);
-          _controller.notifyListeners();
+          // _controller.notifyListeners(); // +++ REVIEW
         }
 
         if (highlight.onHover != null) {
@@ -139,7 +139,7 @@ class QuillEditorSelectionGestureDetectorBuilder
 
           // Only once at exit to avoid performance issues
           _controller.hoveredHighlights.remove(highlight);
-          _controller.notifyListeners();
+          // _controller.notifyListeners(); // +++ REVIEW
         }
       }
     });
@@ -197,6 +197,9 @@ class QuillEditorSelectionGestureDetectorBuilder
               renderEditor!
                 ..selectWordEdge(SelectionChangedCause.tap)
                 ..onSelectionCompleted();
+              break;
+            case PointerDeviceKind.trackpad:
+              // TODO: Handle this case.
               break;
           }
         } else {

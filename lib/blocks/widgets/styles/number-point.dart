@@ -4,7 +4,7 @@ import '../../../documents/models/attribute.dart';
 import '../../const/arabian-roman-numbers.const.dart';
 import '../../const/roman-numbers.const.dart';
 
-class QuillNumberPoint extends StatelessWidget {
+class NumberPoint extends StatelessWidget {
   final int index;
   final Map<int?, int> indentLevelCounts;
   final int count;
@@ -14,7 +14,7 @@ class QuillNumberPoint extends StatelessWidget {
   final bool withDot;
   final double padding;
 
-  const QuillNumberPoint({
+  const NumberPoint({
     required this.index,
     required this.indentLevelCounts,
     required this.count,
@@ -30,9 +30,11 @@ class QuillNumberPoint extends StatelessWidget {
   Widget build(BuildContext context) {
     var s = index.toString();
     int? level = 0;
+
     if (!attrs.containsKey(Attribute.indent.key) &&
         !indentLevelCounts.containsKey(1)) {
       indentLevelCounts.clear();
+
       return Container(
         alignment: AlignmentDirectional.topEnd,
         width: width,
@@ -40,6 +42,7 @@ class QuillNumberPoint extends StatelessWidget {
         child: Text(withDot ? '$s.' : s, style: style),
       );
     }
+
     if (attrs.containsKey(Attribute.indent.key)) {
       level = attrs[Attribute.indent.key]!.value;
     } else {
@@ -47,14 +50,16 @@ class QuillNumberPoint extends StatelessWidget {
       // supposed to be "2."
       indentLevelCounts[0] = 1;
     }
+
     if (indentLevelCounts.containsKey(level! + 1)) {
       // last visited level is done, going up
       indentLevelCounts.remove(level + 1);
     }
+
     final count = (indentLevelCounts[level] ?? 0) + 1;
     indentLevelCounts[level] = count;
-
     s = count.toString();
+
     if (level % 3 == 1) {
       // a. b. c. d. e. ...
       s = _toExcelSheetColumnTitle(count);
@@ -74,6 +79,7 @@ class QuillNumberPoint extends StatelessWidget {
 
   String _toExcelSheetColumnTitle(int n) {
     final result = StringBuffer();
+
     while (n > 0) {
       n--;
       result.write(String.fromCharCode((n % 26).floor() + 97));
@@ -93,6 +99,7 @@ class QuillNumberPoint extends StatelessWidget {
     }
 
     final builder = StringBuffer();
+
     for (var a = 0; a < arabianRomanNumbers.length; a++) {
       final times = (num / arabianRomanNumbers[a])
           .truncate(); // Equals 1 only when arabianRomanNumbers[a] = num

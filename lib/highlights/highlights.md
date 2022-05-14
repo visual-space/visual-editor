@@ -5,17 +5,16 @@ Renders temporary text markers sensitive to taps. Highlights can be added and re
 **highlight.model.dart**
 ```dart
 import 'package:flutter/material.dart';
-
-import '../../../flutter_quill.dart';
+import '../../../visual_editor.dart';
 
 const _DEFAULT_HIGHLIGHT_COLOR = Color.fromRGBO(0xFF, 0xC1, 0x17, .3);
 const _HOVERED_HIGHLIGHT_COLOR = Color.fromRGBO(0xFF, 0xC1, 0x17, .5);
 
-/// Highlights can be provided to the [QuillController].
-/// The highlights are dynamic and can be changed at runtime.
-/// If you need static highlights you can use the foreground color option.
-/// Highlights can be hovered.
-/// Callbacks can be defined to react to hovering and tapping.
+// Highlights can be provided to the EditorController.
+// The highlights are dynamic and can be changed at runtime.
+// If you need static highlights you can use the foreground color option.
+// Highlights can be hovered.
+// Callbacks can be defined to react to hovering and tapping.
 @immutable
 class HighlightM {
   final TextSelection textSelection;
@@ -36,14 +35,13 @@ class HighlightM {
     this.onLeave,
   });
 }
-
 ```
 
 ## Usage Instructions
 **sample-highlights.const.dart**
 ```dart
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/flutter_quill.dart';
+import 'package:visual_editor/visual_editor.dart';
 
 final SAMPLE_HIGHLIGHTS = [
   HighlightM(
@@ -66,7 +64,7 @@ final SAMPLE_HIGHLIGHTS = [
 
 Create a new controller and provide the highlights you desire.
 ```dart
-final _controller = QuillController(
+final _controller = EditorController(
   document: doc,
   selection: const TextSelection.collapsed(offset: 0),
   highlights: SAMPLE_HIGHLIGHTS,
@@ -80,7 +78,7 @@ We did not implement a custom attribute to store the ids of the highlights. We l
 ```json
 [
   {
-    "insert": "Flutter Quill"
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
   },
   {
     "attributes": {

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../controller/services/controller.dart';
+import '../../controller/services/editor-controller.dart';
 import '../../documents/models/attribute.dart';
 import '../../documents/models/style.dart';
-import '../models/quill-icon-theme.model.dart';
+import '../models/editor-icon-theme.model.dart';
 
 // Collides with Flutter DropdownButton
 class DropdownBtn<T> extends StatefulWidget {
@@ -15,9 +15,9 @@ class DropdownBtn<T> extends StatefulWidget {
   final List<PopupMenuEntry<T>> items;
   final Map<String, int> rawitemsmap;
   final ValueChanged<T> onSelected;
-  final QuillIconThemeM? iconTheme;
+  final EditorIconThemeM? iconTheme;
   final Attribute attribute;
-  final QuillController controller;
+  final EditorController controller;
 
   const DropdownBtn({
     required this.initialValue,

@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/flutter-quill.dart' hide Text;
+import 'package:visual_editor/visual-editor.dart' hide Text;
 
-import '../universal_ui/universal_ui.dart';
-import '../widgets/demo_scaffold.dart';
+import '../universal_ui/universal-ui.dart';
+import '../widgets/demo-scaffold.dart';
 
 class ReadOnlyPage extends StatefulWidget {
   @override
@@ -29,8 +29,8 @@ class _ReadOnlyPageState extends State<ReadOnlyPage> {
     );
   }
 
-  Widget _buildContent(BuildContext context, QuillController? controller) {
-    var quillEditor = QuillEditor(
+  Widget _buildContent(BuildContext context, EditorController? controller) {
+    var visualEditor = VisualEditor(
       controller: controller!,
       scrollController: ScrollController(),
       scrollable: true,
@@ -40,7 +40,7 @@ class _ReadOnlyPageState extends State<ReadOnlyPage> {
       padding: EdgeInsets.zero,
     );
     if (kIsWeb) {
-      quillEditor = QuillEditor(
+      visualEditor = VisualEditor(
         controller: controller,
         scrollController: ScrollController(),
         scrollable: true,
@@ -58,7 +58,7 @@ class _ReadOnlyPageState extends State<ReadOnlyPage> {
           color: Colors.white,
           border: Border.all(color: Colors.grey.shade200),
         ),
-        child: quillEditor,
+        child: visualEditor,
       ),
     );
   }

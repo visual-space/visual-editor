@@ -31,8 +31,8 @@ Using the toolbar users can edit the text properties. By default several actions
 Toolbars can be configured:
 
 ```
-Widget _quillToolbar() => QuillToolbar.basic(
-    controller: controller ?? QuillController.basic(),
+Widget _editorToolbar() => EditorToolbar.basic(
+    controller: controller ?? EditorController.basic(),
     showImageButton: true,
     showVideoButton: true,
     showColorButton: false,

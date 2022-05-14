@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../controller/services/controller.dart';
+import '../../../controller/services/editor-controller.dart';
 import '../../../documents/models/attribute.dart';
 import '../../../documents/models/style.dart';
-import '../../../shared/models/quill-icon-theme.model.dart';
+import '../../../shared/models/editor-icon-theme.model.dart';
 import '../../models/toggle-style-button-builder.type.dart';
 import '../toolbar.dart';
 
@@ -12,9 +12,9 @@ class ToggleStyleButton extends StatefulWidget {
   final IconData icon;
   final double iconSize;
   final Color? fillColor;
-  final QuillController controller;
+  final EditorController controller;
   final ToggleStyleButtonBuilder childBuilder;
-  final QuillIconThemeM? iconTheme;
+  final EditorIconThemeM? iconTheme;
 
   const ToggleStyleButton({
     required this.attribute,
@@ -103,7 +103,7 @@ Widget defaultToggleStyleButtonBuilder(
   bool? isToggled,
   VoidCallback? onPressed, [
   double iconSize = kDefaultIconSize,
-  QuillIconThemeM? iconTheme,
+  EditorIconThemeM? iconTheme,
 ]) {
   final theme = Theme.of(context);
   final isEnabled = onPressed != null;

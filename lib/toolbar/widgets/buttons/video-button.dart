@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../controller/services/controller.dart';
+import '../../../controller/services/editor-controller.dart';
 import '../../../documents/models/nodes/embeddable.dart';
-import '../../../shared/models/quill-dialog-theme.model.dart';
-import '../../../shared/models/quill-icon-theme.model.dart';
+import '../../../shared/models/editor-dialog-theme.model.dart';
+import '../../../shared/models/editor-icon-theme.model.dart';
 import '../../models/media-pick.enum.dart';
 import '../../models/media-picker.type.dart';
 import '../dialogs/link-dialog.dart';
@@ -14,13 +14,13 @@ class VideoButton extends StatelessWidget {
   final IconData icon;
   final double iconSize;
   final Color? fillColor;
-  final QuillController controller;
+  final EditorController controller;
   final OnVideoPickCallback? onVideoPickCallback;
   final WebVideoPickImpl? webVideoPickImpl;
   final FilePickImpl? filePickImpl;
   final MediaPickSettingSelector? mediaPickSettingSelector;
-  final QuillIconThemeM? iconTheme;
-  final QuillDialogThemeM? dialogTheme;
+  final EditorIconThemeM? iconTheme;
+  final EditorDialogThemeM? dialogTheme;
 
   const VideoButton({
     required this.icon,

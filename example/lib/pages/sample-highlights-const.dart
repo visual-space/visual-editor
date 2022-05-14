@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/flutter-quill.dart';
+import 'package:visual_editor/visual-editor.dart';
 
 final SAMPLE_HIGHLIGHTS = [
   HighlightM(

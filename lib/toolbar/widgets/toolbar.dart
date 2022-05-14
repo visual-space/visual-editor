@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:i18n_extension/i18n_widget.dart';
 
-import '../../controller/services/controller.dart';
+import '../../controller/services/editor-controller.dart';
 import '../../documents/models/attribute.dart';
-import '../../shared/models/quill-dialog-theme.model.dart';
-import '../../shared/models/quill-icon-theme.model.dart';
+import '../../shared/models/editor-dialog-theme.model.dart';
+import '../../shared/models/editor-icon-theme.model.dart';
 import '../../shared/widgets/arrow-scrollable-button-list.dart';
 import '../../shared/widgets/dropdown-button.dart';
 import '../../shared/widgets/quill-icon-button.dart';
+import '../models/editor-custom-icon.dart';
 import '../models/media-picker.type.dart';
-import '../models/quill-custom-icon.dart';
 import 'buttons/camera-button.dart';
 import 'buttons/clear-format-button.dart';
 import 'buttons/color-button.dart';
@@ -43,8 +43,8 @@ const kDefaultIconSize = 18.0;
 // The factor of how much larger the button is in relation to the icon.
 const kIconButtonFactor = 1.77;
 
-class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
-  const QuillToolbar({
+class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
+  const EditorToolbar({
     required this.children,
     this.toolbarHeight = 36,
     this.toolbarIconAlignment = WrapAlignment.center,
@@ -57,8 +57,8 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
     Key? key,
   }) : super(key: key);
 
-  factory QuillToolbar.basic({
-    required QuillController controller,
+  factory EditorToolbar.basic({
+    required EditorController controller,
     double toolbarIconSize = kDefaultIconSize,
     double toolbarSectionSpacing = 4,
     WrapAlignment toolbarIconAlignment = WrapAlignment.center,
@@ -99,21 +99,20 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
     FilePickImpl? filePickImpl,
     WebImagePickImpl? webImagePickImpl,
     WebVideoPickImpl? webVideoPickImpl,
-    List<QuillCustomIcon> customIcons = const [],
+    List<EditorCustomIcon> customIcons = const [],
 
-    ///Map of font sizes in [int]
+    // Map of font sizes in int
     Map<String, int>? fontSizeValues,
     int? initialFontSizeValue,
 
-    ///The theme to use for the icons in the buttons, uses type [QuillIconThemeM]
-    QuillIconThemeM? iconTheme,
+    // The theme to use for the icons in the buttons, uses type EditorIconThemeM
+    EditorIconThemeM? iconTheme,
 
-    ///The theme to use for the theming of the [LinkDialog()],
-    ///shown when embedding an image, for example
-    QuillDialogThemeM? dialogTheme,
+    // The theme to use for the theming of the LinkDialog(), shown when embedding an image, for example
+    EditorDialogThemeM? dialogTheme,
 
-    /// The locale to use for the editor buttons, defaults to system locale
-    /// More at https://github.com/singerdmx/flutter-quill#translation
+    // The locale to use for the editor buttons, defaults to system locale
+    // More at https://github.com/singerdmx/flutter-quill#translation
     Locale? locale,
     Key? key,
   }) {
@@ -141,7 +140,7 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
       showLink
     ];
 
-    //default font size values
+    // Default font size values
     final fontSizes = fontSizeValues ??
         {
           'Default': 0,
@@ -157,7 +156,7 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
           '48': 48
         };
 
-    return QuillToolbar(
+    return EditorToolbar(
       key: key,
       toolbarHeight: toolbarIconSize * 2,
       toolbarSectionSpacing: toolbarSectionSpacing,
@@ -480,20 +479,18 @@ class QuillToolbar extends StatelessWidget implements PreferredSizeWidget {
   final WrapAlignment toolbarIconAlignment;
   final bool multiRowsDisplay;
 
-  /// The color of the buttons.
-  ///
-  /// Defaults to [ThemeData.canvasColor] of the current [Theme] if no color
-  /// is given.
+  // The color of the buttons.
+  // Defaults to ThemeData.canvasColor of the current Theme if no color is given.
   final Color? color;
 
   final FilePickImpl? filePickImpl;
 
-  /// The locale to use for the editor buttons, defaults to system locale
-  /// More https://github.com/singerdmx/flutter-quill#translation
+  // The locale to use for the editor buttons, defaults to system locale
+  // More https://github.com/singerdmx/flutter-quill#translation
   final Locale? locale;
 
-  /// List of custom icons
-  final List<QuillCustomIcon> customIcons;
+  // List of custom icons
+  final List<EditorCustomIcon> customIcons;
 
   @override
   Size get preferredSize => Size.fromHeight(toolbarHeight);

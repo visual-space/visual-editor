@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../rules/services/insert.dart';
-import '../../../shared/models/quill-dialog-theme.model.dart';
+import '../../../shared/models/editor-dialog-theme.model.dart';
 import '../../../shared/translations/toolbar.i18n.dart';
 
 class LinkStyleDialog extends StatefulWidget {
-  final QuillDialogThemeM? dialogTheme;
+  final EditorDialogThemeM? dialogTheme;
   final String? link;
   final String? text;
 

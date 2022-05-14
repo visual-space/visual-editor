@@ -3,12 +3,12 @@ import 'package:flutter/widgets.dart';
 
 import 'single-child-viewport.dart';
 
-// Very similar to [SingleChildView] but with a [ViewportBuilder] argument instead of a [Widget]
-// Useful when child needs [ViewportOffset] (e.g. [RenderEditor])
-// see: [SingleChildScrollView]
-class QuillSingleChildScrollView extends StatelessWidget {
+// Very similar to SingleChildView but with a ViewportBuilder argument instead of a Widget
+// Useful when child needs ViewportOffset (e.g. RenderEditor)
+// see: SingleChildScrollView
+class EditorSingleChildScrollView extends StatelessWidget {
   // Creates a box in which a single widget can be scrolled.
-  const QuillSingleChildScrollView({
+  const EditorSingleChildScrollView({
     required this.controller,
     required this.viewportBuilder,
     Key? key,
@@ -17,14 +17,14 @@ class QuillSingleChildScrollView extends StatelessWidget {
   }) : super(key: key);
 
   // An object that can be used to control the position to which this scroll view is scrolled.
-  // Must be null if [primary] is true.
-  // A [ScrollController] serves several purposes.
-  // It can be used to control the initial scroll position (see [ScrollController.initialScrollOffset]).
+  // Must be null if primary is true.
+  // A ScrollController serves several purposes.
+  // It can be used to control the initial scroll position (see ScrollController.initialScrollOffset).
   // It can be used to control whether the scroll view should automatically
-  // save and restore its scroll position in the [PageStorage]
-  // (see [ScrollController.keepScrollOffset]).
-  // It can be used to read the current scroll position (see [ScrollController.offset]), or change it
-  // (see [ScrollController.animateTo]).
+  // save and restore its scroll position in the PageStorage
+  // (see ScrollController.keepScrollOffset).
+  // It can be used to read the current scroll position (see ScrollController.offset), or change it
+  // (see ScrollController.animateTo).
   final ScrollController controller;
 
   // How the scroll view should respond to user input.

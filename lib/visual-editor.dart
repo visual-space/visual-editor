@@ -1,21 +1,21 @@
-library flutter_quill;
+library visual_editor;
 
 export 'blocks/models/default-text-block-style.model.dart';
 export 'blocks/services/default-link-action-picker-delegate.dart';
 export 'blocks/services/default-styles.utils.dart';
 export 'blocks/widgets/style-widgets.dart';
-export 'controller/services/controller.dart';
+export 'controller/services/editor-controller.dart';
 export 'delta/models/delta.model.dart';
 export 'documents/models/attribute.dart';
 export 'documents/models/document.dart';
 export 'documents/models/nodes/embeddable.dart';
 export 'documents/models/nodes/leaf.dart';
 export 'documents/models/style.dart';
-export 'editor/widgets/editor.dart';
+export 'editor/widgets/visual-editor.dart';
 export 'highlights/models/highlight.model.dart';
-export 'shared/models/quill-dialog-theme.model.dart';
-export 'shared/models/quill-icon-theme.model.dart';
+export 'shared/models/editor-dialog-theme.model.dart';
+export 'shared/models/editor-icon-theme.model.dart';
+export 'toolbar/models/editor-custom-icon.dart';
 export 'toolbar/models/media-pick.enum.dart';
 export 'toolbar/models/media-picker.type.dart';
-export 'toolbar/models/quill-custom-icon.dart';
 export 'toolbar/widgets/toolbar.dart';

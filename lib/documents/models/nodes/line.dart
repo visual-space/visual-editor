@@ -12,12 +12,9 @@ import 'embeddable.dart';
 import 'leaf.dart';
 import 'node.dart';
 
-/// A line of rich text in a Quill document.
-///
-/// Line serves as a container for [Leaf]s, like [Text] and [Embed].
-///
-/// When a line contains an embed, it fully occupies the line, no other embeds
-/// or text nodes are allowed.
+// A line of rich text in a Editor document.
+// Line serves as a container for Leafs, like Text and Embed.
+// When a line contains an embed, it fully occupies the line, no other embeds or text nodes are allowed.
 class Line extends Container<Leaf?> {
   @override
   Leaf get defaultChild => Text();
@@ -25,12 +22,12 @@ class Line extends Container<Leaf?> {
   @override
   int get length => super.length + 1;
 
-  /// Returns `true` if this line contains an embedded object.
+  // Returns `true` if this line contains an embedded object.
   bool get hasEmbed {
     return children.any((child) => child is Embed);
   }
 
-  /// Returns next [Line] or `null` if this is the last line in the document.
+  // Returns next Line or `null` if this is the last line in the document.
   Line? get nextLine {
     if (!isLast) {
       return next is Block ? (next as Block).first as Line? : next as Line?;
@@ -77,9 +74,8 @@ class Line extends Container<Leaf?> {
   @override
   void insert(int index, Object data, Style? style) {
     if (data is Embeddable) {
-      // We do not check whether this line already has any children here as
-      // inserting an embed into a line with other text is acceptable from the
-      // Delta format perspective.
+      // We do not check whether this line already has any children here as inserting an embed
+      // into a line with other text is acceptable from the Delta format perspective.
       // We rely on heuristic rules to ensure that embeds occupy an entire line.
       _insertSafe(index, data, style);
       return;
@@ -123,7 +119,6 @@ class Line extends Container<Leaf?> {
       return;
     }
     final thisLength = length;
-
     final local = math.min(thisLength - index, len!);
     // If index is at newline character then this is a line/block style update.
     final isLineFormat = (index + local == thisLength) && local == 1;
@@ -154,7 +149,9 @@ class Line extends Container<Leaf?> {
   @override
   void delete(int index, int? len) {
     final local = math.min(length - index, len!);
-    final isLFDeleted = index + local == length; // Line feed
+    // Line feed
+    final isLFDeleted = index + local == length;
+
     if (isLFDeleted) {
       // Our newline character deleted with all style information.
       clearStyle();
@@ -173,28 +170,25 @@ class Line extends Container<Leaf?> {
     }
 
     if (isLFDeleted && isNotEmpty) {
-      // Since we lost our line-break and still have child text nodes those must
-      // migrate to the next line.
-
-      // nextLine might have been unmounted since last assert so we need to
-      // check again we still have a line after us.
+      // Since we lost our line-break and still have child text nodes those must migrate to the next line.
+      // nextLine might have been unmounted since last assert so we need to check again we still have a line after us.
       assert(nextLine != null);
 
-      // Move remaining children in this line to the next line so that all
-      // attributes of nextLine are preserved.
+      // Move remaining children in this line to the next line so that all attributes of nextLine are preserved.
       nextLine!.moveChildToNewParent(this);
       moveChildToNewParent(nextLine);
     }
 
     if (isLFDeleted) {
       // Now we can remove this line.
-      final block = parent!; // remember reference before un-linking.
+      // Remember reference before un-linking.
+      final block = parent!;
       unlink();
       block.adjust();
     }
   }
 
-  /// Formats this line.
+  // Formats this line.
   void _format(Style? newStyle) {
     if (newStyle == null || newStyle.isEmpty) {
       return;
@@ -202,15 +196,17 @@ class Line extends Container<Leaf?> {
 
     applyStyle(newStyle);
     final blockStyle = newStyle.getBlockExceptHeader();
+
+    // No block-level changes
     if (blockStyle == null) {
       return;
-    } // No block-level changes
+    }
 
     if (parent is Block) {
       final parentStyle = (parent as Block).style.getBlocksExceptHeader();
-      // Ensure that we're only unwrapping the block only if we unset a single
-      // block format in the `parentStyle` and there are no more block formats
-      // left to unset.
+
+      // Ensure that we're only unwrapping the block only if we unset a single block format
+      // in the `parentStyle` and there are no more block formats left to unset.
       if (blockStyle.value == null &&
           parentStyle.containsKey(blockStyle.key) &&
           parentStyle.length == 1) {
@@ -218,18 +214,22 @@ class Line extends Container<Leaf?> {
       } else if (!const MapEquality()
           .equals(newStyle.getBlocksExceptHeader(), parentStyle)) {
         _unwrap();
+
         // Block style now can contain multiple attributes
         if (newStyle.attributes.keys
             .any(Attribute.exclusiveBlockKeys.contains)) {
           parentStyle.removeWhere(
               (key, attr) => Attribute.exclusiveBlockKeys.contains(key));
         }
+
         parentStyle.removeWhere(
-            (key, attr) => newStyle?.attributes.keys.contains(key) ?? false);
+          (key, attr) => newStyle?.attributes.keys.contains(key) ?? false,
+        );
+
         final parentStyleToMerge = Style.attr(parentStyle);
         newStyle = newStyle.mergeAll(parentStyleToMerge);
         _applyBlockStyles(newStyle);
-      } // else the same style, no-op.
+      } // Else the same style, no-op.
     } else if (blockStyle.value != null) {
       // Only wrap with a new block if this is not an unset
       _applyBlockStyles(newStyle);
@@ -245,9 +245,8 @@ class Line extends Container<Leaf?> {
     block.adjust();
   }
 
-  /// Wraps this line with new parent [block].
-  ///
-  /// This line can not be in a [Block] when this method is called.
+  // Wraps this line with new parent block.
+  // This line can not be in a Block when this method is called.
   void _wrap(Block block) {
     assert(parent != null && parent is! Block);
     insertAfter(block);
@@ -255,9 +254,8 @@ class Line extends Container<Leaf?> {
     block.add(this);
   }
 
-  /// Unwraps this line from it's parent [Block].
-  ///
-  /// This method asserts if current [parent] of this line is not a [Block].
+  // Unwraps this line from it's parent Block.
+  // This method asserts if current parent of this line is not a Block.
   void _unwrap() {
     if (parent is! Block) {
       throw ArgumentError('Invalid parent');
@@ -273,7 +271,7 @@ class Line extends Container<Leaf?> {
       unlink();
       block.insertAfter(this);
     } else {
-      /// need to split this block into two as [line] is in the middle.
+      // Need to split this block into two as line is in the middle.
       final before = block.clone() as Block;
       block.insertBefore(before);
 
@@ -330,18 +328,14 @@ class Line extends Container<Leaf?> {
     }
   }
 
-  /// Returns style for specified text range.
-  ///
-  /// Only attributes applied to all characters within this range are
-  /// included in the result. Inline and line level attributes are
-  /// handled separately, e.g.:
-  ///
-  /// - line attribute X is included in the result only if it exists for
-  ///   every line within this range (partially included lines are counted).
-  /// - inline attribute X is included in the result only if it exists
-  ///   for every character within this range (line-break characters excluded).
-  ///
-  /// In essence, it is INTERSECTION of each individual segment's styles
+  // Returns style for specified text range.
+  // Only attributes applied to all characters within this range are included in the result.
+  // Inline and line level attributes are handled separately, e.g.:
+  // - line attribute X is included in the result only if it exists for
+  //   every line within this range (partially included lines are counted).
+  // - inline attribute X is included in the result only if it exists
+  //   for every character within this range (line-break characters excluded).
+  // In essence, it is INTERSECTION of each individual segment's styles
   Style collectStyle(int offset, int len) {
     final local = math.min(length - offset, len);
     var result = Style();
@@ -389,8 +383,7 @@ class Line extends Container<Leaf?> {
     return result;
   }
 
-  /// Returns each node segment's offset in selection
-  /// with its corresponding style as a list
+  // Returns each node segment's offset in selection with its corresponding style as a list
   List<Tuple2<int, Style>> collectAllIndividualStyles(int offset, int len,
       {int beg = 0}) {
     final local = math.min(length - offset, len);
@@ -425,8 +418,8 @@ class Line extends Container<Leaf?> {
     return result;
   }
 
-  /// Returns all styles for any character within the specified text range.
-  /// In essence, it is UNION of each individual segment's styles
+  // Returns all styles for any character within the specified text range.
+  // In essence, it is UNION of each individual segment's styles
   List<Style> collectAllStyles(int offset, int len) {
     final local = math.min(length - offset, len);
     final result = <Style>[];
@@ -458,7 +451,7 @@ class Line extends Container<Leaf?> {
     return result;
   }
 
-  /// Returns plain text within the specified text range.
+  // Returns plain text within the specified text range.
   String getPlainText(int offset, int len) {
     final plainText = StringBuffer();
     _getPlainText(offset, len, plainText);
@@ -476,14 +469,18 @@ class Line extends Container<Leaf?> {
     return remaining - (end - offset);
   }
 
-  int _getPlainText(int offset, int len, StringBuffer plainText) {
+  int _getPlainText(
+    int offset,
+    int len,
+    StringBuffer plainText,
+  ) {
     var _len = len;
     final data = queryChild(offset, true);
     var node = data.node as Leaf?;
 
     while (_len > 0) {
       if (node == null) {
-        // blank line
+        // Blank line
         plainText.write('\n');
         _len -= 1;
       } else {
@@ -495,7 +492,7 @@ class Line extends Container<Leaf?> {
         }
 
         if (_len > 0) {
-          // end of this line
+          // End of this line
           plainText.write('\n');
           _len -= 1;
         }

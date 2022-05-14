@@ -6,37 +6,32 @@ import '../style.dart';
 import 'container.dart';
 import 'line.dart';
 
-/// An abstract node in a document tree.
-///
-/// Represents a segment of a Quill document with specified [offset]
-/// and [length].
-///
-/// The [offset] property is relative to [parent]. See also [documentOffset]
-/// which provides absolute offset of this node within the document.
-///
-/// The current parent node is exposed by the [parent] property. A node is
-/// considered [mounted] when the [parent] property is not `null`.
+// An abstract node in a document tree.
+// Represents a segment of a Visual Editor document with specified offset and length.
+// The offset property is relative to parent. 
+// See also documentOffset which provides absolute offset of this node within the document.
+// The current parent node is exposed by the parent property. 
+// A node is considered mounted when the parent property is not `null`.
 abstract class Node extends LinkedListEntry<Node> {
-  /// Current parent of this node. May be null if this node is not mounted.
+  // Current parent of this node. May be null if this node is not mounted.
   Container? parent;
 
   Style get style => _style;
   Style _style = Style();
 
-  /// Returns `true` if this node is the first node in the [parent] list.
+  // Returns `true` if this node is the first node in the parent list.
   bool get isFirst => list!.first == this;
 
-  /// Returns `true` if this node is the last node in the [parent] list.
+  // Returns `true` if this node is the last node in the parent list.
   bool get isLast => list!.last == this;
 
-  /// Length of this node in characters.
+  // Length of this node in characters.
   int get length;
 
   Node clone() => newInstance()..applyStyle(style);
 
-  /// Offset in characters of this node relative to [parent] node.
-  ///
-  /// To get offset of this node in the document see [documentOffset].
+  // Offset in characters of this node relative to parent node.
+  // To get offset of this node in the document see documentOffset.
   int get offset {
     var offset = 0;
 
@@ -52,7 +47,7 @@ abstract class Node extends LinkedListEntry<Node> {
     return offset;
   }
 
-  /// Offset in characters of this node in the document.
+  // Offset in characters of this node in the document.
   int get documentOffset {
     if (parent == null) {
       return offset;
@@ -61,8 +56,7 @@ abstract class Node extends LinkedListEntry<Node> {
     return parentOffset + offset;
   }
 
-  /// Returns `true` if this node contains character at specified [offset] in
-  /// the document.
+  // Returns `true` if this node contains character at specified offset in the document.
   bool containsOffset(int offset) {
     final o = documentOffset;
     return o <= offset && offset < o + length;
@@ -103,7 +97,7 @@ abstract class Node extends LinkedListEntry<Node> {
 
   void adjust() {/* no-op */}
 
-  /// abstract methods begin
+  // === ABSTRACT METHODS ===
 
   Node newInstance();
 
@@ -116,11 +110,9 @@ abstract class Node extends LinkedListEntry<Node> {
   void retain(int index, int? len, Style? style);
 
   void delete(int index, int? len);
-
-  /// abstract methods end
 }
 
-/// Root node of document tree.
+// Root node of document tree.
 class Root extends Container<Container<Node?>> {
   @override
   Node newInstance() => Root();

@@ -7,20 +7,20 @@ import '../../blocks/models/custom-builders.type.dart';
 import '../../blocks/models/link-action.picker.type.dart';
 import '../../blocks/services/default-link-action-picker-delegate.dart';
 import '../../blocks/services/default-styles.utils.dart';
-import '../../controller/services/controller.dart';
+import '../../controller/services/editor-controller.dart';
 import '../../cursor/models/cursor-style.model.dart';
 import '../../embeds/widgets/default-embed-builder.dart';
 import '../../inputs/models/gesture-detector-builder-delegate.dart';
 import '../../inputs/services/text-selection-gesture-detector-builder-delegate.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../models/editor-state.model.dart';
-import '../services/text-selection-detector.util.dart';
+import '../services/editor-text-selection-detector.util.dart';
 import 'raw-editor.dart';
 
 // +++ DOC
-class QuillEditor extends StatefulWidget {
+class VisualEditor extends StatefulWidget {
   // Controller object which establishes a link between a rich text document and this editor.
-  final QuillController controller;
+  final EditorController controller;
 
   // Controls whether this editor has keyboard focus. +++ REVIEW
   final FocusNode focusNode;
@@ -159,7 +159,7 @@ class QuillEditor extends StatefulWidget {
   final TextSelectionControls? textSelectionControls;
 
   // Customize any of the settings available in VisualEditor
-  const QuillEditor({
+  const VisualEditor({
     required this.controller,
     required this.focusNode,
     required this.scrollController,
@@ -196,12 +196,12 @@ class QuillEditor extends StatefulWidget {
   }) : super(key: key);
 
   // Quickly a basic Visual Editor using a basic configuration
-  factory QuillEditor.basic({
-    required QuillController controller,
+  factory VisualEditor.basic({
+    required EditorController controller,
     required bool readOnly,
     Brightness? keyboardAppearance,
   }) =>
-      QuillEditor(
+      VisualEditor(
         controller: controller,
         scrollController: ScrollController(),
         scrollable: true,
@@ -213,10 +213,10 @@ class QuillEditor extends StatefulWidget {
       );
 
   @override
-  QuillEditorState createState() => QuillEditorState();
+  VisualEditorState createState() => VisualEditorState();
 }
 
-class QuillEditorState extends State<QuillEditor>
+class VisualEditorState extends State<VisualEditor>
     implements EditorTextSelectionGestureDetectorBuilderDelegate {
   final GlobalKey<EditorState> _editorKey = GlobalKey<EditorState>();
   late EditorTextSelectionGestureDetectorBuilder
@@ -346,6 +346,6 @@ class QuillEditorState extends State<QuillEditor>
 
   void _buildTextSelectionGestureDetector() {
     _selectionGestureDetectorBuilder =
-        QuillEditorSelectionGestureDetectorBuilder(this, widget.controller);
+        EditorSelectionGestureDetectorBuilder(this, widget.controller);
   }
 }

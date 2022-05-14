@@ -18,9 +18,9 @@ import '../models/text-selection-handlers.type.dart';
 import '../services/vertical-caret-movement-run.dart';
 import 'editor-renderer-cont.dart';
 
-/// +++ SLICE OUT MORE
-/// Displays a document as a vertical list of document segments (lines and blocks).
-/// Children of [RenderEditor] must be instances of [RenderEditableBox].
+// +++ SLICE OUT MORE
+// Displays a document as a vertical list of document segments (lines and blocks).
+// Children of RenderEditor must be instances of RenderEditableBox.
 class RenderEditor extends RenderEditableContainerBox
     with RelayoutWhenSystemFontsChangeMixin
     implements RenderAbstractEditor {
@@ -67,7 +67,7 @@ class RenderEditor extends RenderEditableContainerBox
   LayerLink _startHandleLayerLink;
   LayerLink _endHandleLayerLink;
 
-  /// Called when the selection changes.
+  // Called when the selection changes.
   TextSelectionChangedHandler onSelectionChanged;
   TextSelectionCompletedHandler onSelectionCompleted;
   final ValueNotifier<bool> _selectionStartInViewport =
@@ -87,12 +87,10 @@ class RenderEditor extends RenderEditableContainerBox
     );
     final startOffset = _getOffsetForCaret(startPosition);
     // TODO(justinmc): https://github.com/flutter/flutter/issues/31495
-    // Check if the selection is visible with an approximation because a
-    // difference between rounded and unrounded values causes the caret to be
-    // reported as having a slightly (< 0.5) negative y offset. This rounding
-    // happens in paragraph.cc's layout and TextPainer's
-    // _applyFloatingPointHack. Ideally, the rounding mismatch will be fixed and
-    // this can be changed to be a strict check instead of an approximation.
+    // Check if the selection is visible with an approximation because a difference between 
+    // rounded and unrounded values causes the caret to be reported as having a slightly (< 0.5) negative y offset. 
+    // This rounding happens in paragraph.cc's layout and TextPainer's _applyFloatingPointHack. 
+    // Ideally, the rounding mismatch will be fixed and this can be changed to be a strict check instead of an approximation.
     const visibleRegionSlop = 0.5;
     _selectionStartInViewport.value = visibleRegion
         .inflate(visibleRegionSlop)
@@ -108,8 +106,7 @@ class RenderEditor extends RenderEditableContainerBox
         .contains(endOffset + effectiveOffset);
   }
 
-  // returns offset relative to this at which the caret will be painted
-  // given a global TextPosition
+  // Returns offset relative to this at which the caret will be painted given a global TextPosition
   Offset _getOffsetForCaret(TextPosition position) {
     final child = childAtPosition(position);
     final childPosition = child.globalToLocalPosition(position);
@@ -199,7 +196,8 @@ class RenderEditor extends RenderEditableContainerBox
 
   @override
   List<TextSelectionPoint> getEndpointsForSelection(
-      TextSelection textSelection) {
+    TextSelection textSelection,
+  ) {
     if (textSelection.isCollapsed) {
       final child = childAtPosition(textSelection.extent);
       final localPosition = TextPosition(
@@ -271,8 +269,7 @@ class RenderEditor extends RenderEditableContainerBox
   Offset? _lastTapDownPosition;
 
   // Used on Desktop (mouse and keyboard enabled platforms) as base offset
-  // for extending selection, either with combination of `Shift` + Click or
-  // by dragging
+  // for extending selection, either with combination of `Shift` + Click or by dragging
   TextSelection? _extendSelectionOrigin;
 
   @override
@@ -291,6 +288,7 @@ class RenderEditor extends RenderEditableContainerBox
     );
 
     if (newSelection == null) return;
+
     // Make sure to remember the origin for extend selection.
     _extendSelectionOrigin = newSelection;
   }
@@ -331,18 +329,20 @@ class RenderEditor extends RenderEditableContainerBox
     final focusingEmpty = nextSelection.baseOffset == 0 &&
         nextSelection.extentOffset == 0 &&
         !_hasFocus;
+
     if (nextSelection == selection &&
         cause != SelectionChangedCause.keyboard &&
         !focusingEmpty) {
       return;
     }
+
     onSelectionChanged(nextSelection, cause);
   }
 
-  /// Extends current selection to the position closest to specified offset.
+  // Extends current selection to the position closest to specified offset.
   void extendSelection(Offset to, {required SelectionChangedCause cause}) {
-    /// The below logic does not exactly match the native version because
-    /// we do not allow swapping of base and extent positions.
+    // The below logic does not exactly match the native version because
+    // we do not allow swapping of base and extent positions.
     assert(_extendSelectionOrigin != null);
     final position = getPositionForOffset(to);
 
@@ -382,6 +382,7 @@ class RenderEditor extends RenderEditableContainerBox
       start: localWord.start + nodeOffset,
       end: localWord.end + nodeOffset,
     );
+
     if (position.offset - word.start <= 1) {
       _handleSelectionChange(
         TextSelection.collapsed(offset: word.start),
@@ -445,10 +446,12 @@ class RenderEditor extends RenderEditableContainerBox
   @override
   TextSelection selectWordAtPosition(TextPosition position) {
     final word = getWordBoundary(position);
+
     // When long-pressing past the end of the text, we want a collapsed cursor.
     if (position.offset >= word.end) {
       return TextSelection.fromPosition(position);
     }
+
     return TextSelection(
       baseOffset: word.start,
       extentOffset: word.end,
@@ -463,6 +466,7 @@ class RenderEditor extends RenderEditableContainerBox
     if (position.offset >= line.end) {
       return TextSelection.fromPosition(position);
     }
+
     return TextSelection(
       baseOffset: line.start,
       extentOffset: line.end,
@@ -473,6 +477,7 @@ class RenderEditor extends RenderEditableContainerBox
   void performLayout() {
     assert(() {
       if (!scrollable || !constraints.hasBoundedHeight) return true;
+
       throw FlutterError.fromParts(<DiagnosticsNode>[
         ErrorSummary(
           'RenderEditableContainerBox must have '
@@ -608,36 +613,27 @@ class RenderEditor extends RenderEditableContainerBox
     );
   }
 
-  /// Returns the y-offset of the editor at which [selection] is visible.
-  ///
-  /// The offset is the distance from the top of the editor and is the minimum
-  /// from the current scroll position until [selection] becomes visible.
-  /// Returns null if [selection] is already visible.
-  ///
-  /// Finds the closest scroll offset that fully reveals the editing cursor.
-  ///
-  /// The `scrollOffset` parameter represents current scroll offset in the
-  /// parent viewport.
-  ///
-  /// The `offsetInViewport` parameter represents the editor's vertical offset
-  /// in the parent viewport. This value should normally be 0.0 if this editor
-  /// is the only child of the viewport or if it's the topmost child. Otherwise
-  /// it should be a positive value equal to total height of all siblings of
-  /// this editor from above it.
-  ///
-  /// Returns `null` if the cursor is currently visible.
+  // Returns the y-offset of the editor at which selection is visible.
+  // The offset is the distance from the top of the editor and is the minimum
+  // from the current scroll position until selection becomes visible.
+  // Returns null if selection is already visible.
+  // Finds the closest scroll offset that fully reveals the editing cursor.
+  // The `scrollOffset` parameter represents current scroll offset in the parent viewport.
+  // The `offsetInViewport` parameter represents the editor's vertical offset in the parent viewport.
+  // This value should normally be 0.0 if this editor is the only child of the viewport or if it's the topmost child.
+  // Otherwise it should be a positive value equal to total height of all siblings of this editor from above it.
+  // Returns `null` if the cursor is currently visible.
   double? getOffsetToRevealCursor(
     double viewportHeight,
     double scrollOffset,
     double offsetInViewport,
   ) {
-    // Endpoints coordinates represents lower left or lower right corner of
-    // the selection. If we want to scroll up to reveal the caret we need to
-    // adjust the dy value by the height of the line. We also add a small margin
-    // so that the caret is not too close to the edge of the viewport.
+    // Endpoints coordinates represents lower left or lower right corner of the selection.
+    // If we want to scroll up to reveal the caret we need to adjust the dy value by the height of the line.
+    // We also add a small margin so that the caret is not too close to the edge of the viewport.
     final endpoints = getEndpointsForSelection(selection);
 
-    // when we drag the right handle, we should get the last point
+    // When we drag the right handle, we should get the last point
     TextSelectionPoint endpoint;
     if (selection.isCollapsed) {
       endpoint = endpoints.first;
@@ -665,14 +661,17 @@ class RenderEditor extends RenderEditableContainerBox
     final caretBottom =
         endpoint.point.dy + kMargin + offsetInViewport + scrollBottomInset;
     double? dy;
+
     if (caretTop < scrollOffset) {
       dy = caretTop;
     } else if (caretBottom > scrollOffset + viewportHeight) {
       dy = caretBottom - viewportHeight;
     }
+
     if (dy == null) {
       return null;
     }
+
     // Clamping to 0.0 so that the blocks does not jump unnecessarily.
     return math.max(dy, 0);
   }
@@ -688,7 +687,7 @@ class RenderEditor extends RenderEditableContainerBox
     return childLocalRect.shift(Offset(0, boxParentData.offset.dy));
   }
 
-  // Start floating cursor
+  // === FLOATING CURSOR ===
 
   FloatingCursorPainter get _floatingCursorPainter => FloatingCursorPainter(
         floatingCursorRect: _floatingCursorRect,
@@ -701,10 +700,8 @@ class RenderEditor extends RenderEditableContainerBox
   TextPosition get floatingCursorTextPosition => _floatingCursorTextPosition;
   late TextPosition _floatingCursorTextPosition;
 
-  // The relative origin in relation to the distance the user has theoretically
-  // dragged the floating cursor offscreen.
-  // This value is used to account for the difference
-  // in the rendering position and the raw offset value.
+  // The relative origin in relation to the distance the user has theoretically dragged the floating cursor offscreen.
+  // This value is used to account for the difference in the rendering position and the raw offset value.
   Offset _relativeOrigin = Offset.zero;
   Offset? _previousOffset;
   bool _resetOriginOnLeft = false;
@@ -712,7 +709,7 @@ class RenderEditor extends RenderEditableContainerBox
   bool _resetOriginOnTop = false;
   bool _resetOriginOnBottom = false;
 
-  /// Returns the position within the editor closest to the raw cursor offset.
+  // Returns the position within the editor closest to the raw cursor offset.
   Offset calculateBoundedFloatingCursorOffset(
     Offset rawCursorOffset,
     double preferredLineHeight,
@@ -835,11 +832,9 @@ class RenderEditor extends RenderEditableContainerBox
     _floatingCursorPainter.paint(context.canvas);
   }
 
-  // End floating cursor
+  // ==== TEXT LAYOUT METRICS ===
 
-  // Start TextLayoutMetrics implementation
-
-  /// Return a [TextSelection] containing the line of the given [TextPosition].
+  // Return a TextSelection containing the line of the given TextPosition.
   @override
   TextSelection getLineAtOffset(TextPosition position) {
     final child = childAtPosition(position);
@@ -872,8 +867,8 @@ class RenderEditor extends RenderEditableContainerBox
     );
   }
 
-  /// Returns the TextPosition above the given offset into the text.
-  /// If the offset is already on the first line, the offset of the first character will be returned.
+  // Returns the TextPosition above the given offset into the text.
+  // If the offset is already on the first line, the offset of the first character will be returned.
   @override
   TextPosition getTextPositionAbove(TextPosition position) {
     final child = childAtPosition(position);
@@ -884,13 +879,11 @@ class RenderEditor extends RenderEditableContainerBox
     var newPosition = child.getPositionAbove(localPosition);
 
     if (newPosition == null) {
-      // There was no text above in the current child, check the direct
-      // sibling.
+      // There was no text above in the current child, check the direct sibling.
       final sibling = childBefore(child);
 
       if (sibling == null) {
-        // reached beginning of the document, move to the
-        // first character
+        // Reached beginning of the document, move to the first character
         newPosition = const TextPosition(offset: 0);
       } else {
         final caretOffset = child.getOffsetForCaret(localPosition);
@@ -910,10 +903,8 @@ class RenderEditor extends RenderEditableContainerBox
     return newPosition;
   }
 
-  /// Returns the TextPosition below the given offset into the text.
-  ///
-  /// If the offset is already on the last line, the offset of the last
-  /// character will be returned.
+  // Returns the TextPosition below the given offset into the text.
+  // If the offset is already on the last line, the offset of the last character will be returned.
   @override
   TextPosition getTextPositionBelow(TextPosition position) {
     final child = childAtPosition(position);
@@ -924,13 +915,11 @@ class RenderEditor extends RenderEditableContainerBox
     var newPosition = child.getPositionBelow(localPosition);
 
     if (newPosition == null) {
-      // There was no text above in the current child, check the direct
-      // sibling.
+      // There was no text above in the current child, check the direct sibling.
       final sibling = childAfter(child);
 
       if (sibling == null) {
-        // reached beginning of the document, move to the
-        // last character
+        // Reached beginning of the document, move to the last character
         newPosition = TextPosition(offset: document.length - 1);
       } else {
         final caretOffset = child.getOffsetForCaret(localPosition);
@@ -950,13 +939,10 @@ class RenderEditor extends RenderEditableContainerBox
     return newPosition;
   }
 
-  QuillVerticalCaretMovementRun startVerticalCaretMovement(
+  EditorVerticalCaretMovementRun startVerticalCaretMovement(
     TextPosition startPosition,
   ) {
-    return QuillVerticalCaretMovementRun(
-      this,
-      startPosition,
-    );
+    return EditorVerticalCaretMovementRun(this, startPosition);
   }
 
   @override

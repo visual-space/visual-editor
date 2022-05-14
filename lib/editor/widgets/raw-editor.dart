@@ -16,10 +16,10 @@ import '../../blocks/models/link-action-menu.enum.dart';
 import '../../blocks/models/link-action.picker.type.dart';
 import '../../blocks/services/default-link-action-picker-delegate.dart';
 import '../../blocks/services/default-styles.utils.dart';
-import '../../blocks/services/quill-styles.utils.dart';
+import '../../blocks/services/editor-styles.utils.dart';
 import '../../blocks/widgets/text-block.dart';
 import '../../blocks/widgets/text-line.dart';
-import '../../controller/services/controller.dart';
+import '../../controller/services/editor-controller.dart';
 import '../../cursor/models/cursor-style.model.dart';
 import '../../cursor/widgets/cursor.dart';
 import '../../delta/services/delta.utils.dart';
@@ -56,7 +56,7 @@ import 'mixins/selection-delegate-mixin.dart';
 import 'mixins/text-input-client-mixin.dart';
 import 'proxy/baseline-proxy.dart';
 import 'raw-editor-renderer.dart';
-import 'scroll/quill-single-child-scroll-view.dart';
+import 'scroll/editor-single-child-scroll-view.dart';
 
 class RawEditor extends StatefulWidget {
   const RawEditor({
@@ -103,7 +103,7 @@ class RawEditor extends StatefulWidget {
         super(key: key);
 
   // Controls the document being edited.
-  final QuillController controller;
+  final EditorController controller;
 
   // Controls whether this editor has keyboard focus.
   final FocusNode focusNode;
@@ -272,7 +272,7 @@ class RawEditorState extends EditorState
   // Cursors
   late CursorCont _cursorCont;
 
-  QuillController get controller => widget.controller;
+  EditorController get controller => widget.controller;
 
   // Focus
   bool _didAutoFocus = false;
@@ -349,7 +349,7 @@ class RawEditorState extends EditorState
       wrappedEditor = BaselineProxy(
         textStyle: _styles!.paragraph!.style,
         padding: baselinePadding,
-        child: QuillSingleChildScrollView(
+        child: EditorSingleChildScrollView(
           controller: _scrollController,
           physics: widget.scrollPhysics,
           viewportBuilder: (_, offset) => CompositedTransformTarget(
@@ -385,7 +385,7 @@ class RawEditorState extends EditorState
             maxHeight: widget.maxHeight ?? double.infinity,
           );
 
-    return QuillStyles(
+    return EditorStylesUtils(
       data: _styles!,
       child: Actions(
         actions: _actions,
@@ -449,7 +449,7 @@ class RawEditorState extends EditorState
       };
 
       // Go back from offset 0 to current selection
-      SchedulerBinding.instance!.addPostFrameCallback((_) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
         widget.controller.updateSelection(
             TextSelection.collapsed(offset: offset), ChangeSource.LOCAL);
       });
@@ -642,7 +642,7 @@ class RawEditorState extends EditorState
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final parentStyles = QuillStyles.getStyles(context, true);
+    final parentStyles = EditorStylesUtils.getStyles(context, true);
     final defaultStyles = DefaultStyles.getInstance(context);
     _styles = (parentStyles != null)
         ? defaultStyles.merge(parentStyles)
@@ -774,7 +774,7 @@ class RawEditorState extends EditorState
     // a new RenderEditableBox child. If we try to update selection overlay
     // immediately it'll not be able to find the new child since it hasn't been
     // built yet.
-    SchedulerBinding.instance!.addPostFrameCallback((_) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
       }
@@ -820,10 +820,10 @@ class RawEditorState extends EditorState
         _hasFocus, widget.controller.selection);
     _updateOrDisposeSelectionOverlayIfNeeded();
     if (_hasFocus) {
-      WidgetsBinding.instance!.addObserver(this);
+      WidgetsBinding.instance.addObserver(this);
       _showCaretOnScreen();
     } else {
-      WidgetsBinding.instance!.removeObserver(this);
+      WidgetsBinding.instance.removeObserver(this);
     }
     updateKeepAlive();
   }
@@ -856,7 +856,7 @@ class RawEditorState extends EditorState
     }
 
     _showCaretOnScreenScheduled = true;
-    SchedulerBinding.instance!.addPostFrameCallback((_) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
       if (widget.scrollable || _scrollController.hasClients) {
         _showCaretOnScreenScheduled = false;
 
@@ -1235,4 +1235,14 @@ class RawEditorState extends EditorState
       ),
     ),
   };
+
+  @override
+  void insertTextPlaceholder(Size size) {
+    // TODO: implement insertTextPlaceholder
+  }
+
+  @override
+  void removeTextPlaceholder() {
+    // TODO: implement removeTextPlaceholder
+  }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-class QuillIconThemeM {
+// TODO Review if this needs to be focused on theming only or can be merged with other concerns.
+class EditorIconThemeM {
   final Color? iconSelectedColor;
   final Color? iconUnselectedColor;
   final Color? iconSelectedFillColor;
@@ -9,7 +10,7 @@ class QuillIconThemeM {
   final Color? disabledIconFillColor;
   final double? borderRadius;
 
-  const QuillIconThemeM({
+  const EditorIconThemeM({
     this.iconSelectedColor,
     this.iconUnselectedColor,
     this.iconSelectedFillColor,

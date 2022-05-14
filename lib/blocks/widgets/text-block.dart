@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 
-import '../../controller/services/controller.dart';
+import '../../controller/services/editor-controller.dart';
 import '../../cursor/widgets/cursor.dart';
 import '../../delta/services/delta.utils.dart';
 import '../../documents/models/attribute.dart';
@@ -10,7 +10,7 @@ import '../../documents/models/nodes/line.dart';
 import '../models/custom-builders.type.dart';
 import '../models/link-action.picker.type.dart';
 import '../services/default-styles.utils.dart';
-import '../services/quill-styles.utils.dart';
+import '../services/editor-styles.utils.dart';
 import 'editable-block.dart';
 import 'style-widgets.dart';
 import 'text-line.dart';
@@ -40,7 +40,7 @@ class EditableTextBlock extends StatelessWidget {
   });
 
   final Block block;
-  final QuillController controller;
+  final EditorController controller;
   final TextDirection textDirection;
   final double scrollBottomInset;
   final Tuple2 verticalSpacing;
@@ -63,7 +63,7 @@ class EditableTextBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     assert(debugCheckHasMediaQuery(context));
 
-    final defaultStyles = QuillStyles.getStyles(context, false);
+    final defaultStyles = EditorStylesUtils.getStyles(context, false);
     return EditableBlock(
       block: block,
       textDirection: textDirection,
@@ -95,7 +95,7 @@ class EditableTextBlock extends StatelessWidget {
     BuildContext context,
     Map<int, int> indentLevelCounts,
   ) {
-    final defaultStyles = QuillStyles.getStyles(context, false);
+    final defaultStyles = EditorStylesUtils.getStyles(context, false);
     final count = block.children.length;
     final children = <Widget>[];
     var index = 0;
@@ -146,10 +146,10 @@ class EditableTextBlock extends StatelessWidget {
     Map<int, int> indentLevelCounts,
     int count,
   ) {
-    final defaultStyles = QuillStyles.getStyles(context, false);
+    final defaultStyles = EditorStylesUtils.getStyles(context, false);
     final attrs = line.style.attributes;
     if (attrs[Attribute.list.key] == Attribute.ol) {
-      return QuillNumberPoint(
+      return NumberPoint(
         index: index,
         indentLevelCounts: indentLevelCounts,
         count: count,
@@ -161,7 +161,7 @@ class EditableTextBlock extends StatelessWidget {
     }
 
     if (attrs[Attribute.list.key] == Attribute.ul) {
-      return QuillBulletPoint(
+      return BulletPoint(
         style: defaultStyles!.leading!.style.copyWith(
           fontWeight: FontWeight.bold,
         ),
@@ -190,7 +190,7 @@ class EditableTextBlock extends StatelessWidget {
     }
 
     if (attrs.containsKey(Attribute.codeBlock.key)) {
-      return QuillNumberPoint(
+      return NumberPoint(
         index: index,
         indentLevelCounts: indentLevelCounts,
         count: count,

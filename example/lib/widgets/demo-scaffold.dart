@@ -5,14 +5,14 @@ import 'package:filesystem_picker/filesystem_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_quill/flutter-quill.dart' hide Text;
 import 'package:path_provider/path_provider.dart';
+import 'package:visual_editor/visual-editor.dart' hide Text;
 
-import '../pages/sample_highlights_const.dart';
+import '../pages/sample-highlights-const.dart';
 
 typedef DemoContentBuilder = Widget Function(
   BuildContext context,
-  QuillController? controller,
+  EditorController? controller,
 );
 
 // Common scaffold for all examples.
@@ -39,7 +39,7 @@ class DemoScaffold extends StatefulWidget {
 
 class _DemoScaffoldState extends State<DemoScaffold> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-  QuillController? _controller;
+  EditorController? _controller;
 
   bool _loading = false;
 
@@ -65,7 +65,7 @@ class _DemoScaffoldState extends State<DemoScaffold> {
       );
       final doc = Document.fromJson(jsonDecode(result));
       setState(() {
-        _controller = QuillController(
+        _controller = EditorController(
           document: doc,
           selection: const TextSelection.collapsed(offset: 0),
           highlights: SAMPLE_HIGHLIGHTS,
@@ -75,7 +75,7 @@ class _DemoScaffoldState extends State<DemoScaffold> {
     } catch (error) {
       final doc = Document()..insert(0, 'Empty asset');
       setState(() {
-        _controller = QuillController(
+        _controller = EditorController(
           document: doc,
           selection: const TextSelection.collapsed(offset: 0),
           highlights: SAMPLE_HIGHLIGHTS,
@@ -97,9 +97,9 @@ class _DemoScaffoldState extends State<DemoScaffold> {
   @override
   Widget build(BuildContext context) {
     final actions = widget.actions ?? <Widget>[];
-    var toolbar = QuillToolbar.basic(controller: _controller!);
+    var toolbar = EditorToolbar.basic(controller: _controller!);
     if (_isDesktop()) {
-      toolbar = QuillToolbar.basic(
+      toolbar = EditorToolbar.basic(
         controller: _controller!,
         filePickImpl: openFileSystemPickerForDesktop,
       );

@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../controller/services/controller.dart';
+import '../../controller/services/editor-controller.dart';
 import '../../documents/models/nodes/embeddable.dart';
 import '../../shared/translations/toolbar.i18n.dart';
 import '../../shared/utils/platform.utils.dart';
@@ -47,7 +47,7 @@ class ImageVideoUtils {
   // For image picking logic
   static Future<void> handleImageButtonTap(
     BuildContext context,
-    QuillController controller,
+    EditorController controller,
     ImageSource imageSource,
     OnImagePickCallback onImagePickCallback, {
     FilePickImpl? filePickImpl,
@@ -85,7 +85,7 @@ class ImageVideoUtils {
   // For video picking logic
   static Future<void> handleVideoButtonTap(
       BuildContext context,
-      QuillController controller,
+      EditorController controller,
       ImageSource videoSource,
       OnVideoPickCallback onVideoPickCallback, {
         FilePickImpl? filePickImpl,

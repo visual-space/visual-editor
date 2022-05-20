@@ -5,7 +5,7 @@ import 'package:filesystem_picker/filesystem_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_quill/visual-editor.dart' hide Text;
+import 'package:visual_editor/visual-editor.dart' hide Text;
 import 'package:path_provider/path_provider.dart';
 
 import '../pages/sample_highlights_const.dart';

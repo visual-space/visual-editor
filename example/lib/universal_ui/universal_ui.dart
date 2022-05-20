@@ -2,7 +2,7 @@ library universal_ui;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_quill/visual-editor.dart' hide Text;
+import 'package:visual_editor/visual-editor.dart' hide Text;
 import 'package:universal_html/html.dart' as html;
 
 import '../widgets/responsive_widget.dart';

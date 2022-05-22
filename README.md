@@ -80,6 +80,7 @@ _controller.document.toPlainText(); // Extract plain text
 ## Documentation
 Learn more about Visual Editor architecture and how to use the features.
 
+- **[Guidelines](https://github.com/visual-space/visual-editor/blob/develop/GUIDELINES.md)** - Coding guidelines for improving code quality and architecture clarity.
 - **[Editor](https://github.com/visual-space/visual-editor/blob/develop/lib/editor/editor.md)** - Renders the document content as commanded by the `EditorController`.
 - **[Delta](https://github.com/visual-space/visual-editor/blob/develop/lib/delta/delta.md)** - Delta documents are used to store text edits and styling attributes.
 - **[Toolbar](https://github.com/visual-space/visual-editor/blob/develop/lib/toolbar/toolbar.md)** - Displays buttons used to edit the styling of the text.

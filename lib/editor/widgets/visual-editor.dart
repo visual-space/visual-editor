@@ -13,7 +13,9 @@ import '../../embeds/widgets/default-embed-builder.dart';
 import '../../inputs/models/gesture-detector-builder-delegate.dart';
 import '../../inputs/services/text-selection-gesture-detector-builder-delegate.dart';
 import '../../shared/utils/platform.utils.dart';
+import '../models/cursor-style-cfg.model.dart';
 import '../models/editor-state.model.dart';
+import '../models/platform-dependent-styles-config.model.dart';
 import '../services/editor-text-selection-detector.util.dart';
 import 'raw-editor.dart';
 
@@ -266,38 +268,56 @@ class VisualEditorState extends State<VisualEditor>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final selectionTheme = TextSelectionTheme.of(context);
+    final isAppleOs = isAppleOS(theme.platform);
+    final platformStyles = isAppleOs
+        ? _getAppleOsStyles(selectionTheme, context)
+        : _getOtherOsStyles(selectionTheme, theme);
 
-    TextSelectionControls textSelectionControls;
-    bool paintCursorAboveText;
-    bool cursorOpacityAnimates;
-    Offset? cursorOffset;
-    Color? cursorColor;
-    Color selectionColor;
-    Radius? cursorRadius;
+    final editor = _i18nAndGestureDetector(
+      child: _editor(
+        theme: theme,
+        platformStyles: platformStyles,
+      ),
+    );
 
-    if (isAppleOS(theme.platform)) {
-      final cupertinoTheme = CupertinoTheme.of(context);
-      textSelectionControls = cupertinoTextSelectionControls;
-      paintCursorAboveText = true;
-      cursorOpacityAnimates = true;
-      cursorColor ??= selectionTheme.cursorColor ?? cupertinoTheme.primaryColor;
-      selectionColor = selectionTheme.selectionColor ??
-          cupertinoTheme.primaryColor.withOpacity(0.40);
-      cursorRadius ??= const Radius.circular(2);
-      cursorOffset = Offset(
-        iOSHorizontalOffset / MediaQuery.of(context).devicePixelRatio,
-        0,
+    if (kIsWeb) {
+      return _preventKeyPropagationToParent(
+        child: editor,
       );
-    } else {
-      textSelectionControls = materialTextSelectionControls;
-      paintCursorAboveText = false;
-      cursorOpacityAnimates = false;
-      cursorColor ??= selectionTheme.cursorColor ?? theme.colorScheme.primary;
-      selectionColor = selectionTheme.selectionColor ??
-          theme.colorScheme.primary.withOpacity(0.40);
     }
 
-    final child = RawEditor(
+    return editor;
+  }
+
+  // Intercept RawKeyEvent on Web to prevent it from propagating to parents
+  // that might interfere with the editor key behavior, such as SingleChildScrollView.
+  // Thanks to @wliumelb for the workaround.
+  // See issue https://github.com/singerdmx/flutter-quill/issues/304
+  RawKeyboardListener _preventKeyPropagationToParent({required Widget child}) {
+    return RawKeyboardListener(
+      onKey: (_) {},
+      focusNode: FocusNode(
+        onKey: (node, event) => KeyEventResult.skipRemainingHandlers,
+      ),
+      child: child,
+    );
+  }
+
+  I18n _i18nAndGestureDetector({required Widget child}) {
+    return I18n(
+      initialLocale: widget.locale,
+      child: _selectionGestureDetectorBuilder.build(
+        behavior: HitTestBehavior.translucent,
+        child: child,
+      ),
+    );
+  }
+
+  RawEditor _editor({
+    required ThemeData theme,
+    required PlatformDependentStylesCfgM platformStyles,
+  }) {
+    return RawEditor(
       key: _editorKey,
       controller: widget.controller,
       focusNode: widget.focusNode,
@@ -308,23 +328,10 @@ class VisualEditorState extends State<VisualEditor>
       readOnly: widget.readOnly,
       placeholder: widget.placeholder,
       onLaunchUrl: widget.onLaunchUrl,
-      toolbarOptions: ToolbarOptions(
-        copy: widget.enableInteractiveSelection,
-        cut: widget.enableInteractiveSelection,
-        paste: widget.enableInteractiveSelection,
-        selectAll: widget.enableInteractiveSelection,
-      ),
+      toolbarOptions: _toolbarOptions(),
       showSelectionHandles: isMobile(theme.platform),
       showCursor: widget.showCursor,
-      cursorStyle: CursorStyle(
-        color: cursorColor,
-        backgroundColor: Colors.grey,
-        width: 2,
-        radius: cursorRadius,
-        offset: cursorOffset,
-        paintAboveText: widget.paintCursorAboveText ?? paintCursorAboveText,
-        opacityAnimates: cursorOpacityAnimates,
-      ),
+      cursorStyle: _cursorStyle(platformStyles.cursorStyle),
       textCapitalization: widget.textCapitalization,
       minHeight: widget.minHeight,
       maxHeight: widget.maxHeight,
@@ -332,8 +339,9 @@ class VisualEditorState extends State<VisualEditor>
       customStyles: widget.customStyles,
       expands: widget.expands,
       autoFocus: widget.autoFocus,
-      selectionColor: selectionColor,
-      selectionCtrls: widget.textSelectionControls ?? textSelectionControls,
+      selectionColor: platformStyles.selectionColor,
+      selectionCtrls:
+          widget.textSelectionControls ?? platformStyles.textSelectionControls,
       keyboardAppearance: widget.keyboardAppearance,
       enableInteractiveSelection: widget.enableInteractiveSelection,
       scrollPhysics: widget.scrollPhysics,
@@ -342,29 +350,6 @@ class VisualEditorState extends State<VisualEditor>
       customStyleBuilder: widget.customStyleBuilder,
       floatingCursorDisabled: widget.floatingCursorDisabled,
     );
-
-    final editor = I18n(
-        initialLocale: widget.locale,
-        child: _selectionGestureDetectorBuilder.build(
-          behavior: HitTestBehavior.translucent,
-          child: child,
-        ));
-
-    if (kIsWeb) {
-      // Intercept RawKeyEvent on Web to prevent it from propagating to parents
-      // that might interfere with the editor key behavior, such as
-      // SingleChildScrollView. Thanks to @wliumelb for the workaround.
-      // See issue https://github.com/singerdmx/flutter-quill/issues/304
-      return RawKeyboardListener(
-        onKey: (_) {},
-        focusNode: FocusNode(
-          onKey: (node, event) => KeyEventResult.skipRemainingHandlers,
-        ),
-        child: editor,
-      );
-    }
-
-    return editor;
   }
 
   @override
@@ -376,12 +361,74 @@ class VisualEditorState extends State<VisualEditor>
   @override
   bool get selectionEnabled => widget.enableInteractiveSelection;
 
+  // === STYLES ===
+
+  PlatformDependentStylesCfgM _getOtherOsStyles(
+    TextSelectionThemeData selectionTheme,
+    ThemeData theme,
+  ) {
+    final selectionColor = theme.colorScheme.primary.withOpacity(0.40);
+
+    return PlatformDependentStylesCfgM(
+      textSelectionControls: materialTextSelectionControls,
+      selectionColor: selectionTheme.selectionColor ?? selectionColor,
+      cursorStyle: CursorStyleCfgM(
+        cursorColor: selectionTheme.cursorColor ?? theme.colorScheme.primary,
+        paintCursorAboveText: false,
+        cursorOpacityAnimates: false,
+      ),
+    );
+  }
+
+  PlatformDependentStylesCfgM _getAppleOsStyles(
+    TextSelectionThemeData selectionTheme,
+    BuildContext context,
+  ) {
+    final cupertinoTheme = CupertinoTheme.of(context);
+    final selectionColor = cupertinoTheme.primaryColor.withOpacity(0.40);
+    final pixelRatio = MediaQuery.of(context).devicePixelRatio;
+
+    return PlatformDependentStylesCfgM(
+      textSelectionControls: cupertinoTextSelectionControls,
+      selectionColor: selectionTheme.selectionColor ?? selectionColor,
+      cursorStyle: CursorStyleCfgM(
+        cursorColor: selectionTheme.cursorColor ?? cupertinoTheme.primaryColor,
+        cursorRadius: const Radius.circular(2),
+        cursorOffset: Offset(iOSHorizontalOffset / pixelRatio, 0),
+        paintCursorAboveText: true,
+        cursorOpacityAnimates: true,
+      ),
+    );
+  }
+
+  // === UTILS ===
+
+  CursorStyle _cursorStyle(CursorStyleCfgM style) => CursorStyle(
+        color: style.cursorColor,
+        backgroundColor: Colors.grey,
+        width: 2,
+        radius: style.cursorRadius,
+        offset: style.cursorOffset,
+        paintAboveText:
+            widget.paintCursorAboveText ?? style.paintCursorAboveText,
+        opacityAnimates: style.cursorOpacityAnimates,
+      );
+
+  ToolbarOptions _toolbarOptions() => ToolbarOptions(
+        copy: widget.enableInteractiveSelection,
+        cut: widget.enableInteractiveSelection,
+        paste: widget.enableInteractiveSelection,
+        selectAll: widget.enableInteractiveSelection,
+      );
+
   void requestKeyboard() {
     _editorKey.currentState!.requestKeyboard();
   }
 
   void _buildTextSelectionGestureDetector() {
-    _selectionGestureDetectorBuilder =
-        EditorSelectionGestureDetectorBuilder(this, widget.controller);
+    _selectionGestureDetectorBuilder = EditorSelectionGestureDetectorBuilder(
+      this,
+      widget.controller,
+    );
   }
 }

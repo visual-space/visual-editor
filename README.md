@@ -80,45 +80,31 @@ _controller.document.toPlainText(); // Extract plain text
 ## Documentation
 Learn more about Visual Editor architecture and how to use the features.
 
+- **[Editor](https://github.com/visual-space/visual-editor/blob/develop/lib/editor/editor.md)** - Renders the document content as commanded by the `EditorController`.
 - **[Delta](https://github.com/visual-space/visual-editor/blob/develop/lib/delta/delta.md)** - Delta documents are used to store text edits and styling attributes.
 - **[Toolbar](https://github.com/visual-space/visual-editor/blob/develop/lib/toolbar/toolbar.md)** - Displays buttons used to edit the styling of the text.
 - **[Highlights](https://github.com/visual-space/visual-editor/blob/develop/lib/highlights/highlights.md)** - Renders temporary text markers sensitive to taps.
 
-## Roadmap
-These features are currently under developed for [Visual Space]. As soon as they are stable we will release them in the open source repository.
+## Roadmap & Known Issues
+These features are currently under developed for [Visual Space]. As soon as they are stable we will release them in the open source repository. We've made an effort to document all the known issues and provide priority and status labels to give you a better understanding when the improvements will be delivered.
 
 - **[Maintainable architecture](https://github.com/visual-space/visual-editor/issues/1)** - Beginner friendly source code. [WIP]
 - **[Full documentation](https://github.com/visual-space/visual-editor/issues/2)** - Improved learning materials. [WIP]
 - **[Full test coverage](https://github.com/visual-space/visual-editor/issues/3)** - Add test cases from the ground up.
 - **[Custom Highlights](https://github.com/visual-space/visual-editor/issues/4)** - Highlights custom regions of text that are sensitive to taps [WIP]
-- **Code Color Coding**
-- **Tables**
-- **Nested bullets on Tab** - Pressing tab on the web wont push the bullets into nesting mode.
-- **Layouts** - Two columns layouts or other such options.
-- **Styled blocks** - Change the styling of a block to make it standout (info, warning, etc).
-- **Search**
-- **Plugins Architecture** - Enables developers to easily attach middleware to Visual Editor.
-- **Spellchecker** 
+- **[Code Color Coding](https://github.com/visual-space/visual-editor/issues/18)**
+- **[Tables](https://github.com/visual-space/visual-editor/issues/28)**
+- **[Nested bullets on Tab](https://github.com/visual-space/visual-editor/issues/31)** - Pressing tab on the web wont push the bullets into nesting mode.
+- **[Layouts](https://github.com/visual-space/visual-editor/issues/41)** - Two columns layouts or other such options.
+- **[Styled blocks](https://github.com/visual-space/visual-editor/issues/40)** - Change the styling of a block to make it standout (info, warning, etc).
+- **[Search](https://github.com/visual-space/visual-editor/issues/37)**
+- **[Plugins Architecture](https://github.com/visual-space/visual-editor/issues/36)** - Enables developers to easily attach middleware to Visual Editor.
+- **[Spellchecker](https://github.com/visual-space/visual-editor/issues/35)** 
 - **Text to speech** 
-- **Emoji Picker** 
+- **[Emoji Picker](https://github.com/visual-space/visual-editor/issues/39)** 
 - **Custom emoji**
 - **Selection menu styling** - Displays a popup menu above selected text for quick common styling actions.
 - **Custom selection menu** - Enables developers to add extra buttons in teh quick actions menu.
-
-## Known Issues
-- Toolbar does not trigger cursor pointer (in example page)
-- The "embeds missing" warning should be listed only once at init. Currently it's repeated many times
-- The demo content is outdated.
-- There are 2 ways to upload images in the web build.
-- The background for the modal that uploads images is missing color.
-- Tab key does not work as expected on web.
-- Checkboxes don't show pointer cursor on web.
-- Links don't show pointer cursor on web.
-- Headings are completely overridden by the size attribute/selector. Other editors give priority to the last feature that modified the text size.
-- Switch to next input by pressing TAB (on web)
-- Typing inside a link will split the link. This is abnormal behaviour, links should ingest the new characters.
-- Links can't be edited (afaik).
-- Nest bullets when pressing Tab. Currently it's possible only with the indentation controls.
 
 ## Who is using Visual Editor?
 

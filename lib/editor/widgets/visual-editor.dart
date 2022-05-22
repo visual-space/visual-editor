@@ -17,7 +17,40 @@ import '../models/editor-state.model.dart';
 import '../services/editor-text-selection-detector.util.dart';
 import 'raw-editor.dart';
 
-// +++ DOC
+// This is the main class of the Visual Editor.
+// There are 2 constructors available, one for controlling all the settings of the editor in precise detail.
+// The other one is the basic init that will spare you the pain of having to comb trough all the props.
+// The default settings are carefully chosen to satisfy the basic needs of any app that needs rich text editing.
+// The editor can be rendered either in scrollable mode or in expanded mode.
+// Most apps will prefer the scrollable mode and a sticky EditorToolbar on top or at the bottom of the viewport.
+// Use the expanded version when you want to stack multiple editors on top of each other.
+// A placeholder text can be defined to be displayed when the editor has no contents.
+// All the styles of the editor can be overridden using custom styles.
+//
+// Custom embeds
+// Besides the existing styled text options the editor can also render custom embeds such as video players or whatever
+// else the client apps desire to render in the documents.
+// Any kind of widget can be provided to be displayed in the middle of the document text.
+//
+// Callbacks
+// Several callbacks are available to be used when interacting with the editor:
+// - onTapDown()
+// - onTapUp()
+// - onSingleLongTapStart()
+// - onSingleLongTapMoveUpdate()
+// - onSingleLongTapEnd()
+//
+// Controller
+// Each instance of the editor will need an EditorController.
+// EditorToolbar can be synced to VisualEditor via the EditorController.
+//
+// Rendering
+// The Editor uses Flutter TextField to render the paragraphs in a collumn of content.
+// On top of the regular TextField we are rendering custom selection controls or highlights using the RenderBox API.
+//
+// Gestures
+// The VisualEditor class implements EditorTextSelectionGestureDetectorBuilderDelegate.
+// This base class is used to separate the features related to gesture detection and to give the opportunity to override them.
 class VisualEditor extends StatefulWidget {
   // Controller object which establishes a link between a rich text document and this editor.
   final EditorController controller;
@@ -25,7 +58,7 @@ class VisualEditor extends StatefulWidget {
   // Controls whether this editor has keyboard focus. +++ REVIEW
   final FocusNode focusNode;
 
-  // +++ DOC
+  // Take control over the scroll of the Visual Editor when rendering in scrollable mode.
   final ScrollController scrollController;
 
   // Whether the editor should create a scrollable container for its blocks.
@@ -34,7 +67,7 @@ class VisualEditor extends StatefulWidget {
   // should be placed as a child of another scrollable widget, otherwise the blocks may be clipped.
   final bool scrollable;
 
-  // +++ REVIEW & DOC
+  // TODO DOC (currently not sure why this is defined)
   final double scrollBottomInset;
 
   // Additional space around the blocks of this editor.
@@ -48,14 +81,14 @@ class VisualEditor extends StatefulWidget {
   // The cursor refers to the blinking caret when the editor is focused.
   final bool? showCursor;
 
-  // +++ DOC
+  // TODO DOC (currently not sure why this is defined)
   final bool? paintCursorAboveText;
 
   // When this is set to `true`, the text cannot be modified by any shortcut or keyboard operation.
   // The text remains selectable.
   final bool readOnly;
 
-  // +++ DOC
+  // Content to be displayed when there is no content in the Delta document
   final String? placeholder;
 
   // Whether to enable user interface for changing the text selection.
@@ -136,10 +169,11 @@ class VisualEditor extends StatefulWidget {
     TextPosition Function(Offset offset),
   )? onSingleLongTapEnd;
 
-  // +++ DOC
+  // Renders custom content to be displayed as provided by the client apps.
+  // Custom embeds don't work as editable text, they are standalone blocks of content that have their own internal behaviour.
   final EmbedBuilder embedBuilder;
 
-  // +++ DOC
+  // Styles can be provided to customize the look and feel of the Visual Editor.
   final CustomStyleBuilder? customStyleBuilder;
 
   // The locale to use for the editor buttons, defaults to system locale.
@@ -152,7 +186,7 @@ class VisualEditor extends StatefulWidget {
   // For Android, the menu is displayed with showModalBottomSheet and a list of Material ListTiles.
   final LinkActionPickerDelegate linkActionPickerDelegate;
 
-  // +++ DOC
+  // A floating cursor will help you to see what is currently under your thumb when moving the caret.
   final bool floatingCursorDisabled;
 
   // Custom GUI for text selection controls
@@ -251,7 +285,9 @@ class VisualEditorState extends State<VisualEditor>
           cupertinoTheme.primaryColor.withOpacity(0.40);
       cursorRadius ??= const Radius.circular(2);
       cursorOffset = Offset(
-          iOSHorizontalOffset / MediaQuery.of(context).devicePixelRatio, 0);
+        iOSHorizontalOffset / MediaQuery.of(context).devicePixelRatio,
+        0,
+      );
     } else {
       textSelectionControls = materialTextSelectionControls;
       paintCursorAboveText = false;

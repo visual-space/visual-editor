@@ -8,7 +8,7 @@ import '../widgets/editor-renderer.dart';
 import '../widgets/raw-editor.dart';
 
 // +++ DOC WHY
-/// Base interface for the editor state which defines contract used by various mixins.
+// Base interface for the editor state which defines contract used by various mixins.
 abstract class EditorState extends State<RawEditor>
     implements TextSelectionDelegate {
   ScrollController get scrollController;
@@ -21,8 +21,8 @@ abstract class EditorState extends State<RawEditor>
 
   String get pastePlainText;
 
-  /// Controls the floating cursor animation when it is released.
-  /// The floating cursor is animated to merge with the regular cursor.
+  // Controls the floating cursor animation when it is released.
+  // The floating cursor is animated to merge with the regular cursor.
   AnimationController get floatingCursorResetController;
 
   bool showToolbar();

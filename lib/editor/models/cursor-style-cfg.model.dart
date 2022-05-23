@@ -4,16 +4,16 @@ import 'package:flutter/material.dart';
 @immutable
 class CursorStyleCfgM {
   final Color cursorColor;
-  final Radius? cursorRadius;
-  final Offset? cursorOffset;
   final bool paintCursorAboveText;
   final bool cursorOpacityAnimates;
+  final Radius? cursorRadius;
+  final Offset? cursorOffset;
 
   const CursorStyleCfgM({
     required this.cursorColor,
-    this.cursorRadius,
-    this.cursorOffset,
     required this.paintCursorAboveText,
     required this.cursorOpacityAnimates,
+    this.cursorRadius,
+    this.cursorOffset,
   });
 }

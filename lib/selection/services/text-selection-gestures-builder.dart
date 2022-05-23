@@ -4,27 +4,26 @@ import 'package:flutter/services.dart';
 
 import '../../controller/services/editor-controller.dart';
 import '../../documents/models/document.dart';
+import '../../editor/widgets/visual-editor.dart';
 import '../../highlights/models/highlight.model.dart';
-import '../../inputs/services/text-selection-gesture-detector-builder-delegate.dart';
 import '../../shared/utils/platform.utils.dart';
-import '../widgets/visual-editor.dart';
+import 'text-selection-gestures-builder-base.dart';
 
-// +++ DOC WHY
-class EditorSelectionGestureDetectorBuilder
-    extends EditorTextSelectionGestureDetectorBuilder {
-  EditorSelectionGestureDetectorBuilder(
+class TextSelectionGesturesBuilder extends TextSelectionGesturesBuilderBase {
+  final VisualEditorState _state;
+  final EditorController _controller;
+  final List<HighlightM> _hoveredHighlights = [];
+  final List<HighlightM> _prevHoveredHighlights = [];
+
+  TextSelectionGesturesBuilder(
     this._state,
     this._controller,
   ) : super(delegate: _state);
 
-  final VisualEditorState _state;
-  final EditorController _controller;
-  List<HighlightM> hoveredHighlights = [];
-  List<HighlightM> prevHoveredHighlights = [];
-
   @override
   void onForcePressStart(ForcePressDetails details) {
     super.onForcePressStart(details);
+
     if (delegate.selectionEnabled && shouldShowSelectionToolbar) {
       editor!.showToolbar();
     }
@@ -35,18 +34,22 @@ class EditorSelectionGestureDetectorBuilder
 
   @override
   void onSingleLongTapMoveUpdate(LongPressMoveUpdateDetails details) {
-    if (_state.widget.onSingleLongTapMoveUpdate != null) {
+    if (_state.widget.config.onSingleLongTapMoveUpdate != null) {
       if (renderEditor != null &&
-          _state.widget.onSingleLongTapMoveUpdate!(
-              details, renderEditor!.getPositionForOffset)) {
+          _state.widget.config.onSingleLongTapMoveUpdate!(
+            details,
+            renderEditor!.getPositionForOffset,
+          )) {
         return;
       }
     }
+
     if (!delegate.selectionEnabled) {
       return;
     }
 
     final _platform = Theme.of(_state.context).platform;
+
     if (isAppleOS(_platform)) {
       renderEditor!.selectPositionAt(
         from: details.globalPosition,
@@ -65,39 +68,48 @@ class EditorSelectionGestureDetectorBuilder
     if (_state.widget.controller.document.isEmpty()) {
       return false;
     }
+
     final pos = renderEditor!.getPositionForOffset(details.globalPosition);
     final result =
         editor!.widget.controller.document.querySegmentLeafNode(pos.offset);
     final line = result.item1;
+
     if (line == null) {
       return false;
     }
+
     final segmentLeaf = result.item2;
+
     if (segmentLeaf == null && line.length == 1) {
       editor!.widget.controller.updateSelection(
           TextSelection.collapsed(offset: pos.offset), ChangeSource.LOCAL);
       return true;
     }
+
     return false;
   }
 
   @override
   void onTapDown(TapDownDetails details) {
-    if (_state.widget.onTapDown != null) {
+    if (_state.widget.config.onTapDown != null) {
       if (renderEditor != null &&
-          _state.widget.onTapDown!(
-              details, renderEditor!.getPositionForOffset)) {
+          _state.widget.config.onTapDown!(
+            details,
+            renderEditor!.getPositionForOffset,
+          )) {
         return;
       }
     }
+
     super.onTapDown(details);
   }
 
   bool isShiftClick(PointerDeviceKind deviceKind) {
     final pressed = RawKeyboard.instance.keysPressed;
-    return deviceKind == PointerDeviceKind.mouse &&
-        (pressed.contains(LogicalKeyboardKey.shiftLeft) ||
-            pressed.contains(LogicalKeyboardKey.shiftRight));
+    final shiftPressed = pressed.contains(LogicalKeyboardKey.shiftLeft) ||
+        pressed.contains(LogicalKeyboardKey.shiftRight);
+
+    return deviceKind == PointerDeviceKind.mouse && shiftPressed;
   }
 
   @override
@@ -110,16 +122,16 @@ class EditorSelectionGestureDetectorBuilder
     // If you need only the highlight hovering highest on top, you'll need to
     // implement custom logic on the client side to select the
     // preferred highlight.
-    hoveredHighlights.clear();
+    _hoveredHighlights.clear();
 
     _controller.highlights.forEach((highlight) {
       final start = highlight.textSelection.start;
       final end = highlight.textSelection.end;
       final isHovered = start <= position.offset && position.offset <= end;
-      final wasHovered = prevHoveredHighlights.contains(highlight);
+      final wasHovered = _prevHoveredHighlights.contains(highlight);
 
       if (isHovered) {
-        hoveredHighlights.add(highlight);
+        _hoveredHighlights.add(highlight);
 
         if (!wasHovered && highlight.onEnter != null) {
           highlight.onEnter!(highlight);
@@ -144,15 +156,15 @@ class EditorSelectionGestureDetectorBuilder
       }
     });
 
-    prevHoveredHighlights.clear();
-    prevHoveredHighlights.addAll(hoveredHighlights);
+    _prevHoveredHighlights.clear();
+    _prevHoveredHighlights.addAll(_hoveredHighlights);
   }
 
   @override
   void onSingleTapUp(TapUpDetails details) {
-    if (_state.widget.onTapUp != null &&
+    if (_state.widget.config.onTapUp != null &&
         renderEditor != null &&
-        _state.widget.onTapUp!(
+        _state.widget.config.onTapUp!(
           details,
           renderEditor!.getPositionForOffset,
         )) {
@@ -166,14 +178,14 @@ class EditorSelectionGestureDetectorBuilder
     try {
       if (delegate.selectionEnabled && !_isPositionSelected(details)) {
         final _platform = Theme.of(_state.context).platform;
+
         if (isAppleOS(_platform)) {
           switch (details.kind) {
             case PointerDeviceKind.mouse:
             case PointerDeviceKind.stylus:
             case PointerDeviceKind.invertedStylus:
               // Precise devices should place the cursor at a precise position.
-              // If `Shift` key is pressed then
-              // extend current selection instead.
+              // If `Shift` key is pressed then extend current selection instead.
               if (isShiftClick(details.kind)) {
                 renderEditor!
                   ..extendSelection(
@@ -192,8 +204,7 @@ class EditorSelectionGestureDetectorBuilder
               break;
             case PointerDeviceKind.touch:
             case PointerDeviceKind.unknown:
-              // On macOS/iOS/iPadOS a touch tap places the cursor at the edge
-              // of the word.
+              // On macOS/iOS/iPadOS a touch tap places the cursor at the edge of the word.
               renderEditor!
                 ..selectWordEdge(SelectionChangedCause.tap)
                 ..onSelectionCompleted();
@@ -231,9 +242,9 @@ class EditorSelectionGestureDetectorBuilder
 
   @override
   void onSingleLongTapStart(LongPressStartDetails details) {
-    if (_state.widget.onSingleLongTapStart != null) {
+    if (_state.widget.config.onSingleLongTapStart != null) {
       if (renderEditor != null &&
-          _state.widget.onSingleLongTapStart!(
+          _state.widget.config.onSingleLongTapStart!(
             details,
             renderEditor!.getPositionForOffset,
           )) {
@@ -243,6 +254,7 @@ class EditorSelectionGestureDetectorBuilder
 
     if (delegate.selectionEnabled) {
       final _platform = Theme.of(_state.context).platform;
+
       if (isAppleOS(_platform)) {
         renderEditor!.selectPositionAt(
           from: details.globalPosition,
@@ -257,9 +269,9 @@ class EditorSelectionGestureDetectorBuilder
 
   @override
   void onSingleLongTapEnd(LongPressEndDetails details) {
-    if (_state.widget.onSingleLongTapEnd != null) {
+    if (_state.widget.config.onSingleLongTapEnd != null) {
       if (renderEditor != null) {
-        if (_state.widget.onSingleLongTapEnd!(
+        if (_state.widget.config.onSingleLongTapEnd!(
           details,
           renderEditor!.getPositionForOffset,
         )) {
@@ -271,6 +283,7 @@ class EditorSelectionGestureDetectorBuilder
         }
       }
     }
+
     super.onSingleLongTapEnd(details);
   }
 }

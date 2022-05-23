@@ -12,7 +12,6 @@ class ReadOnlyPage extends StatefulWidget {
 
 class _ReadOnlyPageState extends State<ReadOnlyPage> {
   final FocusNode _focusNode = FocusNode();
-
   bool _edit = false;
 
   @override
@@ -33,22 +32,26 @@ class _ReadOnlyPageState extends State<ReadOnlyPage> {
     var visualEditor = VisualEditor(
       controller: controller!,
       scrollController: ScrollController(),
-      scrollable: true,
       focusNode: _focusNode,
-      autoFocus: true,
-      readOnly: !_edit,
-      padding: EdgeInsets.zero,
+      config: EditorCfgM(
+        scrollable: true,
+        autoFocus: true,
+        readOnly: !_edit,
+        padding: EdgeInsets.zero,
+      ),
     );
     if (kIsWeb) {
       visualEditor = VisualEditor(
         controller: controller,
         scrollController: ScrollController(),
-        scrollable: true,
         focusNode: _focusNode,
-        autoFocus: true,
-        readOnly: !_edit,
-        padding: EdgeInsets.zero,
-        embedBuilder: defaultEmbedBuilderWeb,
+        config: EditorCfgM(
+          scrollable: true,
+          autoFocus: true,
+          readOnly: !_edit,
+          padding: EdgeInsets.zero,
+          embedBuilder: defaultEmbedBuilderWeb,
+        ),
       );
     }
     return Padding(

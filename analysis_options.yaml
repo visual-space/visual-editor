@@ -11,7 +11,7 @@ linter:
     - annotate_overrides
     - avoid_empty_else
     - avoid_escaping_inner_quotes
-    - avoid_print: false (!) # To be restored once refactoring is over
+    - avoid_print: false # To be restored once refactoring is over
     - avoid_redundant_argument_values
     - avoid_types_on_closure_parameters
     - avoid_void_async
@@ -36,3 +36,5 @@ linter:
     - unnecessary_string_interpolations
     - invalid_use_of_visible_for_testing_member: false # To be restored once refactoring is over
     - invalid_use_of_protected_member: false # To be restored once refactoring is over
+    - sort_child_properties_last: false
+    - prefer_const_constructors_in_immutables: false

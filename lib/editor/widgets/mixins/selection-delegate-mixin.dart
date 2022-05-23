@@ -29,7 +29,11 @@ mixin RawEditorStateSelectionDelegateMixin on EditorState
     final insertedText = _adjustInsertedText(diff.inserted);
 
     widget.controller.replaceText(
-        diff.start, diff.deleted.length, insertedText, value.selection);
+      diff.start,
+      diff.deleted.length,
+      insertedText,
+      value.selection,
+    );
 
     _applyPasteStyle(insertedText, diff.start);
   }
@@ -37,15 +41,17 @@ mixin RawEditorStateSelectionDelegateMixin on EditorState
   void _applyPasteStyle(String insertedText, int start) {
     if (insertedText == pastePlainText && pastePlainText != '') {
       final pos = start;
+
       for (var i = 0; i < pasteStyle.length; i++) {
         final offset = pasteStyle[i].item1;
         final style = pasteStyle[i].item2;
         widget.controller.formatTextStyle(
-            pos + offset,
-            i == pasteStyle.length - 1
-                ? pastePlainText.length - offset
-                : pasteStyle[i + 1].item1,
-            style);
+          pos + offset,
+          i == pasteStyle.length - 1
+              ? pastePlainText.length - offset
+              : pasteStyle[i + 1].item1,
+          style,
+        );
       }
     }
   }
@@ -76,6 +82,7 @@ mixin RawEditorStateSelectionDelegateMixin on EditorState
     if (scrollController.hasClients) {
       scrollController.jumpTo(targetOffset.offset);
     }
+
     renderEditor.showOnScreen(rect: targetOffset.rect);
   }
 
@@ -84,7 +91,7 @@ mixin RawEditorStateSelectionDelegateMixin on EditorState
   // large to be fully revealed in `renderEditable`, it will be centered along
   // the main axis.
   //
-  // If this is a multiline EditableText (which means the Editable can only
+  // If this is a multiline VisualEditor (which means the Editable can only
   // scroll vertically), the given rect's height will first be extended to match
   // `renderEditable.preferredLineHeight`, before the target scroll offset is
   // calculated.
@@ -105,13 +112,18 @@ mixin RawEditorStateSelectionDelegateMixin on EditorState
     final expandedRect = Rect.fromCenter(
       center: rect.center,
       width: rect.width,
-      height: math.max(rect.height, renderEditor.preferredLineHeight(position)),
+      height: math.max(
+        rect.height,
+        renderEditor.preferredLineHeight(position),
+      ),
     );
 
     additionalOffset = expandedRect.height >= editableSize.height
         ? editableSize.height / 2 - expandedRect.center.dy
-        : 0.0
-            .clamp(expandedRect.bottom - editableSize.height, expandedRect.top);
+        : 0.0.clamp(
+            expandedRect.bottom - editableSize.height,
+            expandedRect.top,
+          );
     unitOffset = const Offset(0, 1);
 
     // No overscrolling when encountering tall fonts/scripts that extend past
@@ -128,7 +140,9 @@ mixin RawEditorStateSelectionDelegateMixin on EditorState
         (scrollController.hasClients ? scrollController.offset : 0) -
             targetOffset;
     return RevealedOffset(
-        rect: rect.shift(unitOffset * offsetDelta), offset: targetOffset);
+      rect: rect.shift(unitOffset * offsetDelta),
+      offset: targetOffset,
+    );
   }
 
   @override
@@ -141,7 +155,9 @@ mixin RawEditorStateSelectionDelegateMixin on EditorState
 
   @override
   void userUpdateTextEditingValue(
-      TextEditingValue value, SelectionChangedCause cause) {
+    TextEditingValue value,
+    SelectionChangedCause cause,
+  ) {
     textEditingValue = value;
   }
 

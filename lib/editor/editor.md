@@ -24,5 +24,5 @@ Each instance of the editor will need an `EditorController`. EditorToolbar can b
 The Editor uses Flutter `TextField` to render the paragraphs in a column of content. On top of the regular `TextField` we are rendering custom selection controls or highlights using the `RenderBox` API.
 
 ## Gestures
-The VisualEditor class implements `EditorTextSelectionGestureDetectorBuilderDelegate`. This base class is used to separate the features related to gesture detection and to give the opportunity to override them.
+The VisualEditor class implements `TextSelectionGesturesBuilderDelegate`. This base class is used to separate the features related to gesture detection and to give the opportunity to override them.
 

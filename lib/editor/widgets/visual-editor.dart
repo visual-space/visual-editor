@@ -1,22 +1,16 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:i18n_extension/i18n_widget.dart';
 
-import '../../blocks/models/custom-builders.type.dart';
-import '../../blocks/models/link-action.picker.type.dart';
-import '../../blocks/services/default-link-action-picker-delegate.dart';
-import '../../blocks/services/default-styles.utils.dart';
 import '../../controller/services/editor-controller.dart';
-import '../../cursor/models/cursor-style.model.dart';
-import '../../embeds/widgets/default-embed-builder.dart';
-import '../../inputs/models/gesture-detector-builder-delegate.dart';
-import '../../inputs/services/text-selection-gesture-detector-builder-delegate.dart';
+import '../../selection/models/gesture-detector-builder-delegate.dart';
+import '../../selection/services/text-selection-gestures-builder-base.dart';
+import '../../selection/services/text-selection-gestures-builder.dart';
 import '../../shared/utils/platform.utils.dart';
-import '../models/cursor-style-cfg.model.dart';
+import '../models/editor-cfg.model.dart';
 import '../models/editor-state.model.dart';
 import '../models/platform-dependent-styles-config.model.dart';
-import '../services/editor-text-selection-detector.util.dart';
+import '../services/styles.utils.dart';
 import 'raw-editor.dart';
 
 // This is the main class of the Visual Editor.
@@ -47,187 +41,30 @@ import 'raw-editor.dart';
 // EditorToolbar can be synced to VisualEditor via the EditorController.
 //
 // Rendering
-// The Editor uses Flutter TextField to render the paragraphs in a collumn of content.
+// The Editor uses Flutter TextField to render the paragraphs in a column of content.
 // On top of the regular TextField we are rendering custom selection controls or highlights using the RenderBox API.
 //
 // Gestures
-// The VisualEditor class implements EditorTextSelectionGestureDetectorBuilderDelegate.
-// This base class is used to separate the features related to gesture detection and to give the opportunity to override them.
+// The VisualEditor class implements TextSelectionGesturesBuilderDelegate.
+// This base class is used to separate the features related to gesture detection and gives the opportunity to override them.
 class VisualEditor extends StatefulWidget {
   // Controller object which establishes a link between a rich text document and this editor.
   final EditorController controller;
 
-  // Controls whether this editor has keyboard focus. +++ REVIEW
+  // Controls whether this editor has keyboard focus.
   final FocusNode focusNode;
 
   // Take control over the scroll of the Visual Editor when rendering in scrollable mode.
   final ScrollController scrollController;
 
-  // Whether the editor should create a scrollable container for its blocks.
-  // When set to `true` the editor's height can be controlled by minHeight, maxHeight and expands properties.
-  // When set to `false` the editor always expands to fit the entire blocks of the document and
-  // should be placed as a child of another scrollable widget, otherwise the blocks may be clipped.
-  final bool scrollable;
-
-  // TODO DOC (currently not sure why this is defined)
-  final double scrollBottomInset;
-
-  // Additional space around the blocks of this editor.
-  final EdgeInsetsGeometry padding;
-
-  // Whether this editor should focus itself if nothing else is already focused.
-  // If true, the keyboard will open as soon as this editor obtains focus.
-  // Otherwise, the keyboard is only shown after the user taps the editor.
-  final bool autoFocus;
-
-  // The cursor refers to the blinking caret when the editor is focused.
-  final bool? showCursor;
-
-  // TODO DOC (currently not sure why this is defined)
-  final bool? paintCursorAboveText;
-
-  // When this is set to `true`, the text cannot be modified by any shortcut or keyboard operation.
-  // The text remains selectable.
-  final bool readOnly;
-
-  // Content to be displayed when there is no content in the Delta document
-  final String? placeholder;
-
-  // Whether to enable user interface for changing the text selection.
-  // For example, setting this to true will enable features such as long-pressing the editor to select text
-  // and show the cut/copy/paste menu, and tapping to move the text cursor.
-  // When this is false, the text selection cannot be adjusted by the user,
-  // text cannot be copied, and the user cannot paste into the text field from the clipboard.
-  final bool enableInteractiveSelection;
-
-  // The minimum height to be occupied by this editor.
-  // This only has effect if scrollable is set to `true` and expands is set to `false`.
-  final double? minHeight;
-
-  // The maximum height to be occupied by this editor.
-  // This only has effect if scrollable is set to `true` and expands is set to `false`.
-  final double? maxHeight;
-
-  // The contents will be constrained by the maximum width and horizontally centered.
-  // The scrollbar remains on the right side of the screen.
-  // This is mostly useful on devices with wide screens.
-  final double? maxContentWidth;
-
-  final DefaultStyles? customStyles;
-
-  // +++ Consider converting to enum
-  // Whether this editor's height will be sized to fill its parent.
-  // This only has effect if scrollable is set to `true`.
-  // If expands is set to true and wrapped in a parent widget like Expanded or SizedBox, the editor will expand to fill the parent.
-  // maxHeight and minHeight must both be `null` when this is set to `true`.
-  final bool expands;
-
-  // Configures how the platform keyboard will select an uppercase or lowercase keyboard.
-  // Only supports text keyboards, other keyboard types will ignore this configuration.
-  // Capitalization is locale-aware.
-  // Defaults to TextCapitalization.sentences. Must not be `null`.
-  final TextCapitalization textCapitalization;
-
-  // The appearance of the keyboard.
-  // This setting is only honored on iOS devices.
-  final Brightness keyboardAppearance;
-
-  // The ScrollPhysics to use when vertically scrolling the input.
-  // This only has effect if scrollable is set to `true`.
-  // If not specified, it will behave according to the current platform.
-  // See Scrollable.physics.
-  final ScrollPhysics? scrollPhysics;
-
-  // Callback to invoke when user wants to launch a URL.
-  final ValueChanged<String>? onLaunchUrl;
-
-  // Returns whether gesture is handled
-  final bool Function(
-    TapDownDetails details,
-    TextPosition Function(Offset offset),
-  )? onTapDown;
-
-  // Returns whether gesture is handled
-  final bool Function(
-    TapUpDetails details,
-    TextPosition Function(Offset offset),
-  )? onTapUp;
-
-  // Returns whether gesture is handled
-  final bool Function(
-    LongPressStartDetails details,
-    TextPosition Function(Offset offset),
-  )? onSingleLongTapStart;
-
-  // Returns whether gesture is handled
-  final bool Function(
-    LongPressMoveUpdateDetails details,
-    TextPosition Function(Offset offset),
-  )? onSingleLongTapMoveUpdate;
-
-  // Returns whether gesture is handled
-  final bool Function(
-    LongPressEndDetails details,
-    TextPosition Function(Offset offset),
-  )? onSingleLongTapEnd;
-
-  // Renders custom content to be displayed as provided by the client apps.
-  // Custom embeds don't work as editable text, they are standalone blocks of content that have their own internal behaviour.
-  final EmbedBuilder embedBuilder;
-
-  // Styles can be provided to customize the look and feel of the Visual Editor.
-  final CustomStyleBuilder? customStyleBuilder;
-
-  // The locale to use for the editor buttons, defaults to system locale.
-  final Locale? locale;
-
-  // Delegate function responsible for showing menu with link actions on mobile platforms (iOS, Android).
-  // The menu is triggered in editing mode when the user long-presses a link-styled text segment.
-  // VisualEditor provides default implementation which can be overridden by this field to customize the user experience.
-  // By default on iOS the menu is displayed with showCupertinoModalPopup which constructs an instance of CupertinoActionSheet.
-  // For Android, the menu is displayed with showModalBottomSheet and a list of Material ListTiles.
-  final LinkActionPickerDelegate linkActionPickerDelegate;
-
-  // A floating cursor will help you to see what is currently under your thumb when moving the caret.
-  final bool floatingCursorDisabled;
-
-  // Custom GUI for text selection controls
-  final TextSelectionControls? textSelectionControls;
+  final EditorCfgM config;
 
   // Customize any of the settings available in VisualEditor
   const VisualEditor({
     required this.controller,
     required this.focusNode,
     required this.scrollController,
-    required this.scrollable,
-    required this.padding,
-    this.autoFocus = false,
-    this.readOnly = false,
-    this.expands = false,
-    this.showCursor,
-    this.paintCursorAboveText,
-    this.placeholder,
-    this.enableInteractiveSelection = true,
-    this.scrollBottomInset = 0,
-    this.minHeight,
-    this.maxHeight,
-    this.maxContentWidth,
-    this.customStyles,
-    this.textCapitalization = TextCapitalization.sentences,
-    this.keyboardAppearance = Brightness.light,
-    this.scrollPhysics,
-    this.onLaunchUrl,
-    this.onTapDown,
-    this.onTapUp,
-    this.onSingleLongTapStart,
-    this.onSingleLongTapMoveUpdate,
-    this.onSingleLongTapEnd,
-    this.embedBuilder = defaultEmbedBuilder,
-    this.linkActionPickerDelegate = defaultLinkActionPickerDelegate,
-    this.customStyleBuilder,
-    this.locale,
-    this.floatingCursorDisabled = false,
-    this.textSelectionControls,
+    required this.config,
     Key? key,
   }) : super(key: key);
 
@@ -240,12 +77,14 @@ class VisualEditor extends StatefulWidget {
       VisualEditor(
         controller: controller,
         scrollController: ScrollController(),
-        scrollable: true,
         focusNode: FocusNode(),
-        autoFocus: true,
-        readOnly: readOnly,
-        padding: EdgeInsets.zero,
-        keyboardAppearance: keyboardAppearance ?? Brightness.light,
+        config: EditorCfgM(
+          scrollable: true,
+          autoFocus: true,
+          readOnly: readOnly,
+          padding: EdgeInsets.zero,
+          keyboardAppearance: keyboardAppearance ?? Brightness.light,
+        ),
       );
 
   @override
@@ -253,15 +92,16 @@ class VisualEditor extends StatefulWidget {
 }
 
 class VisualEditorState extends State<VisualEditor>
-    implements EditorTextSelectionGestureDetectorBuilderDelegate {
+    implements TextSelectionGesturesBuilderDelegate {
+  final _stylesUtils = StylesUtils();
+
   final GlobalKey<EditorState> _editorKey = GlobalKey<EditorState>();
-  late EditorTextSelectionGestureDetectorBuilder
-      _selectionGestureDetectorBuilder;
+  late TextSelectionGesturesBuilderBase _textSelectionGesturesBuilder;
 
   @override
   void initState() {
     super.initState();
-    _buildTextSelectionGestureDetector();
+    _setupTextSelectionGestures();
   }
 
   @override
@@ -270,13 +110,15 @@ class VisualEditorState extends State<VisualEditor>
     final selectionTheme = TextSelectionTheme.of(context);
     final isAppleOs = isAppleOS(theme.platform);
     final platformStyles = isAppleOs
-        ? _getAppleOsStyles(selectionTheme, context)
-        : _getOtherOsStyles(selectionTheme, theme);
+        ? _stylesUtils.getAppleOsStyles(selectionTheme, context)
+        : _stylesUtils.getOtherOsStyles(selectionTheme, theme);
 
-    final editor = _i18nAndGestureDetector(
-      child: _editor(
-        theme: theme,
-        platformStyles: platformStyles,
+    final editor = _i18n(
+      child: _textSelectionGestures(
+        child: _editor(
+          theme: theme,
+          platformStyles: platformStyles,
+        ),
       ),
     );
 
@@ -289,69 +131,6 @@ class VisualEditorState extends State<VisualEditor>
     return editor;
   }
 
-  // Intercept RawKeyEvent on Web to prevent it from propagating to parents
-  // that might interfere with the editor key behavior, such as SingleChildScrollView.
-  // Thanks to @wliumelb for the workaround.
-  // See issue https://github.com/singerdmx/flutter-quill/issues/304
-  RawKeyboardListener _preventKeyPropagationToParent({required Widget child}) {
-    return RawKeyboardListener(
-      onKey: (_) {},
-      focusNode: FocusNode(
-        onKey: (node, event) => KeyEventResult.skipRemainingHandlers,
-      ),
-      child: child,
-    );
-  }
-
-  I18n _i18nAndGestureDetector({required Widget child}) {
-    return I18n(
-      initialLocale: widget.locale,
-      child: _selectionGestureDetectorBuilder.build(
-        behavior: HitTestBehavior.translucent,
-        child: child,
-      ),
-    );
-  }
-
-  RawEditor _editor({
-    required ThemeData theme,
-    required PlatformDependentStylesCfgM platformStyles,
-  }) {
-    return RawEditor(
-      key: _editorKey,
-      controller: widget.controller,
-      focusNode: widget.focusNode,
-      scrollController: widget.scrollController,
-      scrollable: widget.scrollable,
-      scrollBottomInset: widget.scrollBottomInset,
-      padding: widget.padding,
-      readOnly: widget.readOnly,
-      placeholder: widget.placeholder,
-      onLaunchUrl: widget.onLaunchUrl,
-      toolbarOptions: _toolbarOptions(),
-      showSelectionHandles: isMobile(theme.platform),
-      showCursor: widget.showCursor,
-      cursorStyle: _cursorStyle(platformStyles.cursorStyle),
-      textCapitalization: widget.textCapitalization,
-      minHeight: widget.minHeight,
-      maxHeight: widget.maxHeight,
-      maxContentWidth: widget.maxContentWidth,
-      customStyles: widget.customStyles,
-      expands: widget.expands,
-      autoFocus: widget.autoFocus,
-      selectionColor: platformStyles.selectionColor,
-      selectionCtrls:
-          widget.textSelectionControls ?? platformStyles.textSelectionControls,
-      keyboardAppearance: widget.keyboardAppearance,
-      enableInteractiveSelection: widget.enableInteractiveSelection,
-      scrollPhysics: widget.scrollPhysics,
-      embedBuilder: widget.embedBuilder,
-      linkActionPickerDelegate: widget.linkActionPickerDelegate,
-      customStyleBuilder: widget.customStyleBuilder,
-      floatingCursorDisabled: widget.floatingCursorDisabled,
-    );
-  }
-
   @override
   GlobalKey<EditorState> get editableTextKey => _editorKey;
 
@@ -359,74 +138,85 @@ class VisualEditorState extends State<VisualEditor>
   bool get forcePressEnabled => false;
 
   @override
-  bool get selectionEnabled => widget.enableInteractiveSelection;
-
-  // === STYLES ===
-
-  PlatformDependentStylesCfgM _getOtherOsStyles(
-    TextSelectionThemeData selectionTheme,
-    ThemeData theme,
-  ) {
-    final selectionColor = theme.colorScheme.primary.withOpacity(0.40);
-
-    return PlatformDependentStylesCfgM(
-      textSelectionControls: materialTextSelectionControls,
-      selectionColor: selectionTheme.selectionColor ?? selectionColor,
-      cursorStyle: CursorStyleCfgM(
-        cursorColor: selectionTheme.cursorColor ?? theme.colorScheme.primary,
-        paintCursorAboveText: false,
-        cursorOpacityAnimates: false,
-      ),
-    );
-  }
-
-  PlatformDependentStylesCfgM _getAppleOsStyles(
-    TextSelectionThemeData selectionTheme,
-    BuildContext context,
-  ) {
-    final cupertinoTheme = CupertinoTheme.of(context);
-    final selectionColor = cupertinoTheme.primaryColor.withOpacity(0.40);
-    final pixelRatio = MediaQuery.of(context).devicePixelRatio;
-
-    return PlatformDependentStylesCfgM(
-      textSelectionControls: cupertinoTextSelectionControls,
-      selectionColor: selectionTheme.selectionColor ?? selectionColor,
-      cursorStyle: CursorStyleCfgM(
-        cursorColor: selectionTheme.cursorColor ?? cupertinoTheme.primaryColor,
-        cursorRadius: const Radius.circular(2),
-        cursorOffset: Offset(iOSHorizontalOffset / pixelRatio, 0),
-        paintCursorAboveText: true,
-        cursorOpacityAnimates: true,
-      ),
-    );
-  }
-
-  // === UTILS ===
-
-  CursorStyle _cursorStyle(CursorStyleCfgM style) => CursorStyle(
-        color: style.cursorColor,
-        backgroundColor: Colors.grey,
-        width: 2,
-        radius: style.cursorRadius,
-        offset: style.cursorOffset,
-        paintAboveText:
-            widget.paintCursorAboveText ?? style.paintCursorAboveText,
-        opacityAnimates: style.cursorOpacityAnimates,
-      );
-
-  ToolbarOptions _toolbarOptions() => ToolbarOptions(
-        copy: widget.enableInteractiveSelection,
-        cut: widget.enableInteractiveSelection,
-        paste: widget.enableInteractiveSelection,
-        selectAll: widget.enableInteractiveSelection,
-      );
+  bool get selectionEnabled => widget.config.enableInteractiveSelection;
 
   void requestKeyboard() {
     _editorKey.currentState!.requestKeyboard();
   }
 
-  void _buildTextSelectionGestureDetector() {
-    _selectionGestureDetectorBuilder = EditorSelectionGestureDetectorBuilder(
+  Widget _i18n({required Widget child}) => I18n(
+        initialLocale: widget.config.locale,
+        child: child,
+      );
+
+  Widget _textSelectionGestures({required Widget child}) =>
+      _textSelectionGesturesBuilder.build(
+        child: child,
+        behavior: HitTestBehavior.translucent,
+      );
+
+  Widget _editor({
+    required ThemeData theme,
+    required PlatformDependentStylesCfgM platformStyles,
+  }) =>
+      RawEditor(
+        key: _editorKey,
+        controller: widget.controller,
+        focusNode: widget.focusNode,
+        scrollController: widget.scrollController,
+        scrollable: widget.config.scrollable,
+        scrollBottomInset: widget.config.scrollBottomInset,
+        padding: widget.config.padding,
+        readOnly: widget.config.readOnly,
+        placeholder: widget.config.placeholder,
+        onLaunchUrl: widget.config.onLaunchUrl,
+        toolbarOptions: _toolbarOptions(),
+        showSelectionHandles: isMobile(theme.platform),
+        showCursor: widget.config.showCursor,
+        cursorStyle: _stylesUtils.cursorStyle(
+          platformStyles.cursorStyle,
+          widget.config,
+        ),
+        textCapitalization: widget.config.textCapitalization,
+        minHeight: widget.config.minHeight,
+        maxHeight: widget.config.maxHeight,
+        maxContentWidth: widget.config.maxContentWidth,
+        customStyles: widget.config.customStyles,
+        expands: widget.config.expands,
+        autoFocus: widget.config.autoFocus,
+        selectionColor: platformStyles.selectionColor,
+        selectionCtrls: widget.config.textSelectionControls ??
+            platformStyles.textSelectionControls,
+        keyboardAppearance: widget.config.keyboardAppearance,
+        enableInteractiveSelection: widget.config.enableInteractiveSelection,
+        scrollPhysics: widget.config.scrollPhysics,
+        embedBuilder: widget.config.embedBuilder,
+        linkActionPickerDelegate: widget.config.linkActionPickerDelegate,
+        customStyleBuilder: widget.config.customStyleBuilder,
+        floatingCursorDisabled: widget.config.floatingCursorDisabled,
+      );
+
+  // Intercept RawKeyEvent on Web to prevent it from propagating to parents that
+  // might interfere with the editor key behavior, such as SingleChildScrollView.
+  // SingleChildScrollView reacts to keys.
+  Widget _preventKeyPropagationToParent({required Widget child}) =>
+      RawKeyboardListener(
+        focusNode: FocusNode(
+          onKey: (node, event) => KeyEventResult.skipRemainingHandlers,
+        ),
+        child: child,
+        onKey: (_) {},
+      );
+
+  ToolbarOptions _toolbarOptions() => ToolbarOptions(
+        copy: widget.config.enableInteractiveSelection,
+        cut: widget.config.enableInteractiveSelection,
+        paste: widget.config.enableInteractiveSelection,
+        selectAll: widget.config.enableInteractiveSelection,
+      );
+
+  void _setupTextSelectionGestures() {
+    _textSelectionGesturesBuilder = TextSelectionGesturesBuilder(
       this,
       widget.controller,
     );

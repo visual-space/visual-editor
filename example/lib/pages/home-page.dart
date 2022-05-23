@@ -112,34 +112,11 @@ class _HomePageState extends State<HomePage> {
     var visualEditor = VisualEditor(
       controller: _controller!,
       scrollController: ScrollController(),
-      scrollable: true,
       focusNode: _focusNode,
-      placeholder: 'Add blocks',
-      padding: EdgeInsets.zero,
-      customStyles: DefaultStyles(
-        h1: DefaultTextBlockStyle(
-          const TextStyle(
-            fontSize: 32,
-            color: Colors.black,
-            height: 1.15,
-            fontWeight: FontWeight.w300,
-          ),
-          const Tuple2(16, 0),
-          const Tuple2(0, 0),
-          null,
-        ),
-        sizeSmall: const TextStyle(fontSize: 9),
-      ),
-    );
-
-    if (kIsWeb) {
-      visualEditor = VisualEditor(
-        controller: _controller!,
-        scrollController: ScrollController(),
+      config: EditorCfgM(
         scrollable: true,
-        focusNode: _focusNode,
-        placeholder: 'Add blocks',
         padding: EdgeInsets.zero,
+        placeholder: 'Add blocks',
         customStyles: DefaultStyles(
           h1: DefaultTextBlockStyle(
             const TextStyle(
@@ -154,7 +131,34 @@ class _HomePageState extends State<HomePage> {
           ),
           sizeSmall: const TextStyle(fontSize: 9),
         ),
-        embedBuilder: defaultEmbedBuilderWeb,
+      ),
+    );
+
+    if (kIsWeb) {
+      visualEditor = VisualEditor(
+        controller: _controller!,
+        scrollController: ScrollController(),
+        focusNode: _focusNode,
+        config: EditorCfgM(
+          scrollable: true,
+          placeholder: 'Add blocks',
+          padding: EdgeInsets.zero,
+          customStyles: DefaultStyles(
+            h1: DefaultTextBlockStyle(
+              const TextStyle(
+                fontSize: 32,
+                color: Colors.black,
+                height: 1.15,
+                fontWeight: FontWeight.w300,
+              ),
+              const Tuple2(16, 0),
+              const Tuple2(0, 0),
+              null,
+            ),
+            sizeSmall: const TextStyle(fontSize: 9),
+          ),
+          embedBuilder: defaultEmbedBuilderWeb,
+        ),
       );
     }
 

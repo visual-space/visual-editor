@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 
 import '../../editor/models/editor-state.model.dart';
 
-// Delegate interface for the [EditorTextSelectionGestureDetectorBuilder].
+// Delegate interface for the [TextSelectionGesturesBuilder].
 // The interface is usually implemented by textfield implementations wrapping
-// [EditableText], that use a [EditorTextSelectionGestureDetectorBuilder]
-// to build a [EditorTextSelectionGestureDetector] for their [EditableText].
+// [VisualEditor], that use a [TextSelectionGesturesBuilder]
+// to build a [TextSelectionGestures] for their [VisualEditor].
 // The delegate provides the builder with information about the current state of the textfield.
 // Based on these information, the builder adds the correct gesture handlers to the gesture detector.
 // See also:
 //  * [TextField], which implements this delegate for the Material textfield.
 //  * [CupertinoTextField], which implements this delegate for the Cupertino textfield.
-abstract class EditorTextSelectionGestureDetectorBuilderDelegate {
-  // [GlobalKey] to the [EditableText] for which the
-  // [EditorTextSelectionGestureDetectorBuilder] will build
-  // a [EditorTextSelectionGestureDetector].
+abstract class TextSelectionGesturesBuilderDelegate {
+  // [GlobalKey] to the [VisualEditor] for which the
+  // [TextSelectionGesturesBuilder] will build
+  // a [TextSelectionGestures].
   GlobalKey<EditorState> get editableTextKey;
 
   // Whether the textfield should respond to force presses.

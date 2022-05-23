@@ -14,27 +14,23 @@ mixin RawEditorStateTextInputClientMixin on EditorState
   TextInputConnection? _textInputConnection;
   TextEditingValue? _lastKnownRemoteTextEditingValue;
 
-  /// Whether to create an input connection with the platform for text editing
-  /// or not.
-  ///
-  /// Read-only input fields do not need a connection with the platform since
-  /// there's no need for text editing capabilities (e.g. virtual keyboard).
-  ///
-  /// On the web, we always need a connection because we want some browser
-  /// functionalities to continue to work on read-only input fields like:
-  ///
-  /// - Relevant context menu.
-  /// - cmd/ctrl+c shortcut to copy.
-  /// - cmd/ctrl+a to select all.
-  /// - Changing the selection using a physical keyboard.
+  // Whether to create an input connection with the platform for text editing or not.
+  // Read-only input fields do not need a connection with the platform since
+  // there's no need for text editing capabilities (e.g. virtual keyboard).
+  // On the web, we always need a connection because we want some browser
+  // functionalities to continue to work on read-only input fields like:
+  // - Relevant context menu.
+  // - cmd/ctrl+c shortcut to copy.s
+  // - cmd/ctrl+a to select all.
+  // - Changing the selection using a physical keyboard.
   bool get shouldCreateInputConnection => kIsWeb || !widget.readOnly;
 
-  /// Returns `true` if there is open input connection.
+  // Returns `true` if there is open input connection.
   bool get hasConnection =>
       _textInputConnection != null && _textInputConnection!.attached;
 
-  /// Opens or closes input connection based on the current state of
-  /// [focusNode] and [value].
+  // Opens or closes input connection based on the current state of
+  // [focusNode] and [value].
   void openOrCloseConnection() {
     if (widget.focusNode.hasFocus && widget.focusNode.consumeKeyboardToken()) {
       openConnectionIfNeeded();
@@ -69,7 +65,7 @@ mixin RawEditorStateTextInputClientMixin on EditorState
     _textInputConnection!.show();
   }
 
-  /// Closes input connection if it's currently open. Otherwise does nothing.
+  // Closes input connection if it's currently open. Otherwise does nothing.
   void closeConnectionIfNeeded() {
     if (!hasConnection) {
       return;
@@ -79,11 +75,8 @@ mixin RawEditorStateTextInputClientMixin on EditorState
     _lastKnownRemoteTextEditingValue = null;
   }
 
-  /// Updates remote value based on current state of [document] and
-  /// [selection].
-  ///
-  /// This method may not actually send an update to native side if it thinks
-  /// remote value is up to date or identical.
+  // Updates remote value based on current state of [document] and [selection].
+  // This method may not actually send an update to native side if it thinks remote value is up to date or identical.
   void updateRemoteValueIfNeeded() {
     if (!hasConnection) {
       return;
@@ -91,11 +84,9 @@ mixin RawEditorStateTextInputClientMixin on EditorState
 
     final value = textEditingValue;
 
-    // Since we don't keep track of the composing range in value provided
-    // by the Controller we need to add it here manually before comparing
-    // with the last known remote value.
-    // It is important to prevent excessive remote updates as it can cause
-    // race conditions.
+    // Since we don't keep track of the composing range in value provided by the Controller
+    // we need to add it here manually before comparing with the last known remote value.
+    // It is important to prevent excessive remote updates as it can cause race conditions.
     final actualValue = value.copyWith(
       composing: _lastKnownRemoteTextEditingValue!.composing,
     );
@@ -106,8 +97,7 @@ mixin RawEditorStateTextInputClientMixin on EditorState
 
     _lastKnownRemoteTextEditingValue = actualValue;
     _textInputConnection!.setEditingState(
-      // Set composing to (-1, -1), otherwise an exception will be thrown if
-      // the values are different.
+      // Set composing to (-1, -1), otherwise an exception will be thrown if the values are different.
       actualValue.copyWith(composing: const TextRange(start: -1, end: -1)),
     );
   }
@@ -137,9 +127,8 @@ mixin RawEditorStateTextInputClientMixin on EditorState
         _lastKnownRemoteTextEditingValue!.selection == value.selection) {
       // This update only modifies composing range. Since we don't keep track
       // of composing range we just need to update last known value here.
-      // This check fixes an issue on Android when it sends
-      // composing updates separately from regular changes for text and
-      // selection.
+      // This check fixes an issue on Android when it sends composing updates separately
+      // from regular changes for text and selection.
       _lastKnownRemoteTextEditingValue = value;
       return;
     }
@@ -160,12 +149,12 @@ mixin RawEditorStateTextInputClientMixin on EditorState
 
   @override
   void performAction(TextInputAction action) {
-    // no-op
+    // No-op
   }
 
   @override
   void performPrivateCommand(String action, Map<String, dynamic> data) {
-    // no-op
+    // No-op
   }
 
   // The time it takes for the floating cursor to snap to the text aligned
@@ -175,8 +164,7 @@ mixin RawEditorStateTextInputClientMixin on EditorState
   // The original position of the caret on FloatingCursorDragState.start.
   Rect? _startCaretRect;
 
-  // The most recent text position as determined by the location of the floating
-  // cursor.
+  // The most recent text position as determined by the location of the floating cursor.
   TextPosition? _lastTextPosition;
 
   // The offset of the floating cursor as determined from the start call.
@@ -185,9 +173,9 @@ mixin RawEditorStateTextInputClientMixin on EditorState
   // The most recent position of the floating cursor.
   Offset? _lastBoundedOffset;
 
-  // Because the center of the cursor is preferredLineHeight / 2 below the touch
-  // origin, but the touch origin is used to determine which line the cursor is
-  // on, we need this offset to correctly render and move the cursor.
+  // Because the center of the cursor is preferredLineHeight / 2 below the touch origin,
+  // but the touch origin is used to determine which line the cursor is on,
+  // we need this offset to correctly render and move the cursor.
   Offset _floatingCursorOffset(TextPosition textPosition) =>
       Offset(0, renderEditor.preferredLineHeight(textPosition) / 2);
 
@@ -199,20 +187,24 @@ mixin RawEditorStateTextInputClientMixin on EditorState
           floatingCursorResetController.stop();
           onFloatingCursorResetTick();
         }
-        // We want to send in points that are centered around a (0,0) origin, so
-        // we cache the position.
+        // We want to send in points that are centered around a (0,0) origin, so we cache the position.
         _pointOffsetOrigin = point.offset;
 
-        final currentTextPosition =
-            TextPosition(offset: renderEditor.selection.baseOffset);
-        _startCaretRect =
-            renderEditor.getLocalRectForCaret(currentTextPosition);
+        final currentTextPosition = TextPosition(
+          offset: renderEditor.selection.baseOffset,
+        );
+        _startCaretRect = renderEditor.getLocalRectForCaret(
+          currentTextPosition,
+        );
 
         _lastBoundedOffset = _startCaretRect!.center -
             _floatingCursorOffset(currentTextPosition);
         _lastTextPosition = currentTextPosition;
         renderEditor.setFloatingCursor(
-            point.state, _lastBoundedOffset!, _lastTextPosition!);
+          point.state,
+          _lastBoundedOffset!,
+          _lastTextPosition!,
+        );
         break;
       case FloatingCursorDragState.Update:
         assert(_lastTextPosition != null, 'Last text position was not set');
@@ -251,12 +243,9 @@ mixin RawEditorStateTextInputClientMixin on EditorState
     }
   }
 
-  /// Specifies the floating cursor dimensions and position based
-  /// the animation controller value.
-  /// The floating cursor is resized
-  /// (see [RenderAbstractEditor.setFloatingCursor])
-  /// and repositioned (linear interpolation between position of floating cursor
-  /// and current position of background cursor)
+  // Specifies the floating cursor dimensions and position based the animation controller value.
+  // The floating cursor is resized (see [RenderAbstractEditor.setFloatingCursor]) and repositioned
+  // (linear interpolation between position of floating cursor and current position of background cursor)
   void onFloatingCursorResetTick() {
     final finalPosition =
         renderEditor.getLocalRectForCaret(_lastTextPosition!).centerLeft -
@@ -298,8 +287,8 @@ mixin RawEditorStateTextInputClientMixin on EditorState
 
   void _updateSizeAndTransform() {
     if (hasConnection) {
-      // Asking for renderEditor.size here can cause errors if layout hasn't
-      // occurred yet. So we schedule a post frame callback instead.
+      // Asking for renderEditor.size here can cause errors if layout hasn't occurred yet.
+      // So we schedule a post frame callback instead.
       SchedulerBinding.instance.addPostFrameCallback((_) {
         if (!mounted) {
           return;

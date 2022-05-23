@@ -120,85 +120,59 @@ class RawEditor extends StatefulWidget {
 
   final String? placeholder;
 
-  // Callback which is triggered when the user wants to open a URL from
-  // a link in the document.
+  // Callback which is triggered when the user wants to open a URL from a link in the document.
   final ValueChanged<String>? onLaunchUrl;
 
   // Configuration of buttons options.
-  //
-  // By default, all options are enabled. If [readOnly] is true,
-  // paste and cut will be disabled regardless.
+  // By default, all options are enabled. If [readOnly] is true, paste and cut will be disabled regardless.
   final ToolbarOptions toolbarOptions;
 
   // Whether to show selection handles.
-  //
-  // When a selection is active, there will be two handles at each side of
-  // boundary, or one handle if the selection is collapsed. The handles can be
-  // dragged to adjust the selection.
-  //
-  // See also:
-  //
-  //  * [showCursor], which controls the visibility of the cursor.
+  // When a selection is active, there will be two handles at each side of boundary,
+  // or one handle if the selection is collapsed.
+  // The handles can be dragged to adjust the selection.
+  // See also: [showCursor], which controls the visibility of the cursor.
   final bool showSelectionHandles;
 
   // Whether to show cursor.
-  //
   // The cursor refers to the blinking caret when the editor is focused.
-  //
   // See also:
-  //
   //  * [cursorStyle], which controls the cursor visual representation.
-  //  * [showSelectionHandles], which controls the visibility of the selection
-  //    handles.
+  //  * [showSelectionHandles], which controls the visibility of the selection handles.
   final bool showCursor;
 
   // The style to be used for the editing cursor.
   final CursorStyle cursorStyle;
 
-  // Configures how the platform keyboard will select an uppercase or
-  // lowercase keyboard.
-  //
-  // Only supports text keyboards, other keyboard types will ignore this
-  // configuration. Capitalization is locale-aware.
-  //
+  // Configures how the platform keyboard will select an uppercase or lowercase keyboard.
+  // Only supports text keyboards, other keyboard types will ignore this configuration.
+  // Capitalization is locale-aware.
   // Defaults to [TextCapitalization.none]. Must not be null.
-  //
-  // See also:
-  //
-  //  * [TextCapitalization], for a description of each capitalization behavior
+  // See also: [TextCapitalization], for a description of each capitalization behavior
   final TextCapitalization textCapitalization;
 
   // The maximum height this editor can have.
-  //
-  // If this is null then there is no limit to the editor's height and it will
-  // expand to fill its parent.
+  // If this is null then there is no limit to the editor's height and it will expand to fill its parent.
   final double? maxHeight;
 
   // The minimum height this editor can have.
   final double? minHeight;
 
   // The maximum width to be occupied by the blocks of this editor.
-  //
-  // If this is not null and and this editor's width is larger than this value
-  // then the contents will be constrained to the provided maximum width and
-  // horizontally centered. This is mostly useful on devices with wide screens.
+  // If this is not null and and this editor's width is larger than this value then the contents
+  // will be constrained to the provided maximum width and horizontally centered.
+  // This is mostly useful on devices with wide screens.
   final double? maxContentWidth;
 
   final DefaultStyles? customStyles;
 
   // Whether this widget's height will be sized to fill its parent.
-  //
-  // If set to true and wrapped in a parent widget like [Expanded] or
-  //
-  // Defaults to false.
+  // If set to true and wrapped in a parent widget like [Expanded] or defaults to false.
   final bool expands;
 
-  // Whether this editor should focus itself if nothing else is already
-  // focused.
-  //
+  // Whether this editor should focus itself if nothing else is already focused.
   // If true, the keyboard will open as soon as this text field obtains focus.
   // Otherwise, the keyboard is only shown after the user taps the text field.
-  //
   // Defaults to false. Cannot be null.
   final bool autoFocus;
 
@@ -206,34 +180,26 @@ class RawEditor extends StatefulWidget {
   final Color selectionColor;
 
   // Delegate for building the text selection handles and buttons.
-  //
-  // The [RawEditor] widget used on its own will not trigger the display
-  // of the selection buttons by itself. The buttons is shown by calling
-  // [RawEditorState.showToolbar] in response to an appropriate user event.
+  // The [RawEditor] widget used on its own will not trigger the display of the selection buttons by itself.
+  // The buttons is shown by calling  [RawEditorState.showToolbar] in response to an appropriate user event.
   final TextSelectionControls selectionCtrls;
 
   // The appearance of the keyboard.
-  //
   // This setting is only honored on iOS devices.
-  //
   // Defaults to [Brightness.light].
   final Brightness keyboardAppearance;
 
   // If true, then long-pressing this TextField will select text and show the
   // cut/copy/paste menu, and tapping will move the text caret.
-  //
   // True by default.
-  //
-  // If false, most of the accessibility support for selecting text, copy
-  // and paste, and moving the caret will be disabled.
+  // If false, most of the accessibility support for selecting text, copy and paste,
+  // and moving the caret will be disabled.
   final bool enableInteractiveSelection;
 
   bool get selectionEnabled => enableInteractiveSelection;
 
   // The [ScrollPhysics] to use when vertically scrolling the input.
-  //
   // If not specified, it will behave according to the current platform.
-  //
   // See [Scrollable.physics].
   final ScrollPhysics? scrollPhysics;
 
@@ -282,7 +248,7 @@ class RawEditorState extends EditorState
   // Theme
   DefaultStyles? _styles;
 
-  // for pasting style
+  // For pasting style
   @override
   List<Tuple2<int, Style>> get pasteStyle => _pasteStyle;
   List<Tuple2<int, Style>> _pasteStyle = <Tuple2<int, Style>>[];
@@ -337,11 +303,9 @@ class RawEditorState extends EditorState
     );
 
     if (widget.scrollable) {
-      // Since [SingleChildScrollView] does not implement
-      // `computeDistanceToActualBaseline` it prevents the editor from
-      // providing its baseline metrics. To address this issue we wrap
-      // the scroll view with [BaselineProxy] which mimics the editor's
-      // baseline.
+      // Since [SingleChildScrollView] does not implement `computeDistanceToActualBaseline` it prevents
+      // the editor from  providing its baseline metrics.
+      // To address this issue we wrap the scroll view with [BaselineProxy] which mimics the editor's baseline.
       // This implies that the first line has no styles applied to it.
       final baselinePadding = EdgeInsets.only(
         top: _styles!.paragraph!.verticalSpacing.item1,
@@ -412,14 +376,14 @@ class RawEditorState extends EditorState
     _selectionOverlay?.handlesVisible = _shouldShowSelectionHandles();
 
     if (!_keyboardVisible) {
-      // This will show the keyboard for all selection changes on the
-      // editor, not just changes triggered by user gestures.
+      // This will show the keyboard for all selection changes on the editor,
+      // not just changes triggered by user gestures.
       requestKeyboard();
     }
 
     if (cause == SelectionChangedCause.drag) {
-      // When user updates the selection while dragging make sure to
-      // bring the updated position (base or extent) into view.
+      // When user updates the selection while dragging make sure to bring
+      // the updated position (base or extent) into view.
       if (oldSelection.baseOffset != selection.baseOffset) {
         bringIntoView(selection.base);
       } else if (oldSelection.extentOffset != selection.extentOffset) {
@@ -432,8 +396,7 @@ class RawEditorState extends EditorState
     widget.controller.onSelectionCompleted?.call();
   }
 
-  // Updates the checkbox positioned at [offset] in document
-  // by changing its attribute according to [value].
+  // Updates the checkbox positioned at [offset] in document by changing its attribute according to [value].
   void _handleCheckboxTap(int offset, bool value) {
     if (!widget.readOnly) {
       _disableScrollControllerAnimateOnce = true;
@@ -441,14 +404,14 @@ class RawEditorState extends EditorState
 
       widget.controller.formatText(offset, 0, attribute);
 
-      // Checkbox tapping causes controller.selection to go to offset 0
-      // Stop toggling those two buttons buttons
+      // Checkbox tapping causes controller.selection to go to offset 0.
+      // Stop toggling those two buttons buttons.
       widget.controller.toolbarButtonToggler = {
         Attribute.list.key: attribute,
         Attribute.header.key: Attribute.header
       };
 
-      // Go back from offset 0 to current selection
+      // Go back from offset 0 to current selection.
       SchedulerBinding.instance.addPostFrameCallback((_) {
         widget.controller.updateSelection(
             TextSelection.collapsed(offset: offset), ChangeSource.LOCAL);
@@ -459,11 +422,16 @@ class RawEditorState extends EditorState
   List<Widget> _buildChildren(Document doc, BuildContext context) {
     final result = <Widget>[];
     final indentLevelCounts = <int, int>{};
+
     for (final node in doc.root.children) {
       if (node is Line) {
         final editableTextLine = _getEditableTextLineFromNode(node, context);
-        result.add(Directionality(
-            textDirection: getDirectionOfNode(node), child: editableTextLine));
+        result.add(
+          Directionality(
+            textDirection: getDirectionOfNode(node),
+            child: editableTextLine,
+          ),
+        );
       } else if (node is Block) {
         final attrs = node.style.attributes;
         final editableTextBlock = EditableTextBlock(
@@ -489,8 +457,12 @@ class RawEditorState extends EditorState
           readOnly: widget.readOnly,
           customStyleBuilder: widget.customStyleBuilder,
         );
-        result.add(Directionality(
-            textDirection: getDirectionOfNode(node), child: editableTextBlock));
+        result.add(
+          Directionality(
+            textDirection: getDirectionOfNode(node),
+            child: editableTextBlock,
+          ),
+        );
       } else {
         throw StateError('Unreachable.');
       }
@@ -528,12 +500,16 @@ class RawEditorState extends EditorState
       devicePixelRatio: MediaQuery.of(context).devicePixelRatio,
       cursorCont: _cursorCont,
     );
+
     return editableTextLine;
   }
 
   Tuple2<double, double> _getVerticalSpacingForLine(
-      Line line, DefaultStyles? defaultStyles) {
+    Line line,
+    DefaultStyles? defaultStyles,
+  ) {
     final attrs = line.style.attributes;
+
     if (attrs.containsKey(Attribute.header.key)) {
       final int? level = attrs[Attribute.header.key]!.value;
       switch (level) {
@@ -552,7 +528,9 @@ class RawEditorState extends EditorState
   }
 
   Tuple2<double, double> _getVerticalSpacingForBlock(
-      Block node, DefaultStyles? defaultStyles) {
+    Block node,
+    DefaultStyles? defaultStyles,
+  ) {
     final attrs = node.style.attributes;
     if (attrs.containsKey(Attribute.blockQuote.key)) {
       return defaultStyles!.quote!.verticalSpacing;
@@ -618,21 +596,19 @@ class RawEditorState extends EditorState
     widget.focusNode.addListener(_handleFocusChanged);
   }
 
-  // KeyboardVisibilityController only checks for keyboards that
-  // adjust the screen size. Also watch for hardware keyboards
-  // that don't alter the screen (i.e. Chromebook, Android tablet
+  // KeyboardVisibilityController only checks for keyboards that adjust the screen size.
+  // Also watch for hardware keyboards that don't alter the screen (i.e. Chromebook, Android tablet
   // and any hardware keyboards from an OS not listed in isKeyboardOS())
   bool _hardwareKeyboardEvent(KeyEvent _) {
     if (!_keyboardVisible) {
-      // hardware keyboard key pressed. Set visibility to true
+      // Hardware keyboard key pressed. Set visibility to true
       _keyboardVisible = true;
-      // update the editor
+      // Update the editor
       _onChangeTextEditingValue(!_hasFocus);
     }
 
-    // remove the key handler - it's no longer needed. If
-    // KeyboardVisibilityController clears visibility, it wil
-    // also enable it when appropriate.
+    // Remove the key handler - it's no longer needed.
+    // If KeyboardVisibilityController clears visibility, it wil also enable it when appropriate.
     HardwareKeyboard.instance.removeHandler(_hardwareKeyboardEvent);
 
     // we didn't handle the event, just needed to know a key was pressed
@@ -754,12 +730,17 @@ class RawEditorState extends EditorState
 
   void _onChangeTextEditingValue([bool ignoreCaret = false]) {
     updateRemoteValueIfNeeded();
+
     if (ignoreCaret) {
       return;
     }
+
     _showCaretOnScreen();
     _cursorCont.startOrStopCursorTimerIfNeeded(
-        _hasFocus, widget.controller.selection);
+      _hasFocus,
+      widget.controller.selection,
+    );
+
     if (hasConnection) {
       // To keep the cursor from blinking while typing, we want to restart the
       // cursor timer every time a new character is typed.
@@ -769,11 +750,10 @@ class RawEditorState extends EditorState
     }
 
     // Refresh selection overlay after the build step had a chance to
-    // update and register all children of RenderEditor. Otherwise this will
-    // fail in situations where a new line of text is entered, which adds
-    // a new RenderEditableBox child. If we try to update selection overlay
-    // immediately it'll not be able to find the new child since it hasn't been
-    // built yet.
+    // update and register all children of RenderEditor.
+    // Otherwise this will fail in situations where a new line of text is entered, which adds a new RenderEditableBox child.
+    // If we try to update selection overlay immediately it'll not be able to find
+    // the new child since it hasn't been built yet.
     SchedulerBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
@@ -782,8 +762,8 @@ class RawEditorState extends EditorState
     });
     if (mounted) {
       setState(() {
-        // Use widget.controller.value in build()
-        // Trigger build and updateChildren
+        // Use widget.controller.value in build().
+        // Trigger build and updateChildren.
       });
     }
   }
@@ -817,7 +797,9 @@ class RawEditorState extends EditorState
   void _handleFocusChanged() {
     openOrCloseConnection();
     _cursorCont.startOrStopCursorTimerIfNeeded(
-        _hasFocus, widget.controller.selection);
+      _hasFocus,
+      widget.controller.selection,
+    );
     _updateOrDisposeSelectionOverlayIfNeeded();
     if (_hasFocus) {
       WidgetsBinding.instance.addObserver(this);
@@ -830,6 +812,7 @@ class RawEditorState extends EditorState
 
   void _onChangedClipboardStatus() {
     if (!mounted) return;
+
     setState(() {
       // Inform the widget that the value of clipboardStatus has changed.
       // Trigger build and updateChildren
@@ -845,9 +828,8 @@ class RawEditorState extends EditorState
 
   // This is a workaround for checkbox tapping issue
   // https://github.com/singerdmx/flutter-quill/issues/619
-  // We cannot treat {"list": "checked"} and {"list": "unchecked"} as
-  // block of the same style
-  // This causes controller.selection to go to offset 0
+  // We cannot treat {"list": "checked"} and {"list": "unchecked"} as block of the same style.
+  // This causes controller.selection to go to offset 0.
   bool _disableScrollControllerAnimateOnce = false;
 
   void _showCaretOnScreen() {
@@ -865,8 +847,10 @@ class RawEditorState extends EditorState
         }
 
         final viewport = RenderAbstractViewport.of(renderEditor);
-        final editorOffset =
-            renderEditor.localToGlobal(const Offset(0, 0), ancestor: viewport);
+        final editorOffset = renderEditor.localToGlobal(
+          const Offset(0, 0),
+          ancestor: viewport,
+        );
         final offsetInViewport = _scrollController.offset + editorOffset.dy;
 
         final offset = renderEditor.getOffsetToRevealCursor(
@@ -891,19 +875,16 @@ class RawEditorState extends EditorState
   }
 
   // The renderer for this widget's editor descendant.
-  //
   // This property is typically used to notify the renderer of input gestures.
   @override
   RenderEditor get renderEditor =>
       _editorKey.currentContext!.findRenderObject() as RenderEditor;
 
   // Express interest in interacting with the keyboard.
-  //
-  // If this control is already attached to the keyboard, this function will
-  // request that the keyboard become visible. Otherwise, this function will
-  // ask the focus system that it become focused. If successful in acquiring
-  // focus, the control will then attach to the keyboard and request that the
-  // keyboard become visible.
+  // If this control is already attached to the keyboard, this function will request that the keyboard become visible.
+  // Otherwise, this function will ask the focus system that it become focused.
+  // If successful in acquiring focus, the control will then attach to the keyboard and
+  // request that the keyboard become visible.
   @override
   void requestKeyboard() {
     if (_hasFocus) {
@@ -1023,15 +1004,23 @@ class RawEditorState extends EditorState
     if (!selection.isValid) {
       return;
     }
+
     // Snapshot the input before using `await`.
     // See https://github.com/flutter/flutter/issues/11427
     final data = await Clipboard.getData(Clipboard.kTextPlain);
+
     if (data == null) {
       return;
     }
 
     _replaceText(
-        ReplaceTextIntent(textEditingValue, data.text!, selection, cause));
+      ReplaceTextIntent(
+        textEditingValue,
+        data.text!,
+        selection,
+        cause,
+      ),
+    );
 
     bringIntoView(textEditingValue.selection.extent);
 
@@ -1039,8 +1028,9 @@ class RawEditorState extends EditorState
     userUpdateTextEditingValue(
       TextEditingValue(
         text: textEditingValue.text,
-        selection:
-            TextSelection.collapsed(offset: textEditingValue.selection.end),
+        selection: TextSelection.collapsed(
+          offset: textEditingValue.selection.end,
+        ),
       ),
       cause,
     );
@@ -1052,7 +1042,9 @@ class RawEditorState extends EditorState
     userUpdateTextEditingValue(
       textEditingValue.copyWith(
         selection: TextSelection(
-            baseOffset: 0, extentOffset: textEditingValue.text.length),
+          baseOffset: 0,
+          extentOffset: textEditingValue.text.length,
+        ),
       ),
       cause,
     );
@@ -1074,8 +1066,10 @@ class RawEditorState extends EditorState
   // === TEXT EDITING ACTIONS ===
 
   TextBoundaryM _characterBoundary(DirectionalTextEditingIntent intent) {
-    final TextBoundaryM atomicTextBoundary =
-        CharacterBoundary(textEditingValue);
+    final TextBoundaryM atomicTextBoundary = CharacterBoundary(
+      textEditingValue,
+    );
+
     return CollapsedSelectionBoundary(atomicTextBoundary, intent.forward);
   }
 
@@ -1086,6 +1080,7 @@ class RawEditorState extends EditorState
     // final TextEditingValue textEditingValue =
     //     _textEditingValueforTextLayoutMetrics;
     atomicTextBoundary = CharacterBoundary(textEditingValue);
+
     // This isn't enough. Newline characters.
     boundary = ExpandedTextBoundary(WhitespaceBoundary(textEditingValue),
         WordBoundary(renderEditor, textEditingValue));
@@ -1093,8 +1088,8 @@ class RawEditorState extends EditorState
     final mixedBoundary = intent.forward
         ? MixedBoundary(atomicTextBoundary, boundary)
         : MixedBoundary(boundary, atomicTextBoundary);
-    // Use a _MixedBoundary to make sure we don't leave invalid codepoints in
-    // the field after deletion.
+
+    // Use a _MixedBoundary to make sure we don't leave invalid codepoints in the field after deletion.
     return CollapsedSelectionBoundary(mixedBoundary, intent.forward);
   }
 
@@ -1107,11 +1102,9 @@ class RawEditorState extends EditorState
     atomicTextBoundary = CharacterBoundary(textEditingValue);
     boundary = LineBreak(renderEditor, textEditingValue);
 
-    // The _MixedBoundary is to make sure we don't leave invalid code units in
-    // the field after deletion.
+    // The _MixedBoundary is to make sure we don't leave invalid code units in the field after deletion.
     // `boundary` doesn't need to be wrapped in a _CollapsedSelectionBoundary,
-    // since the document boundary is unique and the linebreak boundary is
-    // already caret-location based.
+    // since the document boundary is unique and the linebreak boundary is already caret-location based.
     return intent.forward
         ? MixedBoundary(
             CollapsedSelectionBoundary(
@@ -1134,7 +1127,9 @@ class RawEditorState extends EditorState
 
   Action<T> _makeOverridable<T extends Intent>(Action<T> defaultAction) {
     return Action<T>.overridable(
-        context: context, defaultAction: defaultAction);
+      context: context,
+      defaultAction: defaultAction,
+    );
   }
 
   late final Action<ReplaceTextIntent> _replaceTextAction =
@@ -1142,7 +1137,9 @@ class RawEditorState extends EditorState
 
   void _updateSelection(UpdateSelectionIntent intent) {
     userUpdateTextEditingValue(
-      intent.currentTextEditingValue.copyWith(selection: intent.newSelection),
+      intent.currentTextEditingValue.copyWith(
+        selection: intent.newSelection,
+      ),
       intent.cause,
     );
   }

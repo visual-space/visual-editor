@@ -89,7 +89,7 @@ abstract class RenderAbstractEditor implements TextLayoutMetrics {
   ///
   /// {@template flutter.rendering.editable.select}
   /// This method is mainly used to translate user inputs in global positions
-  /// into a [TextSelection]. When used in conjunction with a [EditableText],
+  /// into a [TextSelection]. When used in conjunction with a [VisualEditor],
   /// the selection change is fed back into [TextEditingController.selection].
   ///
   /// If you have a [TextEditingController], it's generally easier to

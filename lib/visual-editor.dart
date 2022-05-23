@@ -11,6 +11,7 @@ export 'documents/models/document.dart';
 export 'documents/models/nodes/embeddable.dart';
 export 'documents/models/nodes/leaf.dart';
 export 'documents/models/style.dart';
+export 'editor/models/editor-cfg.model.dart';
 export 'editor/widgets/visual-editor.dart';
 export 'highlights/models/highlight.model.dart';
 export 'shared/models/editor-dialog-theme.model.dart';

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../documents/models/style.dart';
-import '../../selection/services/editor-text-selection-overlay.utils.dart';
+import '../../selection/services/text-selection-overlay.utils.dart';
 import '../widgets/editor-renderer.dart';
 import '../widgets/raw-editor.dart';
 
@@ -15,7 +15,7 @@ abstract class EditorState extends State<RawEditor>
 
   RenderEditor get renderEditor;
 
-  EditorTextSelectionOverlay? get selectionOverlay;
+  TextSelectionOverlayUtils? get selectionOverlay;
 
   List<Tuple2<int, Style>> get pasteStyle;
 

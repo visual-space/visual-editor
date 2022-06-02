@@ -11,7 +11,7 @@ import '../../editor/models/editor-state.model.dart';
 // See also:
 //  * [TextField], which implements this delegate for the Material textfield.
 //  * [CupertinoTextField], which implements this delegate for the Cupertino textfield.
-abstract class TextSelectionGesturesBuilderDelegate {
+abstract class TextSelectionGesturesBuilderDelegateM {
   // [GlobalKey] to the [VisualEditor] for which the
   // [TextSelectionGesturesBuilder] will build
   // a [TextSelectionGestures].

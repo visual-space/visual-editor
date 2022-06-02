@@ -23,7 +23,7 @@ import '../../editor/widgets/proxy/embed-proxy.dart';
 import '../../editor/widgets/proxy/rich-text-proxy.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../inputs/services/pressed-keys-state.dart';
-import '../../selection/services/selection.utils.dart';
+import '../../selection/services/text-selection.utils.dart';
 import '../../shared/utils/color.utils.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../const/link-prefixes.const.dart';

@@ -10,12 +10,12 @@ import '../models/drag-text-selection.model.dart';
 import '../models/text-selection-handle-position.enum.dart';
 import '../widgets/text-selection-handles-overlay.dart';
 
-// An object that manages a pair of text selection handles.
-// The selection handles are displayed in the [Overlay] that most closely encloses the given [BuildContext].
-class EditorTextSelectionOverlay {
+// Manages a pair of text selection handles.
+// The selection handles are displayed in the Overlay that most closely encloses the given BuildContext.
+class TextSelectionOverlayUtils {
   // Creates an object that manages overlay entries for selection handles.
-  // The [context] must not be null and must have an [Overlay] as an ancestor.
-  EditorTextSelectionOverlay({
+  // The context must not be null and must have an Overlay as an ancestor.
+  TextSelectionOverlayUtils({
     required this.value,
     required this.context,
     required this.toolbarLayerLink,
@@ -41,40 +41,32 @@ class EditorTextSelectionOverlay {
   TextEditingValue value;
 
   // Whether selection handles are visible.
-  //
-  // Set to false if you want to hide the handles. Use this property to show or
-  // hide the handle without rebuilding them.
-  //
-  // If this method is called while the [SchedulerBinding.schedulerPhase] is
-  // [SchedulerPhase.persistentCallbacks], i.e. during the build, layout, or
-  // paint phases (see [WidgetsBinding.drawFrame]), then the update is delayed
-  // until the post-frame callbacks phase. Otherwise the update is done
-  // synchronously. This means that it is safe to call during builds, but also
-  // that if you do call this during a build, the UI will not update until the
-  // next frame (i.e. many milliseconds later).
-  //
+  // Set to false if you want to hide the handles. Use this property to show or hide the handle without rebuilding them.
+  // If this method is called while the SchedulerBinding.schedulerPhase is SchedulerPhase.persistentCallbacks,
+  // i.e. during the build, layout, or paint phases (see WidgetsBinding.drawFrame),
+  // then the update is delayed until the post-frame callbacks phase.
+  // Otherwise the update is done synchronously.
+  // This means that it is safe to call during builds, but also that if you do call this during a build,
+  // the UI will not update until the next frame (i.e. many milliseconds later).
   // Defaults to false.
   bool handlesVisible = false;
 
   // The context in which the selection handles should appear.
   //
-  // This context must have an [Overlay] as an ancestor because this object
-  // will display the text selection handles in that [Overlay].
+  // This context must have an Overlay as an ancestor because this object
+  // will display the text selection handles in that Overlay.
   final BuildContext context;
 
-  // Debugging information for explaining why the [Overlay] is required.
+  // Debugging information for explaining why the Overlay is required.
   final Widget debugRequiredFor;
 
-  // The object supplied to the [CompositedTransformTarget] that wraps the text
-  // field.
+  // The object supplied to the CompositedTransformTarget that wraps the text field.
   final LayerLink toolbarLayerLink;
 
-  // The objects supplied to the [CompositedTransformTarget] that wraps the
-  // location of start selection handle.
+  // The objects supplied to the CompositedTransformTarget that wraps the location of start selection handle.
   final LayerLink startHandleLayerLink;
 
-  // The objects supplied to the [CompositedTransformTarget] that wraps the
-  // location of end selection handle.
+  // The objects supplied to the CompositedTransformTarget that wraps the location of end selection handle.
   final LayerLink endHandleLayerLink;
 
   // The editable line in which the selected text is being displayed.
@@ -83,42 +75,24 @@ class EditorTextSelectionOverlay {
   // Builds text selection handles and buttons.
   final TextSelectionControls selectionCtrls;
 
-  // The delegate for manipulating the current selection in the owning
-  // text field.
+  // The delegate for manipulating the current selection in the owning text field.
   final TextSelectionDelegate selectionDelegate;
 
   // Determines the way that drag start behavior is handled.
-  //
-  // If set to [DragStartBehavior.start], handle drag behavior will
-  // begin upon the detection of a drag gesture. If set to
-  // [DragStartBehavior.down] it will begin when a down event is first
-  // detected.
-  //
-  // In general, setting this to [DragStartBehavior.start] will make drag
-  // animation smoother and setting it to [DragStartBehavior.down] will make
-  // drag behavior feel slightly more reactive.
-  //
-  // By default, the drag start behavior is [DragStartBehavior.start].
-  //
-  // See also:
-  //
-  //  * [DragGestureRecognizer.dragStartBehavior],
-  //  which gives an example for the different behaviors.
+  // If set to DragStartBehavior.start, handle drag behavior will begin upon the detection of a drag gesture.
+  // If set to DragStartBehavior.down it will begin when a down event is first detected.
+  // In general, setting this to DragStartBehavior.start will make drag animation smoother and
+  // setting it to DragStartBehavior.down will make drag behavior feel slightly more reactive.
+  // By default, the drag start behavior is DragStartBehavior.start.
+  // See also: * DragGestureRecognizer.dragStartBehavior, which gives an example for the different behaviors.
   final DragStartBehavior dragStartBehavior;
 
-  // {@template flutter.widgets.textSelection.onSelectionHandleTapped}
   // A callback that's invoked when a selection handle is tapped.
-  //
-  // Both regular taps and long presses invoke this callback, but a drag
-  // gesture won't.
-  // {@endtemplate}
+  // Both regular taps and long presses invoke this callback, but a drag gesture won't.
   final VoidCallback? onSelectionHandleTapped;
 
-  // Maintains the status of the clipboard for determining if its contents can
-  // be pasted or not.
-  //
-  // Useful because the actual value of the clipboard can only be checked
-  // asynchronously (see [Clipboard.getData]).
+  // Maintains the status of the clipboard for determining if its contents can be pasted or not.
+  // Useful because the actual value of the clipboard can only be checked asynchronously (see Clipboard.getData).
   final ClipboardStatusNotifier clipboardStatus;
   late AnimationController _toolbarController;
 
@@ -159,7 +133,6 @@ class EditorTextSelectionOverlay {
   }
 
   // Hides the buttons part of the overlay.
-  //
   // To hide the whole overlay, see [hide].
   void hideToolbar() {
     assert(toolbar != null);
@@ -172,17 +145,21 @@ class EditorTextSelectionOverlay {
   void showToolbar() {
     assert(toolbar == null);
     toolbar = OverlayEntry(builder: _buildToolbar);
-    Overlay.of(context, rootOverlay: true, debugRequiredFor: debugRequiredFor)!
+    Overlay.of(
+      context,
+      rootOverlay: true,
+      debugRequiredFor: debugRequiredFor,
+    )!
         .insert(toolbar!);
     _toolbarController.forward(from: 0);
 
-    // make sure handles are visible as well
+    // Make sure handles are visible as well
     if (_handles == null) {
       showHandles();
     }
   }
 
-  Widget _buildHandle(
+  Widget _handle(
     BuildContext context,
     TextSelectionHandlePosition position,
   ) {
@@ -209,14 +186,12 @@ class EditorTextSelectionOverlay {
   }
 
   // Updates the overlay after the selection has changed.
-  //
-  // If this method is called while the [SchedulerBinding.schedulerPhase] is
-  // [SchedulerPhase.persistentCallbacks], i.e. during the build, layout, or
-  // paint phases (see [WidgetsBinding.drawFrame]), then the update is delayed
-  // until the post-frame callbacks phase. Otherwise the update is done
-  // synchronously. This means that it is safe to call during builds, but also
-  // that if you do call this during a build, the UI will not update until the
-  // next frame (i.e. many milliseconds later).
+  // If this method is called while the [SchedulerBinding.schedulerPhase] is [SchedulerPhase.persistentCallbacks],
+  // i.e. during the build, layout, or paint phases (see [WidgetsBinding.drawFrame]),
+  // then the update is delayed until the post-frame callbacks phase.
+  // Otherwise the update is done synchronously.
+  // This means that it is safe to call during builds, but also that if you do call this during a build,
+  // the UI will not update until the next frame (i.e. many milliseconds later).
   void update(TextEditingValue newValue) {
     if (value == newValue) {
       return;
@@ -275,9 +250,8 @@ class EditorTextSelectionOverlay {
     List<TextSelectionPoint> endpoints;
 
     try {
-      // building with an invalid selection with throw an exception
-      // This happens where the selection has changed, but the buttons
-      // hasn't been dismissed yet.
+      // Building with an invalid selection with throw an exception.
+      // This happens where the selection has changed, but the buttons hasn't been dismissed yet.
       endpoints = renderObject.getEndpointsForSelection(_selection);
     } catch (_) {
       return Container();
@@ -298,8 +272,7 @@ class EditorTextSelectionOverlay {
     final isMultiline = endpoints.last.point.dy - endpoints.first.point.dy >
         smallestLineHeight / 2;
 
-    // If the selected text spans more than 1 line,
-    // horizontally center the buttons.
+    // If the selected text spans more than 1 line, horizontally center the buttons.
     // Derived from both iOS and Android.
     final midX = isMultiline
         ? editingRegion.width / 2
@@ -360,15 +333,16 @@ class EditorTextSelectionOverlay {
   // Builds the handles by inserting them into the [context]'s overlay.
   void showHandles() {
     assert(_handles == null);
+
     _handles = <OverlayEntry>[
       OverlayEntry(
-        builder: (context) => _buildHandle(
+        builder: (context) => _handle(
           context,
           TextSelectionHandlePosition.START,
         ),
       ),
       OverlayEntry(
-        builder: (context) => _buildHandle(
+        builder: (context) => _handle(
           context,
           TextSelectionHandlePosition.END,
         ),
@@ -384,7 +358,6 @@ class EditorTextSelectionOverlay {
   }
 
   // Causes the overlay to update its rendering.
-  //
   // This is intended to be called when the [renderObject] may have changed its
   // text metrics (e.g. because the text was scrolled).
   void updateForScroll() {

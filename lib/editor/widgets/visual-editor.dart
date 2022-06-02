@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:i18n_extension/i18n_widget.dart';
 
 import '../../controller/services/editor-controller.dart';
-import '../../selection/models/gesture-detector-builder-delegate.dart';
-import '../../selection/services/text-selection-gestures-builder-base.dart';
-import '../../selection/services/text-selection-gestures-builder.dart';
+import '../../selection/models/gesture-detector-builder-delegate.model.dart';
+import '../../selection/services/text-selection.service.dart';
+import '../../selection/widgets/text-selection-gestures.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../models/editor-cfg.model.dart';
 import '../models/editor-state.model.dart';
@@ -92,16 +92,16 @@ class VisualEditor extends StatefulWidget {
 }
 
 class VisualEditorState extends State<VisualEditor>
-    implements TextSelectionGesturesBuilderDelegate {
-  final _stylesUtils = StylesUtils();
+    implements TextSelectionGesturesBuilderDelegateM {
+  final _textSelectionService = TextSelectionService();
 
+  final _stylesUtils = StylesUtils();
   final GlobalKey<EditorState> _editorKey = GlobalKey<EditorState>();
-  late TextSelectionGesturesBuilderBase _textSelectionGesturesBuilder;
 
   @override
   void initState() {
     super.initState();
-    _setupTextSelectionGestures();
+    _setupTextSelectionServiceState();
   }
 
   @override
@@ -150,9 +150,9 @@ class VisualEditorState extends State<VisualEditor>
       );
 
   Widget _textSelectionGestures({required Widget child}) =>
-      _textSelectionGesturesBuilder.build(
-        child: child,
+      TextSelectionGestures(
         behavior: HitTestBehavior.translucent,
+        child: child,
       );
 
   Widget _editor({
@@ -215,10 +215,10 @@ class VisualEditorState extends State<VisualEditor>
         selectAll: widget.config.enableInteractiveSelection,
       );
 
-  void _setupTextSelectionGestures() {
-    _textSelectionGesturesBuilder = TextSelectionGesturesBuilder(
-      this,
-      widget.controller,
+  void _setupTextSelectionServiceState() {
+    _textSelectionService.initState(
+      state: this,
+      controller: widget.controller,
     );
   }
 }

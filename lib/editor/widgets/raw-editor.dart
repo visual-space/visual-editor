@@ -33,7 +33,7 @@ import '../../documents/models/style.dart';
 import '../../embeds/widgets/default-embed-builder.dart';
 import '../../embeds/widgets/image.dart';
 import '../../inputs/widgets/editor-keyboard-listener.dart';
-import '../../selection/services/editor-text-selection-overlay.utils.dart';
+import '../../selection/services/text-selection-overlay.utils.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../models/boundaries/character-boundary.model.dart';
 import '../models/boundaries/collapse-selection.boundary.model.dart';
@@ -228,8 +228,8 @@ class RawEditorState extends EditorState
 
   // Selection overlay
   @override
-  EditorTextSelectionOverlay? get selectionOverlay => _selectionOverlay;
-  EditorTextSelectionOverlay? _selectionOverlay;
+  TextSelectionOverlayUtils? get selectionOverlay => _selectionOverlay;
+  TextSelectionOverlayUtils? _selectionOverlay;
 
   @override
   ScrollController get scrollController => _scrollController;
@@ -777,7 +777,7 @@ class RawEditorState extends EditorState
         _selectionOverlay!.update(textEditingValue);
       }
     } else if (_hasFocus) {
-      _selectionOverlay = EditorTextSelectionOverlay(
+      _selectionOverlay = TextSelectionOverlayUtils(
         value: textEditingValue,
         context: context,
         debugRequiredFor: widget,

@@ -2,7 +2,7 @@ import 'package:flutter/rendering.dart';
 
 import '../../documents/models/nodes/block.dart';
 import '../../editor/widgets/editor-renderer-cont.dart';
-import '../../selection/services/selection.utils.dart';
+import '../../selection/services/text-selection.utils.dart';
 import '../models/editable-box-renderer.model.dart';
 
 class RenderEditableTextBlock extends RenderEditableContainerBox

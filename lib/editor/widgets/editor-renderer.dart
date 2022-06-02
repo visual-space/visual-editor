@@ -11,7 +11,7 @@ import '../../cursor/widgets/cursor.dart';
 import '../../cursor/widgets/floating-cursor-painter.dart';
 import '../../documents/models/document.dart';
 import '../../selection/models/drag-text-selection.model.dart';
-import '../../selection/services/selection.utils.dart';
+import '../../selection/services/text-selection.utils.dart';
 import '../const/k-floating.dart';
 import '../models/render-abstract-editor.model.dart';
 import '../models/text-selection-handlers.type.dart';

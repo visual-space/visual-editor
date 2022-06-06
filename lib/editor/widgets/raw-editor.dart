@@ -17,23 +17,29 @@ import '../../blocks/models/link-action.picker.type.dart';
 import '../../blocks/services/default-link-action-picker-delegate.dart';
 import '../../blocks/services/default-styles.utils.dart';
 import '../../blocks/services/editor-styles.utils.dart';
+import '../../blocks/widgets/editable-text-line-object.dart';
 import '../../blocks/widgets/text-block.dart';
 import '../../blocks/widgets/text-line.dart';
 import '../../controller/services/editor-controller.dart';
+import '../../controller/services/editor-text.service.dart';
 import '../../cursor/models/cursor-style.model.dart';
+import '../../cursor/services/cursor.service.dart';
 import '../../cursor/widgets/cursor.dart';
 import '../../delta/services/delta.utils.dart';
 import '../../documents/models/attribute.dart';
+import '../../documents/models/change-source.enum.dart';
 import '../../documents/models/document.dart';
 import '../../documents/models/nodes/block.dart';
 import '../../documents/models/nodes/embeddable.dart';
 import '../../documents/models/nodes/line.dart';
 import '../../documents/models/nodes/node.dart';
-import '../../documents/models/style.dart';
 import '../../embeds/widgets/default-embed-builder.dart';
 import '../../embeds/widgets/image.dart';
+import '../../inputs/services/keyboard.service.dart';
 import '../../inputs/widgets/editor-keyboard-listener.dart';
-import '../../selection/services/text-selection-overlay.utils.dart';
+import '../../selection/services/selection-actions.logic.dart';
+import '../../selection/services/selection-actions.service.dart';
+import '../../selection/services/text-selection.service.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../models/boundaries/character-boundary.model.dart';
 import '../models/boundaries/collapse-selection.boundary.model.dart';
@@ -51,9 +57,9 @@ import '../services/actions/extend-selection-or-caret-position-action.dart';
 import '../services/actions/select-all-action.dart';
 import '../services/actions/update-text-selection-action.dart';
 import '../services/actions/update-text-selection-to-adjiacent-line-action.dart';
+import '../services/clipboard.service.dart';
 import 'editor-renderer.dart';
-import 'mixins/selection-delegate-mixin.dart';
-import 'mixins/text-input-client-mixin.dart';
+import 'mixins/input-client-mixin.dart';
 import 'proxy/baseline-proxy.dart';
 import 'raw-editor-renderer.dart';
 import 'scroll/editor-single-child-scroll-view.dart';
@@ -67,18 +73,14 @@ class RawEditor extends StatefulWidget {
     required this.cursorStyle,
     required this.selectionColor,
     required this.selectionCtrls,
+    required this.toolbarOptions,
+    required this.editorRendererKey,
     Key? key,
     this.scrollable = true,
     this.padding = EdgeInsets.zero,
     this.readOnly = false,
     this.placeholder,
     this.onLaunchUrl,
-    this.toolbarOptions = const ToolbarOptions(
-      copy: true,
-      cut: true,
-      paste: true,
-      selectAll: true,
-    ),
     this.showSelectionHandles = false,
     bool? showCursor,
     this.textCapitalization = TextCapitalization.none,
@@ -103,6 +105,9 @@ class RawEditor extends StatefulWidget {
         super(key: key);
 
   // Controls the document being edited.
+  final GlobalKey editorRendererKey;
+
+  // Controls the document being edited.
   final EditorController controller;
 
   // Controls whether this editor has keyboard focus.
@@ -124,21 +129,18 @@ class RawEditor extends StatefulWidget {
   final ValueChanged<String>? onLaunchUrl;
 
   // Configuration of buttons options.
-  // By default, all options are enabled. If [readOnly] is true, paste and cut will be disabled regardless.
+  // By default, all options are enabled.
+  // If readOnly is true, paste and cut will be disabled regardless.
   final ToolbarOptions toolbarOptions;
 
   // Whether to show selection handles.
   // When a selection is active, there will be two handles at each side of boundary,
   // or one handle if the selection is collapsed.
   // The handles can be dragged to adjust the selection.
-  // See also: [showCursor], which controls the visibility of the cursor.
   final bool showSelectionHandles;
 
   // Whether to show cursor.
   // The cursor refers to the blinking caret when the editor is focused.
-  // See also:
-  //  * [cursorStyle], which controls the cursor visual representation.
-  //  * [showSelectionHandles], which controls the visibility of the selection handles.
   final bool showCursor;
 
   // The style to be used for the editing cursor.
@@ -147,8 +149,7 @@ class RawEditor extends StatefulWidget {
   // Configures how the platform keyboard will select an uppercase or lowercase keyboard.
   // Only supports text keyboards, other keyboard types will ignore this configuration.
   // Capitalization is locale-aware.
-  // Defaults to [TextCapitalization.none]. Must not be null.
-  // See also: [TextCapitalization], for a description of each capitalization behavior
+  // Defaults to TextCapitalization.none. Must not be null.
   final TextCapitalization textCapitalization;
 
   // The maximum height this editor can have.
@@ -167,7 +168,7 @@ class RawEditor extends StatefulWidget {
   final DefaultStyles? customStyles;
 
   // Whether this widget's height will be sized to fill its parent.
-  // If set to true and wrapped in a parent widget like [Expanded] or defaults to false.
+  // If set to true and wrapped in a parent widget like Expanded or defaults to false.
   final bool expands;
 
   // Whether this editor should focus itself if nothing else is already focused.
@@ -180,27 +181,23 @@ class RawEditor extends StatefulWidget {
   final Color selectionColor;
 
   // Delegate for building the text selection handles and buttons.
-  // The [RawEditor] widget used on its own will not trigger the display of the selection buttons by itself.
-  // The buttons is shown by calling  [RawEditorState.showToolbar] in response to an appropriate user event.
+  // The RawEditor widget used on its own will not trigger the display of the selection buttons by itself.
+  // The buttons is shown by calling  RawEditorState.showToolbar in response to an appropriate user event.
   final TextSelectionControls selectionCtrls;
 
   // The appearance of the keyboard.
   // This setting is only honored on iOS devices.
-  // Defaults to [Brightness.light].
+  // Defaults to Brightness.light.
   final Brightness keyboardAppearance;
 
   // If true, then long-pressing this TextField will select text and show the
   // cut/copy/paste menu, and tapping will move the text caret.
   // True by default.
-  // If false, most of the accessibility support for selecting text, copy and paste,
-  // and moving the caret will be disabled.
+  // If false, most of the accessibility support for selecting text, copy and paste, and moving the caret will be disabled.
   final bool enableInteractiveSelection;
 
-  bool get selectionEnabled => enableInteractiveSelection;
-
-  // The [ScrollPhysics] to use when vertically scrolling the input.
+  // The ScrollPhysics to use when vertically scrolling the input.
   // If not specified, it will behave according to the current platform.
-  // See [Scrollable.physics].
   final ScrollPhysics? scrollPhysics;
 
   // Builder function for embeddable objects.
@@ -213,23 +210,31 @@ class RawEditor extends StatefulWidget {
   State<StatefulWidget> createState() => RawEditorState();
 }
 
-class RawEditorState extends EditorState
+class RawEditorState extends EditorStateM
     with
         AutomaticKeepAliveClientMixin<RawEditor>,
         WidgetsBindingObserver,
         TickerProviderStateMixin<RawEditor>,
-        RawEditorStateTextInputClientMixin,
-        RawEditorStateSelectionDelegateMixin {
-  final GlobalKey _editorKey = GlobalKey();
+        InputClientMixin
+    implements TextSelectionDelegate {
+  final _selectionActionsService = SelectionActionsService();
+  final _textSelectionService = TextSelectionService();
+  final _editorTextService = EditorTextService();
+  final _cursorService = CursorService();
+  final _clipboardService = ClipboardService();
 
   KeyboardVisibilityController? _keyboardVisibilityController;
   StreamSubscription<bool>? _keyboardVisibilitySubscription;
   bool _keyboardVisible = false;
 
-  // Selection overlay
+  // Selection overlay // +++ MIGRATE to service
   @override
-  TextSelectionOverlayUtils? get selectionOverlay => _selectionOverlay;
-  TextSelectionOverlayUtils? _selectionOverlay;
+  SelectionActionsLogic? get selectionActions =>
+      _selectionActionsService.selectionActions;
+
+  set selectionActions(SelectionActionsLogic? actions) {
+    _selectionActionsService.selectionActions = actions;
+  }
 
   @override
   ScrollController get scrollController => _scrollController;
@@ -248,15 +253,6 @@ class RawEditorState extends EditorState
   // Theme
   DefaultStyles? _styles;
 
-  // For pasting style
-  @override
-  List<Tuple2<int, Style>> get pasteStyle => _pasteStyle;
-  List<Tuple2<int, Style>> _pasteStyle = <Tuple2<int, Style>>[];
-
-  @override
-  String get pastePlainText => _pastePlainText;
-  String _pastePlainText = '';
-
   final ClipboardStatusNotifier _clipboardStatus = ClipboardStatusNotifier();
   final LayerLink _toolbarLayerLink = LayerLink();
   final LayerLink _startHandleLayerLink = LayerLink();
@@ -270,6 +266,7 @@ class RawEditorState extends EditorState
     super.build(context);
 
     var _doc = widget.controller.document;
+
     if (_doc.isEmpty() && widget.placeholder != null) {
       _doc = Document.fromJson(
         jsonDecode(
@@ -282,7 +279,7 @@ class RawEditorState extends EditorState
       link: _toolbarLayerLink,
       child: Semantics(
         child: RawEditorRenderer(
-          key: _editorKey,
+          key: widget.editorRendererKey,
           document: _doc,
           selection: widget.controller.selection,
           hasFocus: _hasFocus,
@@ -319,7 +316,7 @@ class RawEditorState extends EditorState
           viewportBuilder: (_, offset) => CompositedTransformTarget(
             link: _toolbarLayerLink,
             child: RawEditorRenderer(
-              key: _editorKey,
+              key: widget.editorRendererKey,
               offset: offset,
               document: _doc,
               selection: widget.controller.selection,
@@ -371,9 +368,9 @@ class RawEditorState extends EditorState
     SelectionChangedCause cause,
   ) {
     final oldSelection = widget.controller.selection;
-    widget.controller.updateSelection(selection, ChangeSource.LOCAL);
 
-    _selectionOverlay?.handlesVisible = _shouldShowSelectionHandles();
+    widget.controller.updateSelection(selection, ChangeSource.LOCAL);
+    selectionActions?.handlesVisible = _shouldShowSelectionHandles();
 
     if (!_keyboardVisible) {
       // This will show the keyboard for all selection changes on the editor,
@@ -550,6 +547,12 @@ class RawEditorState extends EditorState
   void initState() {
     super.initState();
 
+    // +++ DELETE
+    subscribeToReqKeyboard();
+
+    // +++ DELETE
+    _selectionActionsService.rawEditorState = this;
+
     _clipboardStatus.addListener(_onChangedClipboardStatus);
 
     widget.controller.addListener(() {
@@ -660,10 +663,10 @@ class RawEditorState extends EditorState
     }
 
     if (widget.controller.selection != oldWidget.controller.selection) {
-      _selectionOverlay?.update(textEditingValue);
+      selectionActions?.update(textEditingValue);
     }
 
-    _selectionOverlay?.handlesVisible = _shouldShowSelectionHandles();
+    selectionActions?.handlesVisible = _shouldShowSelectionHandles();
     if (!shouldCreateInputConnection) {
       closeConnectionIfNeeded();
     } else {
@@ -689,8 +692,8 @@ class RawEditorState extends EditorState
     _keyboardVisibilitySubscription?.cancel();
     HardwareKeyboard.instance.removeHandler(_hardwareKeyboardEvent);
     assert(!hasConnection);
-    _selectionOverlay?.dispose();
-    _selectionOverlay = null;
+    selectionActions?.dispose();
+    selectionActions = null;
     widget.controller.removeListener(_didChangeTextEditingValue);
     widget.focusNode.removeListener(_handleFocusChanged);
     _cursorCont.dispose();
@@ -701,7 +704,7 @@ class RawEditorState extends EditorState
   }
 
   void _updateSelectionOverlayForScroll() {
-    _selectionOverlay?.updateForScroll();
+    selectionActions?.updateForScroll();
   }
 
   void _didChangeTextEditingValue([bool ignoreFocus = false]) {
@@ -735,7 +738,7 @@ class RawEditorState extends EditorState
       return;
     }
 
-    _showCaretOnScreen();
+    showCaretOnScreen();
     _cursorCont.startOrStopCursorTimerIfNeeded(
       _hasFocus,
       widget.controller.selection,
@@ -769,15 +772,15 @@ class RawEditorState extends EditorState
   }
 
   void _updateOrDisposeSelectionOverlayIfNeeded() {
-    if (_selectionOverlay != null) {
+    if (selectionActions != null) {
       if (!_hasFocus || textEditingValue.selection.isCollapsed) {
-        _selectionOverlay!.dispose();
-        _selectionOverlay = null;
+        selectionActions!.dispose();
+        selectionActions = null;
       } else {
-        _selectionOverlay!.update(textEditingValue);
+        selectionActions!.update(textEditingValue);
       }
     } else if (_hasFocus) {
-      _selectionOverlay = TextSelectionOverlayUtils(
+      selectionActions = SelectionActionsLogic(
         value: textEditingValue,
         context: context,
         debugRequiredFor: widget,
@@ -789,8 +792,8 @@ class RawEditorState extends EditorState
         selectionDelegate: this,
         clipboardStatus: _clipboardStatus,
       );
-      _selectionOverlay!.handlesVisible = _shouldShowSelectionHandles();
-      _selectionOverlay!.showHandles();
+      selectionActions!.handlesVisible = _shouldShowSelectionHandles();
+      selectionActions!.showHandles();
     }
   }
 
@@ -803,7 +806,7 @@ class RawEditorState extends EditorState
     _updateOrDisposeSelectionOverlayIfNeeded();
     if (_hasFocus) {
       WidgetsBinding.instance.addObserver(this);
-      _showCaretOnScreen();
+      showCaretOnScreen();
     } else {
       WidgetsBinding.instance.removeObserver(this);
     }
@@ -832,7 +835,7 @@ class RawEditorState extends EditorState
   // This causes controller.selection to go to offset 0.
   bool _disableScrollControllerAnimateOnce = false;
 
-  void _showCaretOnScreen() {
+  void showCaretOnScreen() {
     if (!widget.showCursor || _showCaretOnScreenScheduled) {
       return;
     }
@@ -874,46 +877,33 @@ class RawEditorState extends EditorState
     });
   }
 
+  // +++ THIS REFERENCE HAS TO GO
   // The renderer for this widget's editor descendant.
   // This property is typically used to notify the renderer of input gestures.
   @override
-  RenderEditor get renderEditor =>
-      _editorKey.currentContext!.findRenderObject() as RenderEditor;
+  EditorRenderer get renderEditor =>
+      widget.editorRendererKey.currentContext!.findRenderObject()
+          as EditorRenderer;
 
-  // Express interest in interacting with the keyboard.
-  // If this control is already attached to the keyboard, this function will request that the keyboard become visible.
-  // Otherwise, this function will ask the focus system that it become focused.
-  // If successful in acquiring focus, the control will then attach to the keyboard and
-  // request that the keyboard become visible.
-  @override
+  // +++ DELETE once requestKeyboard() is migrated
+  void subscribeToReqKeyboard() {
+    KeyboardService().requestKeyboard$.stream.listen((_) {
+      requestKeyboard();
+    });
+  }
+
   void requestKeyboard() {
     if (_hasFocus) {
       openConnectionIfNeeded();
-      _showCaretOnScreen();
+      showCaretOnScreen();
     } else {
       widget.focusNode.requestFocus();
     }
   }
 
-  // Shows the selection buttons at the location of the current cursor.
-  // Returns `false` if a buttons couldn't be shown, such as when the buttons is already shown,
-  // or when no text selection currently exists.
+  // +++ MIGRATE
   @override
-  bool showToolbar() {
-    // Web is using native dom elements to enable clipboard functionality of the buttons: copy, paste, select, cut.
-    // It might also provide additional functionality depending on the browser (such as translate).
-    // Due to this we should not show Flutter buttons for the editable text elements.
-    if (kIsWeb) {
-      return false;
-    }
-    if (_selectionOverlay == null || _selectionOverlay!.toolbar != null) {
-      return false;
-    }
-
-    _selectionOverlay!.update(textEditingValue);
-    _selectionOverlay!.showToolbar();
-    return true;
-  }
+  bool showToolbar() => _selectionActionsService.showToolbar();
 
   void _replaceText(ReplaceTextIntent intent) {
     userUpdateTextEditingValue(
@@ -927,8 +917,9 @@ class RawEditorState extends EditorState
   @override
   void copySelection(SelectionChangedCause cause) {
     widget.controller.copiedImageUrl = null;
-    _pastePlainText = widget.controller.getPlainText();
-    _pasteStyle = widget.controller.getAllIndividualSelectionStyles();
+    _editorTextService.pastePlainText = widget.controller.getPlainText();
+    _editorTextService.pasteStyle =
+        widget.controller.getAllIndividualSelectionStyles();
 
     final selection = textEditingValue.selection;
     final text = textEditingValue.text;
@@ -956,8 +947,9 @@ class RawEditorState extends EditorState
   @override
   void cutSelection(SelectionChangedCause cause) {
     widget.controller.copiedImageUrl = null;
-    _pastePlainText = widget.controller.getPlainText();
-    _pasteStyle = widget.controller.getAllIndividualSelectionStyles();
+    _editorTextService.pastePlainText = widget.controller.getPlainText();
+    _editorTextService.pasteStyle =
+        widget.controller.getAllIndividualSelectionStyles();
 
     if (widget.readOnly) {
       return;
@@ -1242,4 +1234,40 @@ class RawEditorState extends EditorState
   void removeTextPlaceholder() {
     // TODO: implement removeTextPlaceholder
   }
+
+  // === CRUTCHES ===
+  // +++ REMOVE
+
+  @override
+  void hideToolbar([bool hideHandles = true]) {
+    _selectionActionsService.hideToolbar(hideHandles);
+  }
+
+  @override
+  TextEditingValue get textEditingValue => _editorTextService.textEditingValue;
+
+  @override
+  void userUpdateTextEditingValue(
+    TextEditingValue value,
+    SelectionChangedCause cause,
+  ) {
+    _editorTextService.userUpdateTextEditingValue(value, cause);
+  }
+
+  @override
+  void bringIntoView(TextPosition position) {
+    _cursorService.bringIntoView(position, renderEditor);
+  }
+
+  @override
+  bool get cutEnabled => _clipboardService.cutEnabled();
+
+  @override
+  bool get copyEnabled => _clipboardService.copyEnabled();
+
+  @override
+  bool get pasteEnabled => _clipboardService.pasteEnabled();
+
+  @override
+  bool get selectAllEnabled => _textSelectionService.selectAllEnabled();
 }

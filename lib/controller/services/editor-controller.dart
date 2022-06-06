@@ -7,18 +7,24 @@ import 'package:tuple/tuple.dart';
 import '../../delta/models/delta.model.dart';
 import '../../delta/services/delta.utils.dart';
 import '../../documents/models/attribute.dart';
+import '../../documents/models/change-source.enum.dart';
 import '../../documents/models/document.dart';
 import '../../documents/models/nodes/embeddable.dart';
 import '../../documents/models/nodes/leaf.dart';
 import '../../documents/models/style.dart';
 import '../../highlights/models/highlight.model.dart';
+import '../../highlights/state/highlights.state.dart';
+import '../../selection/services/text-selection.service.dart';
+import '../state/document.state.dart';
 
+// Return false to ignore the event.
 typedef ReplaceTextCallback = bool Function(int index, int len, Object? data);
 typedef DeleteCallback = void Function(int cursorPosition, bool forward);
 
-// EditorController stores the the state of the Document and the current TextSelection. 
-// Both EditorEditor and the EditorToolbar use the  controller to synchronize their state. 
-// The controller defines several properties that represent the state of the document and the state of the editor, 
+// Controller object which establishes a link between a rich text document and this editor.
+// EditorController stores the the state of the Document and the current TextSelection.
+// Both EditorEditor and the EditorToolbar use the  controller to synchronize their state.
+// The controller defines several properties that represent the state of the document and the state of the editor,
 // plus several methods that notify the listeners.
 //
 // For ex, when users interact with the document the updateSelection() method
@@ -27,94 +33,45 @@ typedef DeleteCallback = void Function(int cursorPosition, bool forward);
 // of the controller are located in the EditorToolbar and are directly
 // controlling the state of the buttons.
 //
-// Example: The EditorToolbar listens the notifications emitted by the controller class. 
+// Example: The EditorToolbar listens the notifications emitted by the controller class.
 // If the current text selection has the bold attribute then  the EditorToolbar react by highlighting the bold button.
 //
-// The most important listener is located in the RawEditorState in the initState() and didUpdateWidget() methods. 
+// The most important listener is located in the RawEditorState in the initState() and didUpdateWidget() methods.
 // This listener triggers  _onChangeTextEditingValue() which in turn has several duties, such as
 // - Updating the state of the overlay selection.
-// - Reconnecting to the remote  input. 
-// However by far the most important step is to trigger a render by invoking setState(). 
-// Once a new build() is running then the _Editor starts rendering the new state of the Editor Editor. 
-// From here the entire rendering process starts executing again. 
-// In short summary, the document is parsed and converted into rendering elements, lines of text and blocks. 
+// - Reconnecting to the remote  input.
+// However by far the most important step is to trigger a render by invoking setState().
+// Once a new build() is running then the _Editor starts rendering the new state of the Editor Editor.
+// From here the entire rendering process starts executing again.
+// In short summary, the document is parsed and converted into rendering elements, lines of text and blocks.
 // Each line of text handles it's own styling and highlights rendering.
 //
 // Properties:
 // selection - The text selection can be configured on init
-// highlights - Multiple HighlightMs can be rendered on top of the document text. 
-// The highlights are independent of the DeltaM and can be used for tasks such as 
-// - Temporarily rendering a marker over important text. 
+// highlights - Multiple HighlightMs can be rendered on top of the document text.
+// The highlights are independent of the DeltaM and can be used for tasks such as
+// - Temporarily rendering a marker over important text.
 // - Rendering the text selection where a custom tooltip will be placed.
 // keepStyleOnNewLine - Will perpetuate the text styles when starting a new line.
 //
 // Callbacks:
-// onReplaceText - Callback executed after inserting blocks on top of existing  blocks. 
+// onReplaceText - Callback executed after inserting blocks on top of existing  blocks.
 // Multiple operations can trigger this behavior: copy/paste, inserting embeds, etc.
 // onDelete - Callback executed after deleting characters.
 // onSelectionCompleted - Custom behavior to be executed after completing a text selection
+// TODO +++ Get rid of the change notifier
 class EditorController extends ChangeNotifier {
-  EditorController({
-    required this.document,
-    required TextSelection selection,
-    List<HighlightM> highlights = const [],
-    bool keepStyleOnNewLine = false,
-    this.onReplaceText,
-    this.onDelete,
-    this.onSelectionCompleted,
-    this.onSelectionChanged,
-  })  : _selection = selection,
-        _highlights = highlights,
-        _keepStyleOnNewLine = keepStyleOnNewLine;
+  final _textSelectionService = TextSelectionService();
+  final _documentState = DocumentState();
+  final _highlightsState = HighlightsState();
 
-  factory EditorController.basic() {
-    return EditorController(
-      document: Document(),
-      selection: const TextSelection.collapsed(
-        offset: 0,
-      ),
-    );
-  }
-
-  // Document managed by this controller.
   final Document document;
+  final bool keepStyleOnNewLine;
+  TextSelection selection;
+  List<HighlightM> highlights;
 
-  // Tells whether to keep or reset the toggledStyle
-  // when user adds a new line.
-  final bool _keepStyleOnNewLine;
-
-  // Currently selected text within the document.
-  TextSelection get selection => _selection;
-  TextSelection _selection;
-
-  // Highlighted ranges within the document.
-  List<HighlightM> get highlights => _highlights;
-
-  set highlights(List<HighlightM> highlights) {
-    _highlights = highlights;
-    notifyListeners();
-  }
-
-  List<HighlightM> _highlights;
-
-  // Highlighted ranges within the document that are currently hovered by
-  // the pointer. Used to trigger the change of color when hovering.
-  List<HighlightM> get hoveredHighlights => _hoveredHighlights;
-
-  set hoveredHighlights(List<HighlightM> hoveredHighlights) {
-    _hoveredHighlights = hoveredHighlights;
-    notifyListeners();
-  }
-
-  List<HighlightM> _hoveredHighlights = [];
-
-  // Custom replaceText handler.
-  // Return false to ignore the event.
   ReplaceTextCallback? onReplaceText;
-
-  // Custom delete handler
   DeleteCallback? onDelete;
-
   void Function()? onSelectionCompleted;
   void Function(TextSelection textSelection)? onSelectionChanged;
 
@@ -128,9 +85,33 @@ class EditorController extends ChangeNotifier {
   // A safety mechanism to ensure that listeners don't crash when adding, removing or listeners to this instance.
   bool _isDisposed = false;
 
-  // item1: Document state before change.
-  // item2: Change delta applied to the document.
-  // item3: The source of this change.
+  EditorController({
+    required this.document,
+    required this.selection,
+    this.highlights = const [],
+    this.keepStyleOnNewLine = false,
+    this.onReplaceText,
+    this.onDelete,
+    this.onSelectionCompleted,
+    this.onSelectionChanged,
+  }) {
+    _documentState.setDocument(document);
+    _highlightsState.setHighlights(highlights);
+
+    // +++ DEL once we remove the change notifier
+    _textSelectionService.setUpdateSelection(updateSelection);
+  }
+
+  factory EditorController.basic() => EditorController(
+        document: Document(),
+        selection: const TextSelection.collapsed(
+          offset: 0,
+        ),
+      );
+
+  // DeltaM: Document state before change.
+  // DeltaM: Change delta applied to the document.
+  // ChangeSource: The source of this change.
   Stream<Tuple3<DeltaM, DeltaM, ChangeSource>> get changes => document.changes;
 
   TextEditingValue get plainTextEditingValue => TextEditingValue(
@@ -139,14 +120,12 @@ class EditorController extends ChangeNotifier {
       );
 
   // Only attributes applied to all characters within this range are included in the result.
-  Style getSelectionStyle() {
-    return document
-        .collectStyle(
-          selection.start,
-          selection.end - selection.start,
-        )
-        .mergeAll(toggledStyle);
-  }
+  Style getSelectionStyle() => document
+      .collectStyle(
+        selection.start,
+        selection.end - selection.start,
+      )
+      .mergeAll(toggledStyle);
 
   // Returns all styles for each node within selection
   List<Tuple2<int, Style>> getAllIndividualSelectionStyles() {
@@ -154,6 +133,7 @@ class EditorController extends ChangeNotifier {
       selection.start,
       selection.end - selection.start,
     );
+
     return styles;
   }
 
@@ -163,6 +143,7 @@ class EditorController extends ChangeNotifier {
       selection.start,
       selection.end - selection.start,
     );
+
     return text;
   }
 
@@ -198,6 +179,7 @@ class EditorController extends ChangeNotifier {
 
   void redo() {
     final tup = document.redo();
+
     if (tup.item1) {
       _handleHistoryChange(tup.item2);
     }
@@ -233,18 +215,18 @@ class EditorController extends ChangeNotifier {
     }
 
     DeltaM? delta;
+
     if (len > 0 || data is! String || data.isNotEmpty) {
       delta = document.replace(index, len, data);
       var shouldRetainDelta = toggledStyle.isNotEmpty &&
           delta.isNotEmpty &&
           delta.length <= 2 &&
           delta.last.isInsert;
-      
+
       if (shouldRetainDelta &&
           toggledStyle.isNotEmpty &&
           delta.length == 2 &&
           delta.last.data == '\n') {
-        
         // If all attributes are inline, shouldRetainDelta should be false
         final anyAttributeNotInline =
             toggledStyle.values.any((attr) => !attr.isInline);
@@ -252,7 +234,7 @@ class EditorController extends ChangeNotifier {
           shouldRetainDelta = false;
         }
       }
-      
+
       if (shouldRetainDelta) {
         final retainDelta = DeltaM()
           ..retain(index)
@@ -261,7 +243,7 @@ class EditorController extends ChangeNotifier {
       }
     }
 
-    if (_keepStyleOnNewLine) {
+    if (keepStyleOnNewLine) {
       final style = getSelectionStyle();
       final notInlineStyle = style.attributes.values.where((s) => !s.isInline);
       toggledStyle = style.removeAll(notInlineStyle.toSet());
@@ -278,7 +260,7 @@ class EditorController extends ChangeNotifier {
           ..insert(data)
           ..delete(len);
         final positionDelta = getPositionDelta(user, delta);
-        
+
         _updateSelection(
           textSelection.copyWith(
             baseOffset: textSelection.baseOffset + positionDelta,
@@ -292,6 +274,7 @@ class EditorController extends ChangeNotifier {
     if (ignoreFocus) {
       ignoreFocusOnTextChange = true;
     }
+
     notifyListeners();
     ignoreFocusOnTextChange = false;
   }
@@ -320,18 +303,20 @@ class EditorController extends ChangeNotifier {
     }
 
     final change = document.format(index, len, attribute);
-    // Transform selection against the composed change and give priority to the change. 
+    // Transform selection against the composed change and give priority to the change.
     // This is needed in cases when format operation actually inserts data into the document (e.g. embeds).
     final adjustedSelection = selection.copyWith(
       baseOffset: change.transformPosition(selection.baseOffset),
       extentOffset: change.transformPosition(selection.extentOffset),
     );
+
     if (selection != adjustedSelection) {
       _updateSelection(
         adjustedSelection,
         ChangeSource.LOCAL,
       );
     }
+
     notifyListeners();
   }
 
@@ -419,13 +404,14 @@ class EditorController extends ChangeNotifier {
   }
 
   void _updateSelection(TextSelection textSelection, ChangeSource source) {
-    _selection = textSelection;
+    selection = textSelection;
     final end = document.length - 1;
-    _selection = selection.copyWith(
+    selection = selection.copyWith(
       baseOffset: math.min(selection.baseOffset, end),
       extentOffset: math.min(selection.extentOffset, end),
     );
     toggledStyle = Style();
+
     onSelectionChanged?.call(textSelection);
   }
 

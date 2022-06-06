@@ -114,8 +114,6 @@ class _HomePageState extends State<HomePage> {
       scrollController: ScrollController(),
       focusNode: _focusNode,
       config: EditorCfgM(
-        scrollable: true,
-        padding: EdgeInsets.zero,
         placeholder: 'Add blocks',
         customStyles: DefaultStyles(
           h1: DefaultTextBlockStyle(
@@ -140,9 +138,7 @@ class _HomePageState extends State<HomePage> {
         scrollController: ScrollController(),
         focusNode: _focusNode,
         config: EditorCfgM(
-          scrollable: true,
           placeholder: 'Add blocks',
-          padding: EdgeInsets.zero,
           customStyles: DefaultStyles(
             h1: DefaultTextBlockStyle(
               const TextStyle(

@@ -12,6 +12,7 @@ import '../models/link-action.picker.type.dart';
 import '../services/default-styles.utils.dart';
 import '../services/editor-styles.utils.dart';
 import 'editable-block.dart';
+import 'editable-text-line-object.dart';
 import 'style-widgets.dart';
 import 'text-line.dart';
 
@@ -127,6 +128,7 @@ class EditableTextBlock extends StatelessWidget {
         cursorCont: cursorCont,
       );
       final nodeTextDirection = getDirectionOfNode(line);
+
       children.add(
         Directionality(
           textDirection: nodeTextDirection,
@@ -134,6 +136,7 @@ class EditableTextBlock extends StatelessWidget {
         ),
       );
     }
+
     return children.toList(
       growable: false,
     );
@@ -148,6 +151,7 @@ class EditableTextBlock extends StatelessWidget {
   ) {
     final defaultStyles = EditorStylesUtils.getStyles(context, false);
     final attrs = line.style.attributes;
+
     if (attrs[Attribute.list.key] == Attribute.ol) {
       return NumberPoint(
         index: index,
@@ -203,14 +207,15 @@ class EditableTextBlock extends StatelessWidget {
         withDot: false,
       );
     }
+
     return null;
   }
 
   double _getIndentWidth() {
     final attrs = block.style.attributes;
-
     final indent = attrs[Attribute.indent.key];
     var extraIndent = 0.0;
+
     if (indent != null && indent.value != null) {
       extraIndent = 16.0 * indent.value;
     }
@@ -236,8 +241,8 @@ class EditableTextBlock extends StatelessWidget {
     DefaultStyles? defaultStyles,
   ) {
     var top = 0.0, bottom = 0.0;
-
     final attrs = block.style.attributes;
+
     if (attrs.containsKey(Attribute.header.key)) {
       final level = attrs[Attribute.header.key]!.value;
       switch (level) {

@@ -38,3 +38,5 @@ linter:
     - invalid_use_of_protected_member: false # To be restored once refactoring is over
     - sort_child_properties_last: false
     - prefer_const_constructors_in_immutables: false
+    - unnecessary_getters_setters: false
+    - always_put_required_named_parameters_first: false

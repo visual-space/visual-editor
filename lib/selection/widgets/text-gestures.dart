@@ -3,42 +3,38 @@ import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import '../../editor/widgets/editor-renderer.dart';
+import '../../highlights/services/highlights.service.dart';
 import '../services/text-selection.service.dart';
 import '../services/transparen-tap-gesture-recognizer.dart';
 
-// Multiple callbacks can be called for one sequence of input gesture.
-// A gesture detector to respond to non-exclusive event chains for a text field.
-// An ordinary GestureDetector configured to handle events like tap and
-// double tap will only recognize one or the other.
-// This widget detects both:
-// - first the tap and then,
-// - if another tap down occurs within a time limit, the double tap.
-// See also:
-//  * TextField, a Material text field which uses this gesture detector.
-//  * CupertinoTextField, a Cupertino text field which uses this gesture detector.
-class TextSelectionGestures extends StatefulWidget {
+// Multiple callbacks can be called for one sequence of input gestures.
+// An ordinary GestureDetector configured to handle events like tap and double tap will only recognize one or the other.
+// This widget detects: the first tap and then, if another tap down occurs within a time limit, the double tap.
+class TextGestures extends StatefulWidget {
   final HitTestBehavior? behavior;
+  final GlobalKey editorRendererKey;
   final Widget child;
 
-  const TextSelectionGestures({
-    required this.child,
+  const TextGestures({
     required this.behavior,
+    required this.editorRendererKey,
+    required this.child,
     Key? key,
   }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => _TextSelectionGesturesState();
+  State<StatefulWidget> createState() => _TextGesturesState();
 }
 
-class _TextSelectionGesturesState extends State<TextSelectionGestures> {
+class _TextGesturesState extends State<TextGestures> {
   final _textSelectionService = TextSelectionService();
+  final _highlightsService = HighlightsService();
 
-  // Counts down for a short duration after a previous tap. Null otherwise.
   Timer? _doubleTapTimer;
   Offset? _lastTapOffset;
-
-  // True if a second tap down of a double tap is detected. Used to discard subsequent tap up / tap hold of the same tap.
   bool _isDoubleTap = false;
+  late TargetPlatform _platform;
 
   @override
   void dispose() {
@@ -48,24 +44,30 @@ class _TextSelectionGesturesState extends State<TextSelectionGestures> {
   }
 
   @override
-  Widget build(BuildContext context) => MouseRegion(
-        onHover: _handleHover,
-        child: RawGestureDetector(
-          gestures: _setupGestures(),
-          excludeFromSemantics: true,
-          behavior: widget.behavior,
-          child: widget.child,
-        ),
-      );
+  Widget build(BuildContext context) {
+    _platform = Theme.of(context).platform;
+
+    return MouseRegion(
+      onHover: _handleHover,
+      child: RawGestureDetector(
+        gestures: _setupGestures(),
+        excludeFromSemantics: true,
+        behavior: widget.behavior,
+        child: widget.child,
+      ),
+    );
+  }
 
   Map<Type, GestureRecognizerFactory<GestureRecognizer>> _setupGestures() {
     final gestures = <Type, GestureRecognizerFactory>{};
 
-    // Use TransparentTapGestureRecognizer so that TextSelectionGestureDetector can receive
-    // the same tap events that a selection handle placed visually on top of it also receives.
+    // A transparent recognizer is used so that TextSelectionGestures and
+    // selection handles receive the same tap events.
     gestures[TransparentTapGestureRecognizer] =
         GestureRecognizerFactoryWithHandlers<TransparentTapGestureRecognizer>(
-      () => TransparentTapGestureRecognizer(debugOwner: this),
+      () => TransparentTapGestureRecognizer(
+        debugOwner: this,
+      ),
       (instance) {
         instance
           ..onTapDown = _handleTapDown
@@ -106,23 +108,26 @@ class _TextSelectionGesturesState extends State<TextSelectionGestures> {
 
     gestures[ForcePressGestureRecognizer] =
         GestureRecognizerFactoryWithHandlers<ForcePressGestureRecognizer>(
-      () => ForcePressGestureRecognizer(debugOwner: this),
+      () => ForcePressGestureRecognizer(
+        debugOwner: this,
+      ),
       (instance) {
         instance
           ..onStart = _forcePressStarted
           ..onEnd = _forcePressEnded;
       },
     );
+
     return gestures;
   }
 
   void _handleHover(PointerHoverEvent event) {
-    _textSelectionService.onHover(event);
+    _highlightsService.onHover(event);
   }
 
   // The down handler is force-run on success of a single tap and optimistically run before a long press success.
   void _handleTapDown(TapDownDetails details) {
-    _textSelectionService.onTapDown(details);
+    _textSelectionService.onTapDown(details, _editorRenderer);
 
     // This isn't detected as a double tap gesture in the gesture recognizer
     // because it's 2 single taps, each of which may do different things
@@ -131,7 +136,7 @@ class _TextSelectionGesturesState extends State<TextSelectionGestures> {
     if (_doubleTapTimer != null &&
         _isWithinDoubleTapTolerance(details.globalPosition)) {
       // If there was already a previous tap, the second down hold/tap is a double tap down.
-      _textSelectionService.onDoubleTapDown(details);
+      _textSelectionService.onDoubleTapDown(details, _editorRenderer);
       _doubleTapTimer!.cancel();
       _doubleTapTimeout();
       _isDoubleTap = true;
@@ -140,7 +145,8 @@ class _TextSelectionGesturesState extends State<TextSelectionGestures> {
 
   void _handleTapUp(TapUpDetails details) {
     if (!_isDoubleTap) {
-      _textSelectionService.onSingleTapUp(details);
+      _textSelectionService.onSingleTapUp(details, _platform, _editorRenderer);
+      _highlightsService.onSingleTapUp(details);
       _lastTapOffset = details.globalPosition;
       _doubleTapTimer = Timer(kDoubleTapTimeout, _doubleTapTimeout);
     }
@@ -159,7 +165,7 @@ class _TextSelectionGesturesState extends State<TextSelectionGestures> {
   void _handleDragStart(DragStartDetails details) {
     assert(_lastDragStartDetails == null);
     _lastDragStartDetails = details;
-    _textSelectionService.onDragSelectionStart(details);
+    _textSelectionService.onDragSelectionStart(details, _editorRenderer);
   }
 
   void _handleDragUpdate(DragUpdateDetails details) {
@@ -180,6 +186,7 @@ class _TextSelectionGesturesState extends State<TextSelectionGestures> {
     _textSelectionService.onDragSelectionUpdate(
       _lastDragStartDetails!,
       _lastDragUpdateDetails!,
+      _editorRenderer,
     );
 
     _dragUpdateThrottleTimer = null;
@@ -195,7 +202,7 @@ class _TextSelectionGesturesState extends State<TextSelectionGestures> {
       _handleDragUpdateThrottled();
     }
 
-    _textSelectionService.onDragSelectionEnd(details);
+    _textSelectionService.onDragSelectionEnd(details, _editorRenderer);
 
     _dragUpdateThrottleTimer = null;
     _lastDragStartDetails = null;
@@ -206,28 +213,33 @@ class _TextSelectionGesturesState extends State<TextSelectionGestures> {
     _doubleTapTimer?.cancel();
     _doubleTapTimer = null;
 
-    _textSelectionService.onForcePressStart(details);
+    _textSelectionService.onForcePressStart(details, _editorRenderer);
   }
 
   void _forcePressEnded(ForcePressDetails details) {
-    _textSelectionService.onForcePressEnd(details);
+    _textSelectionService.onForcePressEnd(details, _editorRenderer);
   }
 
   void _handleLongPressStart(LongPressStartDetails details) {
     if (!_isDoubleTap) {
-      _textSelectionService.onSingleLongTapStart(details);
+      _textSelectionService.onSingleLongTapStart(
+          details, _platform, context, _editorRenderer);
     }
   }
 
   void _handleLongPressMoveUpdate(LongPressMoveUpdateDetails details) {
     if (!_isDoubleTap) {
-      _textSelectionService.onSingleLongTapMoveUpdate(details);
+      _textSelectionService.onSingleLongTapMoveUpdate(
+        details,
+        _platform,
+        _editorRenderer,
+      );
     }
   }
 
   void _handleLongPressEnd(LongPressEndDetails details) {
     if (!_isDoubleTap) {
-      _textSelectionService.onSingleLongTapEnd(details);
+      _textSelectionService.onSingleLongTapEnd(details, _editorRenderer);
     }
 
     _isDoubleTap = false;
@@ -245,4 +257,10 @@ class _TextSelectionGesturesState extends State<TextSelectionGestures> {
 
     return (secondTapOffset - _lastTapOffset!).distance <= kDoubleTapSlop;
   }
+
+  // === UTILS ===
+
+  EditorRenderer get _editorRenderer =>
+      widget.editorRendererKey.currentContext!.findRenderObject()
+          as EditorRenderer;
 }

@@ -1,31 +1,23 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:tuple/tuple.dart';
 
-import '../../documents/models/style.dart';
-import '../../selection/services/text-selection-overlay.utils.dart';
+import '../../selection/services/selection-actions.logic.dart';
 import '../widgets/editor-renderer.dart';
 import '../widgets/raw-editor.dart';
 
-// +++ DOC WHY
+// +++ DELETE
 // Base interface for the editor state which defines contract used by various mixins.
-abstract class EditorState extends State<RawEditor>
+abstract class EditorStateM extends State<RawEditor>
     implements TextSelectionDelegate {
   ScrollController get scrollController;
 
-  RenderEditor get renderEditor;
+  EditorRenderer get renderEditor;
 
-  TextSelectionOverlayUtils? get selectionOverlay;
-
-  List<Tuple2<int, Style>> get pasteStyle;
-
-  String get pastePlainText;
+  SelectionActionsLogic? get selectionActions;
 
   // Controls the floating cursor animation when it is released.
   // The floating cursor is animated to merge with the regular cursor.
   AnimationController get floatingCursorResetController;
 
-  bool showToolbar();
-
-  void requestKeyboard();
+  // void requestKeyboard();
 }

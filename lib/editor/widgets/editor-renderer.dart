@@ -8,32 +8,50 @@ import 'package:flutter/services.dart';
 
 import '../../blocks/models/editable-box-renderer.model.dart';
 import '../../cursor/widgets/cursor.dart';
-import '../../cursor/widgets/floating-cursor-painter.dart';
+import '../../cursor/widgets/floating-cursor.painter.dart';
 import '../../documents/models/document.dart';
 import '../../selection/models/drag-text-selection.model.dart';
+import '../../selection/services/selection-actions.utils.dart';
+import '../../selection/services/text-selection.service.dart';
 import '../../selection/services/text-selection.utils.dart';
-import '../const/k-floating.dart';
-import '../models/render-abstract-editor.model.dart';
 import '../models/text-selection-handlers.type.dart';
+import '../services/editor-renderer.utils.dart';
 import '../services/vertical-caret-movement-run.dart';
-import 'editor-renderer-cont.dart';
+import 'editable-container-box-renderer.dart';
 
-// +++ SLICE OUT MORE
 // Displays a document as a vertical list of document segments (lines and blocks).
 // Children of RenderEditor must be instances of RenderEditableBox.
-class RenderEditor extends RenderEditableContainerBox
+class EditorRenderer extends EditableContainerBoxRenderer
     with RelayoutWhenSystemFontsChangeMixin
-    implements RenderAbstractEditor {
-  RenderEditor({
+    implements TextLayoutMetrics {
+  final _textSelectionUtils = TextSelectionUtils();
+  final _editorRendererUtils = EditorRendererUtils();
+  final _selectionActionsUtils = SelectionActionsUtils();
+  final _textSelectionService = TextSelectionService();
+
+  final CursorCont cursorController;
+  final bool floatingCursorDisabled;
+  final bool scrollable;
+  Document document;
+  TextSelection selection;
+  bool hasFocus;
+  LayerLink startHandleLayerLink;
+  LayerLink endHandleLayerLink;
+  TextSelectionChangedHandler onSelectionChanged;
+  TextSelectionCompletedHandler onSelectionCompleted;
+  final ValueNotifier<bool> _selectionStartInViewport =
+  ValueNotifier<bool>(true);
+
+  EditorRenderer({
     required this.document,
     required TextDirection textDirection,
-    required bool hasFocus,
+    required this.hasFocus,
     required this.selection,
     required this.scrollable,
-    required LayerLink startHandleLayerLink,
-    required LayerLink endHandleLayerLink,
+    required this.startHandleLayerLink,
+    required this.endHandleLayerLink,
     required EdgeInsetsGeometry padding,
-    required CursorCont cursorController,
+    required this.cursorController,
     required this.onSelectionChanged,
     required this.onSelectionCompleted,
     required double scrollBottomInset,
@@ -43,11 +61,7 @@ class RenderEditor extends RenderEditableContainerBox
     EdgeInsets floatingCursorAddedMargin =
         const EdgeInsets.fromLTRB(4, 4, 4, 5),
     double? maxContentWidth,
-  })  : _hasFocus = hasFocus,
-        _extendSelectionOrigin = selection,
-        _startHandleLayerLink = startHandleLayerLink,
-        _endHandleLayerLink = endHandleLayerLink,
-        _cursorController = cursorController,
+  })  : _extendSelectionOrigin = selection,
         _maxContentWidth = maxContentWidth,
         super(
           children: children,
@@ -56,22 +70,6 @@ class RenderEditor extends RenderEditableContainerBox
           scrollBottomInset: scrollBottomInset,
           padding: padding,
         );
-
-  final CursorCont _cursorController;
-  final bool floatingCursorDisabled;
-  final bool scrollable;
-
-  Document document;
-  TextSelection selection;
-  bool _hasFocus = false;
-  LayerLink _startHandleLayerLink;
-  LayerLink _endHandleLayerLink;
-
-  // Called when the selection changes.
-  TextSelectionChangedHandler onSelectionChanged;
-  TextSelectionCompletedHandler onSelectionCompleted;
-  final ValueNotifier<bool> _selectionStartInViewport =
-      ValueNotifier<bool>(true);
 
   ValueListenable<bool> get selectionStartInViewport =>
       _selectionStartInViewport;
@@ -87,11 +85,12 @@ class RenderEditor extends RenderEditableContainerBox
     );
     final startOffset = _getOffsetForCaret(startPosition);
     // TODO(justinmc): https://github.com/flutter/flutter/issues/31495
-    // Check if the selection is visible with an approximation because a difference between 
-    // rounded and unrounded values causes the caret to be reported as having a slightly (< 0.5) negative y offset. 
-    // This rounding happens in paragraph.cc's layout and TextPainer's _applyFloatingPointHack. 
+    // Check if the selection is visible with an approximation because a difference between
+    // rounded and unrounded values causes the caret to be reported as having a slightly (< 0.5) negative y offset.
+    // This rounding happens in paragraph.cc's layout and TextPainer's _applyFloatingPointHack.
     // Ideally, the rounding mismatch will be fixed and this can be changed to be a strict check instead of an approximation.
     const visibleRegionSlop = 0.5;
+
     _selectionStartInViewport.value = visibleRegion
         .inflate(visibleRegionSlop)
         .contains(startOffset + effectiveOffset);
@@ -101,6 +100,7 @@ class RenderEditor extends RenderEditableContainerBox
       affinity: selection.affinity,
     );
     final endOffset = _getOffsetForCaret(endPosition);
+
     _selectionEndInViewport.value = visibleRegion
         .inflate(visibleRegionSlop)
         .contains(endOffset + effectiveOffset);
@@ -108,7 +108,7 @@ class RenderEditor extends RenderEditableContainerBox
 
   // Returns offset relative to this at which the caret will be painted given a global TextPosition
   Offset _getOffsetForCaret(TextPosition position) {
-    final child = childAtPosition(position);
+    final child = _editorRendererUtils.childAtPosition(position, this);
     final childPosition = child.globalToLocalPosition(position);
     final boxParentData = child.parentData as BoxParentData;
     final localOffsetForCaret = child.getOffsetForCaret(childPosition);
@@ -119,15 +119,17 @@ class RenderEditor extends RenderEditableContainerBox
     if (document == doc) {
       return;
     }
+
     document = doc;
     markNeedsLayout();
   }
 
   void setHasFocus(bool h) {
-    if (_hasFocus == h) {
+    if (hasFocus == h) {
       return;
     }
-    _hasFocus = h;
+
+    hasFocus = h;
     markNeedsSemanticsUpdate();
   }
 
@@ -137,10 +139,20 @@ class RenderEditor extends RenderEditableContainerBox
   ViewportOffset? _offset;
 
   set offset(ViewportOffset? value) {
-    if (_offset == value) return;
-    if (attached) _offset?.removeListener(markNeedsPaint);
+    if (_offset == value) {
+      return;
+    }
+
+    if (attached) {
+      _offset?.removeListener(markNeedsPaint);
+    }
+
     _offset = value;
-    if (attached) _offset?.addListener(markNeedsPaint);
+
+    if (attached) {
+      _offset?.addListener(markNeedsPaint);
+    }
+
     markNeedsLayout();
   }
 
@@ -148,6 +160,7 @@ class RenderEditor extends RenderEditableContainerBox
     if (selection == t) {
       return;
     }
+
     selection = t;
     markNeedsPaint();
 
@@ -163,18 +176,20 @@ class RenderEditor extends RenderEditableContainerBox
       RawKeyboard.instance.keysPressed.contains(LogicalKeyboardKey.shiftRight);
 
   void setStartHandleLayerLink(LayerLink value) {
-    if (_startHandleLayerLink == value) {
+    if (startHandleLayerLink == value) {
       return;
     }
-    _startHandleLayerLink = value;
+
+    startHandleLayerLink = value;
     markNeedsPaint();
   }
 
   void setEndHandleLayerLink(LayerLink value) {
-    if (_endHandleLayerLink == value) {
+    if (endHandleLayerLink == value) {
       return;
     }
-    _endHandleLayerLink = value;
+
+    endHandleLayerLink = value;
     markNeedsPaint();
   }
 
@@ -182,6 +197,7 @@ class RenderEditor extends RenderEditableContainerBox
     if (scrollBottomInset == value) {
       return;
     }
+
     scrollBottomInset = value;
     markNeedsPaint();
   }
@@ -194,87 +210,12 @@ class RenderEditor extends RenderEditableContainerBox
     markNeedsLayout();
   }
 
-  @override
-  List<TextSelectionPoint> getEndpointsForSelection(
-    TextSelection textSelection,
-  ) {
-    if (textSelection.isCollapsed) {
-      final child = childAtPosition(textSelection.extent);
-      final localPosition = TextPosition(
-        offset: textSelection.extentOffset - child.container.offset,
-      );
-      final localOffset = child.getOffsetForCaret(localPosition);
-      final parentData = child.parentData as BoxParentData;
-      return <TextSelectionPoint>[
-        TextSelectionPoint(
-          Offset(0, child.preferredLineHeight(localPosition)) +
-              localOffset +
-              parentData.offset,
-          null,
-        )
-      ];
-    }
-
-    final baseNode = containerRef.queryChild(textSelection.start, false).node;
-
-    var baseChild = firstChild;
-    while (baseChild != null) {
-      if (baseChild.container == baseNode) {
-        break;
-      }
-      baseChild = childAfter(baseChild);
-    }
-    assert(baseChild != null);
-
-    final baseParentData = baseChild!.parentData as BoxParentData;
-    final baseSelection = localSelection(
-      baseChild.container,
-      textSelection,
-      true,
-    );
-    var basePoint = baseChild.getBaseEndpointForSelection(baseSelection);
-    basePoint = TextSelectionPoint(
-      basePoint.point + baseParentData.offset,
-      basePoint.direction,
-    );
-
-    final extentNode = containerRef.queryChild(textSelection.end, false).node;
-    RenderEditableBox? extentChild = baseChild;
-
-    while (extentChild != null) {
-      if (extentChild.container == extentNode) {
-        break;
-      }
-      extentChild = childAfter(extentChild);
-    }
-    assert(extentChild != null);
-
-    final extentParentData = extentChild!.parentData as BoxParentData;
-    final extentSelection = localSelection(
-      extentChild.container,
-      textSelection,
-      true,
-    );
-    var extentPoint = extentChild.getExtentEndpointForSelection(
-      extentSelection,
-    );
-    extentPoint = TextSelectionPoint(
-      extentPoint.point + extentParentData.offset,
-      extentPoint.direction,
-    );
-
-    return <TextSelectionPoint>[basePoint, extentPoint];
-  }
-
-  Offset? _lastTapDownPosition;
-
   // Used on Desktop (mouse and keyboard enabled platforms) as base offset
   // for extending selection, either with combination of `Shift` + Click or by dragging
   TextSelection? _extendSelectionOrigin;
 
-  @override
   void handleTapDown(TapDownDetails details) {
-    _lastTapDownPosition = details.globalPosition;
+    _textSelectionService.lastTapDownPosition = details.globalPosition;
   }
 
   bool _isDragging = false;
@@ -282,9 +223,10 @@ class RenderEditor extends RenderEditableContainerBox
   void handleDragStart(DragStartDetails details) {
     _isDragging = true;
 
-    final newSelection = selectPositionAt(
+    final newSelection = _textSelectionService.selectPositionAt(
       from: details.globalPosition,
       cause: SelectionChangedCause.drag,
+      editorRenderer: this,
     );
 
     if (newSelection == null) return;
@@ -298,37 +240,14 @@ class RenderEditor extends RenderEditableContainerBox
     onSelectionCompleted();
   }
 
-  @override
-  void selectWordsInRange(
-    Offset from,
-    Offset? to,
-    SelectionChangedCause cause,
-  ) {
-    final firstPosition = getPositionForOffset(from);
-    final firstWord = selectWordAtPosition(firstPosition);
-    final lastWord = to == null
-        ? firstWord
-        : selectWordAtPosition(
-            getPositionForOffset(to),
-          );
-
-    _handleSelectionChange(
-      TextSelection(
-        baseOffset: firstWord.base.offset,
-        extentOffset: lastWord.extent.offset,
-        affinity: firstWord.affinity,
-      ),
-      cause,
-    );
-  }
-
-  void _handleSelectionChange(
+  // +++ RESTORE to private OR move to service
+  void handleSelectionChange(
     TextSelection nextSelection,
     SelectionChangedCause cause,
   ) {
     final focusingEmpty = nextSelection.baseOffset == 0 &&
         nextSelection.extentOffset == 0 &&
-        !_hasFocus;
+        !hasFocus;
 
     if (nextSelection == selection &&
         cause != SelectionChangedCause.keyboard &&
@@ -344,10 +263,10 @@ class RenderEditor extends RenderEditableContainerBox
     // The below logic does not exactly match the native version because
     // we do not allow swapping of base and extent positions.
     assert(_extendSelectionOrigin != null);
-    final position = getPositionForOffset(to);
+    final position = _editorRendererUtils.getPositionForOffset(to, this);
 
     if (position.offset < _extendSelectionOrigin!.baseOffset) {
-      _handleSelectionChange(
+      handleSelectionChange(
         TextSelection(
           baseOffset: position.offset,
           extentOffset: _extendSelectionOrigin!.extentOffset,
@@ -356,7 +275,7 @@ class RenderEditor extends RenderEditableContainerBox
         cause,
       );
     } else if (position.offset > _extendSelectionOrigin!.extentOffset) {
-      _handleSelectionChange(
+      handleSelectionChange(
         TextSelection(
           baseOffset: _extendSelectionOrigin!.baseOffset,
           extentOffset: position.offset,
@@ -365,112 +284,6 @@ class RenderEditor extends RenderEditableContainerBox
         cause,
       );
     }
-  }
-
-  @override
-  void selectWordEdge(SelectionChangedCause cause) {
-    assert(_lastTapDownPosition != null);
-    final position = getPositionForOffset(_lastTapDownPosition!);
-    final child = childAtPosition(position);
-    final nodeOffset = child.container.offset;
-    final localPosition = TextPosition(
-      offset: position.offset - nodeOffset,
-      affinity: position.affinity,
-    );
-    final localWord = child.getWordBoundary(localPosition);
-    final word = TextRange(
-      start: localWord.start + nodeOffset,
-      end: localWord.end + nodeOffset,
-    );
-
-    if (position.offset - word.start <= 1) {
-      _handleSelectionChange(
-        TextSelection.collapsed(offset: word.start),
-        cause,
-      );
-    } else {
-      _handleSelectionChange(
-        TextSelection.collapsed(
-          offset: word.end,
-          affinity: TextAffinity.upstream,
-        ),
-        cause,
-      );
-    }
-  }
-
-  @override
-  TextSelection? selectPositionAt({
-    required Offset from,
-    required SelectionChangedCause cause,
-    Offset? to,
-  }) {
-    final fromPosition = getPositionForOffset(from);
-    final toPosition = to == null ? null : getPositionForOffset(to);
-
-    var baseOffset = fromPosition.offset;
-    var extentOffset = fromPosition.offset;
-    if (toPosition != null) {
-      baseOffset = math.min(fromPosition.offset, toPosition.offset);
-      extentOffset = math.max(fromPosition.offset, toPosition.offset);
-    }
-
-    final newSelection = TextSelection(
-      baseOffset: baseOffset,
-      extentOffset: extentOffset,
-      affinity: fromPosition.affinity,
-    );
-
-    // Call [onSelectionChanged] only when the selection actually changed.
-    _handleSelectionChange(newSelection, cause);
-    return newSelection;
-  }
-
-  @override
-  void selectWord(SelectionChangedCause cause) {
-    selectWordsInRange(
-      _lastTapDownPosition!,
-      null,
-      cause,
-    );
-  }
-
-  @override
-  void selectPosition({required SelectionChangedCause cause}) {
-    selectPositionAt(
-      from: _lastTapDownPosition!,
-      cause: cause,
-    );
-  }
-
-  @override
-  TextSelection selectWordAtPosition(TextPosition position) {
-    final word = getWordBoundary(position);
-
-    // When long-pressing past the end of the text, we want a collapsed cursor.
-    if (position.offset >= word.end) {
-      return TextSelection.fromPosition(position);
-    }
-
-    return TextSelection(
-      baseOffset: word.start,
-      extentOffset: word.end,
-    );
-  }
-
-  @override
-  TextSelection selectLineAtPosition(TextPosition position) {
-    final line = getLineAtOffset(position);
-
-    // When long-pressing past the end of the text, we want a collapsed cursor.
-    if (position.offset >= line.end) {
-      return TextSelection.fromPosition(position);
-    }
-
-    return TextSelection(
-      baseOffset: line.start,
-      extentOffset: line.end,
-    );
   }
 
   @override
@@ -496,6 +309,7 @@ class RenderEditor extends RenderEditableContainerBox
         )
       ]);
     }());
+
     assert(() {
       if (constraints.hasBoundedWidth) return true;
       throw FlutterError.fromParts(<DiagnosticsNode>[
@@ -517,23 +331,29 @@ class RenderEditor extends RenderEditableContainerBox
 
     var mainAxisExtent = resolvedPadding!.top;
     var child = firstChild;
+
     final innerConstraints = BoxConstraints.tightFor(
       width: math.min(
         _maxContentWidth ?? double.infinity,
         constraints.maxWidth,
       ),
     ).deflate(resolvedPadding!);
+
     final leftOffset = _maxContentWidth == null
         ? 0.0
         : math.max((constraints.maxWidth - _maxContentWidth!) / 2, 0);
+
     while (child != null) {
       child.layout(innerConstraints, parentUsesSize: true);
       final childParentData = child.parentData as EditableContainerParentData
         ..offset = Offset(resolvedPadding!.left + leftOffset, mainAxisExtent);
       mainAxisExtent += child.size.height;
+
       assert(child.parentData == childParentData);
+
       child = childParentData.nextSibling;
     }
+
     mainAxisExtent += resolvedPadding!.bottom;
     size = constraints.constrain(Size(constraints.maxWidth, mainAxisExtent));
 
@@ -542,18 +362,22 @@ class RenderEditor extends RenderEditableContainerBox
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    if (_hasFocus &&
-        _cursorController.show.value &&
-        !_cursorController.style.paintAboveText) {
+    if (hasFocus &&
+        cursorController.show.value &&
+        !cursorController.style.paintAboveText) {
       _paintFloatingCursor(context, offset);
     }
+
     defaultPaint(context, offset);
     _updateSelectionExtentsVisibility(offset + _paintOffset);
-    _paintHandleLayers(context, getEndpointsForSelection(selection));
+    _paintHandleLayers(
+      context,
+      _selectionActionsUtils.getEndpointsForSelection(selection, this),
+    );
 
-    if (_hasFocus &&
-        _cursorController.show.value &&
-        _cursorController.style.paintAboveText) {
+    if (hasFocus &&
+        cursorController.show.value &&
+        cursorController.style.paintAboveText) {
       _paintFloatingCursor(context, offset);
     }
   }
@@ -573,10 +397,11 @@ class RenderEditor extends RenderEditableContainerBox
       startPoint.dy.clamp(0.0, size.height),
     );
     context.pushLayer(
-      LeaderLayer(link: _startHandleLayerLink, offset: startPoint),
+      LeaderLayer(link: startHandleLayerLink, offset: startPoint),
       super.paint,
       Offset.zero,
     );
+
     if (endpoints.length == 2) {
       var endPoint = endpoints[1].point;
       endPoint = Offset(
@@ -584,33 +409,11 @@ class RenderEditor extends RenderEditableContainerBox
         endPoint.dy.clamp(0.0, size.height),
       );
       context.pushLayer(
-        LeaderLayer(link: _endHandleLayerLink, offset: endPoint),
+        LeaderLayer(link: endHandleLayerLink, offset: endPoint),
         super.paint,
         Offset.zero,
       );
     }
-  }
-
-  @override
-  double preferredLineHeight(TextPosition position) {
-    final child = childAtPosition(position);
-    return child.preferredLineHeight(
-      TextPosition(offset: position.offset - child.container.offset),
-    );
-  }
-
-  @override
-  TextPosition getPositionForOffset(Offset offset) {
-    final local = globalToLocal(offset);
-    final child = childAtOffset(local);
-
-    final parentData = child.parentData as BoxParentData;
-    final localOffset = local - parentData.offset;
-    final localPosition = child.getPositionForOffset(localOffset);
-    return TextPosition(
-      offset: localPosition.offset + child.container.offset,
-      affinity: localPosition.affinity,
-    );
   }
 
   // Returns the y-offset of the editor at which selection is visible.
@@ -631,10 +434,14 @@ class RenderEditor extends RenderEditableContainerBox
     // Endpoints coordinates represents lower left or lower right corner of the selection.
     // If we want to scroll up to reveal the caret we need to adjust the dy value by the height of the line.
     // We also add a small margin so that the caret is not too close to the edge of the viewport.
-    final endpoints = getEndpointsForSelection(selection);
+    final endpoints = _selectionActionsUtils.getEndpointsForSelection(
+      selection,
+      this,
+    );
 
     // When we drag the right handle, we should get the last point
     TextSelectionPoint endpoint;
+
     if (selection.isCollapsed) {
       endpoint = endpoints.first;
     } else {
@@ -648,7 +455,7 @@ class RenderEditor extends RenderEditableContainerBox
     }
 
     // Collapsed selection => caret
-    final child = childAtPosition(selection.extent);
+    final child = _editorRendererUtils.childAtPosition(selection.extent, this);
     const kMargin = 8.0;
 
     final caretTop = endpoint.point.dy -
@@ -676,267 +483,19 @@ class RenderEditor extends RenderEditableContainerBox
     return math.max(dy, 0);
   }
 
-  @override
-  Rect getLocalRectForCaret(TextPosition position) {
-    final targetChild = childAtPosition(position);
-    final localPosition = targetChild.globalToLocalPosition(position);
-
-    final childLocalRect = targetChild.getLocalRectForCaret(localPosition);
-
-    final boxParentData = targetChild.parentData as BoxParentData;
-    return childLocalRect.shift(Offset(0, boxParentData.offset.dy));
-  }
-
   // === FLOATING CURSOR ===
 
   FloatingCursorPainter get _floatingCursorPainter => FloatingCursorPainter(
-        floatingCursorRect: _floatingCursorRect,
-        style: _cursorController.style,
+        floatingCursorRect: floatingCursorRect,
+        style: cursorController.style,
       );
 
-  bool _floatingCursorOn = false;
-  Rect? _floatingCursorRect;
+  Rect? floatingCursorRect;
 
-  TextPosition get floatingCursorTextPosition => _floatingCursorTextPosition;
-  late TextPosition _floatingCursorTextPosition;
-
-  // The relative origin in relation to the distance the user has theoretically dragged the floating cursor offscreen.
-  // This value is used to account for the difference in the rendering position and the raw offset value.
-  Offset _relativeOrigin = Offset.zero;
-  Offset? _previousOffset;
-  bool _resetOriginOnLeft = false;
-  bool _resetOriginOnRight = false;
-  bool _resetOriginOnTop = false;
-  bool _resetOriginOnBottom = false;
-
-  // Returns the position within the editor closest to the raw cursor offset.
-  Offset calculateBoundedFloatingCursorOffset(
-    Offset rawCursorOffset,
-    double preferredLineHeight,
-  ) {
-    var deltaPosition = Offset.zero;
-    final topBound = kFloatingCursorAddedMargin.top;
-    final bottomBound =
-        size.height - preferredLineHeight + kFloatingCursorAddedMargin.bottom;
-    final leftBound = kFloatingCursorAddedMargin.left;
-    final rightBound = size.width - kFloatingCursorAddedMargin.right;
-
-    if (_previousOffset != null) {
-      deltaPosition = rawCursorOffset - _previousOffset!;
-    }
-
-    // If the raw cursor offset has gone off an edge,
-    // we want to reset the relative origin of
-    // the dragging when the user drags back into the field.
-    if (_resetOriginOnLeft && deltaPosition.dx > 0) {
-      _relativeOrigin = Offset(
-        rawCursorOffset.dx - leftBound,
-        _relativeOrigin.dy,
-      );
-      _resetOriginOnLeft = false;
-    } else if (_resetOriginOnRight && deltaPosition.dx < 0) {
-      _relativeOrigin = Offset(
-        rawCursorOffset.dx - rightBound,
-        _relativeOrigin.dy,
-      );
-      _resetOriginOnRight = false;
-    }
-    if (_resetOriginOnTop && deltaPosition.dy > 0) {
-      _relativeOrigin = Offset(
-        _relativeOrigin.dx,
-        rawCursorOffset.dy - topBound,
-      );
-      _resetOriginOnTop = false;
-    } else if (_resetOriginOnBottom && deltaPosition.dy < 0) {
-      _relativeOrigin = Offset(
-        _relativeOrigin.dx,
-        rawCursorOffset.dy - bottomBound,
-      );
-      _resetOriginOnBottom = false;
-    }
-
-    final currentX = rawCursorOffset.dx - _relativeOrigin.dx;
-    final currentY = rawCursorOffset.dy - _relativeOrigin.dy;
-    final double adjustedX = math.min(
-      math.max(currentX, leftBound),
-      rightBound,
-    );
-    final double adjustedY = math.min(
-      math.max(currentY, topBound),
-      bottomBound,
-    );
-    final adjustedOffset = Offset(adjustedX, adjustedY);
-
-    if (currentX < leftBound && deltaPosition.dx < 0) {
-      _resetOriginOnLeft = true;
-    } else if (currentX > rightBound && deltaPosition.dx > 0) {
-      _resetOriginOnRight = true;
-    }
-    if (currentY < topBound && deltaPosition.dy < 0) {
-      _resetOriginOnTop = true;
-    } else if (currentY > bottomBound && deltaPosition.dy > 0) {
-      _resetOriginOnBottom = true;
-    }
-
-    _previousOffset = rawCursorOffset;
-
-    return adjustedOffset;
-  }
-
-  @override
-  void setFloatingCursor(
-    FloatingCursorDragState dragState,
-    Offset boundedOffset,
-    TextPosition textPosition, {
-    double? resetLerpValue,
-  }) {
-    if (floatingCursorDisabled) return;
-
-    if (dragState == FloatingCursorDragState.Start) {
-      _relativeOrigin = Offset.zero;
-      _previousOffset = null;
-      _resetOriginOnBottom = false;
-      _resetOriginOnTop = false;
-      _resetOriginOnRight = false;
-      _resetOriginOnBottom = false;
-    }
-    _floatingCursorOn = dragState != FloatingCursorDragState.End;
-    if (_floatingCursorOn) {
-      _floatingCursorTextPosition = textPosition;
-      final sizeAdjustment = resetLerpValue != null
-          ? EdgeInsets.lerp(
-              kFloatingCaretSizeIncrease,
-              EdgeInsets.zero,
-              resetLerpValue,
-            )!
-          : kFloatingCaretSizeIncrease;
-      final child = childAtPosition(textPosition);
-      final caretPrototype = child.getCaretPrototype(
-        child.globalToLocalPosition(textPosition),
-      );
-      _floatingCursorRect = sizeAdjustment
-          .inflateRect(
-            caretPrototype,
-          )
-          .shift(boundedOffset);
-      _cursorController.setFloatingCursorTextPosition(
-        _floatingCursorTextPosition,
-      );
-    } else {
-      _floatingCursorRect = null;
-      _cursorController.setFloatingCursorTextPosition(null);
-    }
-  }
+  late TextPosition floatingCursorTextPosition;
 
   void _paintFloatingCursor(PaintingContext context, Offset offset) {
     _floatingCursorPainter.paint(context.canvas);
-  }
-
-  // ==== TEXT LAYOUT METRICS ===
-
-  // Return a TextSelection containing the line of the given TextPosition.
-  @override
-  TextSelection getLineAtOffset(TextPosition position) {
-    final child = childAtPosition(position);
-    final nodeOffset = child.container.offset;
-    final localPosition = TextPosition(
-      offset: position.offset - nodeOffset,
-      affinity: position.affinity,
-    );
-    final localLineRange = child.getLineBoundary(localPosition);
-    final line = TextRange(
-      start: localLineRange.start + nodeOffset,
-      end: localLineRange.end + nodeOffset,
-    );
-    return TextSelection(baseOffset: line.start, extentOffset: line.end);
-  }
-
-  @override
-  TextRange getWordBoundary(TextPosition position) {
-    final child = childAtPosition(position);
-    final nodeOffset = child.container.offset;
-    final localPosition = TextPosition(
-      offset: position.offset - nodeOffset,
-      affinity: position.affinity,
-    );
-    final localWord = child.getWordBoundary(localPosition);
-
-    return TextRange(
-      start: localWord.start + nodeOffset,
-      end: localWord.end + nodeOffset,
-    );
-  }
-
-  // Returns the TextPosition above the given offset into the text.
-  // If the offset is already on the first line, the offset of the first character will be returned.
-  @override
-  TextPosition getTextPositionAbove(TextPosition position) {
-    final child = childAtPosition(position);
-    final localPosition = TextPosition(
-      offset: position.offset - child.container.documentOffset,
-    );
-
-    var newPosition = child.getPositionAbove(localPosition);
-
-    if (newPosition == null) {
-      // There was no text above in the current child, check the direct sibling.
-      final sibling = childBefore(child);
-
-      if (sibling == null) {
-        // Reached beginning of the document, move to the first character
-        newPosition = const TextPosition(offset: 0);
-      } else {
-        final caretOffset = child.getOffsetForCaret(localPosition);
-        final testPosition = TextPosition(offset: sibling.container.length - 1);
-        final testOffset = sibling.getOffsetForCaret(testPosition);
-        final finalOffset = Offset(caretOffset.dx, testOffset.dy);
-        final siblingPosition = sibling.getPositionForOffset(finalOffset);
-        newPosition = TextPosition(
-          offset: sibling.container.documentOffset + siblingPosition.offset,
-        );
-      }
-    } else {
-      newPosition = TextPosition(
-        offset: child.container.documentOffset + newPosition.offset,
-      );
-    }
-    return newPosition;
-  }
-
-  // Returns the TextPosition below the given offset into the text.
-  // If the offset is already on the last line, the offset of the last character will be returned.
-  @override
-  TextPosition getTextPositionBelow(TextPosition position) {
-    final child = childAtPosition(position);
-    final localPosition = TextPosition(
-      offset: position.offset - child.container.documentOffset,
-    );
-
-    var newPosition = child.getPositionBelow(localPosition);
-
-    if (newPosition == null) {
-      // There was no text above in the current child, check the direct sibling.
-      final sibling = childAfter(child);
-
-      if (sibling == null) {
-        // Reached beginning of the document, move to the last character
-        newPosition = TextPosition(offset: document.length - 1);
-      } else {
-        final caretOffset = child.getOffsetForCaret(localPosition);
-        const testPosition = TextPosition(offset: 0);
-        final testOffset = sibling.getOffsetForCaret(testPosition);
-        final finalOffset = Offset(caretOffset.dx, testOffset.dy);
-        final siblingPosition = sibling.getPositionForOffset(finalOffset);
-        newPosition = TextPosition(
-          offset: sibling.container.documentOffset + siblingPosition.offset,
-        );
-      }
-    } else {
-      newPosition = TextPosition(
-        offset: child.container.documentOffset + newPosition.offset,
-      );
-    }
-    return newPosition;
   }
 
   EditorVerticalCaretMovementRun startVerticalCaretMovement(
@@ -949,5 +508,27 @@ class RenderEditor extends RenderEditableContainerBox
   void systemFontsDidChange() {
     super.systemFontsDidChange();
     markNeedsLayout();
+  }
+
+  // === TEXT LAYOUT METRICS ===
+
+  @override
+  TextSelection getLineAtOffset(TextPosition position) {
+    return _textSelectionUtils.getLineAtOffset(position, this);
+  }
+
+  @override
+  TextRange getWordBoundary(TextPosition position) {
+    return _textSelectionUtils.getWordBoundary(position, this);
+  }
+
+  @override
+  TextPosition getTextPositionAbove(TextPosition position) {
+    return _textSelectionUtils.getTextPositionAbove(position, this);
+  }
+
+  @override
+  TextPosition getTextPositionBelow(TextPosition position) {
+    return _textSelectionUtils.getTextPositionBelow(position, this);
   }
 }

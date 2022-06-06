@@ -1,115 +1,88 @@
+import 'dart:math' as math;
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
-import '../../controller/services/editor-controller.dart';
-import '../../documents/models/document.dart';
-import '../../editor/models/editor-state.model.dart';
+import '../../controller/state/document.state.dart';
+import '../../documents/models/change-source.enum.dart';
+import '../../editor/services/clipboard.service.dart';
+import '../../editor/services/editor-renderer.utils.dart';
+import '../../editor/state/editor-config.state.dart';
 import '../../editor/widgets/editor-renderer.dart';
-import '../../editor/widgets/visual-editor.dart';
-import '../../highlights/models/highlight.model.dart';
+import '../../inputs/services/keyboard.service.dart';
 import '../../shared/utils/platform.utils.dart';
+import 'selection-actions.service.dart';
+import 'text-selection.utils.dart';
 
-// Implements sensible defaults for many user interactions with a VisualEditor.
 class TextSelectionService {
-  factory TextSelectionService() => _instance;
-  static final _instance = TextSelectionService._privateConstructor();
+  // +++ REMOVE STATIC
+  static final _selectionActionsService = SelectionActionsService();
+  static final _keyboardService = KeyboardService();
+  static final _editorConfigState = EditorConfigState();
+  static final _documentState = DocumentState();
+  final _clipboardService = ClipboardService();
+  final _editorRendererUtils = EditorRendererUtils();
+  final _textSelectionUtils = TextSelectionUtils();
 
-  TextSelectionService._privateConstructor();
+  // +++ STATE
+  Offset? lastTapDownPosition;
 
+  // +++ DEL
   // The delegate for this TextSelectionGesturesBuilder.
   // The delegate provides the builder with information about what actions can currently be performed on the textfield.
   // Based on this, the builder adds the correct gesture handlers to the gesture detector.
   // final TextSelectionGesturesBuilderDelegate delegate;
-  final List<HighlightM> _hoveredHighlights = [];
-  final List<HighlightM> _prevHoveredHighlights = [];
-  late VisualEditorState state;
-  late EditorController controller;
+  // late VisualEditorState state;
 
   // Whether to show the selection buttons.
   // It is based on the signal source when a onTapDown is called.
   // Will return true if current onTapDown event is triggered by a touch or a stylus.
   bool _shouldShowSelectionToolbar = true;
 
-  // The State of the VisualEditor for which the builder will provide a TextSelectionGestures.
-  EditorState? get editor => state.editableTextKey.currentState;
+  factory TextSelectionService() => _instance;
 
-  // The RenderObject of the VisualEditor for which the builder will provide a TextSelectionGestures.
-  RenderEditor? get renderEditor => editor?.renderEditor;
+  static final _instance = TextSelectionService._privateConstructor();
 
-  // TODO REMOVE +++ Temporary method until we can refactor the sharing of the controller and state
-  void initState({
-    required VisualEditorState state,
-    required EditorController controller,
-  }) {
-    this.state = state;
-    this.controller = controller;
+  TextSelectionService._privateConstructor();
+
+  bool selectAllEnabled() => _clipboardService.toolbarOptions().selectAll;
+
+  // +++ DEL
+  late Function(TextSelection textSelection, ChangeSource source)
+      _updateSelection;
+
+  // REMOVE +++ Temporary method until we can refactor the sharing of the controller and state
+  void setUpdateSelection(
+    Function(TextSelection textSelection, ChangeSource source) updateSelection,
+  ) {
+    _updateSelection = updateSelection;
   }
 
-  void onHover(PointerHoverEvent event) {
-    final position = renderEditor!.getPositionForOffset(event.position);
-
-    // Multiple overlapping highlights can be intersected at the same time.
-    // Intersecting all highlights avoid "burying" highlights and making
-    // them inaccessible.
-    // If you need only the highlight hovering highest on top, you'll need to
-    // implement custom logic on the client side to select the
-    // preferred highlight.
-    _hoveredHighlights.clear();
-
-    controller.highlights.forEach((highlight) {
-      final start = highlight.textSelection.start;
-      final end = highlight.textSelection.end;
-      final isHovered = start <= position.offset && position.offset <= end;
-      final wasHovered = _prevHoveredHighlights.contains(highlight);
-
-      if (isHovered) {
-        _hoveredHighlights.add(highlight);
-
-        if (!wasHovered && highlight.onEnter != null) {
-          highlight.onEnter!(highlight);
-
-          // Only once at enter to avoid performance issues
-          // Could be further improved if multiple highlights overlap
-          controller.hoveredHighlights.add(highlight);
-          // _controller.notifyListeners(); // +++ REVIEW
-        }
-
-        if (highlight.onHover != null) {
-          highlight.onHover!(highlight);
-        }
-      } else {
-        if (wasHovered && highlight.onLeave != null) {
-          highlight.onLeave!(highlight);
-
-          // Only once at exit to avoid performance issues
-          controller.hoveredHighlights.remove(highlight);
-          // _controller.notifyListeners(); // +++ REVIEW
-        }
-      }
-    });
-
-    _prevHoveredHighlights.clear();
-    _prevHoveredHighlights.addAll(_hoveredHighlights);
+  void updateSelection(TextSelection textSelection, ChangeSource source) {
+    _updateSelection(textSelection, source);
   }
 
-  // Handler for TextSelectionGestures.onTapDown.
+  // === HANDLERS ===
+
   // By default, it forwards the tap to RenderEditable.handleTapDown and sets shouldShowSelectionToolbar
   // to true if the tap was initiated by a finger or stylus.
-  // See also: TextSelectionGestures.onTapDown, which triggers this callback.
-  void onTapDown(TapDownDetails details) {
-    if (state.widget.config.onTapDown != null) {
-      if (renderEditor != null &&
-          state.widget.config.onTapDown!(
-            details,
-            renderEditor!.getPositionForOffset,
-          )) {
+  void onTapDown(TapDownDetails details, EditorRenderer editorRenderer) {
+    if (_editorConfigState.config.onTapDown != null) {
+      if (_editorConfigState.config.onTapDown!(
+        details,
+        (offset) => _editorRendererUtils.getPositionForOffset(
+          offset,
+          editorRenderer,
+        ),
+      )) {
         return;
       }
     }
 
-    renderEditor!.handleTapDown(details);
+    editorRenderer.handleTapDown(details);
+
     // The selection overlay should only be shown when the user is interacting
     // through a touch screen (via either a finger or a stylus).
     // A mouse shouldn't trigger the selection overlay.
@@ -120,264 +93,413 @@ class TextSelectionService {
         kind == PointerDeviceKind.stylus;
   }
 
-  // Handler for TextSelectionGestures.onForcePressStart.
   // By default, it selects the word at the position of the force press, if selection is enabled.
-  // This callback is only applicable when force press is enabled.
-  // See also: TextSelectionGestures.onForcePressStart, which triggers this callback.
-  void onForcePressStart(ForcePressDetails details) {
-    assert(state.forcePressEnabled);
-    if (!state.forcePressEnabled) {
+  void onForcePressStart(
+    ForcePressDetails details,
+    EditorRenderer editorRenderer,
+  ) {
+    assert(_editorConfigState.config.forcePressEnabled);
+
+    if (!_editorConfigState.config.forcePressEnabled) {
       return;
     }
 
     _shouldShowSelectionToolbar = true;
-    if (state.selectionEnabled) {
-      renderEditor!.selectWordsInRange(
+    if (_editorConfigState.config.enableInteractiveSelection) {
+      selectWordsInRange(
         details.globalPosition,
         null,
         SelectionChangedCause.forcePress,
+        editorRenderer,
       );
     }
 
-    if (state.selectionEnabled && _shouldShowSelectionToolbar) {
-      editor!.showToolbar();
+    if (_editorConfigState.config.enableInteractiveSelection &&
+        _shouldShowSelectionToolbar) {
+      _selectionActionsService.showToolbar();
     }
   }
 
-  // Handler for TextSelectionGestures.onForcePressEnd.
   // By default, it selects words in the range specified in details and shows buttons if it is necessary.
   // This callback is only applicable when force press is enabled.
-  // See also: TextSelectionGestures.onForcePressEnd, which triggers this callback.
-  void onForcePressEnd(ForcePressDetails details) {
+  void onForcePressEnd(
+    ForcePressDetails details,
+    EditorRenderer editorRenderer,
+  ) {
     // +++ REVIEW It appears that this feature was disabled in the original code.
     // No longer working. Maybe it can be restored.
+    //
     // assert(state.forcePressEnabled);
     // if (!state.forcePressEnabled) {
     //   return;
     // }
+    //
     // renderEditor!.selectWordsInRange(
     //   details.globalPosition,
     //   null,
     //   SelectionChangedCause.forcePress,
     // );
+    //
     // if (shouldShowSelectionToolbar) {
     //   editor!.showToolbar();
     // }
   }
 
-  // Handler for TextSelectionGestures.onSingleTapUp.
   // By default, it selects word edge if selection is enabled.
-  // See also: TextSelectionGestures.onSingleTapUp, which triggers this callback.
-  void onSingleTapUp(TapUpDetails details) {
-    if (state.widget.config.onTapUp != null &&
-        renderEditor != null &&
-        state.widget.config.onTapUp!(
+  void onSingleTapUp(
+    TapUpDetails details,
+    TargetPlatform platform,
+    EditorRenderer editorRenderer,
+  ) {
+    if (_editorConfigState.config.onTapUp != null &&
+        _editorConfigState.config.onTapUp!(
           details,
-          renderEditor!.getPositionForOffset,
+          (offset) => _editorRendererUtils.getPositionForOffset(
+            offset,
+            editorRenderer,
+          ),
         )) {
       return;
     }
 
-    _detectTapOnHighlight(details);
-
-    editor!.hideToolbar();
+    _selectionActionsService.hideToolbar();
 
     try {
-      if (state.selectionEnabled && !_isPositionSelected(details)) {
-        final _platform = Theme.of(state.context).platform;
-
-        if (isAppleOS(_platform)) {
+      if (_editorConfigState.config.enableInteractiveSelection &&
+          !_isPositionSelected(details, editorRenderer)) {
+        if (isAppleOS(platform)) {
           switch (details.kind) {
             case PointerDeviceKind.mouse:
+
             case PointerDeviceKind.stylus:
+
             case PointerDeviceKind.invertedStylus:
               // Precise devices should place the cursor at a precise position.
               // If `Shift` key is pressed then extend current selection instead.
-              if (isShiftClick(details.kind)) {
-                renderEditor!
+              if (_isShiftClick(details.kind)) {
+                editorRenderer
                   ..extendSelection(
                     details.globalPosition,
                     cause: SelectionChangedCause.tap,
                   )
                   ..onSelectionCompleted();
               } else {
-                renderEditor!
-                  ..selectPosition(
-                    cause: SelectionChangedCause.tap,
-                  )
-                  ..onSelectionCompleted();
+                selectPositionAt(
+                  from: lastTapDownPosition!,
+                  cause: SelectionChangedCause.tap,
+                  editorRenderer: editorRenderer,
+                );
+                editorRenderer.onSelectionCompleted();
               }
 
               break;
+
             case PointerDeviceKind.touch:
+
             case PointerDeviceKind.unknown:
               // On macOS/iOS/iPadOS a touch tap places the cursor at the edge of the word.
-              renderEditor!
-                ..selectWordEdge(SelectionChangedCause.tap)
-                ..onSelectionCompleted();
+              selectWordEdge(SelectionChangedCause.tap, editorRenderer);
+              editorRenderer.onSelectionCompleted();
               break;
+
             case PointerDeviceKind.trackpad:
-              // TODO: Handle this case.
+              // TODO Handle this case
               break;
           }
         } else {
-          renderEditor!
-            ..selectPosition(
-              cause: SelectionChangedCause.tap,
-            )
-            ..onSelectionCompleted();
+          selectPositionAt(
+            from: lastTapDownPosition!,
+            cause: SelectionChangedCause.tap,
+            editorRenderer: editorRenderer,
+          );
+
+          editorRenderer.onSelectionCompleted();
         }
       }
     } finally {
-      state.requestKeyboard();
+      _keyboardService.requestKeyboard();
     }
   }
 
-  // Handler for TextSelectionGestures.onSingleTapCancel.
   // By default, it services as place holder to enable subclass override.
-  // See also: TextSelectionGestures.onSingleTapCancel, which triggers this callback.
   void onSingleTapCancel() {
     // Subclass should override this method if needed.
   }
 
-  // Handler for TextSelectionGestures.onSingleLongTapStart.
   // By default, it selects text position specified in details if selection is enabled.
-  // See also: TextSelectionGestures.onSingleLongTapStart, which triggers this callback.
-  void onSingleLongTapStart(LongPressStartDetails details) {
-    if (state.widget.config.onSingleLongTapStart != null) {
-      if (renderEditor != null &&
-          state.widget.config.onSingleLongTapStart!(
-            details,
-            renderEditor!.getPositionForOffset,
-          )) {
+  void onSingleLongTapStart(
+    LongPressStartDetails details,
+    TargetPlatform platform,
+    BuildContext context,
+    EditorRenderer editorRenderer,
+  ) {
+    if (_editorConfigState.config.onSingleLongTapStart != null) {
+      if (_editorConfigState.config.onSingleLongTapStart!(
+        details,
+        (offset) => _editorRendererUtils.getPositionForOffset(
+          offset,
+          editorRenderer,
+        ),
+      )) {
         return;
       }
     }
 
-    if (state.selectionEnabled) {
-      final _platform = Theme.of(state.context).platform;
-
-      if (isAppleOS(_platform)) {
-        renderEditor!.selectPositionAt(
+    if (_editorConfigState.config.enableInteractiveSelection) {
+      if (isAppleOS(platform)) {
+        selectPositionAt(
           from: details.globalPosition,
           cause: SelectionChangedCause.longPress,
+          editorRenderer: editorRenderer,
         );
       } else {
-        renderEditor!.selectWord(SelectionChangedCause.longPress);
-        Feedback.forLongPress(state.context);
+        selectWordsInRange(
+          lastTapDownPosition!,
+          null,
+          SelectionChangedCause.longPress,
+          editorRenderer,
+        );
+        Feedback.forLongPress(context);
       }
     }
   }
 
-  // Handler for TextSelectionGestures.onSingleLongTapMoveUpdate
   // By default, it updates the selection location specified in details if selection is enabled.
-  // See also: TextSelectionGestures.onSingleLongTapMoveUpdate, which triggers this callback.
-  void onSingleLongTapMoveUpdate(LongPressMoveUpdateDetails details) {
-    if (state.widget.config.onSingleLongTapMoveUpdate != null) {
-      if (renderEditor != null &&
-          state.widget.config.onSingleLongTapMoveUpdate!(
-            details,
-            renderEditor!.getPositionForOffset,
-          )) {
+  void onSingleLongTapMoveUpdate(
+    LongPressMoveUpdateDetails details,
+    TargetPlatform platform,
+    EditorRenderer editorRenderer,
+  ) {
+    if (_editorConfigState.config.onSingleLongTapMoveUpdate != null) {
+      if (_editorConfigState.config.onSingleLongTapMoveUpdate!(
+        details,
+        (offset) => _editorRendererUtils.getPositionForOffset(
+          offset,
+          editorRenderer,
+        ),
+      )) {
         return;
       }
     }
 
-    if (!state.selectionEnabled) {
+    if (!_editorConfigState.config.enableInteractiveSelection) {
       return;
     }
 
-    final _platform = Theme.of(state.context).platform;
-
-    if (isAppleOS(_platform)) {
-      renderEditor!.selectPositionAt(
+    if (isAppleOS(platform)) {
+      selectPositionAt(
         from: details.globalPosition,
         cause: SelectionChangedCause.longPress,
+        editorRenderer: editorRenderer,
       );
     } else {
-      renderEditor!.selectWordsInRange(
+      selectWordsInRange(
         details.globalPosition - details.offsetFromOrigin,
         details.globalPosition,
         SelectionChangedCause.longPress,
+        editorRenderer,
       );
     }
   }
 
-  // Handler for TextSelectionGestures.onSingleLongTapEnd.
   // By default, it shows buttons if necessary.
-  // See also: TextSelectionGestures.onSingleLongTapEnd, which triggers this callback.
-  void onSingleLongTapEnd(LongPressEndDetails details) {
-    if (state.widget.config.onSingleLongTapEnd != null) {
-      if (renderEditor != null) {
-        if (state.widget.config.onSingleLongTapEnd!(
-          details,
-          renderEditor!.getPositionForOffset,
-        )) {
-          return;
-        }
+  void onSingleLongTapEnd(
+    LongPressEndDetails details,
+    EditorRenderer editorRenderer,
+  ) {
+    if (_editorConfigState.config.onSingleLongTapEnd != null) {
+      if (_editorConfigState.config.onSingleLongTapEnd!(
+        details,
+        (offset) => _editorRendererUtils.getPositionForOffset(
+          offset,
+          editorRenderer,
+        ),
+      )) {
+        return;
+      }
 
-        if (state.selectionEnabled) {
-          renderEditor!.onSelectionCompleted();
-        }
+      if (_editorConfigState.config.enableInteractiveSelection) {
+        editorRenderer.onSelectionCompleted();
       }
     }
 
     if (_shouldShowSelectionToolbar) {
-      editor!.showToolbar();
+      _selectionActionsService.showToolbar();
     }
   }
 
-  // Handler for TextSelectionGestures.onDoubleTapDown.
   // By default, it selects a word through RenderEditable.selectWord if  selectionEnabled and shows buttons if necessary.
-  // See also: TextSelectionGestures.onDoubleTapDown, which triggers this callback.
-  void onDoubleTapDown(TapDownDetails details) {
-    if (state.selectionEnabled) {
-      renderEditor!.selectWord(SelectionChangedCause.tap);
+  void onDoubleTapDown(
+    TapDownDetails details,
+    EditorRenderer editorRenderer,
+  ) {
+    if (_editorConfigState.config.enableInteractiveSelection) {
+      selectWordsInRange(
+        lastTapDownPosition!,
+        null,
+        SelectionChangedCause.tap,
+        editorRenderer,
+      );
 
       // Allow the selection to get updated before trying to bring up toolbars.
       // If double tap happens on an editor that doesn't have focus,
       // selection hasn't been set when the toolbars get added.
       SchedulerBinding.instance.addPostFrameCallback((_) {
         if (_shouldShowSelectionToolbar) {
-          editor!.showToolbar();
+          _selectionActionsService.showToolbar();
         }
       });
     }
   }
 
-  // Handler for TextSelectionGestures.onDragSelectionStart.
   // By default, it selects a text position specified in details.
-  // See also:  TextSelectionGestures.onDragSelectionStart, which triggers this callback.
-  void onDragSelectionStart(DragStartDetails details) {
-    renderEditor!.handleDragStart(details);
+  void onDragSelectionStart(
+    DragStartDetails details,
+    EditorRenderer editorRenderer,
+  ) {
+    editorRenderer.handleDragStart(details);
   }
 
-  // Handler for TextSelectionGestures.onDragSelectionUpdate.
   // By default, it updates the selection location specified in the provided details objects.
-  // See also: TextSelectionGestures.onDragSelectionUpdate, which triggers this callback.
   void onDragSelectionUpdate(
-      DragStartDetails startDetails, DragUpdateDetails updateDetails) {
-    renderEditor!.extendSelection(updateDetails.globalPosition,
-        cause: SelectionChangedCause.drag);
+    DragStartDetails startDetails,
+    DragUpdateDetails updateDetails,
+    EditorRenderer editorRenderer,
+  ) {
+    editorRenderer.extendSelection(
+      updateDetails.globalPosition,
+      cause: SelectionChangedCause.drag,
+    );
   }
 
-  // Handler for TextSelectionGestures.onDragSelectionEnd.
   // By default, it services as place holder to enable subclass override.
-  // See also: TextSelectionGestures.onDragSelectionEnd, which triggers this callback.
-  void onDragSelectionEnd(DragEndDetails details) {
-    renderEditor!.handleDragEnd(details);
+  void onDragSelectionEnd(
+    DragEndDetails details,
+    EditorRenderer editorRenderer,
+  ) {
+    editorRenderer.handleDragEnd(details);
   }
 
   // === UTILS ===
 
-  bool _isPositionSelected(TapUpDetails details) {
-    if (state.widget.controller.document.isEmpty()) {
+  // Selects the set words of a paragraph in a given range of global positions.
+  // The first and last endpoints of the selection will always be at the beginning and end of a word respectively.
+  void selectWordsInRange(
+    Offset from,
+    Offset? to,
+    SelectionChangedCause cause,
+    EditorRenderer editorRenderer,
+  ) {
+    final firstPosition =
+        _editorRendererUtils.getPositionForOffset(from, editorRenderer);
+    final firstWord = _textSelectionUtils.getWordAtPosition(
+      firstPosition,
+      editorRenderer,
+    );
+    final lastWord = to == null
+        ? firstWord
+        : _textSelectionUtils.getWordAtPosition(
+            _editorRendererUtils.getPositionForOffset(to, editorRenderer),
+            editorRenderer,
+          );
+
+    editorRenderer.handleSelectionChange(
+      TextSelection(
+        baseOffset: firstWord.base.offset,
+        extentOffset: lastWord.extent.offset,
+        affinity: firstWord.affinity,
+      ),
+      cause,
+    );
+  }
+
+  // Move the selection to the beginning or end of a word.
+  void selectWordEdge(
+    SelectionChangedCause cause,
+    EditorRenderer editorRenderer,
+  ) {
+    assert(lastTapDownPosition != null);
+
+    final position = _editorRendererUtils.getPositionForOffset(
+      lastTapDownPosition!,
+      editorRenderer,
+    );
+    final child =
+        _editorRendererUtils.childAtPosition(position, editorRenderer);
+    final nodeOffset = child.container.offset;
+    final localPosition = TextPosition(
+      offset: position.offset - nodeOffset,
+      affinity: position.affinity,
+    );
+    final localWord = child.getWordBoundary(localPosition);
+    final word = TextRange(
+      start: localWord.start + nodeOffset,
+      end: localWord.end + nodeOffset,
+    );
+
+    if (position.offset - word.start <= 1) {
+      editorRenderer.handleSelectionChange(
+        TextSelection.collapsed(offset: word.start),
+        cause,
+      );
+    } else {
+      editorRenderer.handleSelectionChange(
+        TextSelection.collapsed(
+          offset: word.end,
+          affinity: TextAffinity.upstream,
+        ),
+        cause,
+      );
+    }
+  }
+
+  // Returns the new selection.
+  // Note that the returned value may not be yet reflected in the latest widget state.
+  // Returns null if no change occurred.
+  TextSelection? selectPositionAt({
+    required Offset from,
+    required SelectionChangedCause cause,
+    required EditorRenderer editorRenderer,
+    Offset? to,
+  }) {
+    final fromPosition =
+        _editorRendererUtils.getPositionForOffset(from, editorRenderer);
+    final toPosition = to == null
+        ? null
+        : _editorRendererUtils.getPositionForOffset(to, editorRenderer);
+    var baseOffset = fromPosition.offset;
+    var extentOffset = fromPosition.offset;
+
+    if (toPosition != null) {
+      baseOffset = math.min(fromPosition.offset, toPosition.offset);
+      extentOffset = math.max(fromPosition.offset, toPosition.offset);
+    }
+
+    final newSelection = TextSelection(
+      baseOffset: baseOffset,
+      extentOffset: extentOffset,
+      affinity: fromPosition.affinity,
+    );
+
+    // Call [onSelectionChanged] only when the selection actually changed.
+    editorRenderer.handleSelectionChange(newSelection, cause);
+
+    return newSelection;
+  }
+
+  // === PRIVATE ===
+
+  bool _isPositionSelected(
+      TapUpDetails details, EditorRenderer editorRenderer) {
+    if (_documentState.document.isEmpty()) {
       return false;
     }
 
-    final pos = renderEditor!.getPositionForOffset(details.globalPosition);
-    final result =
-        editor!.widget.controller.document.querySegmentLeafNode(pos.offset);
+    final pos = _editorRendererUtils.getPositionForOffset(
+      details.globalPosition,
+      editorRenderer,
+    );
+    final result = _documentState.document.querySegmentLeafNode(pos.offset);
     final line = result.item1;
 
     if (line == null) {
@@ -387,33 +509,22 @@ class TextSelectionService {
     final segmentLeaf = result.item2;
 
     if (segmentLeaf == null && line.length == 1) {
-      editor!.widget.controller.updateSelection(
-          TextSelection.collapsed(offset: pos.offset), ChangeSource.LOCAL);
+      updateSelection(
+        TextSelection.collapsed(offset: pos.offset),
+        ChangeSource.LOCAL,
+      );
+
       return true;
     }
 
     return false;
   }
 
-  bool isShiftClick(PointerDeviceKind deviceKind) {
+  bool _isShiftClick(PointerDeviceKind deviceKind) {
     final pressed = RawKeyboard.instance.keysPressed;
     final shiftPressed = pressed.contains(LogicalKeyboardKey.shiftLeft) ||
         pressed.contains(LogicalKeyboardKey.shiftRight);
 
     return deviceKind == PointerDeviceKind.mouse && shiftPressed;
-  }
-
-  void _detectTapOnHighlight(TapUpDetails details) {
-    final position = renderEditor!.getPositionForOffset(details.globalPosition);
-
-    controller.highlights.forEach((highlight) {
-      final start = highlight.textSelection.start;
-      final end = highlight.textSelection.end;
-      final isTapped = start <= position.offset && position.offset <= end;
-
-      if (isTapped && highlight.onSingleTapUp != null) {
-        highlight.onSingleTapUp!(highlight);
-      }
-    });
   }
 }

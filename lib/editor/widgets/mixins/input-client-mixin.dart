@@ -5,12 +5,18 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
+import '../../../cursor/services/cursor.service.dart';
 import '../../../delta/services/delta.utils.dart';
-import '../../../documents/models/document.dart';
+import '../../../documents/models/change-source.enum.dart';
 import '../../../editor/models/editor-state.model.dart';
+import '../../services/editor-renderer.utils.dart';
+import '../../services/floating-cursor.service.dart';
 
-mixin RawEditorStateTextInputClientMixin on EditorState
-    implements TextInputClient {
+mixin InputClientMixin on EditorStateM implements TextInputClient {
+  final _editorRendererUtils = EditorRendererUtils();
+  final _cursorService = CursorService();
+  final _floatingCursorService = FloatingCursorService();
+
   TextInputConnection? _textInputConnection;
   TextEditingValue? _lastKnownRemoteTextEditingValue;
 
@@ -70,6 +76,7 @@ mixin RawEditorStateTextInputClientMixin on EditorState
     if (!hasConnection) {
       return;
     }
+
     _textInputConnection!.close();
     _textInputConnection = null;
     _lastKnownRemoteTextEditingValue = null;
@@ -139,6 +146,7 @@ mixin RawEditorStateTextInputClientMixin on EditorState
     final text = value.text;
     final cursorPosition = value.selection.extentOffset;
     final diff = getDiff(oldText, text, cursorPosition);
+
     if (diff.deleted.isEmpty && diff.inserted.isEmpty) {
       widget.controller.updateSelection(value.selection, ChangeSource.LOCAL);
     } else {
@@ -176,8 +184,14 @@ mixin RawEditorStateTextInputClientMixin on EditorState
   // Because the center of the cursor is preferredLineHeight / 2 below the touch origin,
   // but the touch origin is used to determine which line the cursor is on,
   // we need this offset to correctly render and move the cursor.
-  Offset _floatingCursorOffset(TextPosition textPosition) =>
-      Offset(0, renderEditor.preferredLineHeight(textPosition) / 2);
+  Offset _floatingCursorOffset(TextPosition textPosition) => Offset(
+        0,
+        _editorRendererUtils.preferredLineHeight(
+              textPosition,
+              renderEditor,
+            ) /
+            2,
+      );
 
   @override
   void updateFloatingCursor(RawFloatingCursorPoint point) {
@@ -187,25 +201,30 @@ mixin RawEditorStateTextInputClientMixin on EditorState
           floatingCursorResetController.stop();
           onFloatingCursorResetTick();
         }
+
         // We want to send in points that are centered around a (0,0) origin, so we cache the position.
         _pointOffsetOrigin = point.offset;
 
         final currentTextPosition = TextPosition(
           offset: renderEditor.selection.baseOffset,
         );
-        _startCaretRect = renderEditor.getLocalRectForCaret(
+        _startCaretRect = _cursorService.getLocalRectForCaret(
           currentTextPosition,
+          renderEditor,
         );
 
         _lastBoundedOffset = _startCaretRect!.center -
             _floatingCursorOffset(currentTextPosition);
         _lastTextPosition = currentTextPosition;
-        renderEditor.setFloatingCursor(
+
+        _floatingCursorService.setFloatingCursor(
           point.state,
           _lastBoundedOffset!,
           _lastTextPosition!,
+          renderEditor,
         );
         break;
+
       case FloatingCursorDragState.Update:
         assert(_lastTextPosition != null, 'Last text position was not set');
         final floatingCursorOffset = _floatingCursorOffset(_lastTextPosition!);
@@ -213,31 +232,52 @@ mixin RawEditorStateTextInputClientMixin on EditorState
         final rawCursorOffset =
             _startCaretRect!.center + centeredPoint - floatingCursorOffset;
 
-        final preferredLineHeight =
-            renderEditor.preferredLineHeight(_lastTextPosition!);
-        _lastBoundedOffset = renderEditor.calculateBoundedFloatingCursorOffset(
+        final preferredLineHeight = _editorRendererUtils.preferredLineHeight(
+          _lastTextPosition!,
+          renderEditor,
+        );
+        _lastBoundedOffset =
+            _floatingCursorService.calculateBoundedFloatingCursorOffset(
           rawCursorOffset,
           preferredLineHeight,
+          renderEditor,
         );
-        _lastTextPosition = renderEditor.getPositionForOffset(renderEditor
-            .localToGlobal(_lastBoundedOffset! + floatingCursorOffset));
-        renderEditor.setFloatingCursor(
-            point.state, _lastBoundedOffset!, _lastTextPosition!);
+        _lastTextPosition = _editorRendererUtils.getPositionForOffset(
+          renderEditor.localToGlobal(
+            _lastBoundedOffset! + floatingCursorOffset,
+          ),
+          renderEditor,
+        );
+        _floatingCursorService.setFloatingCursor(
+          point.state,
+          _lastBoundedOffset!,
+          _lastTextPosition!,
+          renderEditor,
+        );
+
         final newSelection = TextSelection.collapsed(
-            offset: _lastTextPosition!.offset,
-            affinity: _lastTextPosition!.affinity);
+          offset: _lastTextPosition!.offset,
+          affinity: _lastTextPosition!.affinity,
+        );
+
         // Setting selection as floating cursor moves will have scroll view
         // bring background cursor into view
         renderEditor.onSelectionChanged(
-            newSelection, SelectionChangedCause.forcePress);
+          newSelection,
+          SelectionChangedCause.forcePress,
+        );
         break;
+
       case FloatingCursorDragState.End:
         // We skip animation if no update has happened.
         if (_lastTextPosition != null && _lastBoundedOffset != null) {
           floatingCursorResetController
             ..value = 0.0
-            ..animateTo(1,
-                duration: _floatingCursorResetTime, curve: Curves.decelerate);
+            ..animateTo(
+              1,
+              duration: _floatingCursorResetTime,
+              curve: Curves.decelerate,
+            );
         }
         break;
     }
@@ -247,26 +287,42 @@ mixin RawEditorStateTextInputClientMixin on EditorState
   // The floating cursor is resized (see [RenderAbstractEditor.setFloatingCursor]) and repositioned
   // (linear interpolation between position of floating cursor and current position of background cursor)
   void onFloatingCursorResetTick() {
-    final finalPosition =
-        renderEditor.getLocalRectForCaret(_lastTextPosition!).centerLeft -
-            _floatingCursorOffset(_lastTextPosition!);
+    final finalPosition = _cursorService
+            .getLocalRectForCaret(_lastTextPosition!, renderEditor)
+            .centerLeft -
+        _floatingCursorOffset(_lastTextPosition!);
+
     if (floatingCursorResetController.isCompleted) {
-      renderEditor.setFloatingCursor(
-          FloatingCursorDragState.End, finalPosition, _lastTextPosition!);
+      _floatingCursorService.setFloatingCursor(
+        FloatingCursorDragState.End,
+        finalPosition,
+        _lastTextPosition!,
+        renderEditor,
+      );
       _startCaretRect = null;
       _lastTextPosition = null;
       _pointOffsetOrigin = null;
       _lastBoundedOffset = null;
     } else {
       final lerpValue = floatingCursorResetController.value;
-      final lerpX =
-          lerpDouble(_lastBoundedOffset!.dx, finalPosition.dx, lerpValue)!;
-      final lerpY =
-          lerpDouble(_lastBoundedOffset!.dy, finalPosition.dy, lerpValue)!;
+      final lerpX = lerpDouble(
+        _lastBoundedOffset!.dx,
+        finalPosition.dx,
+        lerpValue,
+      )!;
+      final lerpY = lerpDouble(
+        _lastBoundedOffset!.dy,
+        finalPosition.dy,
+        lerpValue,
+      )!;
 
-      renderEditor.setFloatingCursor(FloatingCursorDragState.Update,
-          Offset(lerpX, lerpY), _lastTextPosition!,
-          resetLerpValue: lerpValue);
+      _floatingCursorService.setFloatingCursor(
+        FloatingCursorDragState.Update,
+        Offset(lerpX, lerpY),
+        _lastTextPosition!,
+        renderEditor,
+        resetLerpValue: lerpValue,
+      );
     }
   }
 
@@ -280,6 +336,7 @@ mixin RawEditorStateTextInputClientMixin on EditorState
     if (!hasConnection) {
       return;
     }
+
     _textInputConnection!.connectionClosedReceived();
     _textInputConnection = null;
     _lastKnownRemoteTextEditingValue = null;
@@ -293,6 +350,7 @@ mixin RawEditorStateTextInputClientMixin on EditorState
         if (!mounted) {
           return;
         }
+
         final size = renderEditor.size;
         final transform = renderEditor.getTransformTo(null);
         _textInputConnection?.setEditableSizeAndTransform(size, transform);

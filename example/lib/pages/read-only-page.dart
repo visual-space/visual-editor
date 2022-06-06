@@ -34,10 +34,8 @@ class _ReadOnlyPageState extends State<ReadOnlyPage> {
       scrollController: ScrollController(),
       focusNode: _focusNode,
       config: EditorCfgM(
-        scrollable: true,
         autoFocus: true,
         readOnly: !_edit,
-        padding: EdgeInsets.zero,
       ),
     );
     if (kIsWeb) {
@@ -46,10 +44,8 @@ class _ReadOnlyPageState extends State<ReadOnlyPage> {
         scrollController: ScrollController(),
         focusNode: _focusNode,
         config: EditorCfgM(
-          scrollable: true,
           autoFocus: true,
           readOnly: !_edit,
-          padding: EdgeInsets.zero,
           embedBuilder: defaultEmbedBuilderWeb,
         ),
       );

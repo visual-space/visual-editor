@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 
 import '../../services/vertical-caret-movement-run.dart';
+import '../../state/editor-config.state.dart';
 import '../../widgets/raw-editor.dart';
 
 // +++ DOC
 class UpdateTextSelectionToAdjacentLineAction<
     T extends DirectionalCaretMovementIntent> extends ContextAction<T> {
-  UpdateTextSelectionToAdjacentLineAction(this.state);
+  final _editorConfigState = EditorConfigState();
 
   final RawEditorState state;
+
+  UpdateTextSelectionToAdjacentLineAction(this.state);
 
   EditorVerticalCaretMovementRun? _verticalMovementRun;
   TextSelection? _runSelection;
@@ -38,8 +41,8 @@ class UpdateTextSelectionToAdjacentLineAction<
   void invoke(T intent, [BuildContext? context]) {
     assert(state.textEditingValue.selection.isValid);
 
-    final collapseSelection =
-        intent.collapseSelection || !state.widget.selectionEnabled;
+    final collapseSelection = intent.collapseSelection ||
+        !_editorConfigState.config.enableInteractiveSelection;
     final value = state.textEditingValue;
 
     if (!value.selection.isValid) {

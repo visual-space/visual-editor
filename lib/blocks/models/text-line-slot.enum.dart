@@ -1,0 +1,4 @@
+enum TextLineSlot {
+  LEADING,
+  BODY,
+}

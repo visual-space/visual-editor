@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../state/editor-config.state.dart';
 import '../../widgets/raw-editor.dart';
 
 // +++ DOC
 class SelectAllAction extends ContextAction<SelectAllTextIntent> {
+  final _editorConfigState = EditorConfigState();
+
   SelectAllAction(this.state);
 
   final RawEditorState state;
@@ -24,5 +27,6 @@ class SelectAllAction extends ContextAction<SelectAllTextIntent> {
   }
 
   @override
-  bool get isActionEnabled => state.widget.selectionEnabled;
+  bool get isActionEnabled =>
+      _editorConfigState.config.enableInteractiveSelection;
 }

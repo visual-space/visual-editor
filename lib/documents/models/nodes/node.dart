@@ -4,13 +4,13 @@ import '../../../delta/models/delta.model.dart';
 import '../attribute.dart';
 import '../style.dart';
 import 'container.dart';
-import 'line.dart';
+import 'root.dart';
 
 // An abstract node in a document tree.
 // Represents a segment of a Visual Editor document with specified offset and length.
-// The offset property is relative to parent. 
+// The offset property is relative to parent.
 // See also documentOffset which provides absolute offset of this node within the document.
-// The current parent node is exposed by the parent property. 
+// The current parent node is exposed by the parent property.
 // A node is considered mounted when the parent property is not `null`.
 abstract class Node extends LinkedListEntry<Node> {
   // Current parent of this node. May be null if this node is not mounted.
@@ -95,7 +95,9 @@ abstract class Node extends LinkedListEntry<Node> {
     super.unlink();
   }
 
-  void adjust() {/* no-op */}
+  void adjust() {
+    /* no-op */
+  }
 
   // === ABSTRACT METHODS ===
 
@@ -110,18 +112,4 @@ abstract class Node extends LinkedListEntry<Node> {
   void retain(int index, int? len, Style? style);
 
   void delete(int index, int? len);
-}
-
-// Root node of document tree.
-class Root extends Container<Container<Node?>> {
-  @override
-  Node newInstance() => Root();
-
-  @override
-  Container<Node?> get defaultChild => Line();
-
-  @override
-  DeltaM toDelta() => children
-      .map((child) => child.toDelta())
-      .fold(DeltaM(), (a, b) => a.concat(b));
 }

@@ -7,6 +7,8 @@
 * Moved all legacy files in /core to prepare for new modules
 * Renamed to Visual Editor
 * Bumped to Flutter 3.0.0
+* Refactored EditorTextSelectionGestureDetectorBuilder to TextSelectionGesturesBuilder.
+* Simplified architecture for the TextSelectionGestures widget.
 
 ## [0.0.2]
 * Custom highlights

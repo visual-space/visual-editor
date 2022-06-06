@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../services/pressed-keys-state.dart';
+import '../state/pressed-keys-state.dart';
 import 'keyboard-listener-provider.dart';
 
 // Wraps the editor and connects it to the hardware keyboard.

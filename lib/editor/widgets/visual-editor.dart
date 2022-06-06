@@ -3,14 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:i18n_extension/i18n_widget.dart';
 
 import '../../controller/services/editor-controller.dart';
+import '../../controller/state/editor-controller.state.dart';
+import '../../controller/state/scroll-controller.state.dart';
+import '../../highlights/services/highlights.service.dart';
 import '../../selection/models/gesture-detector-builder-delegate.model.dart';
-import '../../selection/services/text-selection.service.dart';
-import '../../selection/widgets/text-selection-gestures.dart';
+import '../../selection/widgets/text-gestures.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../models/editor-cfg.model.dart';
 import '../models/editor-state.model.dart';
 import '../models/platform-dependent-styles-config.model.dart';
+import '../services/clipboard.service.dart';
 import '../services/styles.utils.dart';
+import '../state/editor-config.state.dart';
 import 'raw-editor.dart';
 
 // This is the main class of the Visual Editor.
@@ -24,8 +28,8 @@ import 'raw-editor.dart';
 // All the styles of the editor can be overridden using custom styles.
 //
 // Custom embeds
-// Besides the existing styled text options the editor can also render custom embeds such as video players or whatever
-// else the client apps desire to render in the documents.
+// Besides the existing styled text options the editor can also render custom embeds such as video players
+// or whatever else the client apps desire to render in the documents.
 // Any kind of widget can be provided to be displayed in the middle of the document text.
 //
 // Callbacks
@@ -48,25 +52,24 @@ import 'raw-editor.dart';
 // The VisualEditor class implements TextSelectionGesturesBuilderDelegate.
 // This base class is used to separate the features related to gesture detection and gives the opportunity to override them.
 class VisualEditor extends StatefulWidget {
-  // Controller object which establishes a link between a rich text document and this editor.
+  final _editorControllerState = EditorControllerState();
+  final _scrollControllerState = ScrollControllerState();
+
   final EditorController controller;
-
-  // Controls whether this editor has keyboard focus.
   final FocusNode focusNode;
-
-  // Take control over the scroll of the Visual Editor when rendering in scrollable mode.
   final ScrollController scrollController;
-
   final EditorCfgM config;
 
-  // Customize any of the settings available in VisualEditor
-  const VisualEditor({
+  VisualEditor({
     required this.controller,
     required this.focusNode,
     required this.scrollController,
     required this.config,
     Key? key,
-  }) : super(key: key);
+  }) : super(key: key) {
+    _editorControllerState.setController(controller);
+    _scrollControllerState.setController(scrollController);
+  }
 
   // Quickly a basic Visual Editor using a basic configuration
   factory VisualEditor.basic({
@@ -79,10 +82,8 @@ class VisualEditor extends StatefulWidget {
         scrollController: ScrollController(),
         focusNode: FocusNode(),
         config: EditorCfgM(
-          scrollable: true,
           autoFocus: true,
           readOnly: readOnly,
-          padding: EdgeInsets.zero,
           keyboardAppearance: keyboardAppearance ?? Brightness.light,
         ),
       );
@@ -93,15 +94,19 @@ class VisualEditor extends StatefulWidget {
 
 class VisualEditorState extends State<VisualEditor>
     implements TextSelectionGesturesBuilderDelegateM {
-  final _textSelectionService = TextSelectionService();
-
+  final _highlightsService = HighlightsService();
+  final _clipboardService = ClipboardService();
+  final _editorConfigState = EditorConfigState();
   final _stylesUtils = StylesUtils();
-  final GlobalKey<EditorState> _editorKey = GlobalKey<EditorState>();
+
+  final _editorKey = GlobalKey<EditorStateM>();
+  final _editorRendererKey = GlobalKey<EditorStateM>();
 
   @override
   void initState() {
     super.initState();
     _setupTextSelectionServiceState();
+    _editorConfigState.setEditorConfig(widget.config);
   }
 
   @override
@@ -114,7 +119,7 @@ class VisualEditorState extends State<VisualEditor>
         : _stylesUtils.getOtherOsStyles(selectionTheme, theme);
 
     final editor = _i18n(
-      child: _textSelectionGestures(
+      child: _textGestures(
         child: _editor(
           theme: theme,
           platformStyles: platformStyles,
@@ -132,26 +137,16 @@ class VisualEditorState extends State<VisualEditor>
   }
 
   @override
-  GlobalKey<EditorState> get editableTextKey => _editorKey;
-
-  @override
-  bool get forcePressEnabled => false;
-
-  @override
-  bool get selectionEnabled => widget.config.enableInteractiveSelection;
-
-  void requestKeyboard() {
-    _editorKey.currentState!.requestKeyboard();
-  }
+  GlobalKey<EditorStateM> get editableTextKey => _editorKey;
 
   Widget _i18n({required Widget child}) => I18n(
         initialLocale: widget.config.locale,
         child: child,
       );
 
-  Widget _textSelectionGestures({required Widget child}) =>
-      TextSelectionGestures(
+  Widget _textGestures({required Widget child}) => TextGestures(
         behavior: HitTestBehavior.translucent,
+        editorRendererKey: _editorRendererKey,
         child: child,
       );
 
@@ -161,6 +156,7 @@ class VisualEditorState extends State<VisualEditor>
   }) =>
       RawEditor(
         key: _editorKey,
+        editorRendererKey: _editorRendererKey,
         controller: widget.controller,
         focusNode: widget.focusNode,
         scrollController: widget.scrollController,
@@ -170,7 +166,7 @@ class VisualEditorState extends State<VisualEditor>
         readOnly: widget.config.readOnly,
         placeholder: widget.config.placeholder,
         onLaunchUrl: widget.config.onLaunchUrl,
-        toolbarOptions: _toolbarOptions(),
+        toolbarOptions: _clipboardService.toolbarOptions(),
         showSelectionHandles: isMobile(theme.platform),
         showCursor: widget.config.showCursor,
         cursorStyle: _stylesUtils.cursorStyle(
@@ -208,17 +204,10 @@ class VisualEditorState extends State<VisualEditor>
         onKey: (_) {},
       );
 
-  ToolbarOptions _toolbarOptions() => ToolbarOptions(
-        copy: widget.config.enableInteractiveSelection,
-        cut: widget.config.enableInteractiveSelection,
-        paste: widget.config.enableInteractiveSelection,
-        selectAll: widget.config.enableInteractiveSelection,
-      );
-
+  // +++ DELETE
   void _setupTextSelectionServiceState() {
-    _textSelectionService.initState(
+    _highlightsService.initState(
       state: this,
-      controller: widget.controller,
     );
   }
 }

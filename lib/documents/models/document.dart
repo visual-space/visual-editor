@@ -8,43 +8,44 @@ import '../../rules/models/rule-type.enum.dart';
 import '../../rules/models/rule.model.dart';
 import '../../rules/services/rules.dart';
 import 'attribute.dart';
+import 'change-source.enum.dart';
 import 'history.dart';
 import 'nodes/block.dart';
 import 'nodes/container.dart';
 import 'nodes/embeddable.dart';
 import 'nodes/leaf.dart';
 import 'nodes/line.dart';
-import 'nodes/node.dart';
+import 'nodes/root.dart';
 import 'style.dart';
 
-/// The rich text document
+// The rich text document
 class Document {
-  /// Creates new empty document.
+  // Creates new empty document.
   Document() : _delta = DeltaM()..insert('\n') {
     _loadDocument(_delta);
   }
 
-  /// Creates new document from provided JSON `data`.
+  // Creates new document from provided JSON `data`.
   Document.fromJson(List data) : _delta = _transform(DeltaM.fromJson(data)) {
     _loadDocument(_delta);
   }
 
-  /// Creates new document from provided `delta`.
+  // Creates new document from provided `delta`.
   Document.fromDelta(DeltaM delta) : _delta = delta {
     _loadDocument(delta);
   }
 
-  /// The root node of the document tree
+  // The root node of the document tree
   final Root _root = Root();
 
   Root get root => _root;
 
-  /// Length of this document.
+  // Length of this document.
   int get length => _root.length;
 
   DeltaM _delta;
 
-  /// Returns contents of this document as [DeltaM].
+  // Returns contents of this document as [DeltaM].
   DeltaM toDelta() => DeltaM.from(_delta);
 
   // Each document instance has it's own set of rules
@@ -59,18 +60,18 @@ class Document {
 
   final History _history = History();
 
-  /// Stream of [Change]s applied to this document.
+  // Stream of [Change]s applied to this document.
   Stream<Tuple3<DeltaM, DeltaM, ChangeSource>> get changes => _observer.stream;
 
-  /// Inserts [data] in this document at specified [index].
-  ///
-  /// The `data` parameter can be either a String or an instance of
-  /// [Embeddable].
-  ///
-  /// Applies heuristic rules before modifying this document and
-  /// produces a change event with its source set to [ChangeSource.local].
-  ///
-  /// Returns an instance of [DeltaM] actually composed into this document.
+  // Inserts [data] in this document at specified [index].
+  //
+  // The `data` parameter can be either a String or an instance of
+  // [Embeddable].
+  //
+  // Applies heuristic rules before modifying this document and
+  // produces a change event with its source set to [ChangeSource.local].
+  //
+  // Returns an instance of [DeltaM] actually composed into this document.
   DeltaM insert(int index, Object? data, {int replaceLength = 0}) {
     assert(index >= 0);
     assert(data is String || data is Embeddable);
@@ -91,12 +92,10 @@ class Document {
     return delta;
   }
 
-  /// Deletes [length] of characters from this document starting at [index].
-  ///
-  /// This method applies heuristic rules before modifying this document and
-  /// produces a [Change] with source set to [ChangeSource.local].
-  ///
-  /// Returns an instance of [DeltaM] actually composed into this document.
+  // Deletes [length] of characters from this document starting at [index].
+  // This method applies heuristic rules before modifying this document and
+  // produces a [Change] with source set to [ChangeSource.local].
+  // Returns an instance of [DeltaM] actually composed into this document.
   DeltaM delete(int index, int len) {
     assert(index >= 0 && len > 0);
     final delta = _rules.apply(
@@ -111,12 +110,10 @@ class Document {
     return delta;
   }
 
-  /// Replaces [length] of characters starting at [index] with [data].
-  ///
-  /// This method applies heuristic rules before modifying this document and
-  /// produces a change event with its source set to [ChangeSource.local].
-  ///
-  /// Returns an instance of [DeltaM] actually composed into this document.
+  // Replaces [length] of characters starting at [index] with [data].
+  // This method applies heuristic rules before modifying this document and
+  // produces a change event with its source set to [ChangeSource.local].
+  // Returns an instance of [DeltaM] actually composed into this document.
   DeltaM replace(int index, int len, Object? data) {
     assert(index >= 0);
     assert(data is String || data is Embeddable);
@@ -127,7 +124,7 @@ class Document {
 
     var delta = DeltaM();
 
-    // We have to insert before applying delete rules
+    // We have to insert before applying delete rules.
     // Otherwise delete would be operating on stale document snapshot.
     if (dataIsNotEmpty) {
       delta = insert(index, data, replaceLength: len);
@@ -141,14 +138,12 @@ class Document {
     return delta;
   }
 
-  /// Formats segment of this document with specified [attribute].
-  ///
-  /// Applies heuristic rules before modifying this document and
-  /// produces a change event with its source set to [ChangeSource.local].
-  ///
-  /// Returns an instance of [DeltaM] actually composed into this document.
-  /// The returned [DeltaM] may be empty in which case this document remains
-  /// unchanged and no change event is published to the [changes] stream.
+  // Formats segment of this document with specified [attribute].
+  // Applies heuristic rules before modifying this document and
+  // produces a change event with its source set to [ChangeSource.local].
+  // Returns an instance of [DeltaM] actually composed into this document.
+  // The returned [DeltaM] may be empty in which case this document remains
+  // unchanged and no change event is published to the [changes] stream.
   DeltaM format(int index, int len, Attribute? attribute) {
     assert(index >= 0 && len >= 0 && attribute != null);
 
@@ -169,32 +164,31 @@ class Document {
     return delta;
   }
 
-  /// Only attributes applied to all characters within this range are
-  /// included in the result.
+  // Only attributes applied to all characters within this range are included in the result.
   Style collectStyle(int index, int len) {
     final res = queryChild(index);
     return (res.node as Line).collectStyle(res.offset, len);
   }
 
-  /// Returns all styles for each node within selection
+  // Returns all styles for each node within selection
   List<Tuple2<int, Style>> collectAllIndividualStyles(int index, int len) {
     final res = queryChild(index);
     return (res.node as Line).collectAllIndividualStyles(res.offset, len);
   }
 
-  /// Returns all styles for any character within the specified text range.
+  // Returns all styles for any character within the specified text range.
   List<Style> collectAllStyles(int index, int len) {
     final res = queryChild(index);
     return (res.node as Line).collectAllStyles(res.offset, len);
   }
 
-  /// Returns plain text within the specified text range.
+  // Returns plain text within the specified text range.
   String getPlainText(int index, int len) {
     final res = queryChild(index);
     return (res.node as Line).getPlainText(res.offset, len);
   }
 
-  /// Returns [Line] located at specified character [offset].
+  // Returns [Line] located at specified character [offset].
   ChildQuery queryChild(int offset) {
     // TODO: prevent user from moving caret after last line-break.
     final res = _root.queryChild(offset, true);
@@ -205,7 +199,7 @@ class Document {
     return block.queryChild(res.offset, true);
   }
 
-  /// Given offset, find its leaf node in document
+  // Given offset, find its leaf node in document
   Tuple2<Line?, Leaf?> querySegmentLeafNode(int offset) {
     final result = queryChild(offset);
     if (result.node == null) {
@@ -221,16 +215,11 @@ class Document {
     return Tuple2(line, segment);
   }
 
-  /// Composes [change] Delta into this document.
-  ///
-  /// Use this method with caution as it does not apply heuristic rules to the
-  /// [change].
-  ///
-  /// It is callers responsibility to ensure that the [change] conforms to
-  /// the document models semantics and can be composed with the current state
-  /// of this document.
-  ///
-  /// In case the [change] is invalid, behavior of this method is unspecified.
+  // Composes [change] Delta into this document.
+  // Use this method with caution as it does not apply heuristic rules to the [change].
+  // It is callers responsibility to ensure that the [change] conforms to the document
+  // models semantics and can be composed with the current state of this document.
+  // In case the [change] is invalid, behavior of this method is unspecified.
   void compose(DeltaM delta, ChangeSource changeSource) {
     assert(!_observer.isClosed);
     delta.trim();
@@ -239,6 +228,7 @@ class Document {
     var offset = 0;
     delta = _transform(delta);
     final originalDelta = toDelta();
+
     for (final op in delta.toList()) {
       final style =
           op.attributes != null ? Style.fromJson(op.attributes) : null;
@@ -257,6 +247,7 @@ class Document {
         offset += op.length!;
       }
     }
+
     try {
       _delta = _delta.compose(delta);
     } catch (e) {
@@ -266,6 +257,7 @@ class Document {
     if (_delta != _root.toDelta()) {
       throw 'Compose failed';
     }
+
     final change = Tuple3(originalDelta, delta, changeSource);
     _observer.add(change);
     _history.handleDocChange(change);
@@ -286,35 +278,45 @@ class Document {
   static DeltaM _transform(DeltaM delta) {
     final res = DeltaM();
     final ops = delta.toList();
+
     for (var i = 0; i < ops.length; i++) {
       final op = ops[i];
       res.push(op);
       _autoAppendNewlineAfterEmbeddable(i, ops, op, res, BlockEmbed.videoType);
     }
+
     return res;
   }
 
   static void _autoAppendNewlineAfterEmbeddable(
-      int i, List<Operation> ops, Operation op, DeltaM res, String type) {
+    int i,
+    List<Operation> ops,
+    Operation op,
+    DeltaM res,
+    String type,
+  ) {
     final nextOpIsEmbed = i + 1 < ops.length &&
         ops[i + 1].isInsert &&
         ops[i + 1].data is Map &&
         (ops[i + 1].data as Map).containsKey(type);
+
     if (nextOpIsEmbed &&
         op.data is String &&
         (op.data as String).isNotEmpty &&
         !(op.data as String).endsWith('\n')) {
       res.push(Operation.insert('\n'));
     }
-    // embed could be image or video
+
+    // Embed could be image or video
     final opInsertEmbed =
         op.isInsert && op.data is Map && (op.data as Map).containsKey(type);
     final nextOpIsLineBreak = i + 1 < ops.length &&
         ops[i + 1].isInsert &&
         ops[i + 1].data is String &&
         (ops[i + 1].data as String).startsWith('\n');
+
     if (opInsertEmbed && (i + 1 == ops.length - 1 || !nextOpIsLineBreak)) {
-      // automatically append '\n' for embeddable
+      // Automatically append '\n' for embeddable
       res.push(Operation.insert('\n'));
     }
   }
@@ -327,6 +329,7 @@ class Document {
     if (data is Embeddable) {
       return data;
     }
+
     return Embeddable.fromJson(data as Map<String, dynamic>);
   }
 
@@ -335,7 +338,7 @@ class Document {
     _history.clear();
   }
 
-  /// Returns plain text representation of this document.
+  // Returns plain text representation of this document.
   String toPlainText() => _root.children.map((e) => e.toPlainText()).join();
 
   void _loadDocument(DeltaM doc) {
@@ -346,6 +349,7 @@ class Document {
     assert((doc.last.data as String).endsWith('\n'));
 
     var offset = 0;
+
     for (final op in doc.toList()) {
       if (!op.isInsert) {
         throw ArgumentError.value(doc,
@@ -357,7 +361,9 @@ class Document {
       _root.insert(offset, data, style);
       offset += op.length!;
     }
+
     final node = _root.last;
+
     if (node is Line &&
         node.parent is! Block &&
         node.style.isEmpty &&
@@ -381,13 +387,4 @@ class Document {
         delta.first.data == '\n' &&
         delta.first.key == 'insert';
   }
-}
-
-/// Source of a [Change].
-enum ChangeSource {
-  /// Change originated from a local action. Typically triggered by user.
-  LOCAL,
-
-  /// Change originated from a remote action.
-  REMOTE,
 }

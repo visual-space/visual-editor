@@ -143,13 +143,17 @@ class EditorCfgM {
   // A floating cursor will help you to see what is currently under your thumb when moving the caret.
   final bool floatingCursorDisabled;
 
+  // If force press is enable, long tap on words selects the word.
+  // +++ TODO REVIEW proper implementation
+  final bool forcePressEnabled;
+
   // Custom GUI for text selection controls
   final TextSelectionControls? textSelectionControls;
 
   // Customize any of the settings available in VisualEditor
   const EditorCfgM({
-    required this.scrollable,
-    required this.padding,
+    this.scrollable = true,
+    this.padding = EdgeInsets.zero,
     this.autoFocus = false,
     this.readOnly = false,
     this.expands = false,
@@ -176,6 +180,7 @@ class EditorCfgM {
     this.customStyleBuilder,
     this.locale,
     this.floatingCursorDisabled = false,
+    this.forcePressEnabled = false,
     this.textSelectionControls,
   });
 }

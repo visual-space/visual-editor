@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import '../../editor/services/editor-renderer.utils.dart';
 import '../../editor/widgets/editor-renderer.dart';
 import '../models/text-selection-handle-position.enum.dart';
 
@@ -26,7 +27,7 @@ class TextSelectionHandleOverlay extends StatefulWidget {
   final TextSelectionHandlePosition position;
   final LayerLink startHandleLayerLink;
   final LayerLink endHandleLayerLink;
-  final RenderEditor renderObject;
+  final EditorRenderer renderObject;
   final ValueChanged<TextSelection?> onSelectionHandleChanged;
   final VoidCallback? onSelectionHandleTapped;
   final TextSelectionControls selectionControls;
@@ -50,6 +51,8 @@ class TextSelectionHandleOverlay extends StatefulWidget {
 
 class TextSelectionHandleOverlayState extends State<TextSelectionHandleOverlay>
     with SingleTickerProviderStateMixin {
+  final _editorRendererUtils = EditorRendererUtils();
+
   // ignore: unused_field
   late Offset _dragPosition;
 
@@ -97,15 +100,21 @@ class TextSelectionHandleOverlayState extends State<TextSelectionHandleOverlay>
     final textPosition = widget.position == TextSelectionHandlePosition.START
         ? widget.selection.base
         : widget.selection.extent;
-    final lineHeight = widget.renderObject.preferredLineHeight(textPosition);
+    final lineHeight = _editorRendererUtils.preferredLineHeight(
+      textPosition,
+      widget.renderObject,
+    );
     final handleSize = widget.selectionControls.getHandleSize(lineHeight);
     _dragPosition = details.globalPosition + Offset(0, -handleSize.height);
   }
 
   void _handleDragUpdate(DragUpdateDetails details) {
     _dragPosition += details.delta;
-    final position =
-        widget.renderObject.getPositionForOffset(details.globalPosition);
+    final position = _editorRendererUtils.getPositionForOffset(
+      details.globalPosition,
+      widget.renderObject,
+    );
+
     if (widget.selection.isCollapsed) {
       widget.onSelectionHandleChanged(
         TextSelection.fromPosition(position),
@@ -116,6 +125,7 @@ class TextSelectionHandleOverlayState extends State<TextSelectionHandleOverlay>
     final isNormalized =
         widget.selection.extentOffset >= widget.selection.baseOffset;
     TextSelection newSelection;
+
     switch (widget.position) {
       case TextSelectionHandlePosition.START:
         newSelection = TextSelection(
@@ -125,6 +135,7 @@ class TextSelectionHandleOverlayState extends State<TextSelectionHandleOverlay>
               isNormalized ? widget.selection.extentOffset : position.offset,
         );
         break;
+
       case TextSelectionHandlePosition.END:
         newSelection = TextSelection(
           baseOffset:
@@ -133,6 +144,7 @@ class TextSelectionHandleOverlayState extends State<TextSelectionHandleOverlay>
               isNormalized ? position.offset : widget.selection.extentOffset,
         );
         break;
+
       default:
         throw 'Invalid widget.position';
     }
@@ -164,6 +176,7 @@ class TextSelectionHandleOverlayState extends State<TextSelectionHandleOverlay>
           TextSelectionHandleType.right,
         );
         break;
+
       case TextSelectionHandlePosition.END:
         // For collapsed selections, we shouldn't be building the [end] handle.
         assert(!widget.selection.isCollapsed);
@@ -185,9 +198,14 @@ class TextSelectionHandleOverlayState extends State<TextSelectionHandleOverlay>
     final textPosition = widget.position == TextSelectionHandlePosition.START
         ? widget.selection.base
         : widget.selection.extent;
-    final lineHeight = widget.renderObject.preferredLineHeight(textPosition);
-    final handleAnchor =
-        widget.selectionControls.getHandleAnchor(type!, lineHeight);
+    final lineHeight = _editorRendererUtils.preferredLineHeight(
+      textPosition,
+      widget.renderObject,
+    );
+    final handleAnchor = widget.selectionControls.getHandleAnchor(
+      type!,
+      lineHeight,
+    );
     final handleSize = widget.selectionControls.getHandleSize(lineHeight);
 
     final handleRect = Rect.fromLTWH(

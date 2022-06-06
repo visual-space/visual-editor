@@ -14,7 +14,7 @@ class EditorVerticalCaretMovementRun
 
   TextPosition _currentTextPosition;
 
-  final RenderEditor _editor;
+  final EditorRenderer _editor;
 
   @override
   TextPosition get current {

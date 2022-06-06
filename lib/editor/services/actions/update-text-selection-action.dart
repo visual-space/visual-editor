@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 
 import '../../models/boundaries/text-boundary.model.dart';
+import '../../state/editor-config.state.dart';
 import '../../widgets/raw-editor.dart';
 
 // +++ DOC
 class UpdateTextSelectionAction<T extends DirectionalCaretMovementIntent>
     extends ContextAction<T> {
-  UpdateTextSelectionAction(this.state, this.ignoreNonCollapsedSelection,
-      this.getTextBoundariesForIntent);
+  final _editorConfigState = EditorConfigState();
+
+  UpdateTextSelectionAction(
+    this.state,
+    this.ignoreNonCollapsedSelection,
+    this.getTextBoundariesForIntent,
+  );
 
   final RawEditorState state;
   final bool ignoreNonCollapsedSelection;
@@ -16,10 +22,12 @@ class UpdateTextSelectionAction<T extends DirectionalCaretMovementIntent>
   @override
   Object? invoke(T intent, [BuildContext? context]) {
     final selection = state.textEditingValue.selection;
+
     assert(selection.isValid);
 
-    final collapseSelection =
-        intent.collapseSelection || !state.widget.selectionEnabled;
+    final collapseSelection = intent.collapseSelection ||
+        !_editorConfigState.config.enableInteractiveSelection;
+
     // Collapse to the logical start/end.
     TextSelection _collapse(TextSelection selection) {
       assert(selection.isValid);
@@ -42,9 +50,11 @@ class UpdateTextSelectionAction<T extends DirectionalCaretMovementIntent>
 
     final textBoundary = getTextBoundariesForIntent(intent);
     final textBoundarySelection = textBoundary.textEditingValue.selection;
+
     if (!textBoundarySelection.isValid) {
       return null;
     }
+
     if (!textBoundarySelection.isCollapsed &&
         !ignoreNonCollapsedSelection &&
         collapseSelection) {

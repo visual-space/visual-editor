@@ -5,17 +5,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../../editor/services/editor-renderer.utils.dart';
 import '../../editor/widgets/editor-renderer.dart';
 import '../models/drag-text-selection.model.dart';
 import '../models/text-selection-handle-position.enum.dart';
 import '../widgets/text-selection-handles-overlay.dart';
+import 'selection-actions.utils.dart';
 
 // Manages a pair of text selection handles.
 // The selection handles are displayed in the Overlay that most closely encloses the given BuildContext.
-class TextSelectionOverlayUtils {
+// +++ REFACTOR ? MERGE WITH SERVICE ?
+class SelectionActionsLogic {
+  final _editorRendererUtils = EditorRendererUtils();
+  final _selectionActionsUtils = SelectionActionsUtils();
+
   // Creates an object that manages overlay entries for selection handles.
   // The context must not be null and must have an Overlay as an ancestor.
-  TextSelectionOverlayUtils({
+  SelectionActionsLogic({
     required this.value,
     required this.context,
     required this.toolbarLayerLink,
@@ -70,7 +76,7 @@ class TextSelectionOverlayUtils {
   final LayerLink endHandleLayerLink;
 
   // The editable line in which the selected text is being displayed.
-  final RenderEditor renderObject;
+  final EditorRenderer renderObject;
 
   // Builds text selection handles and buttons.
   final TextSelectionControls selectionCtrls;
@@ -252,7 +258,10 @@ class TextSelectionOverlayUtils {
     try {
       // Building with an invalid selection with throw an exception.
       // This happens where the selection has changed, but the buttons hasn't been dismissed yet.
-      endpoints = renderObject.getEndpointsForSelection(_selection);
+      endpoints = _selectionActionsUtils.getEndpointsForSelection(
+        _selection,
+        renderObject,
+      );
     } catch (_) {
       return Container();
     }
@@ -264,9 +273,13 @@ class TextSelectionOverlayUtils {
       ),
     );
 
-    final baseLineHeight = renderObject.preferredLineHeight(_selection.base);
-    final extentLineHeight = renderObject.preferredLineHeight(
+    final baseLineHeight = _editorRendererUtils.preferredLineHeight(
+      _selection.base,
+      renderObject,
+    );
+    final extentLineHeight = _editorRendererUtils.preferredLineHeight(
       _selection.extent,
+      renderObject,
     );
     final smallestLineHeight = math.min(baseLineHeight, extentLineHeight);
     final isMultiline = endpoints.last.point.dy - endpoints.first.point.dy >

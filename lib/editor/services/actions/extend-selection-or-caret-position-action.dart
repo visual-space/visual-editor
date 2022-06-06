@@ -1,22 +1,29 @@
 import 'package:flutter/material.dart';
 
 import '../../models/boundaries/text-boundary.model.dart';
+import '../../state/editor-config.state.dart';
 import '../../widgets/raw-editor.dart';
 
 // +++ DOC
 class ExtendSelectionOrCaretPositionAction extends ContextAction<
     ExtendSelectionToNextWordBoundaryOrCaretLocationIntent> {
-  ExtendSelectionOrCaretPositionAction(
-      this.state, this.getTextBoundariesForIntent);
+  final _editorConfigState = EditorConfigState();
 
-  final RawEditorState state;
+  ExtendSelectionOrCaretPositionAction(
+    this.state,
+    this.getTextBoundariesForIntent,
+  );
+
+  final RawEditorState state; // +++ DELETE all state refs (use services)
   final TextBoundaryM Function(
     ExtendSelectionToNextWordBoundaryOrCaretLocationIntent intent,
   ) getTextBoundariesForIntent;
 
   @override
-  Object? invoke(ExtendSelectionToNextWordBoundaryOrCaretLocationIntent intent,
-      [BuildContext? context]) {
+  Object? invoke(
+    ExtendSelectionToNextWordBoundaryOrCaretLocationIntent intent, [
+    BuildContext? context,
+  ]) {
     final selection = state.textEditingValue.selection;
     assert(selection.isValid);
 
@@ -57,5 +64,6 @@ class ExtendSelectionOrCaretPositionAction extends ContextAction<
 
   @override
   bool get isActionEnabled =>
-      state.widget.selectionEnabled && state.textEditingValue.selection.isValid;
+      _editorConfigState.config.enableInteractiveSelection &&
+      state.textEditingValue.selection.isValid;
 }

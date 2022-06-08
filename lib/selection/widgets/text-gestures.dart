@@ -122,7 +122,7 @@ class _TextGesturesState extends State<TextGestures> {
   }
 
   void _handleHover(PointerHoverEvent event) {
-    _highlightsService.onHover(event);
+    _highlightsService.onHover(event, _editorRenderer);
   }
 
   // The down handler is force-run on success of a single tap and optimistically run before a long press success.
@@ -146,7 +146,7 @@ class _TextGesturesState extends State<TextGestures> {
   void _handleTapUp(TapUpDetails details) {
     if (!_isDoubleTap) {
       _textSelectionService.onSingleTapUp(details, _platform, _editorRenderer);
-      _highlightsService.onSingleTapUp(details);
+      _highlightsService.onSingleTapUp(details, _editorRenderer);
       _lastTapOffset = details.globalPosition;
       _doubleTapTimer = Timer(kDoubleTapTimeout, _doubleTapTimeout);
     }

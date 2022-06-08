@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../models/boundaries/text-boundary.model.dart';
+import '../../models/boundaries/base/text-boundary.model.dart';
 import '../../state/editor-config.state.dart';
 import '../../widgets/raw-editor.dart';
 

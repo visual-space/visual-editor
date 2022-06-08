@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../models/boundaries/base/text-boundary.model.dart';
 import '../../models/boundaries/character-boundary.model.dart';
-import '../../models/boundaries/text-boundary.model.dart';
 import '../../widgets/raw-editor.dart';
 
 class DeleteTextAction<T extends DirectionalTextEditingIntent>

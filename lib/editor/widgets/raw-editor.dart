@@ -22,6 +22,7 @@ import '../../blocks/widgets/text-block.dart';
 import '../../blocks/widgets/text-line.dart';
 import '../../controller/services/editor-controller.dart';
 import '../../controller/services/editor-text.service.dart';
+import '../../controller/state/scroll-controller.state.dart';
 import '../../cursor/models/cursor-style.model.dart';
 import '../../cursor/services/cursor.service.dart';
 import '../../cursor/widgets/cursor.dart';
@@ -41,13 +42,13 @@ import '../../selection/services/selection-actions.logic.dart';
 import '../../selection/services/selection-actions.service.dart';
 import '../../selection/services/text-selection.service.dart';
 import '../../shared/utils/platform.utils.dart';
+import '../models/boundaries/base/text-boundary.model.dart';
 import '../models/boundaries/character-boundary.model.dart';
 import '../models/boundaries/collapse-selection.boundary.model.dart';
 import '../models/boundaries/document-boundary.model.dart';
 import '../models/boundaries/expanded-text-boundary.dart';
 import '../models/boundaries/line-break.model.dart';
 import '../models/boundaries/mixed.boundary.model.dart';
-import '../models/boundaries/text-boundary.model.dart';
 import '../models/boundaries/whitespace-boundary.model.dart';
 import '../models/boundaries/word-boundary.model.dart';
 import '../models/editor-state.model.dart';
@@ -58,8 +59,8 @@ import '../services/actions/select-all-action.dart';
 import '../services/actions/update-text-selection-action.dart';
 import '../services/actions/update-text-selection-to-adjiacent-line-action.dart';
 import '../services/clipboard.service.dart';
+import '../services/input-connection.service.dart';
 import 'editor-renderer.dart';
-import 'mixins/input-client-mixin.dart';
 import 'proxy/baseline-proxy.dart';
 import 'raw-editor-renderer.dart';
 import 'scroll/editor-single-child-scroll-view.dart';
@@ -214,36 +215,26 @@ class RawEditorState extends EditorStateM
     with
         AutomaticKeepAliveClientMixin<RawEditor>,
         WidgetsBindingObserver,
-        TickerProviderStateMixin<RawEditor>,
-        InputClientMixin
-    implements TextSelectionDelegate {
+        TickerProviderStateMixin<RawEditor>
+    implements TextSelectionDelegate, TextInputClient {
   final _selectionActionsService = SelectionActionsService();
   final _textSelectionService = TextSelectionService();
   final _editorTextService = EditorTextService();
   final _cursorService = CursorService();
   final _clipboardService = ClipboardService();
+  final _textConnectionService = TextConnectionService();
+  final _scrollControllerState = ScrollControllerState();
 
   KeyboardVisibilityController? _keyboardVisibilityController;
   StreamSubscription<bool>? _keyboardVisibilitySubscription;
   bool _keyboardVisible = false;
 
-  // Selection overlay // +++ MIGRATE to service
-  @override
-  SelectionActionsLogic? get selectionActions =>
-      _selectionActionsService.selectionActions;
-
-  set selectionActions(SelectionActionsLogic? actions) {
-    _selectionActionsService.selectionActions = actions;
-  }
-
-  @override
-  ScrollController get scrollController => _scrollController;
-  late ScrollController _scrollController;
-
-  // Cursors
   late CursorCont _cursorCont;
 
-  EditorController get controller => widget.controller;
+  // +++ Make private
+  EditorRenderer get editorRenderer =>
+      widget.editorRendererKey.currentContext!.findRenderObject()
+          as EditorRenderer;
 
   // Focus
   bool _didAutoFocus = false;
@@ -311,7 +302,6 @@ class RawEditorState extends EditorStateM
         textStyle: _styles!.paragraph!.style,
         padding: baselinePadding,
         child: EditorSingleChildScrollView(
-          controller: _scrollController,
           physics: widget.scrollPhysics,
           viewportBuilder: (_, offset) => CompositedTransformTarget(
             link: _toolbarLayerLink,
@@ -363,6 +353,491 @@ class RawEditorState extends EditorStateM
     );
   }
 
+  @override
+  void initState() {
+    super.initState();
+
+    // +++ DELETE
+    subscribeToReqKeyboard();
+
+    // +++ DELETE
+    _selectionActionsService.rawEditorState = this;
+
+    _clipboardStatus.addListener(_onChangedClipboardStatus);
+
+    widget.controller.addListener(() {
+      _didChangeTextEditingValue(widget.controller.ignoreFocusOnTextChange);
+    });
+
+    _scrollControllerState.controller
+        .addListener(_updateSelectionOverlayForScroll);
+
+    _cursorCont = CursorCont(
+      show: ValueNotifier<bool>(widget.showCursor),
+      style: widget.cursorStyle,
+      tickerProvider: this,
+    );
+
+    // Floating cursor
+    _floatingCursorResetController = AnimationController(vsync: this);
+    _floatingCursorResetController.addListener(
+      () => _textConnectionService.onFloatingCursorResetTick(
+        editorRenderer,
+        _floatingCursorResetController,
+      ),
+    );
+
+    if (isKeyboardOS()) {
+      _keyboardVisible = true;
+    } else {
+      // treat iOS Simulator like a keyboard OS
+      isIOSSimulator().then((isIosSimulator) {
+        if (isIosSimulator) {
+          _keyboardVisible = true;
+        } else {
+          _keyboardVisibilityController = KeyboardVisibilityController();
+          _keyboardVisible = _keyboardVisibilityController!.isVisible;
+          _keyboardVisibilitySubscription =
+              _keyboardVisibilityController?.onChange.listen((visible) {
+            _keyboardVisible = visible;
+            if (visible) {
+              _onChangeTextEditingValue(!_hasFocus);
+            }
+          });
+
+          HardwareKeyboard.instance.addHandler(_hardwareKeyboardEvent);
+        }
+      });
+    }
+
+    // Focus
+    widget.focusNode.addListener(_handleFocusChanged);
+  }
+
+  // KeyboardVisibilityController only checks for keyboards that adjust the screen size.
+  // Also watch for hardware keyboards that don't alter the screen (i.e. Chromebook, Android tablet
+  // and any hardware keyboards from an OS not listed in isKeyboardOS())
+  bool _hardwareKeyboardEvent(KeyEvent _) {
+    if (!_keyboardVisible) {
+      // Hardware keyboard key pressed. Set visibility to true
+      _keyboardVisible = true;
+      // Update the editor
+      _onChangeTextEditingValue(!_hasFocus);
+    }
+
+    // Remove the key handler - it's no longer needed.
+    // If KeyboardVisibilityController clears visibility, it wil also enable it when appropriate.
+    HardwareKeyboard.instance.removeHandler(_hardwareKeyboardEvent);
+
+    // we didn't handle the event, just needed to know a key was pressed
+    return false;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final parentStyles = EditorStylesUtils.getStyles(context, true);
+    final defaultStyles = DefaultStyles.getInstance(context);
+    _styles = (parentStyles != null)
+        ? defaultStyles.merge(parentStyles)
+        : defaultStyles;
+
+    if (widget.customStyles != null) {
+      _styles = _styles!.merge(widget.customStyles!);
+    }
+
+    if (!_didAutoFocus && widget.autoFocus) {
+      FocusScope.of(context).autofocus(widget.focusNode);
+      _didAutoFocus = true;
+    }
+  }
+
+  @override
+  void didUpdateWidget(RawEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    _cursorCont.show.value = widget.showCursor;
+    _cursorCont.style = widget.cursorStyle;
+
+    if (widget.controller != oldWidget.controller) {
+      oldWidget.controller.removeListener(_didChangeTextEditingValue);
+      widget.controller.addListener(_didChangeTextEditingValue);
+      _textConnectionService.updateRemoteValueIfNeeded();
+    }
+
+    // +++ REVIEW in Quill, not sure why this exists
+    // if (widget.scrollController != _scrollControllerState.controller) {
+    //   _scrollControllerState.controller.removeListener(_updateSelectionOverlayForScroll);
+    //   _scrollController = widget.scrollController;
+    //   _scrollControllerState.controller.addListener(_updateSelectionOverlayForScroll);
+    // }
+
+    if (widget.focusNode != oldWidget.focusNode) {
+      oldWidget.focusNode.removeListener(_handleFocusChanged);
+      widget.focusNode.addListener(_handleFocusChanged);
+      updateKeepAlive();
+    }
+
+    if (widget.controller.selection != oldWidget.controller.selection) {
+      _selectionActionsService.selectionActions?.update(textEditingValue);
+    }
+
+    _selectionActionsService.selectionActions?.handlesVisible =
+        _shouldShowSelectionHandles();
+
+    if (!_textConnectionService.shouldCreateInputConnection) {
+      _textConnectionService.closeConnectionIfNeeded();
+    } else {
+      if (oldWidget.readOnly && _hasFocus) {
+        _textConnectionService.openConnectionIfNeeded(
+          editorRenderer,
+          this,
+          mounted,
+        );
+      }
+    }
+
+    // in case customStyles changed in new widget
+    if (widget.customStyles != null) {
+      _styles = _styles!.merge(widget.customStyles!);
+    }
+  }
+
+  bool _shouldShowSelectionHandles() {
+    return widget.showSelectionHandles &&
+        !widget.controller.selection.isCollapsed;
+  }
+
+  @override
+  void dispose() {
+    _textConnectionService.closeConnectionIfNeeded();
+    _keyboardVisibilitySubscription?.cancel();
+    HardwareKeyboard.instance.removeHandler(_hardwareKeyboardEvent);
+
+    assert(!_textConnectionService.hasConnection);
+
+    _selectionActionsService.selectionActions?.dispose();
+    _selectionActionsService.selectionActions = null;
+    widget.controller.removeListener(_didChangeTextEditingValue);
+    widget.focusNode.removeListener(_handleFocusChanged);
+    _cursorCont.dispose();
+    _clipboardStatus
+      ..removeListener(_onChangedClipboardStatus)
+      ..dispose();
+
+    super.dispose();
+  }
+
+  bool _showCaretOnScreenScheduled = false;
+
+  // This is a workaround for checkbox tapping issue
+  // https://github.com/singerdmx/flutter-quill/issues/619
+  // We cannot treat {"list": "checked"} and {"list": "unchecked"} as block of the same style.
+  // This causes controller.selection to go to offset 0.
+  bool _disableScrollControllerAnimateOnce = false;
+
+  void showCaretOnScreen() {
+    if (!widget.showCursor || _showCaretOnScreenScheduled) {
+      return;
+    }
+
+    _showCaretOnScreenScheduled = true;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (widget.scrollable || _scrollControllerState.controller.hasClients) {
+        _showCaretOnScreenScheduled = false;
+
+        if (!mounted) {
+          return;
+        }
+
+        final viewport = RenderAbstractViewport.of(editorRenderer);
+        final editorOffset = editorRenderer.localToGlobal(
+          const Offset(0, 0),
+          ancestor: viewport,
+        );
+        final offsetInViewport =
+            _scrollControllerState.controller.offset + editorOffset.dy;
+
+        final offset = editorRenderer.getOffsetToRevealCursor(
+          _scrollControllerState.controller.position.viewportDimension,
+          _scrollControllerState.controller.offset,
+          offsetInViewport,
+        );
+
+        if (offset != null) {
+          if (_disableScrollControllerAnimateOnce) {
+            _disableScrollControllerAnimateOnce = false;
+            return;
+          }
+          _scrollControllerState.controller.animateTo(
+            math.min(
+              offset,
+              _scrollControllerState.controller.position.maxScrollExtent,
+            ),
+            duration: const Duration(milliseconds: 100),
+            curve: Curves.fastOutSlowIn,
+          );
+        }
+      }
+    });
+  }
+
+  // +++ DELETE once requestKeyboard() is migrated
+  void subscribeToReqKeyboard() {
+    KeyboardService().requestKeyboard$.stream.listen((_) {
+      requestKeyboard();
+    });
+  }
+
+  void requestKeyboard() {
+    if (_hasFocus) {
+      _textConnectionService.openConnectionIfNeeded(
+        editorRenderer,
+        this,
+        mounted,
+      );
+      showCaretOnScreen();
+    } else {
+      widget.focusNode.requestFocus();
+    }
+  }
+
+  // Copy current selection to [Clipboard].
+  @override
+  void copySelection(SelectionChangedCause cause) {
+    widget.controller.copiedImageUrl = null;
+    _editorTextService.pastePlainText = widget.controller.getPlainText();
+    _editorTextService.pasteStyle =
+        widget.controller.getAllIndividualSelectionStyles();
+
+    final selection = textEditingValue.selection;
+    final text = textEditingValue.text;
+
+    if (selection.isCollapsed) {
+      return;
+    }
+
+    Clipboard.setData(ClipboardData(text: selection.textInside(text)));
+
+    if (cause == SelectionChangedCause.toolbar) {
+      bringIntoView(textEditingValue.selection.extent);
+
+      // Collapse the selection and hide the buttons and handles.
+      userUpdateTextEditingValue(
+        TextEditingValue(
+          text: textEditingValue.text,
+          selection:
+              TextSelection.collapsed(offset: textEditingValue.selection.end),
+        ),
+        SelectionChangedCause.toolbar,
+      );
+    }
+  }
+
+  // Cut current selection to [Clipboard].
+  @override
+  void cutSelection(SelectionChangedCause cause) {
+    widget.controller.copiedImageUrl = null;
+    _editorTextService.pastePlainText = widget.controller.getPlainText();
+    _editorTextService.pasteStyle =
+        widget.controller.getAllIndividualSelectionStyles();
+
+    if (widget.readOnly) {
+      return;
+    }
+
+    final selection = textEditingValue.selection;
+    final text = textEditingValue.text;
+
+    if (selection.isCollapsed) {
+      return;
+    }
+
+    Clipboard.setData(ClipboardData(text: selection.textInside(text)));
+    _replaceText(ReplaceTextIntent(textEditingValue, '', selection, cause));
+
+    if (cause == SelectionChangedCause.toolbar) {
+      bringIntoView(textEditingValue.selection.extent);
+      hideToolbar();
+    }
+  }
+
+  // Paste text from [Clipboard].
+  @override
+  Future<void> pasteText(SelectionChangedCause cause) async {
+    if (widget.readOnly) {
+      return;
+    }
+
+    if (widget.controller.copiedImageUrl != null) {
+      final index = textEditingValue.selection.baseOffset;
+      final length = textEditingValue.selection.extentOffset - index;
+      final copied = widget.controller.copiedImageUrl!;
+      widget.controller
+          .replaceText(index, length, BlockEmbed.image(copied.item1), null);
+      if (copied.item2.isNotEmpty) {
+        widget.controller.formatText(
+            getImageNode(widget.controller, index + 1).item1,
+            1,
+            StyleAttribute(copied.item2));
+      }
+      widget.controller.copiedImageUrl = null;
+      await Clipboard.setData(const ClipboardData(text: ''));
+      return;
+    }
+
+    final selection = textEditingValue.selection;
+
+    if (!selection.isValid) {
+      return;
+    }
+
+    // Snapshot the input before using `await`.
+    // See https://github.com/flutter/flutter/issues/11427
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+
+    if (data == null) {
+      return;
+    }
+
+    _replaceText(
+      ReplaceTextIntent(
+        textEditingValue,
+        data.text!,
+        selection,
+        cause,
+      ),
+    );
+
+    bringIntoView(textEditingValue.selection.extent);
+
+    // Collapse the selection and hide the buttons and handles.
+    userUpdateTextEditingValue(
+      TextEditingValue(
+        text: textEditingValue.text,
+        selection: TextSelection.collapsed(
+          offset: textEditingValue.selection.end,
+        ),
+      ),
+      cause,
+    );
+  }
+
+  // Select the entire text value.
+  @override
+  void selectAll(SelectionChangedCause cause) {
+    userUpdateTextEditingValue(
+      textEditingValue.copyWith(
+        selection: TextSelection(
+          baseOffset: 0,
+          extentOffset: textEditingValue.text.length,
+        ),
+      ),
+      cause,
+    );
+
+    if (cause == SelectionChangedCause.toolbar) {
+      bringIntoView(textEditingValue.selection.extent);
+    }
+  }
+
+  // Controls the floating cursor animation when it is released.
+  // The floating cursor is animated to merge with the regular cursor.
+  late AnimationController _floatingCursorResetController;
+
+  // === INPUT CLIENT OVERRIDES ===
+
+  @override
+  bool get wantKeepAlive => widget.focusNode.hasFocus;
+
+  // Not implemented
+  @override
+  void insertTextPlaceholder(Size size) {}
+
+  // Not implemented
+  @override
+  void removeTextPlaceholder() {}
+
+  // No-op
+  @override
+  void performAction(TextInputAction action) {}
+
+  // No-op
+  @override
+  void performPrivateCommand(String action, Map<String, dynamic> data) {}
+
+  // Autofill is not needed
+  @override
+  AutofillScope? get currentAutofillScope => null;
+
+  // Not implemented
+  @override
+  void showAutocorrectionPromptRect(int start, int end) =>
+      throw UnimplementedError();
+
+  @override
+  TextEditingValue? get currentTextEditingValue =>
+      _textConnectionService.currentTextEditingValue;
+
+  @override
+  void updateEditingValue(TextEditingValue value) {
+    _textConnectionService.updateEditingValue(value, widget.controller);
+  }
+
+  @override
+  void updateFloatingCursor(
+    RawFloatingCursorPoint point,
+  ) {
+    _textConnectionService.updateFloatingCursor(
+      point,
+      editorRenderer,
+      _floatingCursorResetController,
+    );
+  }
+
+  @override
+  void connectionClosed() => _textConnectionService.connectionClosed();
+
+  // === TEXT SELECTION OVERRIDES ===
+
+  @override
+  bool showToolbar() => _selectionActionsService.showToolbar();
+
+  @override
+  void hideToolbar([bool hideHandles = true]) {
+    _selectionActionsService.hideToolbar(hideHandles);
+  }
+
+  @override
+  TextEditingValue get textEditingValue => _editorTextService.textEditingValue;
+
+  @override
+  void userUpdateTextEditingValue(
+    TextEditingValue value,
+    SelectionChangedCause cause,
+  ) {
+    _editorTextService.userUpdateTextEditingValue(value, cause);
+  }
+
+  @override
+  void bringIntoView(TextPosition position) {
+    _cursorService.bringIntoView(position, editorRenderer);
+  }
+
+  @override
+  bool get cutEnabled => _clipboardService.cutEnabled();
+
+  @override
+  bool get copyEnabled => _clipboardService.copyEnabled();
+
+  @override
+  bool get pasteEnabled => _clipboardService.pasteEnabled();
+
+  @override
+  bool get selectAllEnabled => _textSelectionService.selectAllEnabled();
+
+  // === PRIVATE ===
+
   void _handleSelectionChanged(
     TextSelection selection,
     SelectionChangedCause cause,
@@ -370,7 +845,8 @@ class RawEditorState extends EditorStateM
     final oldSelection = widget.controller.selection;
 
     widget.controller.updateSelection(selection, ChangeSource.LOCAL);
-    selectionActions?.handlesVisible = _shouldShowSelectionHandles();
+    _selectionActionsService.selectionActions?.handlesVisible =
+        _shouldShowSelectionHandles();
 
     if (!_keyboardVisible) {
       // This will show the keyboard for all selection changes on the editor,
@@ -543,168 +1019,8 @@ class RawEditorState extends EditorStateM
     return const Tuple2(0, 0);
   }
 
-  @override
-  void initState() {
-    super.initState();
-
-    // +++ DELETE
-    subscribeToReqKeyboard();
-
-    // +++ DELETE
-    _selectionActionsService.rawEditorState = this;
-
-    _clipboardStatus.addListener(_onChangedClipboardStatus);
-
-    widget.controller.addListener(() {
-      _didChangeTextEditingValue(widget.controller.ignoreFocusOnTextChange);
-    });
-
-    _scrollController = widget.scrollController;
-    _scrollController.addListener(_updateSelectionOverlayForScroll);
-
-    _cursorCont = CursorCont(
-      show: ValueNotifier<bool>(widget.showCursor),
-      style: widget.cursorStyle,
-      tickerProvider: this,
-    );
-
-    // Floating cursor
-    _floatingCursorResetController = AnimationController(vsync: this);
-    _floatingCursorResetController.addListener(onFloatingCursorResetTick);
-
-    if (isKeyboardOS()) {
-      _keyboardVisible = true;
-    } else {
-      // treat iOS Simulator like a keyboard OS
-      isIOSSimulator().then((isIosSimulator) {
-        if (isIosSimulator) {
-          _keyboardVisible = true;
-        } else {
-          _keyboardVisibilityController = KeyboardVisibilityController();
-          _keyboardVisible = _keyboardVisibilityController!.isVisible;
-          _keyboardVisibilitySubscription =
-              _keyboardVisibilityController?.onChange.listen((visible) {
-            _keyboardVisible = visible;
-            if (visible) {
-              _onChangeTextEditingValue(!_hasFocus);
-            }
-          });
-
-          HardwareKeyboard.instance.addHandler(_hardwareKeyboardEvent);
-        }
-      });
-    }
-
-    // Focus
-    widget.focusNode.addListener(_handleFocusChanged);
-  }
-
-  // KeyboardVisibilityController only checks for keyboards that adjust the screen size.
-  // Also watch for hardware keyboards that don't alter the screen (i.e. Chromebook, Android tablet
-  // and any hardware keyboards from an OS not listed in isKeyboardOS())
-  bool _hardwareKeyboardEvent(KeyEvent _) {
-    if (!_keyboardVisible) {
-      // Hardware keyboard key pressed. Set visibility to true
-      _keyboardVisible = true;
-      // Update the editor
-      _onChangeTextEditingValue(!_hasFocus);
-    }
-
-    // Remove the key handler - it's no longer needed.
-    // If KeyboardVisibilityController clears visibility, it wil also enable it when appropriate.
-    HardwareKeyboard.instance.removeHandler(_hardwareKeyboardEvent);
-
-    // we didn't handle the event, just needed to know a key was pressed
-    return false;
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final parentStyles = EditorStylesUtils.getStyles(context, true);
-    final defaultStyles = DefaultStyles.getInstance(context);
-    _styles = (parentStyles != null)
-        ? defaultStyles.merge(parentStyles)
-        : defaultStyles;
-
-    if (widget.customStyles != null) {
-      _styles = _styles!.merge(widget.customStyles!);
-    }
-
-    if (!_didAutoFocus && widget.autoFocus) {
-      FocusScope.of(context).autofocus(widget.focusNode);
-      _didAutoFocus = true;
-    }
-  }
-
-  @override
-  void didUpdateWidget(RawEditor oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    _cursorCont.show.value = widget.showCursor;
-    _cursorCont.style = widget.cursorStyle;
-
-    if (widget.controller != oldWidget.controller) {
-      oldWidget.controller.removeListener(_didChangeTextEditingValue);
-      widget.controller.addListener(_didChangeTextEditingValue);
-      updateRemoteValueIfNeeded();
-    }
-
-    if (widget.scrollController != _scrollController) {
-      _scrollController.removeListener(_updateSelectionOverlayForScroll);
-      _scrollController = widget.scrollController;
-      _scrollController.addListener(_updateSelectionOverlayForScroll);
-    }
-
-    if (widget.focusNode != oldWidget.focusNode) {
-      oldWidget.focusNode.removeListener(_handleFocusChanged);
-      widget.focusNode.addListener(_handleFocusChanged);
-      updateKeepAlive();
-    }
-
-    if (widget.controller.selection != oldWidget.controller.selection) {
-      selectionActions?.update(textEditingValue);
-    }
-
-    selectionActions?.handlesVisible = _shouldShowSelectionHandles();
-    if (!shouldCreateInputConnection) {
-      closeConnectionIfNeeded();
-    } else {
-      if (oldWidget.readOnly && _hasFocus) {
-        openConnectionIfNeeded();
-      }
-    }
-
-    // in case customStyles changed in new widget
-    if (widget.customStyles != null) {
-      _styles = _styles!.merge(widget.customStyles!);
-    }
-  }
-
-  bool _shouldShowSelectionHandles() {
-    return widget.showSelectionHandles &&
-        !widget.controller.selection.isCollapsed;
-  }
-
-  @override
-  void dispose() {
-    closeConnectionIfNeeded();
-    _keyboardVisibilitySubscription?.cancel();
-    HardwareKeyboard.instance.removeHandler(_hardwareKeyboardEvent);
-    assert(!hasConnection);
-    selectionActions?.dispose();
-    selectionActions = null;
-    widget.controller.removeListener(_didChangeTextEditingValue);
-    widget.focusNode.removeListener(_handleFocusChanged);
-    _cursorCont.dispose();
-    _clipboardStatus
-      ..removeListener(_onChangedClipboardStatus)
-      ..dispose();
-    super.dispose();
-  }
-
   void _updateSelectionOverlayForScroll() {
-    selectionActions?.updateForScroll();
+    _selectionActionsService.selectionActions?.updateForScroll();
   }
 
   void _didChangeTextEditingValue([bool ignoreFocus = false]) {
@@ -732,7 +1048,7 @@ class RawEditorState extends EditorStateM
   }
 
   void _onChangeTextEditingValue([bool ignoreCaret = false]) {
-    updateRemoteValueIfNeeded();
+    _textConnectionService.updateRemoteValueIfNeeded();
 
     if (ignoreCaret) {
       return;
@@ -744,7 +1060,7 @@ class RawEditorState extends EditorStateM
       widget.controller.selection,
     );
 
-    if (hasConnection) {
+    if (_textConnectionService.hasConnection) {
       // To keep the cursor from blinking while typing, we want to restart the
       // cursor timer every time a new character is typed.
       _cursorCont
@@ -763,6 +1079,7 @@ class RawEditorState extends EditorStateM
       }
       _updateOrDisposeSelectionOverlayIfNeeded();
     });
+
     if (mounted) {
       setState(() {
         // Use widget.controller.value in build().
@@ -772,44 +1089,52 @@ class RawEditorState extends EditorStateM
   }
 
   void _updateOrDisposeSelectionOverlayIfNeeded() {
-    if (selectionActions != null) {
+    if (_selectionActionsService.selectionActions != null) {
       if (!_hasFocus || textEditingValue.selection.isCollapsed) {
-        selectionActions!.dispose();
-        selectionActions = null;
+        _selectionActionsService.selectionActions!.dispose();
+        _selectionActionsService.selectionActions = null;
       } else {
-        selectionActions!.update(textEditingValue);
+        _selectionActionsService.selectionActions!.update(textEditingValue);
       }
     } else if (_hasFocus) {
-      selectionActions = SelectionActionsLogic(
+      _selectionActionsService.selectionActions = SelectionActionsLogic(
         value: textEditingValue,
         context: context,
         debugRequiredFor: widget,
         toolbarLayerLink: _toolbarLayerLink,
         startHandleLayerLink: _startHandleLayerLink,
         endHandleLayerLink: _endHandleLayerLink,
-        renderObject: renderEditor,
+        renderObject: editorRenderer,
         selectionCtrls: widget.selectionCtrls,
         selectionDelegate: this,
         clipboardStatus: _clipboardStatus,
       );
-      selectionActions!.handlesVisible = _shouldShowSelectionHandles();
-      selectionActions!.showHandles();
+      _selectionActionsService.selectionActions!.handlesVisible =
+          _shouldShowSelectionHandles();
+      _selectionActionsService.selectionActions!.showHandles();
     }
   }
 
   void _handleFocusChanged() {
-    openOrCloseConnection();
+    _textConnectionService.openOrCloseConnection(
+      editorRenderer,
+      widget.focusNode,
+      this,
+      mounted,
+    );
     _cursorCont.startOrStopCursorTimerIfNeeded(
       _hasFocus,
       widget.controller.selection,
     );
     _updateOrDisposeSelectionOverlayIfNeeded();
+
     if (_hasFocus) {
       WidgetsBinding.instance.addObserver(this);
       showCaretOnScreen();
     } else {
       WidgetsBinding.instance.removeObserver(this);
     }
+
     updateKeepAlive();
   }
 
@@ -827,84 +1152,6 @@ class RawEditorState extends EditorStateM
     return widget.linkActionPickerDelegate(context, link, linkNode);
   }
 
-  bool _showCaretOnScreenScheduled = false;
-
-  // This is a workaround for checkbox tapping issue
-  // https://github.com/singerdmx/flutter-quill/issues/619
-  // We cannot treat {"list": "checked"} and {"list": "unchecked"} as block of the same style.
-  // This causes controller.selection to go to offset 0.
-  bool _disableScrollControllerAnimateOnce = false;
-
-  void showCaretOnScreen() {
-    if (!widget.showCursor || _showCaretOnScreenScheduled) {
-      return;
-    }
-
-    _showCaretOnScreenScheduled = true;
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      if (widget.scrollable || _scrollController.hasClients) {
-        _showCaretOnScreenScheduled = false;
-
-        if (!mounted) {
-          return;
-        }
-
-        final viewport = RenderAbstractViewport.of(renderEditor);
-        final editorOffset = renderEditor.localToGlobal(
-          const Offset(0, 0),
-          ancestor: viewport,
-        );
-        final offsetInViewport = _scrollController.offset + editorOffset.dy;
-
-        final offset = renderEditor.getOffsetToRevealCursor(
-          _scrollController.position.viewportDimension,
-          _scrollController.offset,
-          offsetInViewport,
-        );
-
-        if (offset != null) {
-          if (_disableScrollControllerAnimateOnce) {
-            _disableScrollControllerAnimateOnce = false;
-            return;
-          }
-          _scrollController.animateTo(
-            math.min(offset, _scrollController.position.maxScrollExtent),
-            duration: const Duration(milliseconds: 100),
-            curve: Curves.fastOutSlowIn,
-          );
-        }
-      }
-    });
-  }
-
-  // +++ THIS REFERENCE HAS TO GO
-  // The renderer for this widget's editor descendant.
-  // This property is typically used to notify the renderer of input gestures.
-  @override
-  EditorRenderer get renderEditor =>
-      widget.editorRendererKey.currentContext!.findRenderObject()
-          as EditorRenderer;
-
-  // +++ DELETE once requestKeyboard() is migrated
-  void subscribeToReqKeyboard() {
-    KeyboardService().requestKeyboard$.stream.listen((_) {
-      requestKeyboard();
-    });
-  }
-
-  void requestKeyboard() {
-    if (_hasFocus) {
-      openConnectionIfNeeded();
-      showCaretOnScreen();
-    } else {
-      widget.focusNode.requestFocus();
-    }
-  }
-
-  // +++ MIGRATE
-  @override
-  bool showToolbar() => _selectionActionsService.showToolbar();
-
   void _replaceText(ReplaceTextIntent intent) {
     userUpdateTextEditingValue(
       intent.currentTextEditingValue
@@ -912,150 +1159,6 @@ class RawEditorState extends EditorStateM
       intent.cause,
     );
   }
-
-  // Copy current selection to [Clipboard].
-  @override
-  void copySelection(SelectionChangedCause cause) {
-    widget.controller.copiedImageUrl = null;
-    _editorTextService.pastePlainText = widget.controller.getPlainText();
-    _editorTextService.pasteStyle =
-        widget.controller.getAllIndividualSelectionStyles();
-
-    final selection = textEditingValue.selection;
-    final text = textEditingValue.text;
-    if (selection.isCollapsed) {
-      return;
-    }
-    Clipboard.setData(ClipboardData(text: selection.textInside(text)));
-
-    if (cause == SelectionChangedCause.toolbar) {
-      bringIntoView(textEditingValue.selection.extent);
-
-      // Collapse the selection and hide the buttons and handles.
-      userUpdateTextEditingValue(
-        TextEditingValue(
-          text: textEditingValue.text,
-          selection:
-              TextSelection.collapsed(offset: textEditingValue.selection.end),
-        ),
-        SelectionChangedCause.toolbar,
-      );
-    }
-  }
-
-  // Cut current selection to [Clipboard].
-  @override
-  void cutSelection(SelectionChangedCause cause) {
-    widget.controller.copiedImageUrl = null;
-    _editorTextService.pastePlainText = widget.controller.getPlainText();
-    _editorTextService.pasteStyle =
-        widget.controller.getAllIndividualSelectionStyles();
-
-    if (widget.readOnly) {
-      return;
-    }
-    final selection = textEditingValue.selection;
-    final text = textEditingValue.text;
-    if (selection.isCollapsed) {
-      return;
-    }
-    Clipboard.setData(ClipboardData(text: selection.textInside(text)));
-    _replaceText(ReplaceTextIntent(textEditingValue, '', selection, cause));
-
-    if (cause == SelectionChangedCause.toolbar) {
-      bringIntoView(textEditingValue.selection.extent);
-      hideToolbar();
-    }
-  }
-
-  // Paste text from [Clipboard].
-  @override
-  Future<void> pasteText(SelectionChangedCause cause) async {
-    if (widget.readOnly) {
-      return;
-    }
-
-    if (widget.controller.copiedImageUrl != null) {
-      final index = textEditingValue.selection.baseOffset;
-      final length = textEditingValue.selection.extentOffset - index;
-      final copied = widget.controller.copiedImageUrl!;
-      widget.controller
-          .replaceText(index, length, BlockEmbed.image(copied.item1), null);
-      if (copied.item2.isNotEmpty) {
-        widget.controller.formatText(
-            getImageNode(widget.controller, index + 1).item1,
-            1,
-            StyleAttribute(copied.item2));
-      }
-      widget.controller.copiedImageUrl = null;
-      await Clipboard.setData(const ClipboardData(text: ''));
-      return;
-    }
-
-    final selection = textEditingValue.selection;
-    if (!selection.isValid) {
-      return;
-    }
-
-    // Snapshot the input before using `await`.
-    // See https://github.com/flutter/flutter/issues/11427
-    final data = await Clipboard.getData(Clipboard.kTextPlain);
-
-    if (data == null) {
-      return;
-    }
-
-    _replaceText(
-      ReplaceTextIntent(
-        textEditingValue,
-        data.text!,
-        selection,
-        cause,
-      ),
-    );
-
-    bringIntoView(textEditingValue.selection.extent);
-
-    // Collapse the selection and hide the buttons and handles.
-    userUpdateTextEditingValue(
-      TextEditingValue(
-        text: textEditingValue.text,
-        selection: TextSelection.collapsed(
-          offset: textEditingValue.selection.end,
-        ),
-      ),
-      cause,
-    );
-  }
-
-  // Select the entire text value.
-  @override
-  void selectAll(SelectionChangedCause cause) {
-    userUpdateTextEditingValue(
-      textEditingValue.copyWith(
-        selection: TextSelection(
-          baseOffset: 0,
-          extentOffset: textEditingValue.text.length,
-        ),
-      ),
-      cause,
-    );
-
-    if (cause == SelectionChangedCause.toolbar) {
-      bringIntoView(textEditingValue.selection.extent);
-    }
-  }
-
-  @override
-  bool get wantKeepAlive => widget.focusNode.hasFocus;
-
-  @override
-  AnimationController get floatingCursorResetController =>
-      _floatingCursorResetController;
-
-  late AnimationController _floatingCursorResetController;
-
-  // === TEXT EDITING ACTIONS ===
 
   TextBoundaryM _characterBoundary(DirectionalTextEditingIntent intent) {
     final TextBoundaryM atomicTextBoundary = CharacterBoundary(
@@ -1075,7 +1178,7 @@ class RawEditorState extends EditorStateM
 
     // This isn't enough. Newline characters.
     boundary = ExpandedTextBoundary(WhitespaceBoundary(textEditingValue),
-        WordBoundary(renderEditor, textEditingValue));
+        WordBoundary(editorRenderer, textEditingValue));
 
     final mixedBoundary = intent.forward
         ? MixedBoundary(atomicTextBoundary, boundary)
@@ -1092,7 +1195,7 @@ class RawEditorState extends EditorStateM
     // final TextEditingValue textEditingValue =
     //     _textEditingValueforTextLayoutMetrics;
     atomicTextBoundary = CharacterBoundary(textEditingValue);
-    boundary = LineBreak(renderEditor, textEditingValue);
+    boundary = LineBreak(editorRenderer, textEditingValue);
 
     // The _MixedBoundary is to make sure we don't leave invalid code units in the field after deletion.
     // `boundary` doesn't need to be wrapped in a _CollapsedSelectionBoundary,
@@ -1224,50 +1327,4 @@ class RawEditorState extends EditorStateM
       ),
     ),
   };
-
-  @override
-  void insertTextPlaceholder(Size size) {
-    // TODO: implement insertTextPlaceholder
-  }
-
-  @override
-  void removeTextPlaceholder() {
-    // TODO: implement removeTextPlaceholder
-  }
-
-  // === CRUTCHES ===
-  // +++ REMOVE
-
-  @override
-  void hideToolbar([bool hideHandles = true]) {
-    _selectionActionsService.hideToolbar(hideHandles);
-  }
-
-  @override
-  TextEditingValue get textEditingValue => _editorTextService.textEditingValue;
-
-  @override
-  void userUpdateTextEditingValue(
-    TextEditingValue value,
-    SelectionChangedCause cause,
-  ) {
-    _editorTextService.userUpdateTextEditingValue(value, cause);
-  }
-
-  @override
-  void bringIntoView(TextPosition position) {
-    _cursorService.bringIntoView(position, renderEditor);
-  }
-
-  @override
-  bool get cutEnabled => _clipboardService.cutEnabled();
-
-  @override
-  bool get copyEnabled => _clipboardService.copyEnabled();
-
-  @override
-  bool get pasteEnabled => _clipboardService.pasteEnabled();
-
-  @override
-  bool get selectAllEnabled => _textSelectionService.selectAllEnabled();
 }

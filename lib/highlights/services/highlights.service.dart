@@ -1,10 +1,8 @@
 import 'package:flutter/gestures.dart';
 
-import '../../editor/models/editor-state.model.dart';
 import '../../editor/services/editor-renderer.utils.dart';
 import '../../editor/state/editor-config.state.dart';
 import '../../editor/widgets/editor-renderer.dart';
-import '../../editor/widgets/visual-editor.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../highlights/state/highlights.state.dart';
 
@@ -21,23 +19,9 @@ class HighlightsService {
 
   HighlightsService._privateConstructor();
 
-  // +++ DEL
-  late VisualEditorState state;
-
-  // +++ DEL
-  EditorStateM? get editor => state.editableTextKey.currentState;
-
-  // +++ DEL
-  EditorRenderer? get renderEditor => editor?.renderEditor;
-
-  // +++ DEL
-  void initState({required VisualEditorState state}) {
-    this.state = state;
-  }
-
-  void onHover(PointerHoverEvent event) {
+  void onHover(PointerHoverEvent event, EditorRenderer editorRenderer) {
     final position = _editorRendererUtils.getPositionForOffset(
-        event.position, renderEditor!);
+        event.position, editorRenderer);
 
     // Multiple overlapping highlights can be intersected at the same time.
     // Intersecting all highlights avoid "burying" highlights and making them inaccessible.
@@ -80,26 +64,28 @@ class HighlightsService {
     _prevHoveredHighlights.addAll(_highlightsState.hoveredHighlights);
   }
 
-  void onSingleTapUp(TapUpDetails details) {
+  void onSingleTapUp(TapUpDetails details, EditorRenderer editorRenderer,) {
     if (_editorConfigState.config.onTapUp != null &&
-        renderEditor != null &&
         _editorConfigState.config.onTapUp!(
           details,
           (offset) => _editorRendererUtils.getPositionForOffset(
             offset,
-            renderEditor!,
+            editorRenderer,
           ),
         )) {
       return;
     }
 
-    _detectTapOnHighlight(details, renderEditor!);
+    _detectTapOnHighlight(details, editorRenderer);
   }
 
-  void _detectTapOnHighlight(TapUpDetails details, EditorRenderer renderer) {
+  void _detectTapOnHighlight(
+    TapUpDetails details,
+    EditorRenderer editorRenderer,
+  ) {
     final position = _editorRendererUtils.getPositionForOffset(
       details.globalPosition,
-      renderer,
+      editorRenderer,
     );
 
     _highlightsState.highlights.forEach((highlight) {

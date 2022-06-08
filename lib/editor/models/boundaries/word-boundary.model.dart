@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 
-import 'text-boundary.model.dart';
+import 'base/text-boundary.model.dart';
 
 // [UAX #29](https://unicode.org/reports/tr29/) defined word boundaries.
 class WordBoundary extends TextBoundaryM {

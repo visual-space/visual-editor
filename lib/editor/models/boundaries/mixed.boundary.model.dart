@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'text-boundary.model.dart';
+import 'base/text-boundary.model.dart';
 
 // A TextBoundaryM that creates a [TextRange] where its start is from the specified leading text boundary
 // and its end is from the specified trailing text boundary.

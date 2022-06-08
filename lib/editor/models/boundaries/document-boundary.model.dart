@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'text-boundary.model.dart';
+import 'base/text-boundary.model.dart';
 
 // The document boundary is unique and is a constant function of the input position.
 class DocumentBoundary extends TextBoundaryM {

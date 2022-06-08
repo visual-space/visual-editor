@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'text-boundary.model.dart';
+import 'base/text-boundary.model.dart';
 
 // Force the innerTextBoundary to interpret the input [TextPosition]s as caret locations instead of code unit positions.
 // The innerTextBoundary must be a [TextBoundaryM] that interprets the input [TextPosition]s as code unit positions.

@@ -42,9 +42,9 @@ class TextSelectionUtils {
 
   TextSelection getWordAtPosition(
     TextPosition position,
-    EditorRenderer renderer,
+    EditorRenderer editorRenderer,
   ) {
-    final word = renderer.getWordBoundary(position);
+    final word = editorRenderer.getWordBoundary(position);
 
     // When long-pressing past the end of the text, we want a collapsed cursor.
     if (position.offset >= word.end) {

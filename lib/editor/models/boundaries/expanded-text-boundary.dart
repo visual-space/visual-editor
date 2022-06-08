@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'text-boundary.model.dart';
+import 'base/text-boundary.model.dart';
 
 // Expands the innerTextBoundary with outerTextBoundary.
 class ExpandedTextBoundary extends TextBoundaryM {

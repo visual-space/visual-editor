@@ -50,8 +50,8 @@ class UpdateTextSelectionToAdjacentLineAction<
     }
 
     final currentRun = _verticalMovementRun ??
-        state.renderEditor.startVerticalCaretMovement(
-          state.renderEditor.selection.extent,
+        state.editorRenderer.startVerticalCaretMovement(
+          state.editorRenderer.selection.extent,
         );
 
     final shouldMove =

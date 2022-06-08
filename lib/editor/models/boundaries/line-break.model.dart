@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 
-import 'text-boundary.model.dart';
+import 'base/text-boundary.model.dart';
 
 // The linebreaks of the current text layout.
 // The input [TextPosition]s are interpreted as caret locations because [TextPainter.getLineAtOffset] is text-affinity-aware.

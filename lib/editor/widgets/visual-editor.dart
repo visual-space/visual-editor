@@ -5,7 +5,6 @@ import 'package:i18n_extension/i18n_widget.dart';
 import '../../controller/services/editor-controller.dart';
 import '../../controller/state/editor-controller.state.dart';
 import '../../controller/state/scroll-controller.state.dart';
-import '../../highlights/services/highlights.service.dart';
 import '../../selection/models/gesture-detector-builder-delegate.model.dart';
 import '../../selection/widgets/text-gestures.dart';
 import '../../shared/utils/platform.utils.dart';
@@ -94,7 +93,6 @@ class VisualEditor extends StatefulWidget {
 
 class VisualEditorState extends State<VisualEditor>
     implements TextSelectionGesturesBuilderDelegateM {
-  final _highlightsService = HighlightsService();
   final _clipboardService = ClipboardService();
   final _editorConfigState = EditorConfigState();
   final _stylesUtils = StylesUtils();
@@ -105,7 +103,6 @@ class VisualEditorState extends State<VisualEditor>
   @override
   void initState() {
     super.initState();
-    _setupTextSelectionServiceState();
     _editorConfigState.setEditorConfig(widget.config);
   }
 
@@ -203,11 +200,4 @@ class VisualEditorState extends State<VisualEditor>
         child: child,
         onKey: (_) {},
       );
-
-  // +++ DELETE
-  void _setupTextSelectionServiceState() {
-    _highlightsService.initState(
-      state: this,
-    );
-  }
 }

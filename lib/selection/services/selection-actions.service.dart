@@ -9,7 +9,8 @@ import 'selection-actions.logic.dart';
 // It might also provide additional functionality depending on the browser (such as translate).
 // Due to this we should not show Flutter buttons for the editable text elements.
 class SelectionActionsService {
-  SelectionActionsLogic? selectionActions; // +++ PRIVATE (state ?)
+  // +++ REVIEW Controller? State? Merge?
+  SelectionActionsLogic? selectionActions;
 
   static final _instance = SelectionActionsService._privateConstructor();
 

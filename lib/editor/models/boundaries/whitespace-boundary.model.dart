@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 
-import 'text-boundary.model.dart';
+import 'base/text-boundary.model.dart';
 
 // The word modifier generally removes the word boundaries around white spaces
 // (and newlines), IOW white spaces and some other punctuations are considered

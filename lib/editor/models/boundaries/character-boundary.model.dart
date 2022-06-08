@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import 'text-boundary.model.dart';
+import 'base/text-boundary.model.dart';
 
 // Most apps delete the entire grapheme when the backspace key is pressed.
 // Also always put the new caret location to character boundaries to avoid

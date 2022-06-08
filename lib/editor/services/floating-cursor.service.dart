@@ -14,7 +14,6 @@ import 'editor-renderer.utils.dart';
 class FloatingCursorService {
   final _editorConfigState = EditorConfigState();
   final _editorRendererUtils = EditorRendererUtils();
-  static final _instance = FloatingCursorService._privateConstructor();
 
   // The relative origin in relation to the distance the user has theoretically dragged the floating cursor offscreen.
   // This value is used to account for the difference in the rendering position and the raw offset value.
@@ -26,6 +25,8 @@ class FloatingCursorService {
   bool _resetOriginOnBottom = false;
   bool _floatingCursorOn = false;
 
+  static final _instance = FloatingCursorService._privateConstructor();
+
   factory FloatingCursorService() => _instance;
 
   FloatingCursorService._privateConstructor();
@@ -34,15 +35,16 @@ class FloatingCursorService {
   Offset calculateBoundedFloatingCursorOffset(
     Offset rawCursorOffset,
     double preferredLineHeight,
-    EditorRenderer renderer,
+    EditorRenderer editorRenderer,
   ) {
     var deltaPosition = Offset.zero;
     final topBound = kFloatingCursorAddedMargin.top;
-    final bottomBound = renderer.size.height -
+    final bottomBound = editorRenderer.size.height -
         preferredLineHeight +
         kFloatingCursorAddedMargin.bottom;
     final leftBound = kFloatingCursorAddedMargin.left;
-    final rightBound = renderer.size.width - kFloatingCursorAddedMargin.right;
+    final rightBound =
+        editorRenderer.size.width - kFloatingCursorAddedMargin.right;
 
     if (_previousOffset != null) {
       deltaPosition = rawCursorOffset - _previousOffset!;
@@ -113,7 +115,7 @@ class FloatingCursorService {
     FloatingCursorDragState dragState,
     Offset boundedOffset,
     TextPosition textPosition,
-    EditorRenderer renderer, {
+    EditorRenderer editorRenderer, {
     double? resetLerpValue,
   }) {
     if (_editorConfigState.config.floatingCursorDisabled) return;
@@ -130,7 +132,7 @@ class FloatingCursorService {
     _floatingCursorOn = dragState != FloatingCursorDragState.End;
 
     if (_floatingCursorOn) {
-      renderer.floatingCursorTextPosition = textPosition;
+      editorRenderer.floatingCursorTextPosition = textPosition;
       final sizeAdjustment = resetLerpValue != null
           ? EdgeInsets.lerp(
               kFloatingCaretSizeIncrease,
@@ -138,21 +140,22 @@ class FloatingCursorService {
               resetLerpValue,
             )!
           : kFloatingCaretSizeIncrease;
-      final child = _editorRendererUtils.childAtPosition(textPosition, renderer);
+      final child =
+          _editorRendererUtils.childAtPosition(textPosition, editorRenderer);
       final caretPrototype = child.getCaretPrototype(
         child.globalToLocalPosition(textPosition),
       );
-      renderer.floatingCursorRect = sizeAdjustment
+      editorRenderer.floatingCursorRect = sizeAdjustment
           .inflateRect(
             caretPrototype,
           )
           .shift(boundedOffset);
-      renderer.cursorController.setFloatingCursorTextPosition(
-        renderer.floatingCursorTextPosition,
+      editorRenderer.cursorController.setFloatingCursorTextPosition(
+        editorRenderer.floatingCursorTextPosition,
       );
     } else {
-      renderer.floatingCursorRect = null;
-      renderer.cursorController.setFloatingCursorTextPosition(null);
+      editorRenderer.floatingCursorRect = null;
+      editorRenderer.cursorController.setFloatingCursorTextPosition(null);
     }
   }
 }

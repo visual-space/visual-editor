@@ -15,23 +15,30 @@ class CursorService {
 
   CursorService._privateConstructor();
 
-  void bringIntoView(TextPosition position, EditorRenderer renderer) {
-    final localRect = getLocalRectForCaret(position, renderer);
-    final targetOffset = _getOffsetToRevealCaret(localRect, position, renderer);
+  void bringIntoView(TextPosition position, EditorRenderer editorRenderer) {
+    final localRect = getLocalRectForCaret(position, editorRenderer);
+    final targetOffset = _getOffsetToRevealCaret(
+      localRect,
+      position,
+      editorRenderer,
+    );
 
     if (_scrollControllerState.controller.hasClients) {
       _scrollControllerState.controller.jumpTo(targetOffset.offset);
     }
 
-    renderer.showOnScreen(
+    editorRenderer.showOnScreen(
       rect: targetOffset.rect,
     );
   }
 
-  Rect getLocalRectForCaret(TextPosition position, EditorRenderer renderer) {
+  Rect getLocalRectForCaret(
+    TextPosition position,
+    EditorRenderer editorRenderer,
+  ) {
     final targetChild = _editorRendererUtils.childAtPosition(
       position,
-      renderer,
+      editorRenderer,
     );
     final localPosition = targetChild.globalToLocalPosition(position);
     final childLocalRect = targetChild.getLocalRectForCaret(localPosition);
@@ -50,7 +57,7 @@ class CursorService {
   RevealedOffset _getOffsetToRevealCaret(
     Rect rect,
     TextPosition position,
-    EditorRenderer renderer,
+    EditorRenderer editorRenderer,
   ) {
     if (_isConnectedAndAllowedToSelfScroll()) {
       return RevealedOffset(
@@ -60,7 +67,7 @@ class CursorService {
     }
 
     // +++ EXTRACT
-    final editableSize = renderer.size;
+    final editableSize = editorRenderer.size;
     final double additionalOffset;
     final Offset unitOffset;
 
@@ -71,7 +78,7 @@ class CursorService {
       width: rect.width,
       height: math.max(
         rect.height,
-        _editorRendererUtils.preferredLineHeight(position, renderer),
+        _editorRendererUtils.preferredLineHeight(position, editorRenderer),
       ),
     );
 
@@ -108,6 +115,6 @@ class CursorService {
 
   bool _isConnectedAndAllowedToSelfScroll() {
     return _scrollControllerState.controller.hasClients &&
-      !_scrollControllerState.controller.position.allowImplicitScrolling;
+        !_scrollControllerState.controller.position.allowImplicitScrolling;
   }
 }

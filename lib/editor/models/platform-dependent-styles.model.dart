@@ -4,12 +4,12 @@ import 'cursor-style-cfg.model.dart';
 
 // Configures the style of the editor based on the detected platform.
 @immutable
-class PlatformDependentStylesCfgM {
+class PlatformDependentStylesM {
   final TextSelectionControls textSelectionControls;
   final Color selectionColor;
   final CursorStyleCfgM cursorStyle;
 
-  const PlatformDependentStylesCfgM({
+  const PlatformDependentStylesM({
     required this.textSelectionControls,
     required this.selectionColor,
     required this.cursorStyle,

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../../cursor/models/cursor-style.model.dart';
 import '../models/cursor-style-cfg.model.dart';
 import '../models/editor-cfg.model.dart';
-import '../models/platform-dependent-styles-config.model.dart';
+import '../models/platform-dependent-styles.model.dart';
 
 // Utils used to generate the styles that will be used to render the editor.
 class StylesUtils {
@@ -14,13 +14,13 @@ class StylesUtils {
 
   StylesUtils._privateConstructor();
 
-  PlatformDependentStylesCfgM getOtherOsStyles(
+  PlatformDependentStylesM getOtherOsStyles(
     TextSelectionThemeData selectionTheme,
     ThemeData theme,
   ) {
     final selectionColor = theme.colorScheme.primary.withOpacity(0.40);
 
-    return PlatformDependentStylesCfgM(
+    return PlatformDependentStylesM(
       textSelectionControls: materialTextSelectionControls,
       selectionColor: selectionTheme.selectionColor ?? selectionColor,
       cursorStyle: CursorStyleCfgM(
@@ -31,7 +31,7 @@ class StylesUtils {
     );
   }
 
-  PlatformDependentStylesCfgM getAppleOsStyles(
+  PlatformDependentStylesM getAppleOsStyles(
     TextSelectionThemeData selectionTheme,
     BuildContext context,
   ) {
@@ -39,7 +39,7 @@ class StylesUtils {
     final selectionColor = cupertinoTheme.primaryColor.withOpacity(0.40);
     final pixelRatio = MediaQuery.of(context).devicePixelRatio;
 
-    return PlatformDependentStylesCfgM(
+    return PlatformDependentStylesM(
       textSelectionControls: cupertinoTextSelectionControls,
       selectionColor: selectionTheme.selectionColor ?? selectionColor,
       cursorStyle: CursorStyleCfgM(

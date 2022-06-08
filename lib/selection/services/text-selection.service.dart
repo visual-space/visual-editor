@@ -54,6 +54,7 @@ class TextSelectionService {
       _updateSelection;
 
   // REMOVE +++ Temporary method until we can refactor the sharing of the controller and state
+  // Could have been a stream until
   void setUpdateSelection(
     Function(TextSelection textSelection, ChangeSource source) updateSelection,
   ) {

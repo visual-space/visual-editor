@@ -11,7 +11,7 @@ import '../../selection/widgets/text-gestures.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../models/editor-cfg.model.dart';
 import '../models/editor-state.model.dart';
-import '../models/platform-dependent-styles-config.model.dart';
+import '../models/platform-dependent-styles.model.dart';
 import '../services/clipboard.service.dart';
 import '../services/styles.utils.dart';
 import '../state/editor-config.state.dart';
@@ -152,7 +152,7 @@ class VisualEditorState extends State<VisualEditor>
 
   Widget _editor({
     required ThemeData theme,
-    required PlatformDependentStylesCfgM platformStyles,
+    required PlatformDependentStylesM platformStyles,
   }) =>
       RawEditor(
         key: _editorKey,

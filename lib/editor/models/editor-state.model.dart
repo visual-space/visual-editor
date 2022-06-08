@@ -19,5 +19,4 @@ abstract class EditorStateM extends State<RawEditor>
   // The floating cursor is animated to merge with the regular cursor.
   AnimationController get floatingCursorResetController;
 
-  // void requestKeyboard();
 }

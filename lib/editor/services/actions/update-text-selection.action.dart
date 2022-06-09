@@ -1,27 +1,26 @@
 import 'package:flutter/material.dart';
 
+import '../../../controller/services/editor-text.service.dart';
 import '../../models/boundaries/base/text-boundary.model.dart';
 import '../../state/editor-config.state.dart';
-import '../../widgets/raw-editor.dart';
 
 // +++ DOC
 class UpdateTextSelectionAction<T extends DirectionalCaretMovementIntent>
     extends ContextAction<T> {
+  final _editorTextService = EditorTextService();
   final _editorConfigState = EditorConfigState();
 
+  final bool ignoreNonCollapsedSelection;
+  final TextBoundaryM Function(T intent) getTextBoundariesForIntent;
+
   UpdateTextSelectionAction(
-    this.state,
     this.ignoreNonCollapsedSelection,
     this.getTextBoundariesForIntent,
   );
 
-  final RawEditorState state;
-  final bool ignoreNonCollapsedSelection;
-  final TextBoundaryM Function(T intent) getTextBoundariesForIntent;
-
   @override
   Object? invoke(T intent, [BuildContext? context]) {
-    final selection = state.textEditingValue.selection;
+    final selection = _editorTextService.textEditingValue.selection;
 
     assert(selection.isValid);
 
@@ -32,6 +31,7 @@ class UpdateTextSelectionAction<T extends DirectionalCaretMovementIntent>
     TextSelection _collapse(TextSelection selection) {
       assert(selection.isValid);
       assert(!selection.isCollapsed);
+
       return selection.copyWith(
         baseOffset: intent.forward ? selection.end : selection.start,
         extentOffset: intent.forward ? selection.end : selection.start,
@@ -41,10 +41,11 @@ class UpdateTextSelectionAction<T extends DirectionalCaretMovementIntent>
     if (!selection.isCollapsed &&
         !ignoreNonCollapsedSelection &&
         collapseSelection) {
+
       return Actions.invoke(
         context!,
-        UpdateSelectionIntent(state.textEditingValue, _collapse(selection),
-            SelectionChangedCause.keyboard),
+        UpdateSelectionIntent(_editorTextService.textEditingValue,
+            _collapse(selection), SelectionChangedCause.keyboard),
       );
     }
 
@@ -60,7 +61,7 @@ class UpdateTextSelectionAction<T extends DirectionalCaretMovementIntent>
         collapseSelection) {
       return Actions.invoke(
         context!,
-        UpdateSelectionIntent(state.textEditingValue,
+        UpdateSelectionIntent(_editorTextService.textEditingValue,
             _collapse(textBoundarySelection), SelectionChangedCause.keyboard),
       );
     }
@@ -79,10 +80,11 @@ class UpdateTextSelectionAction<T extends DirectionalCaretMovementIntent>
         intent.collapseAtReversal &&
         (selection.baseOffset < selection.extentOffset !=
             newSelection.baseOffset < newSelection.extentOffset)) {
+
       return Actions.invoke(
         context!,
         UpdateSelectionIntent(
-          state.textEditingValue,
+          _editorTextService.textEditingValue,
           TextSelection.fromPosition(selection.base),
           SelectionChangedCause.keyboard,
         ),
@@ -91,11 +93,15 @@ class UpdateTextSelectionAction<T extends DirectionalCaretMovementIntent>
 
     return Actions.invoke(
       context!,
-      UpdateSelectionIntent(textBoundary.textEditingValue, newSelection,
-          SelectionChangedCause.keyboard),
+      UpdateSelectionIntent(
+        textBoundary.textEditingValue,
+        newSelection,
+        SelectionChangedCause.keyboard,
+      ),
     );
   }
 
   @override
-  bool get isActionEnabled => state.textEditingValue.selection.isValid;
+  bool get isActionEnabled =>
+      _editorTextService.textEditingValue.selection.isValid;
 }

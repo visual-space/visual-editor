@@ -40,23 +40,9 @@ import '../../selection/services/selection-actions.logic.dart';
 import '../../selection/services/selection-actions.service.dart';
 import '../../selection/services/text-selection.service.dart';
 import '../../shared/utils/platform.utils.dart';
-import '../models/boundaries/base/text-boundary.model.dart';
-import '../models/boundaries/character-boundary.model.dart';
-import '../models/boundaries/collapse-selection.boundary.model.dart';
-import '../models/boundaries/document-boundary.model.dart';
-import '../models/boundaries/expanded-text-boundary.dart';
-import '../models/boundaries/line-break.model.dart';
-import '../models/boundaries/mixed.boundary.model.dart';
-import '../models/boundaries/whitespace-boundary.model.dart';
-import '../models/boundaries/word-boundary.model.dart';
-import '../services/actions/copy-selection-action.dart';
-import '../services/actions/delete-text-action.dart';
-import '../services/actions/extend-selection-or-caret-position-action.dart';
-import '../services/actions/select-all-action.dart';
-import '../services/actions/update-text-selection-action.dart';
-import '../services/actions/update-text-selection-to-adjiacent-line-action.dart';
 import '../services/clipboard.service.dart';
 import '../services/input-connection.service.dart';
+import '../services/keyboard-actions.service.dart';
 import 'editor-renderer.dart';
 import 'proxy/baseline-proxy.dart';
 import 'raw-editor-renderer.dart';
@@ -221,17 +207,13 @@ class RawEditorState extends State<RawEditor>
   final _clipboardService = ClipboardService();
   final _textConnectionService = TextConnectionService();
   final _scrollControllerState = ScrollControllerState();
+  final _keyboardActionsService = KeyboardActionsService();
 
   KeyboardVisibilityController? _keyboardVisibilityController;
   StreamSubscription<bool>? _keyboardVisibilitySubscription;
   bool _keyboardVisible = false;
 
   late CursorCont _cursorCont;
-
-  // +++ Make private
-  EditorRenderer get editorRenderer =>
-      widget.editorRendererKey.currentContext!.findRenderObject()
-          as EditorRenderer;
 
   // Focus
   bool _didAutoFocus = false;
@@ -348,7 +330,7 @@ class RawEditorState extends State<RawEditor>
     return EditorStylesUtils(
       data: _styles!,
       child: Actions(
-        actions: _actions,
+        actions: _getActionsSafe(context),
         child: Focus(
           focusNode: widget.focusNode,
           child: EditorKeyboardListener(
@@ -392,7 +374,7 @@ class RawEditorState extends State<RawEditor>
     _floatingCursorResetController = AnimationController(vsync: this);
     _floatingCursorResetController.addListener(
       () => _textConnectionService.onFloatingCursorResetTick(
-        editorRenderer,
+        _editorRenderer,
         _floatingCursorResetController,
       ),
     );
@@ -500,7 +482,7 @@ class RawEditorState extends State<RawEditor>
     } else {
       if (oldWidget.readOnly && _hasFocus) {
         _textConnectionService.openConnectionIfNeeded(
-          editorRenderer,
+          _editorRenderer,
           this,
           mounted,
         );
@@ -552,15 +534,15 @@ class RawEditorState extends State<RawEditor>
           return;
         }
 
-        final viewport = RenderAbstractViewport.of(editorRenderer);
-        final editorOffset = editorRenderer.localToGlobal(
+        final viewport = RenderAbstractViewport.of(_editorRenderer);
+        final editorOffset = _editorRenderer.localToGlobal(
           const Offset(0, 0),
           ancestor: viewport,
         );
         final offsetInViewport =
             _scrollControllerState.controller.offset + editorOffset.dy;
 
-        final offset = editorRenderer.getOffsetToRevealCursor(
+        final offset = _editorRenderer.getOffsetToRevealCursor(
           _scrollControllerState.controller.position.viewportDimension,
           _scrollControllerState.controller.offset,
           offsetInViewport,
@@ -595,7 +577,7 @@ class RawEditorState extends State<RawEditor>
   void requestKeyboard() {
     if (_hasFocus) {
       _textConnectionService.openConnectionIfNeeded(
-        editorRenderer,
+        _editorRenderer,
         this,
         mounted,
       );
@@ -612,8 +594,7 @@ class RawEditorState extends State<RawEditor>
     _clipboardService.copySelection(
       cause,
       widget.controller,
-      this,
-      editorRenderer,
+      _editorRenderer,
     );
   }
 
@@ -622,7 +603,7 @@ class RawEditorState extends State<RawEditor>
     _clipboardService.cutSelection(
       cause,
       widget.controller,
-      editorRenderer,
+      _editorRenderer,
     );
   }
 
@@ -631,12 +612,12 @@ class RawEditorState extends State<RawEditor>
       _clipboardService.pasteText(
         cause,
         widget.controller,
-        editorRenderer,
+        _editorRenderer,
       );
 
   @override
   void selectAll(SelectionChangedCause cause) {
-    _textSelectionService.selectAll(cause, editorRenderer);
+    _textSelectionService.selectAll(cause, _editorRenderer);
   }
 
   // === INPUT CLIENT OVERRIDES ===
@@ -684,7 +665,7 @@ class RawEditorState extends State<RawEditor>
   ) {
     _textConnectionService.updateFloatingCursor(
       point,
-      editorRenderer,
+      _editorRenderer,
       _floatingCursorResetController,
     );
   }
@@ -715,7 +696,7 @@ class RawEditorState extends State<RawEditor>
 
   @override
   void bringIntoView(TextPosition position) {
-    _cursorService.bringIntoView(position, editorRenderer);
+    _cursorService.bringIntoView(position, _editorRenderer);
   }
 
   @override
@@ -731,6 +712,16 @@ class RawEditorState extends State<RawEditor>
   bool get selectAllEnabled => _textSelectionService.selectAllEnabled();
 
   // === PRIVATE ===
+
+  EditorRenderer get _editorRenderer =>
+      widget.editorRendererKey.currentContext!.findRenderObject()
+      as EditorRenderer;
+
+  Map<Type, Action<Intent>> _getActionsSafe(BuildContext context) {
+    return widget.editorRendererKey.currentContext != null
+        ? _keyboardActionsService.getActions(_editorRenderer, context)
+        : {};
+  }
 
   void _handleSelectionChanged(
     TextSelection selection,
@@ -938,7 +929,9 @@ class RawEditorState extends State<RawEditor>
       }
     }
 
-    _adjacentLineAction.stopCurrentVerticalRunIfSelectionChanges();
+    _keyboardActionsService
+        .getAdjacentLineAction(_editorRenderer)
+        .stopCurrentVerticalRunIfSelectionChanges();
   }
 
   void _onChangeTextEditingValue([bool ignoreCaret = false]) {
@@ -998,7 +991,7 @@ class RawEditorState extends State<RawEditor>
         toolbarLayerLink: _toolbarLayerLink,
         startHandleLayerLink: _startHandleLayerLink,
         endHandleLayerLink: _endHandleLayerLink,
-        renderObject: editorRenderer,
+        renderObject: _editorRenderer,
         selectionCtrls: widget.selectionCtrls,
         selectionDelegate: this,
         clipboardStatus: _clipboardStatus,
@@ -1011,7 +1004,7 @@ class RawEditorState extends State<RawEditor>
 
   void _handleFocusChanged() {
     _textConnectionService.openOrCloseConnection(
-      editorRenderer,
+      _editorRenderer,
       widget.focusNode,
       this,
       mounted,
@@ -1045,174 +1038,4 @@ class RawEditorState extends State<RawEditor>
     final link = linkNode.style.attributes[Attribute.link.key]!.value!;
     return widget.linkActionPickerDelegate(context, link, linkNode);
   }
-
-  TextBoundaryM _characterBoundary(DirectionalTextEditingIntent intent) {
-    final TextBoundaryM atomicTextBoundary = CharacterBoundary(
-      textEditingValue,
-    );
-
-    return CollapsedSelectionBoundary(atomicTextBoundary, intent.forward);
-  }
-
-  TextBoundaryM _nextWordBoundary(DirectionalTextEditingIntent intent) {
-    final TextBoundaryM atomicTextBoundary;
-    final TextBoundaryM boundary;
-
-    // final TextEditingValue textEditingValue =
-    //     _textEditingValueforTextLayoutMetrics;
-    atomicTextBoundary = CharacterBoundary(textEditingValue);
-
-    // This isn't enough. Newline characters.
-    boundary = ExpandedTextBoundary(WhitespaceBoundary(textEditingValue),
-        WordBoundary(editorRenderer, textEditingValue));
-
-    final mixedBoundary = intent.forward
-        ? MixedBoundary(atomicTextBoundary, boundary)
-        : MixedBoundary(boundary, atomicTextBoundary);
-
-    // Use a _MixedBoundary to make sure we don't leave invalid codepoints in the field after deletion.
-    return CollapsedSelectionBoundary(mixedBoundary, intent.forward);
-  }
-
-  TextBoundaryM _linebreak(DirectionalTextEditingIntent intent) {
-    final TextBoundaryM atomicTextBoundary;
-    final TextBoundaryM boundary;
-
-    // final TextEditingValue textEditingValue =
-    //     _textEditingValueforTextLayoutMetrics;
-    atomicTextBoundary = CharacterBoundary(textEditingValue);
-    boundary = LineBreak(editorRenderer, textEditingValue);
-
-    // The _MixedBoundary is to make sure we don't leave invalid code units in the field after deletion.
-    // `boundary` doesn't need to be wrapped in a _CollapsedSelectionBoundary,
-    // since the document boundary is unique and the linebreak boundary is already caret-location based.
-    return intent.forward
-        ? MixedBoundary(
-            CollapsedSelectionBoundary(
-              atomicTextBoundary,
-              true,
-            ),
-            boundary,
-          )
-        : MixedBoundary(
-            boundary,
-            CollapsedSelectionBoundary(
-              atomicTextBoundary,
-              false,
-            ),
-          );
-  }
-
-  TextBoundaryM _documentBoundary(DirectionalTextEditingIntent intent) =>
-      DocumentBoundary(textEditingValue);
-
-  Action<T> _makeOverridable<T extends Intent>(Action<T> defaultAction) {
-    return Action<T>.overridable(
-      context: context,
-      defaultAction: defaultAction,
-    );
-  }
-
-  late final Action<ReplaceTextIntent> _replaceTextAction =
-      CallbackAction<ReplaceTextIntent>(
-    onInvoke: _clipboardService.replaceText,
-  );
-
-  void _updateSelection(UpdateSelectionIntent intent) {
-    userUpdateTextEditingValue(
-      intent.currentTextEditingValue.copyWith(
-        selection: intent.newSelection,
-      ),
-      intent.cause,
-    );
-  }
-
-  late final Action<UpdateSelectionIntent> _updateSelectionAction =
-      CallbackAction<UpdateSelectionIntent>(
-    onInvoke: _updateSelection,
-  );
-
-  late final UpdateTextSelectionToAdjacentLineAction<
-          ExtendSelectionVerticallyToAdjacentLineIntent> _adjacentLineAction =
-      UpdateTextSelectionToAdjacentLineAction<
-          ExtendSelectionVerticallyToAdjacentLineIntent>(this);
-
-  late final Map<Type, Action<Intent>> _actions = <Type, Action<Intent>>{
-    DoNothingAndStopPropagationTextIntent: DoNothingAction(consumesKey: false),
-    ReplaceTextIntent: _replaceTextAction,
-    UpdateSelectionIntent: _updateSelectionAction,
-    DirectionalFocusIntent: DirectionalFocusAction.forTextField(),
-
-    // Delete
-    DeleteCharacterIntent: _makeOverridable(
-      DeleteTextAction<DeleteCharacterIntent>(
-        this,
-        _characterBoundary,
-      ),
-    ),
-    DeleteToNextWordBoundaryIntent: _makeOverridable(
-      DeleteTextAction<DeleteToNextWordBoundaryIntent>(
-        this,
-        _nextWordBoundary,
-      ),
-    ),
-    DeleteToLineBreakIntent: _makeOverridable(
-      DeleteTextAction<DeleteToLineBreakIntent>(
-        this,
-        _linebreak,
-      ),
-    ),
-
-    // Extend/Move Selection
-    ExtendSelectionByCharacterIntent: _makeOverridable(
-      UpdateTextSelectionAction<ExtendSelectionByCharacterIntent>(
-        this,
-        false,
-        _characterBoundary,
-      ),
-    ),
-    ExtendSelectionToNextWordBoundaryIntent: _makeOverridable(
-      UpdateTextSelectionAction<ExtendSelectionToNextWordBoundaryIntent>(
-        this,
-        true,
-        _nextWordBoundary,
-      ),
-    ),
-    ExtendSelectionToLineBreakIntent: _makeOverridable(
-      UpdateTextSelectionAction<ExtendSelectionToLineBreakIntent>(
-        this,
-        true,
-        _linebreak,
-      ),
-    ),
-    ExtendSelectionVerticallyToAdjacentLineIntent: _makeOverridable(
-      _adjacentLineAction,
-    ),
-    ExtendSelectionToDocumentBoundaryIntent: _makeOverridable(
-      UpdateTextSelectionAction<ExtendSelectionToDocumentBoundaryIntent>(
-        this,
-        true,
-        _documentBoundary,
-      ),
-    ),
-    ExtendSelectionToNextWordBoundaryOrCaretLocationIntent: _makeOverridable(
-      ExtendSelectionOrCaretPositionAction(
-        this,
-        _nextWordBoundary,
-      ),
-    ),
-
-    // Copy Paste
-    SelectAllTextIntent: _makeOverridable(
-      SelectAllAction(this),
-    ),
-    CopySelectionTextIntent: _makeOverridable(
-      CopySelectionAction(this),
-    ),
-    PasteTextIntent: _makeOverridable(
-      CallbackAction<PasteTextIntent>(
-        onInvoke: (intent) => pasteText(intent.cause),
-      ),
-    ),
-  };
 }

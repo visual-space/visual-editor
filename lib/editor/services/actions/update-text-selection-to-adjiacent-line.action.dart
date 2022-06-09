@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
 
+import '../../../controller/services/editor-text.service.dart';
+import '../../../controller/state/editor-controller.state.dart';
 import '../../services/vertical-caret-movement-run.dart';
 import '../../state/editor-config.state.dart';
-import '../../widgets/raw-editor.dart';
+import '../../widgets/editor-renderer.dart';
 
 // +++ DOC
 class UpdateTextSelectionToAdjacentLineAction<
     T extends DirectionalCaretMovementIntent> extends ContextAction<T> {
+  final _editorTextService = EditorTextService();
   final _editorConfigState = EditorConfigState();
+  final _editorControllerState = EditorControllerState();
 
-  final RawEditorState state;
+  final EditorRenderer editorRenderer;
 
-  UpdateTextSelectionToAdjacentLineAction(this.state);
+  UpdateTextSelectionToAdjacentLineAction(this.editorRenderer);
 
   EditorVerticalCaretMovementRun? _verticalMovementRun;
   TextSelection? _runSelection;
@@ -24,8 +28,8 @@ class UpdateTextSelectionToAdjacentLineAction<
       return;
     }
 
-    _runSelection = state.textEditingValue.selection;
-    final currentSelection = state.widget.controller.selection;
+    _runSelection = _editorTextService.textEditingValue.selection;
+    final currentSelection = _editorControllerState.controller.selection;
     final continueCurrentRun = currentSelection.isValid &&
         currentSelection.isCollapsed &&
         currentSelection.baseOffset == runSelection.baseOffset &&
@@ -39,19 +43,19 @@ class UpdateTextSelectionToAdjacentLineAction<
 
   @override
   void invoke(T intent, [BuildContext? context]) {
-    assert(state.textEditingValue.selection.isValid);
+    assert(_editorTextService.textEditingValue.selection.isValid);
 
     final collapseSelection = intent.collapseSelection ||
         !_editorConfigState.config.enableInteractiveSelection;
-    final value = state.textEditingValue;
+    final value = _editorTextService.textEditingValue;
 
     if (!value.selection.isValid) {
       return;
     }
 
     final currentRun = _verticalMovementRun ??
-        state.editorRenderer.startVerticalCaretMovement(
-          state.editorRenderer.selection.extent,
+        editorRenderer.startVerticalCaretMovement(
+          editorRenderer.selection.extent,
         );
 
     final shouldMove =
@@ -59,7 +63,8 @@ class UpdateTextSelectionToAdjacentLineAction<
     final newExtent = shouldMove
         ? currentRun.current
         : (intent.forward
-            ? TextPosition(offset: state.textEditingValue.text.length)
+            ? TextPosition(
+                offset: _editorTextService.textEditingValue.text.length)
             : const TextPosition(offset: 0));
     final newSelection = collapseSelection
         ? TextSelection.fromPosition(newExtent)
@@ -74,12 +79,13 @@ class UpdateTextSelectionToAdjacentLineAction<
       ),
     );
 
-    if (state.textEditingValue.selection == newSelection) {
+    if (_editorTextService.textEditingValue.selection == newSelection) {
       _verticalMovementRun = currentRun;
       _runSelection = newSelection;
     }
   }
 
   @override
-  bool get isActionEnabled => state.textEditingValue.selection.isValid;
+  bool get isActionEnabled =>
+      _editorTextService.textEditingValue.selection.isValid;
 }

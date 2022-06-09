@@ -42,13 +42,13 @@ class EditorRenderer extends EditableContainerBoxRenderer
   TextSelectionChangedHandler onSelectionChanged;
   TextSelectionCompletedHandler onSelectionCompleted;
   final ValueNotifier<bool> _selectionStartInViewport =
-  ValueNotifier<bool>(true);
+      ValueNotifier<bool>(true);
 
   EditorRenderer({
-    required this.document,
+    required this.document, // +++ Move to service
     required TextDirection textDirection,
     required this.hasFocus,
-    required this.selection,
+    required this.selection, // +++ Move to service
     required this.scrollable,
     required this.startHandleLayerLink,
     required this.endHandleLayerLink,
@@ -461,9 +461,11 @@ class EditorRenderer extends EditableContainerBoxRenderer
     const kMargin = 8.0;
 
     final caretTop = endpoint.point.dy -
-        child.preferredLineHeight(TextPosition(
-          offset: selection.extentOffset - child.container.documentOffset,
-        )) -
+        child.preferredLineHeight(
+          TextPosition(
+            offset: selection.extentOffset - child.container.documentOffset,
+          ),
+        ) -
         kMargin +
         offsetInViewport +
         scrollBottomInset;
@@ -502,9 +504,8 @@ class EditorRenderer extends EditableContainerBoxRenderer
 
   EditorVerticalCaretMovementRun startVerticalCaretMovement(
     TextPosition startPosition,
-  ) {
-    return EditorVerticalCaretMovementRun(this, startPosition);
-  }
+  ) =>
+      EditorVerticalCaretMovementRun(this, startPosition);
 
   @override
   void systemFontsDidChange() {

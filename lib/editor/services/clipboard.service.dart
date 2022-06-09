@@ -11,7 +11,6 @@ import '../../embeds/services/image.utils.dart';
 import '../../selection/services/selection-actions.service.dart';
 import '../state/editor-config.state.dart';
 import '../widgets/editor-renderer.dart';
-import '../widgets/raw-editor.dart';
 
 // Handles all the clipboard operations, cut, copy, paste
 class ClipboardService {
@@ -19,6 +18,7 @@ class ClipboardService {
   final _editorConfigState = EditorConfigState();
   final _editorTextService = EditorTextService();
   final _cursorService = CursorService();
+
   static final _instance = ClipboardService._privateConstructor();
 
   factory ClipboardService() => _instance;
@@ -28,7 +28,6 @@ class ClipboardService {
   void copySelection(
     SelectionChangedCause cause,
     EditorController controller,
-    RawEditorState rawEditorState,
     EditorRenderer editorRenderer,
   ) {
     controller.copiedImageUrl = null;
@@ -43,7 +42,11 @@ class ClipboardService {
       return;
     }
 
-    Clipboard.setData(ClipboardData(text: selection.textInside(text)));
+    Clipboard.setData(
+      ClipboardData(
+        text: selection.textInside(text),
+      ),
+    );
 
     if (cause == SelectionChangedCause.toolbar) {
       _cursorService.bringIntoView(
@@ -52,7 +55,7 @@ class ClipboardService {
       );
 
       // Collapse the selection and hide the buttons and handles.
-      rawEditorState.userUpdateTextEditingValue(
+      _editorTextService.userUpdateTextEditingValue(
         TextEditingValue(
           text: _editorTextService.textEditingValue.text,
           selection: TextSelection.collapsed(

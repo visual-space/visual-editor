@@ -223,7 +223,11 @@ class _TextGesturesState extends State<TextGestures> {
   void _handleLongPressStart(LongPressStartDetails details) {
     if (!_isDoubleTap) {
       _textGesturesUtils.onSingleLongTapStart(
-          details, _platform, context, _editorRenderer);
+        details,
+        _platform,
+        context,
+        _editorRenderer,
+      );
     }
   }
 

@@ -31,11 +31,9 @@ import '../../documents/models/attribute.dart';
 import '../../documents/models/change-source.enum.dart';
 import '../../documents/models/document.dart';
 import '../../documents/models/nodes/block.dart';
-import '../../documents/models/nodes/embeddable.dart';
 import '../../documents/models/nodes/line.dart';
 import '../../documents/models/nodes/node.dart';
 import '../../embeds/widgets/default-embed-builder.dart';
-import '../../embeds/widgets/image.dart';
 import '../../inputs/services/keyboard.service.dart';
 import '../../inputs/widgets/editor-keyboard-listener.dart';
 import '../../selection/services/selection-actions.logic.dart';
@@ -51,7 +49,6 @@ import '../models/boundaries/line-break.model.dart';
 import '../models/boundaries/mixed.boundary.model.dart';
 import '../models/boundaries/whitespace-boundary.model.dart';
 import '../models/boundaries/word-boundary.model.dart';
-import '../models/editor-state.model.dart';
 import '../services/actions/copy-selection-action.dart';
 import '../services/actions/delete-text-action.dart';
 import '../services/actions/extend-selection-or-caret-position-action.dart';
@@ -211,7 +208,7 @@ class RawEditor extends StatefulWidget {
   State<StatefulWidget> createState() => RawEditorState();
 }
 
-class RawEditorState extends EditorStateM
+class RawEditorState extends State<RawEditor>
     with
         AutomaticKeepAliveClientMixin<RawEditor>,
         WidgetsBindingObserver,
@@ -248,6 +245,18 @@ class RawEditorState extends EditorStateM
   final LayerLink _toolbarLayerLink = LayerLink();
   final LayerLink _startHandleLayerLink = LayerLink();
   final LayerLink _endHandleLayerLink = LayerLink();
+
+  bool _showCaretOnScreenScheduled = false;
+
+  // This is a workaround for checkbox tapping issue
+  // https://github.com/singerdmx/flutter-quill/issues/619
+  // We cannot treat {"list": "checked"} and {"list": "unchecked"} as block of the same style.
+  // This causes controller.selection to go to offset 0.
+  bool _disableScrollControllerAnimateOnce = false;
+
+  // Controls the floating cursor animation when it is released.
+  // The floating cursor is animated to merge with the regular cursor.
+  late AnimationController _floatingCursorResetController;
 
   TextDirection get _textDirection => Directionality.of(context);
 
@@ -369,8 +378,9 @@ class RawEditorState extends EditorStateM
       _didChangeTextEditingValue(widget.controller.ignoreFocusOnTextChange);
     });
 
-    _scrollControllerState.controller
-        .addListener(_updateSelectionOverlayForScroll);
+    _scrollControllerState.controller.addListener(
+      _updateSelectionOverlayForScroll,
+    );
 
     _cursorCont = CursorCont(
       show: ValueNotifier<bool>(widget.showCursor),
@@ -528,14 +538,6 @@ class RawEditorState extends EditorStateM
     super.dispose();
   }
 
-  bool _showCaretOnScreenScheduled = false;
-
-  // This is a workaround for checkbox tapping issue
-  // https://github.com/singerdmx/flutter-quill/issues/619
-  // We cannot treat {"list": "checked"} and {"list": "unchecked"} as block of the same style.
-  // This causes controller.selection to go to offset 0.
-  bool _disableScrollControllerAnimateOnce = false;
-
   void showCaretOnScreen() {
     if (!widget.showCursor || _showCaretOnScreenScheduled) {
       return;
@@ -589,6 +591,7 @@ class RawEditorState extends EditorStateM
     });
   }
 
+  // +++ Migrate to KeyboardService
   void requestKeyboard() {
     if (_hasFocus) {
       _textConnectionService.openConnectionIfNeeded(
@@ -602,148 +605,39 @@ class RawEditorState extends EditorStateM
     }
   }
 
-  // Copy current selection to [Clipboard].
+  // === CLIPBOARD OVERRIDES ===
+
   @override
   void copySelection(SelectionChangedCause cause) {
-    widget.controller.copiedImageUrl = null;
-    _editorTextService.pastePlainText = widget.controller.getPlainText();
-    _editorTextService.pasteStyle =
-        widget.controller.getAllIndividualSelectionStyles();
-
-    final selection = textEditingValue.selection;
-    final text = textEditingValue.text;
-
-    if (selection.isCollapsed) {
-      return;
-    }
-
-    Clipboard.setData(ClipboardData(text: selection.textInside(text)));
-
-    if (cause == SelectionChangedCause.toolbar) {
-      bringIntoView(textEditingValue.selection.extent);
-
-      // Collapse the selection and hide the buttons and handles.
-      userUpdateTextEditingValue(
-        TextEditingValue(
-          text: textEditingValue.text,
-          selection:
-              TextSelection.collapsed(offset: textEditingValue.selection.end),
-        ),
-        SelectionChangedCause.toolbar,
-      );
-    }
+    _clipboardService.copySelection(
+      cause,
+      widget.controller,
+      this,
+      editorRenderer,
+    );
   }
 
-  // Cut current selection to [Clipboard].
   @override
   void cutSelection(SelectionChangedCause cause) {
-    widget.controller.copiedImageUrl = null;
-    _editorTextService.pastePlainText = widget.controller.getPlainText();
-    _editorTextService.pasteStyle =
-        widget.controller.getAllIndividualSelectionStyles();
-
-    if (widget.readOnly) {
-      return;
-    }
-
-    final selection = textEditingValue.selection;
-    final text = textEditingValue.text;
-
-    if (selection.isCollapsed) {
-      return;
-    }
-
-    Clipboard.setData(ClipboardData(text: selection.textInside(text)));
-    _replaceText(ReplaceTextIntent(textEditingValue, '', selection, cause));
-
-    if (cause == SelectionChangedCause.toolbar) {
-      bringIntoView(textEditingValue.selection.extent);
-      hideToolbar();
-    }
-  }
-
-  // Paste text from [Clipboard].
-  @override
-  Future<void> pasteText(SelectionChangedCause cause) async {
-    if (widget.readOnly) {
-      return;
-    }
-
-    if (widget.controller.copiedImageUrl != null) {
-      final index = textEditingValue.selection.baseOffset;
-      final length = textEditingValue.selection.extentOffset - index;
-      final copied = widget.controller.copiedImageUrl!;
-      widget.controller
-          .replaceText(index, length, BlockEmbed.image(copied.item1), null);
-      if (copied.item2.isNotEmpty) {
-        widget.controller.formatText(
-            getImageNode(widget.controller, index + 1).item1,
-            1,
-            StyleAttribute(copied.item2));
-      }
-      widget.controller.copiedImageUrl = null;
-      await Clipboard.setData(const ClipboardData(text: ''));
-      return;
-    }
-
-    final selection = textEditingValue.selection;
-
-    if (!selection.isValid) {
-      return;
-    }
-
-    // Snapshot the input before using `await`.
-    // See https://github.com/flutter/flutter/issues/11427
-    final data = await Clipboard.getData(Clipboard.kTextPlain);
-
-    if (data == null) {
-      return;
-    }
-
-    _replaceText(
-      ReplaceTextIntent(
-        textEditingValue,
-        data.text!,
-        selection,
-        cause,
-      ),
-    );
-
-    bringIntoView(textEditingValue.selection.extent);
-
-    // Collapse the selection and hide the buttons and handles.
-    userUpdateTextEditingValue(
-      TextEditingValue(
-        text: textEditingValue.text,
-        selection: TextSelection.collapsed(
-          offset: textEditingValue.selection.end,
-        ),
-      ),
+    _clipboardService.cutSelection(
       cause,
+      widget.controller,
+      editorRenderer,
     );
   }
 
-  // Select the entire text value.
+  @override
+  Future<void> pasteText(SelectionChangedCause cause) async =>
+      _clipboardService.pasteText(
+        cause,
+        widget.controller,
+        editorRenderer,
+      );
+
   @override
   void selectAll(SelectionChangedCause cause) {
-    userUpdateTextEditingValue(
-      textEditingValue.copyWith(
-        selection: TextSelection(
-          baseOffset: 0,
-          extentOffset: textEditingValue.text.length,
-        ),
-      ),
-      cause,
-    );
-
-    if (cause == SelectionChangedCause.toolbar) {
-      bringIntoView(textEditingValue.selection.extent);
-    }
+    _textSelectionService.selectAll(cause, editorRenderer);
   }
-
-  // Controls the floating cursor animation when it is released.
-  // The floating cursor is animated to merge with the regular cursor.
-  late AnimationController _floatingCursorResetController;
 
   // === INPUT CLIENT OVERRIDES ===
 
@@ -1152,14 +1046,6 @@ class RawEditorState extends EditorStateM
     return widget.linkActionPickerDelegate(context, link, linkNode);
   }
 
-  void _replaceText(ReplaceTextIntent intent) {
-    userUpdateTextEditingValue(
-      intent.currentTextEditingValue
-          .replaced(intent.replacementRange, intent.replacementText),
-      intent.cause,
-    );
-  }
-
   TextBoundaryM _characterBoundary(DirectionalTextEditingIntent intent) {
     final TextBoundaryM atomicTextBoundary = CharacterBoundary(
       textEditingValue,
@@ -1228,7 +1114,9 @@ class RawEditorState extends EditorStateM
   }
 
   late final Action<ReplaceTextIntent> _replaceTextAction =
-      CallbackAction<ReplaceTextIntent>(onInvoke: _replaceText);
+      CallbackAction<ReplaceTextIntent>(
+    onInvoke: _clipboardService.replaceText,
+  );
 
   void _updateSelection(UpdateSelectionIntent intent) {
     userUpdateTextEditingValue(

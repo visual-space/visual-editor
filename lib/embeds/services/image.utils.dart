@@ -12,6 +12,7 @@ import '../../documents/models/attribute.dart';
 import '../../documents/models/nodes/leaf.dart';
 import '../../documents/models/style.dart';
 
+// +++ Group them in an util or smth
 const List<String> imageFileExtensions = [
   '.jpeg',
   '.png',

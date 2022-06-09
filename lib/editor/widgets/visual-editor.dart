@@ -5,11 +5,9 @@ import 'package:i18n_extension/i18n_widget.dart';
 import '../../controller/services/editor-controller.dart';
 import '../../controller/state/editor-controller.state.dart';
 import '../../controller/state/scroll-controller.state.dart';
-import '../../selection/models/gesture-detector-builder-delegate.model.dart';
 import '../../selection/widgets/text-gestures.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../models/editor-cfg.model.dart';
-import '../models/editor-state.model.dart';
 import '../models/platform-dependent-styles.model.dart';
 import '../services/clipboard.service.dart';
 import '../services/styles.utils.dart';
@@ -91,14 +89,13 @@ class VisualEditor extends StatefulWidget {
   VisualEditorState createState() => VisualEditorState();
 }
 
-class VisualEditorState extends State<VisualEditor>
-    implements TextSelectionGesturesBuilderDelegateM {
+class VisualEditorState extends State<VisualEditor> {
   final _clipboardService = ClipboardService();
   final _editorConfigState = EditorConfigState();
   final _stylesUtils = StylesUtils();
 
-  final _editorKey = GlobalKey<EditorStateM>();
-  final _editorRendererKey = GlobalKey<EditorStateM>();
+  final _editorKey = GlobalKey<State<RawEditor>>();
+  final _editorRendererKey = GlobalKey<State<RawEditor>>();
 
   @override
   void initState() {
@@ -133,8 +130,7 @@ class VisualEditorState extends State<VisualEditor>
     return editor;
   }
 
-  @override
-  GlobalKey<EditorStateM> get editableTextKey => _editorKey;
+  GlobalKey<State<RawEditor>> get editableTextKey => _editorKey;
 
   Widget _i18n({required Widget child}) => I18n(
         initialLocale: widget.config.locale,

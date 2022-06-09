@@ -19,6 +19,7 @@ import 'nodes/root.dart';
 import 'style.dart';
 
 // The rich text document
+// Rename to DocumentM +++
 class Document {
   // Creates new empty document.
   Document() : _delta = DeltaM()..insert('\n') {

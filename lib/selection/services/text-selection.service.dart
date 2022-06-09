@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
+import '../../controller/services/editor-text.service.dart';
 import '../../controller/state/document.state.dart';
+import '../../cursor/services/cursor.service.dart';
 import '../../documents/models/change-source.enum.dart';
 import '../../editor/services/clipboard.service.dart';
 import '../../editor/services/editor-renderer.utils.dart';
@@ -16,9 +18,12 @@ import '../../shared/utils/platform.utils.dart';
 import 'selection-actions.service.dart';
 import 'text-selection.utils.dart';
 
+// +++ Separate TextGesturesService
 class TextSelectionService {
   // +++ REMOVE STATIC
   static final _selectionActionsService = SelectionActionsService();
+  static final _editorTextService = EditorTextService();
+  static final _cursorService = CursorService();
   static final _keyboardService = KeyboardService();
   static final _editorConfigState = EditorConfigState();
   static final _documentState = DocumentState();
@@ -486,6 +491,25 @@ class TextSelectionService {
     editorRenderer.handleSelectionChange(newSelection, cause);
 
     return newSelection;
+  }
+
+  void selectAll(SelectionChangedCause cause, EditorRenderer editorRenderer) {
+    _editorTextService.userUpdateTextEditingValue(
+      _editorTextService.textEditingValue.copyWith(
+        selection: TextSelection(
+          baseOffset: 0,
+          extentOffset: _editorTextService.textEditingValue.text.length,
+        ),
+      ),
+      cause,
+    );
+
+    if (cause == SelectionChangedCause.toolbar) {
+      _cursorService.bringIntoView(
+        _editorTextService.textEditingValue.selection.extent,
+        editorRenderer,
+      );
+    }
   }
 
   // === PRIVATE ===

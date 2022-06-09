@@ -11,8 +11,8 @@ import '../../documents/models/nodes/leaf.dart' as leaf;
 import '../../shared/translations/toolbar.i18n.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../../shared/utils/string.utils.dart';
+import '../services/image.utils.dart';
 import 'image-resizer.dart';
-import 'image.dart';
 import 'video-app.dart';
 import 'youtube-video-app.dart';
 

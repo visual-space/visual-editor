@@ -14,6 +14,7 @@ import '../../selection/models/drag-text-selection.model.dart';
 import '../../selection/services/selection-actions.utils.dart';
 import '../../selection/services/text-selection.service.dart';
 import '../../selection/services/text-selection.utils.dart';
+import '../../selection/state/last-tap-down.state.dart';
 import '../models/text-selection-handlers.type.dart';
 import '../services/editor-renderer.utils.dart';
 import '../services/vertical-caret-movement-run.dart';
@@ -28,6 +29,7 @@ class EditorRenderer extends EditableContainerBoxRenderer
   final _editorRendererUtils = EditorRendererUtils();
   final _selectionActionsUtils = SelectionActionsUtils();
   final _textSelectionService = TextSelectionService();
+  final _lastTapDownState = LastTapDownState();
 
   final CursorCont cursorController;
   final bool floatingCursorDisabled;
@@ -215,7 +217,7 @@ class EditorRenderer extends EditableContainerBoxRenderer
   TextSelection? _extendSelectionOrigin;
 
   void handleTapDown(TapDownDetails details) {
-    _textSelectionService.lastTapDownPosition = details.globalPosition;
+    _lastTapDownState.setLastTapDown(details.globalPosition);
   }
 
   bool _isDragging = false;

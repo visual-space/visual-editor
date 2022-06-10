@@ -6,13 +6,14 @@ import 'package:flutter/services.dart';
 
 import '../const/k-floating.dart';
 import '../state/editor-config.state.dart';
-import '../widgets/editor-renderer.dart';
+import '../state/editor-renderer.state.dart';
 import 'editor-renderer.utils.dart';
 
 // The floating cursor helps users see where the cursor is going to be placed
 // while their finger is obscuring the view.
 class FloatingCursorService {
   final _editorConfigState = EditorConfigState();
+  final _editorRendererState = EditorRendererState();
   final _editorRendererUtils = EditorRendererUtils();
 
   // The relative origin in relation to the distance the user has theoretically dragged the floating cursor offscreen.
@@ -35,16 +36,15 @@ class FloatingCursorService {
   Offset calculateBoundedFloatingCursorOffset(
     Offset rawCursorOffset,
     double preferredLineHeight,
-    EditorRenderer editorRenderer,
   ) {
     var deltaPosition = Offset.zero;
     final topBound = kFloatingCursorAddedMargin.top;
-    final bottomBound = editorRenderer.size.height -
+    final bottomBound = _editorRendererState.renderer.size.height -
         preferredLineHeight +
         kFloatingCursorAddedMargin.bottom;
     final leftBound = kFloatingCursorAddedMargin.left;
-    final rightBound =
-        editorRenderer.size.width - kFloatingCursorAddedMargin.right;
+    final rightBound = _editorRendererState.renderer.size.width -
+        kFloatingCursorAddedMargin.right;
 
     if (_previousOffset != null) {
       deltaPosition = rawCursorOffset - _previousOffset!;
@@ -114,8 +114,7 @@ class FloatingCursorService {
   void setFloatingCursor(
     FloatingCursorDragState dragState,
     Offset boundedOffset,
-    TextPosition textPosition,
-    EditorRenderer editorRenderer, {
+    TextPosition textPosition, {
     double? resetLerpValue,
   }) {
     if (_editorConfigState.config.floatingCursorDisabled) return;
@@ -130,9 +129,10 @@ class FloatingCursorService {
     }
 
     _floatingCursorOn = dragState != FloatingCursorDragState.End;
+    final renderer = _editorRendererState.renderer;
 
     if (_floatingCursorOn) {
-      editorRenderer.floatingCursorTextPosition = textPosition;
+      renderer.floatingCursorTextPosition = textPosition;
       final sizeAdjustment = resetLerpValue != null
           ? EdgeInsets.lerp(
               kFloatingCaretSizeIncrease,
@@ -140,22 +140,20 @@ class FloatingCursorService {
               resetLerpValue,
             )!
           : kFloatingCaretSizeIncrease;
-      final child =
-          _editorRendererUtils.childAtPosition(textPosition, editorRenderer);
+      final child = _editorRendererUtils.childAtPosition(textPosition);
       final caretPrototype = child.getCaretPrototype(
         child.globalToLocalPosition(textPosition),
       );
-      editorRenderer.floatingCursorRect = sizeAdjustment
-          .inflateRect(
-            caretPrototype,
-          )
-          .shift(boundedOffset);
-      editorRenderer.cursorController.setFloatingCursorTextPosition(
-        editorRenderer.floatingCursorTextPosition,
+
+      renderer.floatingCursorRect =
+          sizeAdjustment.inflateRect(caretPrototype).shift(boundedOffset);
+
+      renderer.cursorController.setFloatingCursorTextPosition(
+        renderer.floatingCursorTextPosition,
       );
     } else {
-      editorRenderer.floatingCursorRect = null;
-      editorRenderer.cursorController.setFloatingCursorTextPosition(null);
+      renderer.floatingCursorRect = null;
+      renderer.cursorController.setFloatingCursorTextPosition(null);
     }
   }
 }

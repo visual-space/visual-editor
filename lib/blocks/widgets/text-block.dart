@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../controller/services/editor-controller.dart';
-import '../../cursor/widgets/cursor.dart';
+import '../../cursor/services/cursor.controller.dart';
 import '../../delta/services/delta.utils.dart';
 import '../../documents/models/attribute.dart';
 import '../../documents/models/nodes/block.dart';
@@ -12,7 +12,7 @@ import '../models/link-action.picker.type.dart';
 import '../services/default-styles.utils.dart';
 import '../services/editor-styles.utils.dart';
 import 'editable-block.dart';
-import 'editable-text-line-object.dart';
+import 'editable-text-line.dart';
 import 'style-widgets.dart';
 import 'text-line.dart';
 
@@ -24,14 +24,13 @@ class EditableTextBlock extends StatelessWidget {
     required this.scrollBottomInset,
     required this.verticalSpacing,
     required this.textSelection,
-    required this.color,
     required this.styles,
     required this.enableInteractiveSelection,
     required this.hasFocus,
     required this.contentPadding,
     required this.embedBuilder,
     required this.linkActionPicker,
-    required this.cursorCont,
+    required this.cursorController,
     required this.indentLevelCounts,
     required this.onCheckboxTap,
     required this.readOnly,
@@ -46,7 +45,6 @@ class EditableTextBlock extends StatelessWidget {
   final double scrollBottomInset;
   final Tuple2 verticalSpacing;
   final TextSelection textSelection;
-  final Color color;
   final DefaultStyles? styles;
   final bool enableInteractiveSelection;
   final bool hasFocus;
@@ -55,7 +53,7 @@ class EditableTextBlock extends StatelessWidget {
   final LinkActionPicker linkActionPicker;
   final ValueChanged<String>? onLaunchUrl;
   final CustomStyleBuilder? customStyleBuilder;
-  final CursorCont cursorCont;
+  final CursorController cursorController;
   final Map<int, int> indentLevelCounts;
   final Function(int, bool) onCheckboxTap;
   final bool readOnly;
@@ -121,11 +119,10 @@ class EditableTextBlock extends StatelessWidget {
         verticalSpacing: _getSpacingForLine(line, index, count, defaultStyles),
         textDirection: textDirection,
         textSelection: textSelection,
-        color: color,
         enableInteractiveSelection: enableInteractiveSelection,
         hasFocus: hasFocus,
         devicePixelRatio: MediaQuery.of(context).devicePixelRatio,
-        cursorCont: cursorCont,
+        cursorController: cursorController,
       );
       final nodeTextDirection = getDirectionOfNode(line);
 

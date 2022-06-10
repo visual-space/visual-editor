@@ -2,24 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 
+import '../../editor/state/focus-node.state.dart';
 import '../models/cursor-style.model.dart';
 
+// +++ REVIEW
 // Controls the cursor of an editable widget.
 // This class is a [ChangeNotifier] and allows to listen for updates on the cursor [style].
-class CursorCont extends ChangeNotifier {
-  CursorCont({
-    required this.show,
-    required CursorStyle style,
-    required TickerProvider tickerProvider,
-  })  : _style = style,
-        blink = ValueNotifier(false),
-        color = ValueNotifier(style.color) {
-    _blinkOpacityController = AnimationController(
-      vsync: tickerProvider,
-      duration: _fadeDuration,
-    );
-    _blinkOpacityController.addListener(_onColorTick);
-  }
+class CursorController extends ChangeNotifier {
+  final _focusNodeState = FocusNodeState();
 
   // The time it takes for the cursor to fade from fully opaque to fully transparent and vice versa.
   // A full cursor blink, from transparent to opaque to transparent, is twice this duration.
@@ -34,12 +24,9 @@ class CursorCont extends ChangeNotifier {
   final ValueNotifier<bool> show;
   final ValueNotifier<Color> color;
   final ValueNotifier<bool> blink;
-
   late final AnimationController _blinkOpacityController;
-
   Timer? _cursorTimer;
   bool _targetCursorVisibility = false;
-
   final ValueNotifier<TextPosition?> _floatingCursorTextPosition =
       ValueNotifier(null);
 
@@ -50,7 +37,6 @@ class CursorCont extends ChangeNotifier {
       _floatingCursorTextPosition.value = position;
 
   bool get isFloatingCursorActive => floatingCursorTextPosition.value != null;
-
   CursorStyle _style;
 
   CursorStyle get style => _style;
@@ -65,23 +51,39 @@ class CursorCont extends ChangeNotifier {
   // A safety mechanism to prevent the value of a disposed controller from getting set.
   bool _isDisposed = false;
 
+  CursorController({
+    required this.show,
+    required CursorStyle style,
+    required TickerProvider tickerProvider,
+  })  : _style = style,
+        blink = ValueNotifier(false),
+        color = ValueNotifier(style.color) {
+    _blinkOpacityController = AnimationController(
+      vsync: tickerProvider,
+      duration: _fadeDuration,
+    );
+    _blinkOpacityController.addListener(_onColorTick);
+  }
+
   @override
   void dispose() {
     _blinkOpacityController.removeListener(_onColorTick);
     stopCursorTimer();
-
     _isDisposed = true;
     _blinkOpacityController.dispose();
     show.dispose();
     blink.dispose();
     color.dispose();
+
     assert(_cursorTimer == null);
+
     super.dispose();
   }
 
   void _cursorTick(Timer timer) {
     _targetCursorVisibility = !_targetCursorVisibility;
     final targetOpacity = _targetCursorVisibility ? 1.0 : 0.0;
+
     if (style.opacityAnimates) {
       // If we want to show the cursor, we will animate the opacity to the value
       // of 1.0, and likewise if we want to make it disappear, to 0.0.
@@ -127,13 +129,16 @@ class CursorCont extends ChangeNotifier {
     }
   }
 
-  void startOrStopCursorTimerIfNeeded(bool hasFocus, TextSelection selection) {
+  void startOrStopCursorTimerIfNeeded(
+    TextSelection selection,
+  ) {
     if (show.value &&
         _cursorTimer == null &&
-        hasFocus &&
+        _focusNodeState.node.hasFocus &&
         selection.isCollapsed) {
       startCursorTimer();
-    } else if (_cursorTimer != null && (!hasFocus || !selection.isCollapsed)) {
+    } else if (_cursorTimer != null &&
+        (!_focusNodeState.node.hasFocus || !selection.isCollapsed)) {
       stopCursorTimer();
     }
   }

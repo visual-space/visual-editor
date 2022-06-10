@@ -6,6 +6,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../editor/services/editor-renderer.utils.dart';
+import '../../editor/state/platform-styles.state.dart';
+import '../../editor/state/raw-editor-swidget.state.dart';
 import '../../editor/widgets/editor-renderer.dart';
 import '../models/drag-text-selection.model.dart';
 import '../models/text-selection-handle-position.enum.dart';
@@ -18,31 +20,8 @@ import 'selection-actions.utils.dart';
 class SelectionActionsLogic {
   final _editorRendererUtils = EditorRendererUtils();
   final _selectionActionsUtils = SelectionActionsUtils();
-
-  // Creates an object that manages overlay entries for selection handles.
-  // The context must not be null and must have an Overlay as an ancestor.
-  SelectionActionsLogic({
-    required this.value,
-    required this.context,
-    required this.toolbarLayerLink,
-    required this.startHandleLayerLink,
-    required this.endHandleLayerLink,
-    required this.renderObject,
-    required this.debugRequiredFor,
-    required this.selectionCtrls,
-    required this.selectionDelegate,
-    required this.clipboardStatus,
-    this.onSelectionHandleTapped,
-    this.dragStartBehavior = DragStartBehavior.start,
-    this.handlesVisible = false,
-  }) {
-    final overlay = Overlay.of(context, rootOverlay: true)!;
-
-    _toolbarController = AnimationController(
-      duration: const Duration(milliseconds: 150),
-      vsync: overlay,
-    );
-  }
+  final _platformStylesState = PlatformStylesState();
+  final _rawEditorSWidgetState = RawEditorSWidgetState();
 
   TextEditingValue value;
 
@@ -58,10 +37,10 @@ class SelectionActionsLogic {
   bool handlesVisible = false;
 
   // The context in which the selection handles should appear.
-  //
   // This context must have an Overlay as an ancestor because this object
   // will display the text selection handles in that Overlay.
-  final BuildContext context;
+  // The context must not be null and must have an Overlay as an ancestor.
+  late BuildContext _context;
 
   // Debugging information for explaining why the Overlay is required.
   final Widget debugRequiredFor;
@@ -79,7 +58,7 @@ class SelectionActionsLogic {
   final EditorRenderer renderObject;
 
   // Builds text selection handles and buttons.
-  final TextSelectionControls selectionCtrls;
+  late TextSelectionControls _textSelectionControls;
 
   // The delegate for manipulating the current selection in the owning text field.
   final TextSelectionDelegate selectionDelegate;
@@ -112,6 +91,34 @@ class SelectionActionsLogic {
   TextSelection get _selection => value.selection;
 
   Animation<double> get _toolbarOpacity => _toolbarController.view;
+
+  // Creates an object that manages overlay entries for selection handles.
+  SelectionActionsLogic({
+    required this.value,
+    required this.toolbarLayerLink,
+    required this.startHandleLayerLink,
+    required this.endHandleLayerLink,
+    required this.renderObject,
+    required this.debugRequiredFor,
+    required textSelectionControls,
+    required this.selectionDelegate,
+    required this.clipboardStatus,
+    this.onSelectionHandleTapped,
+    this.dragStartBehavior = DragStartBehavior.start,
+    this.handlesVisible = false,
+  }) {
+    // The context must not be null and must have an Overlay as an ancestor.
+    _context = _rawEditorSWidgetState.editor.context;
+    final overlay = Overlay.of(_context, rootOverlay: true)!;
+
+    _textSelectionControls = textSelectionControls ??
+        _platformStylesState.styles!.textSelectionControls;
+
+    _toolbarController = AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: overlay,
+    );
+  }
 
   void setHandlesVisible(bool visible) {
     if (handlesVisible == visible) {
@@ -150,9 +157,10 @@ class SelectionActionsLogic {
   // Shows the buttons by inserting it into the [context]'s overlay.
   void showToolbar() {
     assert(toolbar == null);
-    toolbar = OverlayEntry(builder: _buildToolbar);
+
+    toolbar = OverlayEntry(builder: _toolbar);
     Overlay.of(
-      context,
+      _context,
       rootOverlay: true,
       debugRequiredFor: debugRequiredFor,
     )!
@@ -163,32 +171,6 @@ class SelectionActionsLogic {
     if (_handles == null) {
       showHandles();
     }
-  }
-
-  Widget _handle(
-    BuildContext context,
-    TextSelectionHandlePosition position,
-  ) {
-    if (_selection.isCollapsed && position == TextSelectionHandlePosition.END) {
-      return Container();
-    }
-
-    return Visibility(
-      visible: handlesVisible,
-      child: TextSelectionHandleOverlay(
-        onSelectionHandleChanged: (newSelection) {
-          _handleSelectionHandleChanged(newSelection, position);
-        },
-        onSelectionHandleTapped: onSelectionHandleTapped,
-        startHandleLayerLink: startHandleLayerLink,
-        endHandleLayerLink: endHandleLayerLink,
-        renderObject: renderObject,
-        selection: _selection,
-        selectionControls: selectionCtrls,
-        position: position,
-        dragStartBehavior: dragStartBehavior,
-      ),
-    );
   }
 
   // Updates the overlay after the selection has changed.
@@ -202,127 +184,15 @@ class SelectionActionsLogic {
     if (value == newValue) {
       return;
     }
+
     value = newValue;
+
     if (SchedulerBinding.instance.schedulerPhase ==
         SchedulerPhase.persistentCallbacks) {
       SchedulerBinding.instance.addPostFrameCallback(markNeedsBuild);
     } else {
       markNeedsBuild();
     }
-  }
-
-  void _handleSelectionHandleChanged(
-    TextSelection? newSelection,
-    TextSelectionHandlePosition position,
-  ) {
-    TextPosition textPosition;
-    switch (position) {
-      case TextSelectionHandlePosition.START:
-        textPosition = newSelection != null
-            ? newSelection.base
-            : const TextPosition(offset: 0);
-        break;
-      case TextSelectionHandlePosition.END:
-        textPosition = newSelection != null
-            ? newSelection.extent
-            : const TextPosition(offset: 0);
-        break;
-      default:
-        throw 'Invalid position';
-    }
-
-    final currSelection = newSelection != null
-        ? DragTextSelection(
-            baseOffset: newSelection.baseOffset,
-            extentOffset: newSelection.extentOffset,
-            affinity: newSelection.affinity,
-            isDirectional: newSelection.isDirectional,
-            first: position == TextSelectionHandlePosition.START,
-          )
-        : null;
-
-    selectionDelegate
-      ..userUpdateTextEditingValue(
-          value.copyWith(
-            selection: currSelection,
-            composing: TextRange.empty,
-          ),
-          SelectionChangedCause.drag)
-      ..bringIntoView(textPosition);
-  }
-
-  Widget _buildToolbar(BuildContext context) {
-    // Find the horizontal midpoint, just above the selected text.
-    List<TextSelectionPoint> endpoints;
-
-    try {
-      // Building with an invalid selection with throw an exception.
-      // This happens where the selection has changed, but the buttons hasn't been dismissed yet.
-      endpoints = _selectionActionsUtils.getEndpointsForSelection(
-        _selection,
-        renderObject,
-      );
-    } catch (_) {
-      return Container();
-    }
-
-    final editingRegion = Rect.fromPoints(
-      renderObject.localToGlobal(Offset.zero),
-      renderObject.localToGlobal(
-        renderObject.size.bottomRight(Offset.zero),
-      ),
-    );
-
-    final baseLineHeight = _editorRendererUtils.preferredLineHeight(
-      _selection.base,
-      renderObject,
-    );
-    final extentLineHeight = _editorRendererUtils.preferredLineHeight(
-      _selection.extent,
-      renderObject,
-    );
-    final smallestLineHeight = math.min(baseLineHeight, extentLineHeight);
-    final isMultiline = endpoints.last.point.dy - endpoints.first.point.dy >
-        smallestLineHeight / 2;
-
-    // If the selected text spans more than 1 line, horizontally center the buttons.
-    // Derived from both iOS and Android.
-    final midX = isMultiline
-        ? editingRegion.width / 2
-        : (endpoints.first.point.dx + endpoints.last.point.dx) / 2;
-
-    final midpoint = Offset(
-      midX,
-      // The y-coordinate won't be made use of most likely.
-      endpoints[0].point.dy - baseLineHeight,
-    );
-
-    return FadeTransition(
-      opacity: _toolbarOpacity,
-      child: CompositedTransformFollower(
-        link: toolbarLayerLink,
-        showWhenUnlinked: false,
-        offset: -editingRegion.topLeft,
-        child: selectionCtrls.buildToolbar(
-          context,
-          editingRegion,
-          baseLineHeight,
-          midpoint,
-          endpoints,
-          selectionDelegate,
-          clipboardStatus,
-          null,
-        ),
-      ),
-    );
-  }
-
-  void markNeedsBuild([Duration? duration]) {
-    if (_handles != null) {
-      _handles![0].markNeedsBuild();
-      _handles![1].markNeedsBuild();
-    }
-    toolbar?.markNeedsBuild();
   }
 
   // Hides the entire overlay including the buttons and the handles.
@@ -332,6 +202,7 @@ class SelectionActionsLogic {
       _handles![1].remove();
       _handles = null;
     }
+
     if (toolbar != null) {
       hideToolbar();
     }
@@ -363,7 +234,7 @@ class SelectionActionsLogic {
     ];
 
     Overlay.of(
-      context,
+      _context,
       rootOverlay: true,
       debugRequiredFor: debugRequiredFor,
     )!
@@ -375,5 +246,148 @@ class SelectionActionsLogic {
   // text metrics (e.g. because the text was scrolled).
   void updateForScroll() {
     markNeedsBuild();
+  }
+
+  // === WIDGET ===
+
+  Widget _toolbar(BuildContext context) {
+    // Find the horizontal midpoint, just above the selected text.
+    List<TextSelectionPoint> endpoints;
+
+    try {
+      // Building with an invalid selection with throw an exception.
+      // This happens where the selection has changed, but the buttons hasn't been dismissed yet.
+      endpoints = _selectionActionsUtils.getEndpointsForSelection(
+        _selection,
+      );
+    } catch (_) {
+      return Container();
+    }
+
+    final editingRegion = Rect.fromPoints(
+      renderObject.localToGlobal(Offset.zero),
+      renderObject.localToGlobal(
+        renderObject.size.bottomRight(Offset.zero),
+      ),
+    );
+
+    final baseLineHeight = _editorRendererUtils.preferredLineHeight(
+      _selection.base,
+    );
+    final extentLineHeight = _editorRendererUtils.preferredLineHeight(
+      _selection.extent,
+    );
+    final smallestLineHeight = math.min(baseLineHeight, extentLineHeight);
+    final isMultiline = endpoints.last.point.dy - endpoints.first.point.dy >
+        smallestLineHeight / 2;
+
+    // If the selected text spans more than 1 line, horizontally center the buttons.
+    // Derived from both iOS and Android.
+    final midX = isMultiline
+        ? editingRegion.width / 2
+        : (endpoints.first.point.dx + endpoints.last.point.dx) / 2;
+
+    final midpoint = Offset(
+      midX,
+      // The y-coordinate won't be made use of most likely.
+      endpoints[0].point.dy - baseLineHeight,
+    );
+
+    return FadeTransition(
+      opacity: _toolbarOpacity,
+      child: CompositedTransformFollower(
+        link: toolbarLayerLink,
+        showWhenUnlinked: false,
+        offset: -editingRegion.topLeft,
+        child: _textSelectionControls.buildToolbar(
+          context,
+          editingRegion,
+          baseLineHeight,
+          midpoint,
+          endpoints,
+          selectionDelegate,
+          clipboardStatus,
+          null,
+        ),
+      ),
+    );
+  }
+
+  Widget _handle(
+    BuildContext context,
+    TextSelectionHandlePosition position,
+  ) {
+    if (_selection.isCollapsed && position == TextSelectionHandlePosition.END) {
+      return Container();
+    }
+
+    return Visibility(
+      visible: handlesVisible,
+      child: TextSelectionHandleOverlay(
+        onSelectionHandleChanged: (newSelection) {
+          _handleSelectionHandleChanged(newSelection, position);
+        },
+        onSelectionHandleTapped: onSelectionHandleTapped,
+        startHandleLayerLink: startHandleLayerLink,
+        endHandleLayerLink: endHandleLayerLink,
+        renderObject: renderObject,
+        selection: _selection,
+        textSelectionControls: _textSelectionControls,
+        position: position,
+        dragStartBehavior: dragStartBehavior,
+      ),
+    );
+  }
+
+  void _handleSelectionHandleChanged(
+    TextSelection? newSelection,
+    TextSelectionHandlePosition position,
+  ) {
+    TextPosition textPosition;
+
+    switch (position) {
+      case TextSelectionHandlePosition.START:
+        textPosition = newSelection != null
+            ? newSelection.base
+            : const TextPosition(offset: 0);
+        break;
+
+      case TextSelectionHandlePosition.END:
+        textPosition = newSelection != null
+            ? newSelection.extent
+            : const TextPosition(offset: 0);
+        break;
+
+      default:
+        throw 'Invalid position';
+    }
+
+    final currSelection = newSelection != null
+        ? DragTextSelection(
+            baseOffset: newSelection.baseOffset,
+            extentOffset: newSelection.extentOffset,
+            affinity: newSelection.affinity,
+            isDirectional: newSelection.isDirectional,
+            first: position == TextSelectionHandlePosition.START,
+          )
+        : null;
+
+    selectionDelegate
+      ..userUpdateTextEditingValue(
+          value.copyWith(
+            selection: currSelection,
+            composing: TextRange.empty,
+          ),
+          SelectionChangedCause.drag)
+      ..bringIntoView(textPosition);
+  }
+
+  void markNeedsBuild([Duration? duration]) {
+    if (_handles != null) {
+      _handles![0].markNeedsBuild();
+      _handles![1].markNeedsBuild();
+    }
+
+    toolbar?.markNeedsBuild();
   }
 }

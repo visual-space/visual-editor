@@ -1,15 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math' as math;
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../blocks/models/custom-builders.type.dart';
 import '../../blocks/models/link-action-menu.enum.dart';
@@ -17,47 +12,50 @@ import '../../blocks/models/link-action.picker.type.dart';
 import '../../blocks/services/default-link-action-picker-delegate.dart';
 import '../../blocks/services/default-styles.utils.dart';
 import '../../blocks/services/editor-styles.utils.dart';
-import '../../blocks/widgets/editable-text-line-object.dart';
+import '../../blocks/widgets/editable-text-line.dart';
 import '../../blocks/widgets/text-block.dart';
 import '../../blocks/widgets/text-line.dart';
 import '../../controller/services/editor-controller.dart';
 import '../../controller/services/editor-text.service.dart';
 import '../../controller/state/scroll-controller.state.dart';
 import '../../cursor/models/cursor-style.model.dart';
+import '../../cursor/services/cursor.controller.dart';
 import '../../cursor/services/cursor.service.dart';
-import '../../cursor/widgets/cursor.dart';
+import '../../cursor/state/cursor-controller.state.dart';
 import '../../delta/services/delta.utils.dart';
 import '../../documents/models/attribute.dart';
-import '../../documents/models/change-source.enum.dart';
 import '../../documents/models/document.dart';
 import '../../documents/models/nodes/block.dart';
 import '../../documents/models/nodes/line.dart';
 import '../../documents/models/nodes/node.dart';
 import '../../embeds/widgets/default-embed-builder.dart';
 import '../../inputs/services/keyboard.service.dart';
+import '../../inputs/state/keyboard-visible.state.dart';
 import '../../inputs/widgets/editor-keyboard-listener.dart';
-import '../../selection/services/selection-actions.logic.dart';
 import '../../selection/services/selection-actions.service.dart';
 import '../../selection/services/text-selection.service.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../services/clipboard.service.dart';
 import '../services/input-connection.service.dart';
 import '../services/keyboard-actions.service.dart';
-import 'editor-renderer.dart';
+import '../services/raw-editor.utils.dart';
+import '../services/styles.utils.dart';
+import '../services/text-block.utils.dart';
+import '../state/editor-config.state.dart';
+import '../state/focus-node.state.dart';
+import '../state/raw-editor-swidget.state.dart';
+import '../state/raw-editor-widget.state.dart';
 import 'proxy/baseline-proxy.dart';
 import 'raw-editor-renderer.dart';
 import 'scroll/editor-single-child-scroll-view.dart';
 
 class RawEditor extends StatefulWidget {
-  const RawEditor({
+  final _rawEditorWidgetState = RawEditorWidgetState();
+
+  RawEditor({
     required this.controller,
-    required this.focusNode,
     required this.scrollController,
     required this.scrollBottomInset,
-    required this.cursorStyle,
-    required this.selectionColor,
-    required this.selectionCtrls,
-    required this.toolbarOptions,
     required this.editorRendererKey,
     Key? key,
     this.scrollable = true,
@@ -65,8 +63,6 @@ class RawEditor extends StatefulWidget {
     this.readOnly = false,
     this.placeholder,
     this.onLaunchUrl,
-    this.showSelectionHandles = false,
-    bool? showCursor,
     this.textCapitalization = TextCapitalization.none,
     this.maxHeight,
     this.minHeight,
@@ -85,8 +81,9 @@ class RawEditor extends StatefulWidget {
         assert(minHeight == null || minHeight >= 0, 'minHeight cannot be null'),
         assert(maxHeight == null || minHeight == null || maxHeight >= minHeight,
             'maxHeight cannot be null'),
-        showCursor = showCursor ?? true,
-        super(key: key);
+        super(key: key) {
+    _rawEditorWidgetState.setRawEditor(this);
+  }
 
   // Controls the document being edited.
   final GlobalKey editorRendererKey;
@@ -95,7 +92,6 @@ class RawEditor extends StatefulWidget {
   final EditorController controller;
 
   // Controls whether this editor has keyboard focus.
-  final FocusNode focusNode;
   final ScrollController scrollController;
   final bool scrollable;
   final double scrollBottomInset;
@@ -111,24 +107,6 @@ class RawEditor extends StatefulWidget {
 
   // Callback which is triggered when the user wants to open a URL from a link in the document.
   final ValueChanged<String>? onLaunchUrl;
-
-  // Configuration of buttons options.
-  // By default, all options are enabled.
-  // If readOnly is true, paste and cut will be disabled regardless.
-  final ToolbarOptions toolbarOptions;
-
-  // Whether to show selection handles.
-  // When a selection is active, there will be two handles at each side of boundary,
-  // or one handle if the selection is collapsed.
-  // The handles can be dragged to adjust the selection.
-  final bool showSelectionHandles;
-
-  // Whether to show cursor.
-  // The cursor refers to the blinking caret when the editor is focused.
-  final bool showCursor;
-
-  // The style to be used for the editing cursor.
-  final CursorStyle cursorStyle;
 
   // Configures how the platform keyboard will select an uppercase or lowercase keyboard.
   // Only supports text keyboards, other keyboard types will ignore this configuration.
@@ -160,14 +138,6 @@ class RawEditor extends StatefulWidget {
   // Otherwise, the keyboard is only shown after the user taps the text field.
   // Defaults to false. Cannot be null.
   final bool autoFocus;
-
-  // The color to use when painting the selection.
-  final Color selectionColor;
-
-  // Delegate for building the text selection handles and buttons.
-  // The RawEditor widget used on its own will not trigger the display of the selection buttons by itself.
-  // The buttons is shown by calling  RawEditorState.showToolbar in response to an appropriate user event.
-  final TextSelectionControls selectionCtrls;
 
   // The appearance of the keyboard.
   // This setting is only honored on iOS devices.
@@ -207,39 +177,30 @@ class RawEditorState extends State<RawEditor>
   final _clipboardService = ClipboardService();
   final _textConnectionService = TextConnectionService();
   final _scrollControllerState = ScrollControllerState();
+  final _keyboardService = KeyboardService();
   final _keyboardActionsService = KeyboardActionsService();
+  final _rawEditorUtils = RawEditorUtils();
+  final _rawEditorSWidgetState = RawEditorSWidgetState();
+  final _editorConfigState = EditorConfigState();
+  final _focusNodeState = FocusNodeState();
+  final _stylesUtils = StylesUtils();
+  final _textBlockUtils = TextBlockUtils();
+  final _keyboardVisibleState = KeyboardVisibleState();
+  final _cursorControllerState = CursorControllerState();
 
+  late CursorStyle _cursorStyle;
   KeyboardVisibilityController? _keyboardVisibilityController;
   StreamSubscription<bool>? _keyboardVisibilitySubscription;
-  bool _keyboardVisible = false;
-
-  late CursorCont _cursorCont;
-
-  // Focus
   bool _didAutoFocus = false;
-
-  bool get _hasFocus => widget.focusNode.hasFocus;
-
-  // Theme
   DefaultStyles? _styles;
-
-  final ClipboardStatusNotifier _clipboardStatus = ClipboardStatusNotifier();
-  final LayerLink _toolbarLayerLink = LayerLink();
-  final LayerLink _startHandleLayerLink = LayerLink();
-  final LayerLink _endHandleLayerLink = LayerLink();
-
-  bool _showCaretOnScreenScheduled = false;
-
-  // This is a workaround for checkbox tapping issue
-  // https://github.com/singerdmx/flutter-quill/issues/619
-  // We cannot treat {"list": "checked"} and {"list": "unchecked"} as block of the same style.
-  // This causes controller.selection to go to offset 0.
-  bool _disableScrollControllerAnimateOnce = false;
+  final ClipboardStatusNotifier clipboardStatus = ClipboardStatusNotifier();
+  final LayerLink toolbarLayerLink = LayerLink();
+  final LayerLink startHandleLayerLink = LayerLink();
+  final LayerLink endHandleLayerLink = LayerLink();
 
   // Controls the floating cursor animation when it is released.
   // The floating cursor is animated to merge with the regular cursor.
   late AnimationController _floatingCursorResetController;
-
   TextDirection get _textDirection => Directionality.of(context);
 
   @override
@@ -258,19 +219,18 @@ class RawEditorState extends State<RawEditor>
     }
 
     Widget wrappedEditor = CompositedTransformTarget(
-      link: _toolbarLayerLink,
+      link: toolbarLayerLink,
       child: Semantics(
         child: RawEditorRenderer(
           key: widget.editorRendererKey,
           document: _doc,
           selection: widget.controller.selection,
-          hasFocus: _hasFocus,
           scrollable: widget.scrollable,
-          cursorController: _cursorCont,
+          cursorController: _cursorControllerState.controller,
           textDirection: _textDirection,
-          startHandleLayerLink: _startHandleLayerLink,
-          endHandleLayerLink: _endHandleLayerLink,
-          onSelectionChanged: _handleSelectionChanged,
+          startHandleLayerLink: startHandleLayerLink,
+          endHandleLayerLink: endHandleLayerLink,
+          onSelectionChanged: _rawEditorUtils.handleSelectionChanged,
           onSelectionCompleted: _handleSelectionCompleted,
           scrollBottomInset: widget.scrollBottomInset,
           padding: widget.padding,
@@ -295,23 +255,22 @@ class RawEditorState extends State<RawEditor>
         child: EditorSingleChildScrollView(
           physics: widget.scrollPhysics,
           viewportBuilder: (_, offset) => CompositedTransformTarget(
-            link: _toolbarLayerLink,
+            link: toolbarLayerLink,
             child: RawEditorRenderer(
               key: widget.editorRendererKey,
               offset: offset,
               document: _doc,
               selection: widget.controller.selection,
-              hasFocus: _hasFocus,
               scrollable: widget.scrollable,
               textDirection: _textDirection,
-              startHandleLayerLink: _startHandleLayerLink,
-              endHandleLayerLink: _endHandleLayerLink,
-              onSelectionChanged: _handleSelectionChanged,
+              startHandleLayerLink: startHandleLayerLink,
+              endHandleLayerLink: endHandleLayerLink,
+              onSelectionChanged: _rawEditorUtils.handleSelectionChanged,
               onSelectionCompleted: _handleSelectionCompleted,
               scrollBottomInset: widget.scrollBottomInset,
               padding: widget.padding,
               maxContentWidth: widget.maxContentWidth,
-              cursorController: _cursorCont,
+              cursorController: _cursorControllerState.controller,
               floatingCursorDisabled: widget.floatingCursorDisabled,
               children: _buildChildren(_doc, context),
             ),
@@ -332,7 +291,7 @@ class RawEditorState extends State<RawEditor>
       child: Actions(
         actions: _getActionsSafe(context),
         child: Focus(
-          focusNode: widget.focusNode,
+          focusNode: _focusNodeState.node,
           child: EditorKeyboardListener(
             child: Container(
               constraints: constraints,
@@ -348,81 +307,69 @@ class RawEditorState extends State<RawEditor>
   void initState() {
     super.initState();
 
-    // +++ DELETE
-    subscribeToReqKeyboard();
+    _rawEditorSWidgetState.setRawEditorState(this);
 
-    // +++ DELETE
-    _selectionActionsService.rawEditorState = this;
-
-    _clipboardStatus.addListener(_onChangedClipboardStatus);
+    _cursorStyle = _stylesUtils.cursorStyle();
+    clipboardStatus.addListener(_onChangedClipboardStatus);
 
     widget.controller.addListener(() {
-      _didChangeTextEditingValue(widget.controller.ignoreFocusOnTextChange);
+      _rawEditorUtils.didChangeTextEditingValue(
+        widget.controller.ignoreFocusOnTextChange,
+      );
     });
-
     _scrollControllerState.controller.addListener(
       _updateSelectionOverlayForScroll,
     );
 
-    _cursorCont = CursorCont(
-      show: ValueNotifier<bool>(widget.showCursor),
-      style: widget.cursorStyle,
-      tickerProvider: this,
+    _cursorControllerState.setController(
+      CursorController(
+        show: ValueNotifier<bool>(_editorConfigState.config.showCursor),
+        style: _cursorStyle,
+        tickerProvider: this,
+      ),
     );
 
     // Floating cursor
     _floatingCursorResetController = AnimationController(vsync: this);
     _floatingCursorResetController.addListener(
       () => _textConnectionService.onFloatingCursorResetTick(
-        _editorRenderer,
         _floatingCursorResetController,
       ),
     );
 
+    // +++ Migrate
     if (isKeyboardOS()) {
-      _keyboardVisible = true;
+      _keyboardVisibleState.setKeyboardVisible(true);
     } else {
-      // treat iOS Simulator like a keyboard OS
+      // Treat iOS Simulator like a keyboard OS
       isIOSSimulator().then((isIosSimulator) {
         if (isIosSimulator) {
-          _keyboardVisible = true;
+          _keyboardVisibleState.setKeyboardVisible(true);
         } else {
           _keyboardVisibilityController = KeyboardVisibilityController();
-          _keyboardVisible = _keyboardVisibilityController!.isVisible;
+          _keyboardVisibleState.setKeyboardVisible(
+            _keyboardVisibilityController!.isVisible,
+          );
           _keyboardVisibilitySubscription =
               _keyboardVisibilityController?.onChange.listen((visible) {
-            _keyboardVisible = visible;
+            _keyboardVisibleState.setKeyboardVisible(visible);
+
             if (visible) {
-              _onChangeTextEditingValue(!_hasFocus);
+              _rawEditorUtils.onChangeTextEditingValue(
+                !_focusNodeState.node.hasFocus,
+              );
             }
           });
 
-          HardwareKeyboard.instance.addHandler(_hardwareKeyboardEvent);
+          HardwareKeyboard.instance.addHandler(hardwareKeyboardEvent);
         }
       });
     }
 
     // Focus
-    widget.focusNode.addListener(_handleFocusChanged);
-  }
-
-  // KeyboardVisibilityController only checks for keyboards that adjust the screen size.
-  // Also watch for hardware keyboards that don't alter the screen (i.e. Chromebook, Android tablet
-  // and any hardware keyboards from an OS not listed in isKeyboardOS())
-  bool _hardwareKeyboardEvent(KeyEvent _) {
-    if (!_keyboardVisible) {
-      // Hardware keyboard key pressed. Set visibility to true
-      _keyboardVisible = true;
-      // Update the editor
-      _onChangeTextEditingValue(!_hasFocus);
-    }
-
-    // Remove the key handler - it's no longer needed.
-    // If KeyboardVisibilityController clears visibility, it wil also enable it when appropriate.
-    HardwareKeyboard.instance.removeHandler(_hardwareKeyboardEvent);
-
-    // we didn't handle the event, just needed to know a key was pressed
-    return false;
+    _focusNodeState.node.addListener(
+      _rawEditorUtils.handleFocusChanged,
+    );
   }
 
   @override
@@ -439,7 +386,7 @@ class RawEditorState extends State<RawEditor>
     }
 
     if (!_didAutoFocus && widget.autoFocus) {
-      FocusScope.of(context).autofocus(widget.focusNode);
+      FocusScope.of(context).autofocus(_focusNodeState.node);
       _didAutoFocus = true;
     }
   }
@@ -448,12 +395,16 @@ class RawEditorState extends State<RawEditor>
   void didUpdateWidget(RawEditor oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    _cursorCont.show.value = widget.showCursor;
-    _cursorCont.style = widget.cursorStyle;
+    _cursorControllerState.controller.show.value = _editorConfigState.config.showCursor;
+    _cursorControllerState.controller.style = _cursorStyle;
 
     if (widget.controller != oldWidget.controller) {
-      oldWidget.controller.removeListener(_didChangeTextEditingValue);
-      widget.controller.addListener(_didChangeTextEditingValue);
+      oldWidget.controller.removeListener(
+        _rawEditorUtils.didChangeTextEditingValue,
+      );
+      widget.controller.addListener(
+        _rawEditorUtils.didChangeTextEditingValue,
+      );
       _textConnectionService.updateRemoteValueIfNeeded();
     }
 
@@ -464,28 +415,25 @@ class RawEditorState extends State<RawEditor>
     //   _scrollControllerState.controller.addListener(_updateSelectionOverlayForScroll);
     // }
 
-    if (widget.focusNode != oldWidget.focusNode) {
-      oldWidget.focusNode.removeListener(_handleFocusChanged);
-      widget.focusNode.addListener(_handleFocusChanged);
-      updateKeepAlive();
-    }
+    // +++ Might be outdated since we no longer keep the focus node in the scope of the widget state
+    // if (widget.focusNode != oldWidget.focusNode) {
+    //   oldWidget.focusNode.removeListener(_handleFocusChanged);
+    //   widget.focusNode.addListener(_handleFocusChanged);
+    //   updateKeepAlive();
+    // }
 
     if (widget.controller.selection != oldWidget.controller.selection) {
       _selectionActionsService.selectionActions?.update(textEditingValue);
     }
 
     _selectionActionsService.selectionActions?.handlesVisible =
-        _shouldShowSelectionHandles();
+        _rawEditorUtils.shouldShowSelectionHandles();
 
     if (!_textConnectionService.shouldCreateInputConnection) {
       _textConnectionService.closeConnectionIfNeeded();
     } else {
-      if (oldWidget.readOnly && _hasFocus) {
-        _textConnectionService.openConnectionIfNeeded(
-          _editorRenderer,
-          this,
-          mounted,
-        );
+      if (oldWidget.readOnly && _focusNodeState.node.hasFocus) {
+        _textConnectionService.openConnectionIfNeeded();
       }
     }
 
@@ -495,96 +443,24 @@ class RawEditorState extends State<RawEditor>
     }
   }
 
-  bool _shouldShowSelectionHandles() {
-    return widget.showSelectionHandles &&
-        !widget.controller.selection.isCollapsed;
-  }
-
   @override
   void dispose() {
     _textConnectionService.closeConnectionIfNeeded();
     _keyboardVisibilitySubscription?.cancel();
-    HardwareKeyboard.instance.removeHandler(_hardwareKeyboardEvent);
+    HardwareKeyboard.instance.removeHandler(hardwareKeyboardEvent);
 
     assert(!_textConnectionService.hasConnection);
 
     _selectionActionsService.selectionActions?.dispose();
     _selectionActionsService.selectionActions = null;
-    widget.controller.removeListener(_didChangeTextEditingValue);
-    widget.focusNode.removeListener(_handleFocusChanged);
-    _cursorCont.dispose();
-    _clipboardStatus
+    widget.controller.removeListener(_rawEditorUtils.didChangeTextEditingValue);
+    _focusNodeState.node.removeListener(_rawEditorUtils.handleFocusChanged);
+    _cursorControllerState.controller.dispose();
+    clipboardStatus
       ..removeListener(_onChangedClipboardStatus)
       ..dispose();
 
     super.dispose();
-  }
-
-  void showCaretOnScreen() {
-    if (!widget.showCursor || _showCaretOnScreenScheduled) {
-      return;
-    }
-
-    _showCaretOnScreenScheduled = true;
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      if (widget.scrollable || _scrollControllerState.controller.hasClients) {
-        _showCaretOnScreenScheduled = false;
-
-        if (!mounted) {
-          return;
-        }
-
-        final viewport = RenderAbstractViewport.of(_editorRenderer);
-        final editorOffset = _editorRenderer.localToGlobal(
-          const Offset(0, 0),
-          ancestor: viewport,
-        );
-        final offsetInViewport =
-            _scrollControllerState.controller.offset + editorOffset.dy;
-
-        final offset = _editorRenderer.getOffsetToRevealCursor(
-          _scrollControllerState.controller.position.viewportDimension,
-          _scrollControllerState.controller.offset,
-          offsetInViewport,
-        );
-
-        if (offset != null) {
-          if (_disableScrollControllerAnimateOnce) {
-            _disableScrollControllerAnimateOnce = false;
-            return;
-          }
-          _scrollControllerState.controller.animateTo(
-            math.min(
-              offset,
-              _scrollControllerState.controller.position.maxScrollExtent,
-            ),
-            duration: const Duration(milliseconds: 100),
-            curve: Curves.fastOutSlowIn,
-          );
-        }
-      }
-    });
-  }
-
-  // +++ DELETE once requestKeyboard() is migrated
-  void subscribeToReqKeyboard() {
-    KeyboardService().requestKeyboard$.stream.listen((_) {
-      requestKeyboard();
-    });
-  }
-
-  // +++ Migrate to KeyboardService
-  void requestKeyboard() {
-    if (_hasFocus) {
-      _textConnectionService.openConnectionIfNeeded(
-        _editorRenderer,
-        this,
-        mounted,
-      );
-      showCaretOnScreen();
-    } else {
-      widget.focusNode.requestFocus();
-    }
   }
 
   // === CLIPBOARD OVERRIDES ===
@@ -594,7 +470,6 @@ class RawEditorState extends State<RawEditor>
     _clipboardService.copySelection(
       cause,
       widget.controller,
-      _editorRenderer,
     );
   }
 
@@ -603,7 +478,6 @@ class RawEditorState extends State<RawEditor>
     _clipboardService.cutSelection(
       cause,
       widget.controller,
-      _editorRenderer,
     );
   }
 
@@ -612,18 +486,17 @@ class RawEditorState extends State<RawEditor>
       _clipboardService.pasteText(
         cause,
         widget.controller,
-        _editorRenderer,
       );
 
   @override
   void selectAll(SelectionChangedCause cause) {
-    _textSelectionService.selectAll(cause, _editorRenderer);
+    _textSelectionService.selectAll(cause);
   }
 
   // === INPUT CLIENT OVERRIDES ===
 
   @override
-  bool get wantKeepAlive => widget.focusNode.hasFocus;
+  bool get wantKeepAlive => _focusNodeState.node.hasFocus;
 
   // Not implemented
   @override
@@ -665,7 +538,6 @@ class RawEditorState extends State<RawEditor>
   ) {
     _textConnectionService.updateFloatingCursor(
       point,
-      _editorRenderer,
       _floatingCursorResetController,
     );
   }
@@ -696,7 +568,7 @@ class RawEditorState extends State<RawEditor>
 
   @override
   void bringIntoView(TextPosition position) {
-    _cursorService.bringIntoView(position, _editorRenderer);
+    _cursorService.bringIntoView(position);
   }
 
   @override
@@ -711,71 +583,10 @@ class RawEditorState extends State<RawEditor>
   @override
   bool get selectAllEnabled => _textSelectionService.selectAllEnabled();
 
+  bool hardwareKeyboardEvent(KeyEvent _) =>
+      _keyboardService.hardwareKeyboardEvent(this, _rawEditorUtils);
+
   // === PRIVATE ===
-
-  EditorRenderer get _editorRenderer =>
-      widget.editorRendererKey.currentContext!.findRenderObject()
-      as EditorRenderer;
-
-  Map<Type, Action<Intent>> _getActionsSafe(BuildContext context) {
-    return widget.editorRendererKey.currentContext != null
-        ? _keyboardActionsService.getActions(_editorRenderer, context)
-        : {};
-  }
-
-  void _handleSelectionChanged(
-    TextSelection selection,
-    SelectionChangedCause cause,
-  ) {
-    final oldSelection = widget.controller.selection;
-
-    widget.controller.updateSelection(selection, ChangeSource.LOCAL);
-    _selectionActionsService.selectionActions?.handlesVisible =
-        _shouldShowSelectionHandles();
-
-    if (!_keyboardVisible) {
-      // This will show the keyboard for all selection changes on the editor,
-      // not just changes triggered by user gestures.
-      requestKeyboard();
-    }
-
-    if (cause == SelectionChangedCause.drag) {
-      // When user updates the selection while dragging make sure to bring
-      // the updated position (base or extent) into view.
-      if (oldSelection.baseOffset != selection.baseOffset) {
-        bringIntoView(selection.base);
-      } else if (oldSelection.extentOffset != selection.extentOffset) {
-        bringIntoView(selection.extent);
-      }
-    }
-  }
-
-  void _handleSelectionCompleted() {
-    widget.controller.onSelectionCompleted?.call();
-  }
-
-  // Updates the checkbox positioned at [offset] in document by changing its attribute according to [value].
-  void _handleCheckboxTap(int offset, bool value) {
-    if (!widget.readOnly) {
-      _disableScrollControllerAnimateOnce = true;
-      final attribute = value ? Attribute.checked : Attribute.unchecked;
-
-      widget.controller.formatText(offset, 0, attribute);
-
-      // Checkbox tapping causes controller.selection to go to offset 0.
-      // Stop toggling those two buttons buttons.
-      widget.controller.toolbarButtonToggler = {
-        Attribute.list.key: attribute,
-        Attribute.header.key: Attribute.header
-      };
-
-      // Go back from offset 0 to current selection.
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        widget.controller.updateSelection(
-            TextSelection.collapsed(offset: offset), ChangeSource.LOCAL);
-      });
-    }
-  }
 
   List<Widget> _buildChildren(Document doc, BuildContext context) {
     final result = <Widget>[];
@@ -797,24 +608,28 @@ class RawEditorState extends State<RawEditor>
           controller: widget.controller,
           textDirection: _textDirection,
           scrollBottomInset: widget.scrollBottomInset,
-          verticalSpacing: _getVerticalSpacingForBlock(node, _styles),
+          verticalSpacing: _textBlockUtils.getVerticalSpacingForBlock(
+            node,
+            _styles,
+          ),
           textSelection: widget.controller.selection,
-          color: widget.selectionColor,
           styles: _styles,
           enableInteractiveSelection: widget.enableInteractiveSelection,
-          hasFocus: _hasFocus,
+          hasFocus: _focusNodeState.node.hasFocus,
+          // +++ Replace at root level
           contentPadding: attrs.containsKey(Attribute.codeBlock.key)
               ? const EdgeInsets.all(16)
               : null,
           embedBuilder: widget.embedBuilder,
           linkActionPicker: _linkActionPicker,
           onLaunchUrl: widget.onLaunchUrl,
-          cursorCont: _cursorCont,
+          cursorController: _cursorControllerState.controller,
           indentLevelCounts: indentLevelCounts,
-          onCheckboxTap: _handleCheckboxTap,
+          onCheckboxTap: _textBlockUtils.handleCheckboxTap,
           readOnly: widget.readOnly,
           customStyleBuilder: widget.customStyleBuilder,
         );
+
         result.add(
           Directionality(
             textDirection: getDirectionOfNode(node),
@@ -825,6 +640,7 @@ class RawEditorState extends State<RawEditor>
         throw StateError('Unreachable.');
       }
     }
+
     return result;
   }
 
@@ -849,184 +665,39 @@ class RawEditorState extends State<RawEditor>
       leading: null,
       body: textLine,
       indentWidth: 0,
-      verticalSpacing: _getVerticalSpacingForLine(node, _styles),
+      verticalSpacing: _textBlockUtils.getVerticalSpacingForLine(node, _styles),
       textDirection: _textDirection,
       textSelection: widget.controller.selection,
-      color: widget.selectionColor,
       enableInteractiveSelection: widget.enableInteractiveSelection,
-      hasFocus: _hasFocus,
+      hasFocus: _focusNodeState.node.hasFocus,
       devicePixelRatio: MediaQuery.of(context).devicePixelRatio,
-      cursorCont: _cursorCont,
+      cursorController: _cursorControllerState.controller,
     );
 
     return editableTextLine;
   }
 
-  Tuple2<double, double> _getVerticalSpacingForLine(
-    Line line,
-    DefaultStyles? defaultStyles,
-  ) {
-    final attrs = line.style.attributes;
+  void refresh() => setState(() {});
+  void safeUpdateKeepAlive() => updateKeepAlive();
 
-    if (attrs.containsKey(Attribute.header.key)) {
-      final int? level = attrs[Attribute.header.key]!.value;
-      switch (level) {
-        case 1:
-          return defaultStyles!.h1!.verticalSpacing;
-        case 2:
-          return defaultStyles!.h2!.verticalSpacing;
-        case 3:
-          return defaultStyles!.h3!.verticalSpacing;
-        default:
-          throw 'Invalid level $level';
-      }
-    }
-
-    return defaultStyles!.paragraph!.verticalSpacing;
+  Map<Type, Action<Intent>> _getActionsSafe(BuildContext context) {
+    return widget.editorRendererKey.currentContext != null
+        ? _keyboardActionsService.getActions(context)
+        : {};
   }
 
-  Tuple2<double, double> _getVerticalSpacingForBlock(
-    Block node,
-    DefaultStyles? defaultStyles,
-  ) {
-    final attrs = node.style.attributes;
-    if (attrs.containsKey(Attribute.blockQuote.key)) {
-      return defaultStyles!.quote!.verticalSpacing;
-    } else if (attrs.containsKey(Attribute.codeBlock.key)) {
-      return defaultStyles!.code!.verticalSpacing;
-    } else if (attrs.containsKey(Attribute.indent.key)) {
-      return defaultStyles!.indent!.verticalSpacing;
-    } else if (attrs.containsKey(Attribute.list.key)) {
-      return defaultStyles!.lists!.verticalSpacing;
-    } else if (attrs.containsKey(Attribute.align.key)) {
-      return defaultStyles!.align!.verticalSpacing;
-    }
-    return const Tuple2(0, 0);
+  void _handleSelectionCompleted() {
+    widget.controller.onSelectionCompleted?.call();
   }
 
   void _updateSelectionOverlayForScroll() {
     _selectionActionsService.selectionActions?.updateForScroll();
   }
 
-  void _didChangeTextEditingValue([bool ignoreFocus = false]) {
-    if (kIsWeb) {
-      _onChangeTextEditingValue(ignoreFocus);
-      if (!ignoreFocus) {
-        requestKeyboard();
-      }
-      return;
-    }
-
-    if (ignoreFocus || _keyboardVisible) {
-      _onChangeTextEditingValue(ignoreFocus);
-    } else {
-      requestKeyboard();
-      if (mounted) {
-        setState(() {
-          // Use widget.controller.value in build()
-          // Trigger build and updateChildren
-        });
-      }
-    }
-
-    _keyboardActionsService
-        .getAdjacentLineAction(_editorRenderer)
-        .stopCurrentVerticalRunIfSelectionChanges();
-  }
-
-  void _onChangeTextEditingValue([bool ignoreCaret = false]) {
-    _textConnectionService.updateRemoteValueIfNeeded();
-
-    if (ignoreCaret) {
-      return;
-    }
-
-    showCaretOnScreen();
-    _cursorCont.startOrStopCursorTimerIfNeeded(
-      _hasFocus,
-      widget.controller.selection,
-    );
-
-    if (_textConnectionService.hasConnection) {
-      // To keep the cursor from blinking while typing, we want to restart the
-      // cursor timer every time a new character is typed.
-      _cursorCont
-        ..stopCursorTimer(resetCharTicks: false)
-        ..startCursorTimer();
-    }
-
-    // Refresh selection overlay after the build step had a chance to
-    // update and register all children of RenderEditor.
-    // Otherwise this will fail in situations where a new line of text is entered, which adds a new RenderEditableBox child.
-    // If we try to update selection overlay immediately it'll not be able to find
-    // the new child since it hasn't been built yet.
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {
-        return;
-      }
-      _updateOrDisposeSelectionOverlayIfNeeded();
-    });
-
-    if (mounted) {
-      setState(() {
-        // Use widget.controller.value in build().
-        // Trigger build and updateChildren.
-      });
-    }
-  }
-
-  void _updateOrDisposeSelectionOverlayIfNeeded() {
-    if (_selectionActionsService.selectionActions != null) {
-      if (!_hasFocus || textEditingValue.selection.isCollapsed) {
-        _selectionActionsService.selectionActions!.dispose();
-        _selectionActionsService.selectionActions = null;
-      } else {
-        _selectionActionsService.selectionActions!.update(textEditingValue);
-      }
-    } else if (_hasFocus) {
-      _selectionActionsService.selectionActions = SelectionActionsLogic(
-        value: textEditingValue,
-        context: context,
-        debugRequiredFor: widget,
-        toolbarLayerLink: _toolbarLayerLink,
-        startHandleLayerLink: _startHandleLayerLink,
-        endHandleLayerLink: _endHandleLayerLink,
-        renderObject: _editorRenderer,
-        selectionCtrls: widget.selectionCtrls,
-        selectionDelegate: this,
-        clipboardStatus: _clipboardStatus,
-      );
-      _selectionActionsService.selectionActions!.handlesVisible =
-          _shouldShowSelectionHandles();
-      _selectionActionsService.selectionActions!.showHandles();
-    }
-  }
-
-  void _handleFocusChanged() {
-    _textConnectionService.openOrCloseConnection(
-      _editorRenderer,
-      widget.focusNode,
-      this,
-      mounted,
-    );
-    _cursorCont.startOrStopCursorTimerIfNeeded(
-      _hasFocus,
-      widget.controller.selection,
-    );
-    _updateOrDisposeSelectionOverlayIfNeeded();
-
-    if (_hasFocus) {
-      WidgetsBinding.instance.addObserver(this);
-      showCaretOnScreen();
-    } else {
-      WidgetsBinding.instance.removeObserver(this);
-    }
-
-    updateKeepAlive();
-  }
-
   void _onChangedClipboardStatus() {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     setState(() {
       // Inform the widget that the value of clipboardStatus has changed.

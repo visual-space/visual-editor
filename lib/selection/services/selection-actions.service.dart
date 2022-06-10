@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../../editor/state/raw-editor-swidget.state.dart';
 import 'selection-actions.logic.dart';
 
 // Shows the selection buttons at the location of the current cursor.
@@ -9,7 +10,10 @@ import 'selection-actions.logic.dart';
 // It might also provide additional functionality depending on the browser (such as translate).
 // Due to this we should not show Flutter buttons for the editable text elements.
 class SelectionActionsService {
+  final _rawEditorSWidgetState = RawEditorSWidgetState();
+
   // +++ REVIEW Controller? State? Merge?
+  // +++ It seems to be always un undefined
   SelectionActionsLogic? selectionActions;
 
   static final _instance = SelectionActionsService._privateConstructor();
@@ -17,9 +21,6 @@ class SelectionActionsService {
   factory SelectionActionsService() => _instance;
 
   SelectionActionsService._privateConstructor();
-
-  // +++ DELETE, TEMP until widget.controller is migrated
-  dynamic rawEditorState;
 
   bool showToolbar() {
     if (kIsWeb) {
@@ -33,7 +34,7 @@ class SelectionActionsService {
       return false;
     }
 
-    selectionActions!.update(rawEditorState.textEditingValue);
+    selectionActions!.update(_rawEditorSWidgetState.editor.textEditingValue);
     selectionActions!.showToolbar();
 
     return true;

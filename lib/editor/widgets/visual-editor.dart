@@ -9,9 +9,10 @@ import '../../selection/widgets/text-gestures.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../models/editor-cfg.model.dart';
 import '../models/platform-dependent-styles.model.dart';
-import '../services/clipboard.service.dart';
 import '../services/styles.utils.dart';
 import '../state/editor-config.state.dart';
+import '../state/focus-node.state.dart';
+import '../state/platform-styles.state.dart';
 import 'raw-editor.dart';
 
 // This is the main class of the Visual Editor.
@@ -51,6 +52,8 @@ import 'raw-editor.dart';
 class VisualEditor extends StatefulWidget {
   final _editorControllerState = EditorControllerState();
   final _scrollControllerState = ScrollControllerState();
+  final _focusNodeState = FocusNodeState();
+  final _editorConfigState = EditorConfigState();
 
   final EditorController controller;
   final FocusNode focusNode;
@@ -59,13 +62,16 @@ class VisualEditor extends StatefulWidget {
 
   VisualEditor({
     required this.controller,
-    required this.focusNode,
     required this.scrollController,
+    required this.focusNode,
     required this.config,
     Key? key,
   }) : super(key: key) {
+    // Singleton caches. Avoids prop drilling or Providers.
     _editorControllerState.setController(controller);
     _scrollControllerState.setController(scrollController);
+    _focusNodeState.setFocusNode(focusNode);
+    _editorConfigState.setEditorConfig(config);
   }
 
   // Quickly a basic Visual Editor using a basic configuration
@@ -90,45 +96,20 @@ class VisualEditor extends StatefulWidget {
 }
 
 class VisualEditorState extends State<VisualEditor> {
-  final _clipboardService = ClipboardService();
-  final _editorConfigState = EditorConfigState();
   final _stylesUtils = StylesUtils();
+  final _platformStylesState = PlatformStylesState();
 
   final _editorKey = GlobalKey<State<RawEditor>>();
   final _editorRendererKey = GlobalKey<State<RawEditor>>();
 
   @override
-  void initState() {
-    super.initState();
-    _editorConfigState.setEditorConfig(widget.config);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final selectionTheme = TextSelectionTheme.of(context);
-    final isAppleOs = isAppleOS(theme.platform);
-    final platformStyles = isAppleOs
-        ? _stylesUtils.getAppleOsStyles(selectionTheme, context)
-        : _stylesUtils.getOtherOsStyles(selectionTheme, theme);
-
-    final editor = _i18n(
-      child: _textGestures(
-        child: _editor(
-          theme: theme,
-          platformStyles: platformStyles,
+  Widget build(BuildContext context) => _preventKeyPropagationToParentIfWeb(
+        child: _i18n(
+          child: _textGestures(
+            child: _document(),
+          ),
         ),
-      ),
-    );
-
-    if (kIsWeb) {
-      return _preventKeyPropagationToParent(
-        child: editor,
       );
-    }
-
-    return editor;
-  }
 
   GlobalKey<State<RawEditor>> get editableTextKey => _editorKey;
 
@@ -143,57 +124,60 @@ class VisualEditorState extends State<VisualEditor> {
         child: child,
       );
 
-  Widget _editor({
-    required ThemeData theme,
-    required PlatformDependentStylesM platformStyles,
-  }) =>
-      RawEditor(
-        key: _editorKey,
-        editorRendererKey: _editorRendererKey,
-        controller: widget.controller,
-        focusNode: widget.focusNode,
-        scrollController: widget.scrollController,
-        scrollable: widget.config.scrollable,
-        scrollBottomInset: widget.config.scrollBottomInset,
-        padding: widget.config.padding,
-        readOnly: widget.config.readOnly,
-        placeholder: widget.config.placeholder,
-        onLaunchUrl: widget.config.onLaunchUrl,
-        toolbarOptions: _clipboardService.toolbarOptions(),
-        showSelectionHandles: isMobile(theme.platform),
-        showCursor: widget.config.showCursor,
-        cursorStyle: _stylesUtils.cursorStyle(
-          platformStyles.cursorStyle,
-          widget.config,
-        ),
-        textCapitalization: widget.config.textCapitalization,
-        minHeight: widget.config.minHeight,
-        maxHeight: widget.config.maxHeight,
-        maxContentWidth: widget.config.maxContentWidth,
-        customStyles: widget.config.customStyles,
-        expands: widget.config.expands,
-        autoFocus: widget.config.autoFocus,
-        selectionColor: platformStyles.selectionColor,
-        selectionCtrls: widget.config.textSelectionControls ??
-            platformStyles.textSelectionControls,
-        keyboardAppearance: widget.config.keyboardAppearance,
-        enableInteractiveSelection: widget.config.enableInteractiveSelection,
-        scrollPhysics: widget.config.scrollPhysics,
-        embedBuilder: widget.config.embedBuilder,
-        linkActionPickerDelegate: widget.config.linkActionPickerDelegate,
-        customStyleBuilder: widget.config.customStyleBuilder,
-        floatingCursorDisabled: widget.config.floatingCursorDisabled,
-      );
+  Widget _document() {
+    if (_platformStylesState.styles == null) {
+      _platformStylesState.setPlatformStyles(_getPlatformStyles());
+    }
+
+    return RawEditor(
+      key: _editorKey,
+      editorRendererKey: _editorRendererKey,
+      controller: widget.controller,
+      scrollController: widget.scrollController,
+      scrollable: widget.config.scrollable,
+      scrollBottomInset: widget.config.scrollBottomInset,
+      padding: widget.config.padding,
+      readOnly: widget.config.readOnly,
+      placeholder: widget.config.placeholder,
+      onLaunchUrl: widget.config.onLaunchUrl,
+      textCapitalization: widget.config.textCapitalization,
+      minHeight: widget.config.minHeight,
+      maxHeight: widget.config.maxHeight,
+      maxContentWidth: widget.config.maxContentWidth,
+      customStyles: widget.config.customStyles,
+      expands: widget.config.expands,
+      autoFocus: widget.config.autoFocus,
+      keyboardAppearance: widget.config.keyboardAppearance,
+      enableInteractiveSelection: widget.config.enableInteractiveSelection,
+      scrollPhysics: widget.config.scrollPhysics,
+      embedBuilder: widget.config.embedBuilder,
+      linkActionPickerDelegate: widget.config.linkActionPickerDelegate,
+      customStyleBuilder: widget.config.customStyleBuilder,
+      floatingCursorDisabled: widget.config.floatingCursorDisabled,
+    );
+  }
 
   // Intercept RawKeyEvent on Web to prevent it from propagating to parents that
   // might interfere with the editor key behavior, such as SingleChildScrollView.
   // SingleChildScrollView reacts to keys.
-  Widget _preventKeyPropagationToParent({required Widget child}) =>
-      RawKeyboardListener(
-        focusNode: FocusNode(
-          onKey: (node, event) => KeyEventResult.skipRemainingHandlers,
-        ),
-        child: child,
-        onKey: (_) {},
-      );
+  Widget _preventKeyPropagationToParentIfWeb({required Widget child}) => kIsWeb
+      ? RawKeyboardListener(
+          focusNode: FocusNode(
+            onKey: (node, event) => KeyEventResult.skipRemainingHandlers,
+          ),
+          child: child,
+          onKey: (_) {},
+        )
+      : child;
+
+  PlatformDependentStylesM _getPlatformStyles() {
+    final theme = Theme.of(context);
+    final selectionTheme = TextSelectionTheme.of(context);
+    final isAppleOs = isAppleOS(theme.platform);
+    final platformStyles = isAppleOs
+        ? _stylesUtils.getAppleOsStyles(selectionTheme, context)
+        : _stylesUtils.getOtherOsStyles(selectionTheme, theme);
+
+    return platformStyles;
+  }
 }

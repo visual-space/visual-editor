@@ -1,19 +1,25 @@
 import 'package:flutter/rendering.dart';
 
 import '../../blocks/models/editable-box-renderer.model.dart';
-import '../widgets/editable-container-box-renderer.dart';
+import '../../blocks/widgets/text-block-renderer.dart';
+import '../state/editor-renderer.state.dart';
 
 class EditorRendererUtils {
+  final _editorRendererState = EditorRendererState();
+
   static final _instance = EditorRendererUtils._privateConstructor();
 
   factory EditorRendererUtils() => _instance;
 
   EditorRendererUtils._privateConstructor();
 
+  // +++ REVIEW, the current setup is rather unsafe
+  // If an EditableTextBlockRenderer is provided it uses it, otherwise it defaults to the EditorRenderer
   RenderEditableBox childAtPosition(
-    TextPosition position,
-    EditableContainerBoxRenderer renderer,
-  ) {
+    TextPosition position, [
+    EditableTextBlockRenderer? blockRenderer,
+  ]) {
+    final renderer = blockRenderer ?? _editorRendererState.renderer;
     assert(renderer.firstChild != null);
 
     final targetNode = renderer.container
@@ -48,10 +54,13 @@ class EditorRendererUtils {
   // Returns child of this container located at the specified local `offset`.
   // If `offset` is above this container (offset.dy is negative) returns the first child.
   // Likewise, if `offset` is below this container then returns the last child.
+  // +++ REVIEW, the current setup is rather unsafe
+  // If an EditableTextBlockRenderer is provided it uses it, otherwise it defaults to the EditorRenderer
   RenderEditableBox childAtOffset(
-    Offset offset,
-    EditableContainerBoxRenderer renderer,
-  ) {
+    Offset offset, [
+    EditableTextBlockRenderer? blockRenderer,
+  ]) {
+    final renderer = blockRenderer ?? _editorRendererState.renderer;
     assert(renderer.firstChild != null);
 
     renderer.resolvePadding();
@@ -85,12 +94,9 @@ class EditorRendererUtils {
   // Otherwise, the selection is not collapsed and the returned list is of length two.
   // In this case, however, the two points might actually be co-located (e.g., because of a bidirectional
   // selection that contains some text but whose ends meet in the middle).
-  TextPosition getPositionForOffset(
-    Offset offset,
-    EditableContainerBoxRenderer renderer,
-  ) {
-    final local = renderer.globalToLocal(offset);
-    final child = childAtOffset(local, renderer);
+  TextPosition getPositionForOffset(Offset offset) {
+    final local = _editorRendererState.renderer.globalToLocal(offset);
+    final child = childAtOffset(local);
     final parentData = child.parentData as BoxParentData;
     final localOffset = local - parentData.offset;
     final localPosition = child.getPositionForOffset(localOffset);
@@ -101,11 +107,8 @@ class EditorRendererUtils {
     );
   }
 
-  double preferredLineHeight(
-    TextPosition position,
-    EditableContainerBoxRenderer renderer,
-  ) {
-    final child = childAtPosition(position, renderer);
+  double preferredLineHeight(TextPosition position) {
+    final child = childAtPosition(position);
 
     return child.preferredLineHeight(
       TextPosition(offset: position.offset - child.container.offset),

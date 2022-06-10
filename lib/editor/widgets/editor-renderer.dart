@@ -7,7 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 import '../../blocks/models/editable-box-renderer.model.dart';
-import '../../cursor/widgets/cursor.dart';
+import '../../cursor/services/cursor.controller.dart';
 import '../../cursor/widgets/floating-cursor.painter.dart';
 import '../../documents/models/document.dart';
 import '../../selection/models/drag-text-selection.model.dart';
@@ -18,6 +18,8 @@ import '../../selection/state/last-tap-down.state.dart';
 import '../models/text-selection-handlers.type.dart';
 import '../services/editor-renderer.utils.dart';
 import '../services/vertical-caret-movement-run.dart';
+import '../state/editor-renderer.state.dart';
+import '../state/focus-node.state.dart';
 import 'editable-container-box-renderer.dart';
 
 // Displays a document as a vertical list of document segments (lines and blocks).
@@ -27,16 +29,17 @@ class EditorRenderer extends EditableContainerBoxRenderer
     implements TextLayoutMetrics {
   final _textSelectionUtils = TextSelectionUtils();
   final _editorRendererUtils = EditorRendererUtils();
+  final _editorRendererState = EditorRendererState();
   final _selectionActionsUtils = SelectionActionsUtils();
   final _textSelectionService = TextSelectionService();
   final _lastTapDownState = LastTapDownState();
+  final _focusNodeState = FocusNodeState();
 
-  final CursorCont cursorController;
+  final CursorController cursorController;
   final bool floatingCursorDisabled;
   final bool scrollable;
   Document document;
   TextSelection selection;
-  bool hasFocus;
   LayerLink startHandleLayerLink;
   LayerLink endHandleLayerLink;
   TextSelectionChangedHandler onSelectionChanged;
@@ -47,7 +50,6 @@ class EditorRenderer extends EditableContainerBoxRenderer
   EditorRenderer({
     required this.document, // +++ Move to service
     required TextDirection textDirection,
-    required this.hasFocus,
     required this.selection, // +++ Move to service
     required this.scrollable,
     required this.startHandleLayerLink,
@@ -71,7 +73,9 @@ class EditorRenderer extends EditableContainerBoxRenderer
           textDirection: textDirection,
           scrollBottomInset: scrollBottomInset,
           padding: padding,
-        );
+        ) {
+    _editorRendererState.setRenderer(this);
+  }
 
   ValueListenable<bool> get selectionStartInViewport =>
       _selectionStartInViewport;
@@ -110,10 +114,11 @@ class EditorRenderer extends EditableContainerBoxRenderer
 
   // Returns offset relative to this at which the caret will be painted given a global TextPosition
   Offset _getOffsetForCaret(TextPosition position) {
-    final child = _editorRendererUtils.childAtPosition(position, this);
+    final child = _editorRendererUtils.childAtPosition(position);
     final childPosition = child.globalToLocalPosition(position);
     final boxParentData = child.parentData as BoxParentData;
     final localOffsetForCaret = child.getOffsetForCaret(childPosition);
+
     return boxParentData.offset + localOffsetForCaret;
   }
 
@@ -126,14 +131,15 @@ class EditorRenderer extends EditableContainerBoxRenderer
     markNeedsLayout();
   }
 
-  void setHasFocus(bool h) {
-    if (hasFocus == h) {
-      return;
-    }
-
-    hasFocus = h;
-    markNeedsSemanticsUpdate();
-  }
+  // +++ SEEMS UNUSED
+  // void setHasFocus(bool h) {
+  //   if (hasFocus == h) {
+  //     return;
+  //   }
+  //
+  //   hasFocus = h;
+  //   markNeedsSemanticsUpdate();
+  // }
 
   Offset get _paintOffset => Offset(0, -(offset?.pixels ?? 0.0));
 
@@ -228,7 +234,6 @@ class EditorRenderer extends EditableContainerBoxRenderer
     final newSelection = _textSelectionService.selectPositionAt(
       from: details.globalPosition,
       cause: SelectionChangedCause.drag,
-      editorRenderer: this,
     );
 
     if (newSelection == null) return;
@@ -249,7 +254,7 @@ class EditorRenderer extends EditableContainerBoxRenderer
   ) {
     final focusingEmpty = nextSelection.baseOffset == 0 &&
         nextSelection.extentOffset == 0 &&
-        !hasFocus;
+        !_focusNodeState.node.hasFocus;
 
     if (nextSelection == selection &&
         cause != SelectionChangedCause.keyboard &&
@@ -265,7 +270,7 @@ class EditorRenderer extends EditableContainerBoxRenderer
     // The below logic does not exactly match the native version because
     // we do not allow swapping of base and extent positions.
     assert(_extendSelectionOrigin != null);
-    final position = _editorRendererUtils.getPositionForOffset(to, this);
+    final position = _editorRendererUtils.getPositionForOffset(to);
 
     if (position.offset < _extendSelectionOrigin!.baseOffset) {
       handleSelectionChange(
@@ -364,7 +369,7 @@ class EditorRenderer extends EditableContainerBoxRenderer
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    if (hasFocus &&
+    if (_focusNodeState.node.hasFocus &&
         cursorController.show.value &&
         !cursorController.style.paintAboveText) {
       _paintFloatingCursor(context, offset);
@@ -374,10 +379,10 @@ class EditorRenderer extends EditableContainerBoxRenderer
     _updateSelectionExtentsVisibility(offset + _paintOffset);
     _paintHandleLayers(
       context,
-      _selectionActionsUtils.getEndpointsForSelection(selection, this),
+      _selectionActionsUtils.getEndpointsForSelection(selection),
     );
 
-    if (hasFocus &&
+    if (_focusNodeState.node.hasFocus &&
         cursorController.show.value &&
         cursorController.style.paintAboveText) {
       _paintFloatingCursor(context, offset);
@@ -438,7 +443,6 @@ class EditorRenderer extends EditableContainerBoxRenderer
     // We also add a small margin so that the caret is not too close to the edge of the viewport.
     final endpoints = _selectionActionsUtils.getEndpointsForSelection(
       selection,
-      this,
     );
 
     // When we drag the right handle, we should get the last point
@@ -457,7 +461,7 @@ class EditorRenderer extends EditableContainerBoxRenderer
     }
 
     // Collapsed selection => caret
-    final child = _editorRendererUtils.childAtPosition(selection.extent, this);
+    final child = _editorRendererUtils.childAtPosition(selection.extent);
     const kMargin = 8.0;
 
     final caretTop = endpoint.point.dy -

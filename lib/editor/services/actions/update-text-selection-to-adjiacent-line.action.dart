@@ -4,7 +4,7 @@ import '../../../controller/services/editor-text.service.dart';
 import '../../../controller/state/editor-controller.state.dart';
 import '../../services/vertical-caret-movement-run.dart';
 import '../../state/editor-config.state.dart';
-import '../../widgets/editor-renderer.dart';
+import '../../state/editor-renderer.state.dart';
 
 // +++ DOC
 class UpdateTextSelectionToAdjacentLineAction<
@@ -12,10 +12,9 @@ class UpdateTextSelectionToAdjacentLineAction<
   final _editorTextService = EditorTextService();
   final _editorConfigState = EditorConfigState();
   final _editorControllerState = EditorControllerState();
+  final _editorRendererState = EditorRendererState();
 
-  final EditorRenderer editorRenderer;
-
-  UpdateTextSelectionToAdjacentLineAction(this.editorRenderer);
+  UpdateTextSelectionToAdjacentLineAction();
 
   EditorVerticalCaretMovementRun? _verticalMovementRun;
   TextSelection? _runSelection;
@@ -54,8 +53,8 @@ class UpdateTextSelectionToAdjacentLineAction<
     }
 
     final currentRun = _verticalMovementRun ??
-        editorRenderer.startVerticalCaretMovement(
-          editorRenderer.selection.extent,
+        _editorRendererState.renderer.startVerticalCaretMovement(
+          _editorRendererState.renderer.selection.extent,
         );
 
     final shouldMove =

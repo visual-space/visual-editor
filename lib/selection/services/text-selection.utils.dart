@@ -6,12 +6,13 @@ import 'package:flutter/rendering.dart';
 import '../../controller/state/document.state.dart';
 import '../../documents/models/nodes/node.dart';
 import '../../editor/services/editor-renderer.utils.dart';
+import '../../editor/state/editor-renderer.state.dart';
 import '../../editor/widgets/editable-container-box-renderer.dart';
-import '../../editor/widgets/editor-renderer.dart';
 
 class TextSelectionUtils {
   final _documentState = DocumentState();
   final _editorRendererUtils = EditorRendererUtils();
+  final _editorRendererState = EditorRendererState();
 
   factory TextSelectionUtils() => _instance;
 
@@ -42,9 +43,8 @@ class TextSelectionUtils {
 
   TextSelection getWordAtPosition(
     TextPosition position,
-    EditorRenderer editorRenderer,
   ) {
-    final word = editorRenderer.getWordBoundary(position);
+    final word = _editorRendererState.renderer.getWordBoundary(position);
 
     // When long-pressing past the end of the text, we want a collapsed cursor.
     if (position.offset >= word.end) {
@@ -78,7 +78,7 @@ class TextSelectionUtils {
     TextPosition position,
     EditableContainerBoxRenderer renderer,
   ) {
-    final child = _editorRendererUtils.childAtPosition(position, renderer);
+    final child = _editorRendererUtils.childAtPosition(position);
     final nodeOffset = child.container.offset;
     final localPosition = TextPosition(
       offset: position.offset - nodeOffset,
@@ -100,7 +100,7 @@ class TextSelectionUtils {
     TextPosition position,
     EditableContainerBoxRenderer renderer,
   ) {
-    final child = _editorRendererUtils.childAtPosition(position, renderer);
+    final child = _editorRendererUtils.childAtPosition(position);
     final nodeOffset = child.container.offset;
     final localPosition = TextPosition(
       offset: position.offset - nodeOffset,
@@ -120,7 +120,7 @@ class TextSelectionUtils {
     TextPosition position,
     EditableContainerBoxRenderer renderer,
   ) {
-    final child = _editorRendererUtils.childAtPosition(position, renderer);
+    final child = _editorRendererUtils.childAtPosition(position);
     final localPosition = TextPosition(
       offset: position.offset - child.container.documentOffset,
     );
@@ -158,7 +158,7 @@ class TextSelectionUtils {
     TextPosition position,
     EditableContainerBoxRenderer renderer,
   ) {
-    final child = _editorRendererUtils.childAtPosition(position, renderer);
+    final child = _editorRendererUtils.childAtPosition(position);
     final localPosition = TextPosition(
       offset: position.offset - child.container.documentOffset,
     );

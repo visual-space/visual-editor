@@ -18,7 +18,7 @@ class TextSelectionHandleOverlay extends StatefulWidget {
     required this.renderObject,
     required this.onSelectionHandleChanged,
     required this.onSelectionHandleTapped,
-    required this.selectionControls,
+    required this.textSelectionControls,
     this.dragStartBehavior = DragStartBehavior.start,
     Key? key,
   }) : super(key: key);
@@ -30,7 +30,7 @@ class TextSelectionHandleOverlay extends StatefulWidget {
   final EditorRenderer renderObject;
   final ValueChanged<TextSelection?> onSelectionHandleChanged;
   final VoidCallback? onSelectionHandleTapped;
-  final TextSelectionControls selectionControls;
+  final TextSelectionControls textSelectionControls;
   final DragStartBehavior dragStartBehavior;
 
   @override
@@ -100,11 +100,8 @@ class TextSelectionHandleOverlayState extends State<TextSelectionHandleOverlay>
     final textPosition = widget.position == TextSelectionHandlePosition.START
         ? widget.selection.base
         : widget.selection.extent;
-    final lineHeight = _editorRendererUtils.preferredLineHeight(
-      textPosition,
-      widget.renderObject,
-    );
-    final handleSize = widget.selectionControls.getHandleSize(lineHeight);
+    final lineHeight = _editorRendererUtils.preferredLineHeight(textPosition);
+    final handleSize = widget.textSelectionControls.getHandleSize(lineHeight);
     _dragPosition = details.globalPosition + Offset(0, -handleSize.height);
   }
 
@@ -112,7 +109,6 @@ class TextSelectionHandleOverlayState extends State<TextSelectionHandleOverlay>
     _dragPosition += details.delta;
     final position = _editorRendererUtils.getPositionForOffset(
       details.globalPosition,
-      widget.renderObject,
     );
 
     if (widget.selection.isCollapsed) {
@@ -198,15 +194,12 @@ class TextSelectionHandleOverlayState extends State<TextSelectionHandleOverlay>
     final textPosition = widget.position == TextSelectionHandlePosition.START
         ? widget.selection.base
         : widget.selection.extent;
-    final lineHeight = _editorRendererUtils.preferredLineHeight(
-      textPosition,
-      widget.renderObject,
-    );
-    final handleAnchor = widget.selectionControls.getHandleAnchor(
+    final lineHeight = _editorRendererUtils.preferredLineHeight(textPosition);
+    final handleAnchor = widget.textSelectionControls.getHandleAnchor(
       type!,
       lineHeight,
     );
-    final handleSize = widget.selectionControls.getHandleSize(lineHeight);
+    final handleSize = widget.textSelectionControls.getHandleSize(lineHeight);
 
     final handleRect = Rect.fromLTWH(
       -handleAnchor.dx,
@@ -250,7 +243,7 @@ class TextSelectionHandleOverlayState extends State<TextSelectionHandleOverlay>
                 right: padding.right,
                 bottom: padding.bottom,
               ),
-              child: widget.selectionControls.buildHandle(
+              child: widget.textSelectionControls.buildHandle(
                 context,
                 type,
                 lineHeight,

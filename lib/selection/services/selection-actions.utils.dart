@@ -2,12 +2,13 @@ import 'package:flutter/rendering.dart';
 
 import '../../blocks/models/editable-box-renderer.model.dart';
 import '../../editor/services/editor-renderer.utils.dart';
-import '../../editor/widgets/editable-container-box-renderer.dart';
+import '../../editor/state/editor-renderer.state.dart';
 import 'text-selection.utils.dart';
 
 class SelectionActionsUtils {
   final _textSelectionUtils = TextSelectionUtils();
   final _editorRendererUtils = EditorRendererUtils();
+  final _editorRendererState = EditorRendererState();
   static final _instance = SelectionActionsUtils._privateConstructor();
 
   factory SelectionActionsUtils() => _instance;
@@ -21,13 +22,9 @@ class SelectionActionsUtils {
   // selection that contains some text but whose ends meet in the middle).
   List<TextSelectionPoint> getEndpointsForSelection(
     TextSelection textSelection,
-    EditableContainerBoxRenderer renderer,
   ) {
     if (textSelection.isCollapsed) {
-      final child = _editorRendererUtils.childAtPosition(
-        textSelection.extent,
-        renderer,
-      );
+      final child = _editorRendererUtils.childAtPosition(textSelection.extent);
       final localPosition = TextPosition(
         offset: textSelection.extentOffset - child.container.offset,
       );
@@ -44,6 +41,7 @@ class SelectionActionsUtils {
       ];
     }
 
+    final renderer = _editorRendererState.renderer;
     final baseNode = renderer.containerRef
         .queryChild(
           textSelection.start,
@@ -56,6 +54,7 @@ class SelectionActionsUtils {
       if (baseChild.container == baseNode) {
         break;
       }
+
       baseChild = renderer.childAfter(baseChild);
     }
 
@@ -85,6 +84,7 @@ class SelectionActionsUtils {
       if (extentChild.container == extentNode) {
         break;
       }
+
       extentChild = renderer.childAfter(extentChild);
     }
 
@@ -99,6 +99,7 @@ class SelectionActionsUtils {
     var extentPoint = extentChild.getExtentEndpointForSelection(
       extentSelection,
     );
+
     extentPoint = TextSelectionPoint(
       extentPoint.point + extentParentData.offset,
       extentPoint.direction,

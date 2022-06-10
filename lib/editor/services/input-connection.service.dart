@@ -11,17 +11,21 @@ import '../../cursor/services/cursor.service.dart';
 import '../../delta/services/delta.utils.dart';
 import '../../documents/models/change-source.enum.dart';
 import '../state/editor-config.state.dart';
-import '../widgets/editor-renderer.dart';
-import '../widgets/raw-editor.dart';
+import '../state/editor-renderer.state.dart';
+import '../state/focus-node.state.dart';
+import '../state/raw-editor-swidget.state.dart';
 import 'editor-renderer.utils.dart';
 import 'floating-cursor.service.dart';
 
 class TextConnectionService {
   final _editorConfigState = EditorConfigState();
+  final _focusNodeState = FocusNodeState();
+  final _editorRendererState = EditorRendererState();
   final _editorRendererUtils = EditorRendererUtils();
   final _cursorService = CursorService();
   final _editorTextService = EditorTextService();
   final _floatingCursorService = FloatingCursorService();
+  final _rawEditorSWidgetState = RawEditorSWidgetState();
 
   TextInputConnection? _textInputConnection;
   TextEditingValue? _lastKnownRemoteTextEditingValue;
@@ -73,24 +77,17 @@ class TextConnectionService {
 
   // Opens or closes input connection based on the current state of
   // [focusNode] and [value].
-  void openOrCloseConnection(
-    EditorRenderer editorRenderer,
-    FocusNode focusNode,
-    RawEditorState editorState,
-    bool mounted,
-  ) {
+  void openOrCloseConnection() {
+    final focusNode = _focusNodeState.node;
+
     if (focusNode.hasFocus && focusNode.consumeKeyboardToken()) {
-      openConnectionIfNeeded(editorRenderer, editorState, mounted);
+      openConnectionIfNeeded();
     } else if (!focusNode.hasFocus) {
       closeConnectionIfNeeded();
     }
   }
 
-  void openConnectionIfNeeded(
-    EditorRenderer editorRenderer,
-    RawEditorState editorState,
-    bool mounted,
-  ) {
+  void openConnectionIfNeeded() {
     if (!shouldCreateInputConnection) {
       return;
     }
@@ -98,7 +95,7 @@ class TextConnectionService {
     if (!hasConnection) {
       _lastKnownRemoteTextEditingValue = _editorTextService.textEditingValue;
       _textInputConnection = TextInput.attach(
-        editorState,
+        _rawEditorSWidgetState.editor,
         TextInputConfiguration(
           inputType: TextInputType.multiline,
           readOnly: _editorConfigState.config.readOnly,
@@ -109,7 +106,7 @@ class TextConnectionService {
         ),
       );
 
-      _updateSizeAndTransform(editorRenderer, mounted);
+      _updateSizeAndTransform();
       _textInputConnection!.setEditingState(_lastKnownRemoteTextEditingValue!);
     }
 
@@ -149,8 +146,14 @@ class TextConnectionService {
 
     _lastKnownRemoteTextEditingValue = actualValue;
     _textInputConnection!.setEditingState(
-      // Set composing to (-1, -1), otherwise an exception will be thrown if the values are different.
-      actualValue.copyWith(composing: const TextRange(start: -1, end: -1)),
+      // Set composing to (-1, -1).
+      // Otherwise an exception will be thrown if the values are different.
+      actualValue.copyWith(
+        composing: const TextRange(
+          start: -1,
+          end: -1,
+        ),
+      ),
     );
   }
 
@@ -196,7 +199,6 @@ class TextConnectionService {
 
   void updateFloatingCursor(
     RawFloatingCursorPoint point,
-    EditorRenderer editorRenderer,
     AnimationController floatingCursorResetController,
   ) {
     switch (point.state) {
@@ -204,7 +206,6 @@ class TextConnectionService {
         if (floatingCursorResetController.isAnimating) {
           floatingCursorResetController.stop();
           onFloatingCursorResetTick(
-            editorRenderer,
             floatingCursorResetController,
           );
         }
@@ -213,22 +214,20 @@ class TextConnectionService {
         _pointOffsetOrigin = point.offset;
 
         final currentTextPosition = TextPosition(
-          offset: editorRenderer.selection.baseOffset,
+          offset: _editorRendererState.renderer.selection.baseOffset,
         );
         _startCaretRect = _cursorService.getLocalRectForCaret(
           currentTextPosition,
-          editorRenderer,
         );
 
         _lastBoundedOffset = _startCaretRect!.center -
-            _floatingCursorOffset(currentTextPosition, editorRenderer);
+            _floatingCursorOffset(currentTextPosition);
         _lastTextPosition = currentTextPosition;
 
         _floatingCursorService.setFloatingCursor(
           point.state,
           _lastBoundedOffset!,
           _lastTextPosition!,
-          editorRenderer,
         );
         break;
 
@@ -236,7 +235,6 @@ class TextConnectionService {
         assert(_lastTextPosition != null, 'Last text position was not set');
         final floatingCursorOffset = _floatingCursorOffset(
           _lastTextPosition!,
-          editorRenderer,
         );
         final centeredPoint = point.offset! - _pointOffsetOrigin!;
         final rawCursorOffset =
@@ -244,25 +242,21 @@ class TextConnectionService {
 
         final preferredLineHeight = _editorRendererUtils.preferredLineHeight(
           _lastTextPosition!,
-          editorRenderer,
         );
         _lastBoundedOffset =
             _floatingCursorService.calculateBoundedFloatingCursorOffset(
           rawCursorOffset,
           preferredLineHeight,
-          editorRenderer,
         );
         _lastTextPosition = _editorRendererUtils.getPositionForOffset(
-          editorRenderer.localToGlobal(
+          _editorRendererState.renderer.localToGlobal(
             _lastBoundedOffset! + floatingCursorOffset,
           ),
-          editorRenderer,
         );
         _floatingCursorService.setFloatingCursor(
           point.state,
           _lastBoundedOffset!,
           _lastTextPosition!,
-          editorRenderer,
         );
 
         final newSelection = TextSelection.collapsed(
@@ -272,7 +266,7 @@ class TextConnectionService {
 
         // Setting selection as floating cursor moves will have scroll view
         // bring background cursor into view
-        editorRenderer.onSelectionChanged(
+        _editorRendererState.renderer.onSelectionChanged(
           newSelection,
           SelectionChangedCause.forcePress,
         );
@@ -297,20 +291,17 @@ class TextConnectionService {
   // The floating cursor is resized (see [RenderAbstractEditor.setFloatingCursor]) and repositioned
   // (linear interpolation between position of floating cursor and current position of background cursor)
   void onFloatingCursorResetTick(
-    EditorRenderer editorRenderer,
     AnimationController floatingCursorResetController,
   ) {
-    final finalPosition = _cursorService
-            .getLocalRectForCaret(_lastTextPosition!, editorRenderer)
-            .centerLeft -
-        _floatingCursorOffset(_lastTextPosition!, editorRenderer);
+    final finalPosition =
+        _cursorService.getLocalRectForCaret(_lastTextPosition!).centerLeft -
+            _floatingCursorOffset(_lastTextPosition!);
 
     if (floatingCursorResetController.isCompleted) {
       _floatingCursorService.setFloatingCursor(
         FloatingCursorDragState.End,
         finalPosition,
         _lastTextPosition!,
-        editorRenderer,
       );
       _startCaretRect = null;
       _lastTextPosition = null;
@@ -333,7 +324,6 @@ class TextConnectionService {
         FloatingCursorDragState.Update,
         Offset(lerpX, lerpY),
         _lastTextPosition!,
-        editorRenderer,
         resetLerpValue: lerpValue,
       );
     }
@@ -354,30 +344,22 @@ class TextConnectionService {
   // Because the center of the cursor is preferredLineHeight / 2 below the touch origin,
   // but the touch origin is used to determine which line the cursor is on,
   // we need this offset to correctly render and move the cursor.
-  Offset _floatingCursorOffset(
-    TextPosition textPosition,
-    EditorRenderer editorRenderer,
-  ) =>
-      Offset(
+  Offset _floatingCursorOffset(TextPosition textPosition) => Offset(
         0,
-        _editorRendererUtils.preferredLineHeight(
-              textPosition,
-              editorRenderer,
-            ) /
-            2,
+        _editorRendererUtils.preferredLineHeight(textPosition) / 2,
       );
 
-  void _updateSizeAndTransform(EditorRenderer editorRenderer, bool mounted) {
+  void _updateSizeAndTransform() {
     if (hasConnection) {
       // Asking for editorRenderer.size here can cause errors if layout hasn't occurred yet.
       // So we schedule a post frame callback instead.
       SchedulerBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) {
+        if (!_rawEditorSWidgetState.editor.mounted) {
           return;
         }
 
-        final size = editorRenderer.size;
-        final transform = editorRenderer.getTransformTo(null);
+        final size = _editorRendererState.renderer.size;
+        final transform = _editorRendererState.renderer.getTransformTo(null);
         _textInputConnection?.setEditableSizeAndTransform(size, transform);
       });
     }

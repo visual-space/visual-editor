@@ -3,11 +3,15 @@ import 'package:flutter/material.dart';
 
 import '../../cursor/models/cursor-style.model.dart';
 import '../models/cursor-style-cfg.model.dart';
-import '../models/editor-cfg.model.dart';
 import '../models/platform-dependent-styles.model.dart';
+import '../state/editor-config.state.dart';
+import '../state/platform-styles.state.dart';
 
 // Utils used to generate the styles that will be used to render the editor.
 class StylesUtils {
+  final _editorConfigState = EditorConfigState();
+  final _platformStylesState = PlatformStylesState();
+
   static final _instance = StylesUtils._privateConstructor();
 
   factory StylesUtils() => _instance;
@@ -52,15 +56,18 @@ class StylesUtils {
     );
   }
 
-  CursorStyle cursorStyle(CursorStyleCfgM style, EditorCfgM config) =>
-      CursorStyle(
-        color: style.cursorColor,
-        backgroundColor: Colors.grey,
-        width: 2,
-        radius: style.cursorRadius,
-        offset: style.cursorOffset,
-        paintAboveText:
-            config.paintCursorAboveText ?? style.paintCursorAboveText,
-        opacityAnimates: style.cursorOpacityAnimates,
-      );
+  CursorStyle cursorStyle() {
+    final style = _platformStylesState.styles!.cursorStyle;
+
+    return CursorStyle(
+      color: style.cursorColor,
+      backgroundColor: Colors.grey,
+      width: 2,
+      radius: style.cursorRadius,
+      offset: style.cursorOffset,
+      paintAboveText: _editorConfigState.config.paintCursorAboveText ??
+          style.paintCursorAboveText,
+      opacityAnimates: style.cursorOpacityAnimates,
+    );
+  }
 }

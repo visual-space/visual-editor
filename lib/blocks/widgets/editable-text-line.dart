@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../controller/services/editor-controller.dart';
-import '../../cursor/widgets/cursor.dart';
+import '../../cursor/services/cursor.controller.dart';
 import '../../documents/models/nodes/line.dart';
 import '../services/default-styles.utils.dart';
 import 'editable-text-line-renderer.dart';
@@ -18,11 +18,10 @@ class EditableTextLine extends RenderObjectWidget {
     required this.verticalSpacing,
     required this.textDirection,
     required this.textSelection,
-    required this.color,
     required this.enableInteractiveSelection,
     required this.hasFocus,
     required this.devicePixelRatio,
-    required this.cursorCont,
+    required this.cursorController,
   });
 
   final EditorController controller;
@@ -33,11 +32,10 @@ class EditableTextLine extends RenderObjectWidget {
   final Tuple2 verticalSpacing;
   final TextDirection textDirection;
   final TextSelection textSelection;
-  final Color color;
   final bool enableInteractiveSelection;
   final bool hasFocus;
   final double devicePixelRatio;
-  final CursorCont cursorCont;
+  final CursorController cursorController;
 
   @override
   RenderObjectElement createElement() {
@@ -48,25 +46,24 @@ class EditableTextLine extends RenderObjectWidget {
   RenderObject createRenderObject(BuildContext context) {
     final defaultStyles = DefaultStyles.getInstance(context);
 
-    return RenderEditableTextLine(
-      controller,
-      line,
-      textDirection,
-      textSelection,
-      enableInteractiveSelection,
-      hasFocus,
-      devicePixelRatio,
-      _getPadding(),
-      color,
-      cursorCont,
-      defaultStyles.inlineCode!,
+    return EditableTextLineRenderer(
+      controller: controller,
+      line: line,
+      textDirection: textDirection,
+      textSelection: textSelection,
+      enableInteractiveSelection: enableInteractiveSelection,
+      hasFocus: hasFocus,
+      devicePixelRatio: devicePixelRatio,
+      padding: _getPadding(),
+      cursorController: cursorController,
+      inlineCodeStyle: defaultStyles.inlineCode!,
     );
   }
 
   @override
   void updateRenderObject(
     BuildContext context,
-    covariant RenderEditableTextLine renderObject,
+    covariant EditableTextLineRenderer renderObject,
   ) {
     final defaultStyles = DefaultStyles.getInstance(context);
 
@@ -75,11 +72,10 @@ class EditableTextLine extends RenderObjectWidget {
       ..setPadding(_getPadding())
       ..setTextDirection(textDirection)
       ..setTextSelection(textSelection)
-      ..setColor(color)
       ..setEnableInteractiveSelection(enableInteractiveSelection)
       ..hasFocus = hasFocus
       ..setDevicePixelRatio(devicePixelRatio)
-      ..setCursorCont(cursorCont)
+      ..setCursorController(cursorController)
       ..setInlineCodeStyle(defaultStyles.inlineCode!);
   }
 

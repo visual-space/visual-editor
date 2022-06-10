@@ -28,8 +28,8 @@ class EditableBlock extends MultiChildRenderObjectWidget {
   EdgeInsets get _contentPadding => contentPadding ?? EdgeInsets.zero;
 
   @override
-  RenderEditableTextBlock createRenderObject(BuildContext context) {
-    return RenderEditableTextBlock(
+  EditableTextBlockRenderer createRenderObject(BuildContext context) {
+    return EditableTextBlockRenderer(
       block: block,
       textDirection: textDirection,
       padding: _padding,
@@ -42,7 +42,7 @@ class EditableBlock extends MultiChildRenderObjectWidget {
   @override
   void updateRenderObject(
     BuildContext context,
-    covariant RenderEditableTextBlock renderObject,
+    covariant EditableTextBlockRenderer renderObject,
   ) {
     renderObject
       ..setContainer(block)

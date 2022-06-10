@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../models/content-proxy-box-renderer.model.dart';
 import '../models/text-line-slot.enum.dart';
-import 'editable-text-line-object.dart';
 import 'editable-text-line-renderer.dart';
+import 'editable-text-line.dart';
 
 class TextLineElement extends RenderObjectElement {
   TextLineElement(EditableTextLine line) : super(line);
@@ -14,8 +14,8 @@ class TextLineElement extends RenderObjectElement {
   EditableTextLine get widget => super.widget as EditableTextLine;
 
   @override
-  RenderEditableTextLine get renderObject =>
-      super.renderObject as RenderEditableTextLine;
+  EditableTextLineRenderer get renderObject =>
+      super.renderObject as EditableTextLineRenderer;
 
   @override
   void visitChildren(ElementVisitor visitor) {

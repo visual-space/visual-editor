@@ -10,7 +10,6 @@ import '../../documents/models/nodes/embeddable.dart';
 import '../../embeds/services/image.utils.dart';
 import '../../selection/services/selection-actions.service.dart';
 import '../state/editor-config.state.dart';
-import '../widgets/editor-renderer.dart';
 
 // Handles all the clipboard operations, cut, copy, paste
 class ClipboardService {
@@ -28,7 +27,6 @@ class ClipboardService {
   void copySelection(
     SelectionChangedCause cause,
     EditorController controller,
-    EditorRenderer editorRenderer,
   ) {
     controller.copiedImageUrl = null;
     _editorTextService.pastePlainText = controller.getPlainText();
@@ -51,7 +49,6 @@ class ClipboardService {
     if (cause == SelectionChangedCause.toolbar) {
       _cursorService.bringIntoView(
         _editorTextService.textEditingValue.selection.extent,
-        editorRenderer,
       );
 
       // Collapse the selection and hide the buttons and handles.
@@ -70,7 +67,6 @@ class ClipboardService {
   void cutSelection(
     SelectionChangedCause cause,
     EditorController controller,
-    EditorRenderer editorRenderer,
   ) {
     controller.copiedImageUrl = null;
     _editorTextService.pastePlainText = controller.getPlainText();
@@ -101,7 +97,6 @@ class ClipboardService {
     if (cause == SelectionChangedCause.toolbar) {
       _cursorService.bringIntoView(
         _editorTextService.textEditingValue.selection.extent,
-        editorRenderer,
       );
       _selectionActionsService.hideToolbar();
     }
@@ -110,7 +105,6 @@ class ClipboardService {
   Future<void> pasteText(
     SelectionChangedCause cause,
     EditorController controller,
-    EditorRenderer editorRenderer,
   ) async {
     if (_editorConfigState.config.readOnly) {
       return;
@@ -170,7 +164,6 @@ class ClipboardService {
 
     _cursorService.bringIntoView(
       _editorTextService.textEditingValue.selection.extent,
-      editorRenderer,
     );
 
     // Collapse the selection and hide the buttons and handles.

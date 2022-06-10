@@ -2,7 +2,6 @@ import 'package:flutter/gestures.dart';
 
 import '../../editor/services/editor-renderer.utils.dart';
 import '../../editor/state/editor-config.state.dart';
-import '../../editor/widgets/editor-renderer.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../highlights/state/highlights.state.dart';
 
@@ -19,9 +18,8 @@ class HighlightsService {
 
   HighlightsService._privateConstructor();
 
-  void onHover(PointerHoverEvent event, EditorRenderer editorRenderer) {
-    final position = _editorRendererUtils.getPositionForOffset(
-        event.position, editorRenderer);
+  void onHover(PointerHoverEvent event) {
+    final position = _editorRendererUtils.getPositionForOffset(event.position);
 
     // Multiple overlapping highlights can be intersected at the same time.
     // Intersecting all highlights avoid "burying" highlights and making them inaccessible.
@@ -64,28 +62,21 @@ class HighlightsService {
     _prevHoveredHighlights.addAll(_highlightsState.hoveredHighlights);
   }
 
-  void onSingleTapUp(TapUpDetails details, EditorRenderer editorRenderer,) {
+  void onSingleTapUp(TapUpDetails details) {
     if (_editorConfigState.config.onTapUp != null &&
         _editorConfigState.config.onTapUp!(
           details,
-          (offset) => _editorRendererUtils.getPositionForOffset(
-            offset,
-            editorRenderer,
-          ),
+          _editorRendererUtils.getPositionForOffset,
         )) {
       return;
     }
 
-    _detectTapOnHighlight(details, editorRenderer);
+    _detectTapOnHighlight(details);
   }
 
-  void _detectTapOnHighlight(
-    TapUpDetails details,
-    EditorRenderer editorRenderer,
-  ) {
+  void _detectTapOnHighlight(TapUpDetails details) {
     final position = _editorRendererUtils.getPositionForOffset(
       details.globalPosition,
-      editorRenderer,
     );
 
     _highlightsState.highlights.forEach((highlight) {

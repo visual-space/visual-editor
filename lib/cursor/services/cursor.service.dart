@@ -4,10 +4,11 @@ import 'package:flutter/rendering.dart';
 
 import '../../controller/state/scroll-controller.state.dart';
 import '../../editor/services/editor-renderer.utils.dart';
-import '../../editor/widgets/editor-renderer.dart';
+import '../../editor/state/editor-renderer.state.dart';
 
 class CursorService {
   static final _scrollControllerState = ScrollControllerState();
+  static final _editorRendererState = EditorRendererState();
   static final _editorRendererUtils = EditorRendererUtils();
   static final _instance = CursorService._privateConstructor();
 
@@ -15,31 +16,24 @@ class CursorService {
 
   CursorService._privateConstructor();
 
-  void bringIntoView(TextPosition position, EditorRenderer editorRenderer) {
-    final localRect = getLocalRectForCaret(position, editorRenderer);
+  void bringIntoView(TextPosition position) {
+    final localRect = getLocalRectForCaret(position);
     final targetOffset = _getOffsetToRevealCaret(
       localRect,
       position,
-      editorRenderer,
     );
 
     if (_scrollControllerState.controller.hasClients) {
       _scrollControllerState.controller.jumpTo(targetOffset.offset);
     }
 
-    editorRenderer.showOnScreen(
+    _editorRendererState.renderer.showOnScreen(
       rect: targetOffset.rect,
     );
   }
 
-  Rect getLocalRectForCaret(
-    TextPosition position,
-    EditorRenderer editorRenderer,
-  ) {
-    final targetChild = _editorRendererUtils.childAtPosition(
-      position,
-      editorRenderer,
-    );
+  Rect getLocalRectForCaret(TextPosition position) {
+    final targetChild = _editorRendererUtils.childAtPosition(position);
     final localPosition = targetChild.globalToLocalPosition(position);
     final childLocalRect = targetChild.getLocalRectForCaret(localPosition);
     final boxParentData = targetChild.parentData as BoxParentData;
@@ -57,7 +51,6 @@ class CursorService {
   RevealedOffset _getOffsetToRevealCaret(
     Rect rect,
     TextPosition position,
-    EditorRenderer editorRenderer,
   ) {
     if (_isConnectedAndAllowedToSelfScroll()) {
       return RevealedOffset(
@@ -67,7 +60,7 @@ class CursorService {
     }
 
     // +++ EXTRACT
-    final editableSize = editorRenderer.size;
+    final editableSize = _editorRendererState.renderer.size;
     final double additionalOffset;
     final Offset unitOffset;
 
@@ -78,7 +71,7 @@ class CursorService {
       width: rect.width,
       height: math.max(
         rect.height,
-        _editorRendererUtils.preferredLineHeight(position, editorRenderer),
+        _editorRendererUtils.preferredLineHeight(position),
       ),
     );
 

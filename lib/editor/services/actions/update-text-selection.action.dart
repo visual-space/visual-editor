@@ -41,11 +41,13 @@ class UpdateTextSelectionAction<T extends DirectionalCaretMovementIntent>
     if (!selection.isCollapsed &&
         !ignoreNonCollapsedSelection &&
         collapseSelection) {
-
       return Actions.invoke(
         context!,
-        UpdateSelectionIntent(_editorTextService.textEditingValue,
-            _collapse(selection), SelectionChangedCause.keyboard),
+        UpdateSelectionIntent(
+          _editorTextService.textEditingValue,
+          _collapse(selection),
+          SelectionChangedCause.keyboard,
+        ),
       );
     }
 
@@ -61,8 +63,11 @@ class UpdateTextSelectionAction<T extends DirectionalCaretMovementIntent>
         collapseSelection) {
       return Actions.invoke(
         context!,
-        UpdateSelectionIntent(_editorTextService.textEditingValue,
-            _collapse(textBoundarySelection), SelectionChangedCause.keyboard),
+        UpdateSelectionIntent(
+          _editorTextService.textEditingValue,
+          _collapse(textBoundarySelection),
+          SelectionChangedCause.keyboard,
+        ),
       );
     }
 
@@ -80,7 +85,6 @@ class UpdateTextSelectionAction<T extends DirectionalCaretMovementIntent>
         intent.collapseAtReversal &&
         (selection.baseOffset < selection.extentOffset !=
             newSelection.baseOffset < newSelection.extentOffset)) {
-
       return Actions.invoke(
         context!,
         UpdateSelectionIntent(

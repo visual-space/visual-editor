@@ -7,12 +7,13 @@ import '../../cursor/services/cursor.service.dart';
 import '../../documents/models/change-source.enum.dart';
 import '../../editor/services/clipboard.service.dart';
 import '../../editor/services/editor-renderer.utils.dart';
-import '../../editor/widgets/editor-renderer.dart';
+import '../../editor/state/editor-renderer.state.dart';
 import '../state/last-tap-down.state.dart';
 import 'text-selection.utils.dart';
 
 class TextSelectionService {
   final _editorTextService = EditorTextService();
+  final _editorRendererState = EditorRendererState();
   final _cursorService = CursorService();
   final _clipboardService = ClipboardService();
   final _editorRendererUtils = EditorRendererUtils();
@@ -49,22 +50,18 @@ class TextSelectionService {
     Offset from,
     Offset? to,
     SelectionChangedCause cause,
-    EditorRenderer editorRenderer,
   ) {
-    final firstPosition =
-        _editorRendererUtils.getPositionForOffset(from, editorRenderer);
-    final firstWord = _textSelectionUtils.getWordAtPosition(
-      firstPosition,
-      editorRenderer,
+    final firstPosition = _editorRendererUtils.getPositionForOffset(
+      from,
     );
+    final firstWord = _textSelectionUtils.getWordAtPosition(firstPosition);
     final lastWord = to == null
         ? firstWord
         : _textSelectionUtils.getWordAtPosition(
-            _editorRendererUtils.getPositionForOffset(to, editorRenderer),
-            editorRenderer,
+            _editorRendererUtils.getPositionForOffset(to),
           );
 
-    editorRenderer.handleSelectionChange(
+    _editorRendererState.renderer.handleSelectionChange(
       TextSelection(
         baseOffset: firstWord.base.offset,
         extentOffset: lastWord.extent.offset,
@@ -75,18 +72,13 @@ class TextSelectionService {
   }
 
   // Move the selection to the beginning or end of a word.
-  void selectWordEdge(
-    SelectionChangedCause cause,
-    EditorRenderer editorRenderer,
-  ) {
+  void selectWordEdge(SelectionChangedCause cause) {
     assert(_lastTapDownState.position != null);
 
     final position = _editorRendererUtils.getPositionForOffset(
       _lastTapDownState.position!,
-      editorRenderer,
     );
-    final child =
-        _editorRendererUtils.childAtPosition(position, editorRenderer);
+    final child = _editorRendererUtils.childAtPosition(position);
     final nodeOffset = child.container.offset;
     final localPosition = TextPosition(
       offset: position.offset - nodeOffset,
@@ -99,12 +91,12 @@ class TextSelectionService {
     );
 
     if (position.offset - word.start <= 1) {
-      editorRenderer.handleSelectionChange(
+      _editorRendererState.renderer.handleSelectionChange(
         TextSelection.collapsed(offset: word.start),
         cause,
       );
     } else {
-      editorRenderer.handleSelectionChange(
+      _editorRendererState.renderer.handleSelectionChange(
         TextSelection.collapsed(
           offset: word.end,
           affinity: TextAffinity.upstream,
@@ -120,14 +112,11 @@ class TextSelectionService {
   TextSelection? selectPositionAt({
     required Offset from,
     required SelectionChangedCause cause,
-    required EditorRenderer editorRenderer,
     Offset? to,
   }) {
-    final fromPosition =
-        _editorRendererUtils.getPositionForOffset(from, editorRenderer);
-    final toPosition = to == null
-        ? null
-        : _editorRendererUtils.getPositionForOffset(to, editorRenderer);
+    final fromPosition = _editorRendererUtils.getPositionForOffset(from);
+    final toPosition =
+        to == null ? null : _editorRendererUtils.getPositionForOffset(to);
     var baseOffset = fromPosition.offset;
     var extentOffset = fromPosition.offset;
 
@@ -143,12 +132,12 @@ class TextSelectionService {
     );
 
     // Call [onSelectionChanged] only when the selection actually changed.
-    editorRenderer.handleSelectionChange(newSelection, cause);
+    _editorRendererState.renderer.handleSelectionChange(newSelection, cause);
 
     return newSelection;
   }
 
-  void selectAll(SelectionChangedCause cause, EditorRenderer editorRenderer) {
+  void selectAll(SelectionChangedCause cause) {
     _editorTextService.userUpdateTextEditingValue(
       _editorTextService.textEditingValue.copyWith(
         selection: TextSelection(
@@ -162,7 +151,6 @@ class TextSelectionService {
     if (cause == SelectionChangedCause.toolbar) {
       _cursorService.bringIntoView(
         _editorTextService.textEditingValue.selection.extent,
-        editorRenderer,
       );
     }
   }

@@ -6,12 +6,12 @@ import '../../editor/widgets/editable-container-box-renderer.dart';
 import '../../selection/services/text-selection.utils.dart';
 import '../models/editable-box-renderer.model.dart';
 
-class RenderEditableTextBlock extends EditableContainerBoxRenderer
+class EditableTextBlockRenderer extends EditableContainerBoxRenderer
     implements RenderEditableBox {
   final _editorRendererUtils = EditorRendererUtils();
   final _textSelectionUtils = TextSelectionUtils();
 
-  RenderEditableTextBlock({
+  EditableTextBlockRenderer({
     required Block block,
     required TextDirection textDirection,
     required EdgeInsetsGeometry padding,

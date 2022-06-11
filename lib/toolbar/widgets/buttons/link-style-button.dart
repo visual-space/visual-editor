@@ -3,7 +3,8 @@ import 'package:tuple/tuple.dart';
 
 import '../../../blocks/services/link.utils.dart';
 import '../../../controller/services/editor-controller.dart';
-import '../../../documents/models/attribute.dart';
+import '../../../documents/models/attribute.model.dart';
+import '../../../documents/models/styling-attributes.dart';
 import '../../../shared/models/editor-dialog-theme.model.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
 import '../../../shared/translations/toolbar.i18n.dart';
@@ -19,7 +20,7 @@ class LinkStyleButton extends StatefulWidget {
 
   const LinkStyleButton({
     required this.controller,
-    this.iconSize = kDefaultIconSize,
+    this.iconSize = defaultIconSize,
     this.icon,
     this.iconTheme,
     this.dialogTheme,
@@ -44,6 +45,7 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
   @override
   void didUpdateWidget(covariant LinkStyleButton oldWidget) {
     super.didUpdateWidget(oldWidget);
+
     if (oldWidget.controller != widget.controller) {
       oldWidget.controller.removeListener(_didChangeSelection);
       widget.controller.addListener(_didChangeSelection);
@@ -81,7 +83,7 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
         child: IconBtn(
           highlightElevation: 0,
           hoverElevation: 0,
-          size: widget.iconSize * kIconButtonFactor,
+          size: widget.iconSize * iconButtonFactor,
           icon: Icon(
             widget.icon ?? Icons.link,
             size: widget.iconSize,
@@ -133,6 +135,7 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
           text: text,
         );
       },
+
     ).then(
       (value) {
         if (value != null) _linkSubmitted(value);
@@ -143,7 +146,7 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
   String? _getLinkAttributeValue() {
     return widget.controller
         .getSelectionStyle()
-        .attributes[Attribute.link.key]
+        .attributes[AttributeM.link.key]
         ?.value;
   }
 
@@ -151,9 +154,9 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
     // text.isNotEmpty && link.isNotEmpty
     final String text = (value as Tuple2).item1;
     final String link = value.item2.trim();
-
     var index = widget.controller.selection.start;
     var length = widget.controller.selection.end - index;
+
     if (_getLinkAttributeValue() != null) {
       // text should be the link's corresponding text, not selection
       final leaf = widget.controller.document.querySegmentLeafNode(index).item2;
@@ -163,16 +166,18 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
         length = range.end - range.start;
       }
     }
+
     widget.controller.replaceText(
       index,
       length,
       text,
       null,
     );
+
     widget.controller.formatText(
       index,
       text.length,
-      LinkAttribute(link),
+      LinkAttributeM(link),
     );
   }
 }

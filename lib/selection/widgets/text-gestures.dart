@@ -4,7 +4,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../highlights/services/highlights.service.dart';
-import '../services/text-gestures.utils.dart';
+import '../services/text-gestures.service.dart';
+import '../services/text-selection.service.dart';
 import '../services/transparen-tap-gesture-recognizer.dart';
 
 // Multiple callbacks can be called for one sequence of input gestures.
@@ -27,7 +28,8 @@ class TextGestures extends StatefulWidget {
 }
 
 class _TextGesturesState extends State<TextGestures> {
-  final _textGesturesUtils = TextGesturesUtils();
+  final _textSelectionService = TextSelectionService();
+  final _textGesturesService = TextGesturesService();
   final _highlightsService = HighlightsService();
 
   Timer? _doubleTapTimer;
@@ -126,7 +128,7 @@ class _TextGesturesState extends State<TextGestures> {
 
   // The down handler is force-run on success of a single tap and optimistically run before a long press success.
   void _handleTapDown(TapDownDetails details) {
-    _textGesturesUtils.onTapDown(details);
+    _textGesturesService.onTapDown(details);
 
     // This isn't detected as a double tap gesture in the gesture recognizer
     // because it's 2 single taps, each of which may do different things
@@ -135,7 +137,7 @@ class _TextGesturesState extends State<TextGestures> {
     if (_doubleTapTimer != null &&
         _isWithinDoubleTapTolerance(details.globalPosition)) {
       // If there was already a previous tap, the second down hold/tap is a double tap down.
-      _textGesturesUtils.onDoubleTapDown(details);
+      _textGesturesService.onDoubleTapDown(details);
       _doubleTapTimer!.cancel();
       _doubleTapTimeout();
       _isDoubleTap = true;
@@ -144,7 +146,7 @@ class _TextGesturesState extends State<TextGestures> {
 
   void _handleTapUp(TapUpDetails details) {
     if (!_isDoubleTap) {
-      _textGesturesUtils.onSingleTapUp(details, _platform);
+      _textGesturesService.onSingleTapUp(details, _platform);
       _highlightsService.onSingleTapUp(details);
       _lastTapOffset = details.globalPosition;
       _doubleTapTimer = Timer(kDoubleTapTimeout, _doubleTapTimeout);
@@ -154,7 +156,7 @@ class _TextGesturesState extends State<TextGestures> {
   }
 
   void _handleTapCancel() {
-    _textGesturesUtils.onSingleTapCancel();
+    _textGesturesService.onSingleTapCancel();
   }
 
   DragStartDetails? _lastDragStartDetails;
@@ -162,9 +164,10 @@ class _TextGesturesState extends State<TextGestures> {
   Timer? _dragUpdateThrottleTimer;
 
   void _handleDragStart(DragStartDetails details) {
+    print('\n');
     assert(_lastDragStartDetails == null);
     _lastDragStartDetails = details;
-    _textGesturesUtils.onDragSelectionStart(details);
+    _textGesturesService.onDragSelectionStart(details);
   }
 
   void _handleDragUpdate(DragUpdateDetails details) {
@@ -182,9 +185,9 @@ class _TextGesturesState extends State<TextGestures> {
     assert(_lastDragStartDetails != null);
     assert(_lastDragUpdateDetails != null);
 
-    _textGesturesUtils.onDragSelectionUpdate(
-      _lastDragStartDetails!,
-      _lastDragUpdateDetails!,
+    _textSelectionService.extendSelection(
+      _lastDragUpdateDetails!.globalPosition,
+      cause: SelectionChangedCause.drag,
     );
 
     _dragUpdateThrottleTimer = null;
@@ -200,7 +203,7 @@ class _TextGesturesState extends State<TextGestures> {
       _handleDragUpdateThrottled();
     }
 
-    _textGesturesUtils.onDragSelectionEnd(details);
+    _textSelectionService.onSelectionCompleted();
 
     _dragUpdateThrottleTimer = null;
     _lastDragStartDetails = null;
@@ -211,16 +214,16 @@ class _TextGesturesState extends State<TextGestures> {
     _doubleTapTimer?.cancel();
     _doubleTapTimer = null;
 
-    _textGesturesUtils.onForcePressStart(details);
+    _textGesturesService.onForcePressStart(details);
   }
 
   void _forcePressEnded(ForcePressDetails details) {
-    _textGesturesUtils.onForcePressEnd(details);
+    _textGesturesService.onForcePressEnd(details);
   }
 
   void _handleLongPressStart(LongPressStartDetails details) {
     if (!_isDoubleTap) {
-      _textGesturesUtils.onSingleLongTapStart(
+      _textGesturesService.onSingleLongTapStart(
         details,
         _platform,
         context,
@@ -230,7 +233,7 @@ class _TextGesturesState extends State<TextGestures> {
 
   void _handleLongPressMoveUpdate(LongPressMoveUpdateDetails details) {
     if (!_isDoubleTap) {
-      _textGesturesUtils.onSingleLongTapMoveUpdate(
+      _textGesturesService.onSingleLongTapMoveUpdate(
         details,
         _platform,
       );
@@ -239,7 +242,7 @@ class _TextGesturesState extends State<TextGestures> {
 
   void _handleLongPressEnd(LongPressEndDetails details) {
     if (!_isDoubleTap) {
-      _textGesturesUtils.onSingleLongTapEnd(details);
+      _textGesturesService.onSingleLongTapEnd(details);
     }
 
     _isDoubleTap = false;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../controller/services/editor-controller.dart';
-import '../../../documents/models/attribute.dart';
+import '../../../documents/models/attribute.model.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
 import '../toolbar.dart';
 
@@ -16,7 +16,7 @@ class IndentButton extends StatefulWidget {
     required this.icon,
     required this.controller,
     required this.isIncrease,
-    this.iconSize = kDefaultIconSize,
+    this.iconSize = defaultIconSize,
     this.iconTheme,
     Key? key,
   }) : super(key: key);
@@ -48,27 +48,27 @@ class _IndentButtonState extends State<IndentButton> {
       onPressed: () {
         final indent = widget.controller
             .getSelectionStyle()
-            .attributes[Attribute.indent.key];
+            .attributes[AttributeM.indent.key];
         if (indent == null) {
           if (widget.isIncrease) {
-            widget.controller.formatSelection(Attribute.indentL1);
+            widget.controller.formatSelection(AttributeM.indentL1);
           }
           return;
         }
         if (indent.value == 1 && !widget.isIncrease) {
           widget.controller.formatSelection(
-            Attribute.clone(Attribute.indentL1, null),
+            AttributeM.clone(AttributeM.indentL1, null),
           );
           return;
         }
         if (widget.isIncrease) {
           widget.controller.formatSelection(
-            Attribute.getIndentLevel(indent.value + 1),
+            AttributeM.getIndentLevel(indent.value + 1),
           );
           return;
         }
         widget.controller
-            .formatSelection(Attribute.getIndentLevel(indent.value - 1));
+            .formatSelection(AttributeM.getIndentLevel(indent.value - 1));
       },
     );
   }

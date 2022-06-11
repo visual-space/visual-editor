@@ -30,9 +30,8 @@ class DeltaIterator {
 
   bool get hasNext => peekLength() < maxLength;
 
-  /// Returns length of next operation without consuming it.
-  ///
-  /// Returns [maxLength] if there is no more operations left to iterate.
+  // Returns length of next operation without consuming it.
+  // Returns [maxLength] if there is no more operations left to iterate.
   int peekLength() {
     if (_index < delta.length) {
       final operation = delta.operations[_index];
@@ -41,13 +40,11 @@ class DeltaIterator {
     return maxLength;
   }
 
-  /// Consumes and returns next operation.
-  ///
-  /// Optional [length] specifies maximum length of operation to return. Note
-  /// that actual length of returned operation may be less than specified value.
-  ///
-  /// If this iterator reached the end of the Delta then returns a retain
-  /// operation with its length set to [maxLength].
+  // Consumes and returns next operation.
+  // Optional [length] specifies maximum length of operation to return. Note
+  // that actual length of returned operation may be less than specified value.
+  // If this iterator reached the end of the Delta then returns a retain
+  // operation with its length set to [maxLength].
   // TODO: Note that we used double.infinity as the default value
   // for length here
   //       but this can now cause a type error since operation length is
@@ -83,9 +80,8 @@ class DeltaIterator {
     return Operation.retain(length);
   }
 
-  /// Skips [length] characters in source delta.
-  ///
-  /// Returns last skipped operation, or `null` if there was nothing to skip.
+  // Skips [length] characters in source delta.
+  // Returns last skipped operation, or `null` if there was nothing to skip.
   Operation? skip(int length) {
     var skipped = 0;
     Operation? op;

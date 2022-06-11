@@ -5,8 +5,8 @@ import '../models/text-line-slot.enum.dart';
 import 'editable-text-line-renderer.dart';
 import 'editable-text-line.dart';
 
-class TextLineElement extends RenderObjectElement {
-  TextLineElement(EditableTextLine line) : super(line);
+class TextLineElementRenderer extends RenderObjectElement {
+  TextLineElementRenderer(EditableTextLine line) : super(line);
 
   final Map<TextLineSlot, Element> _slotToChildren = <TextLineSlot, Element>{};
 

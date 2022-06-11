@@ -2,21 +2,24 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../controller/services/editor-controller.dart';
 import '../../controller/services/editor-text.service.dart';
+import '../../controller/state/editor-controller.state.dart';
+import '../../controller/state/paste.state.dart';
 import '../../cursor/services/cursor.service.dart';
-import '../../documents/models/attribute.dart';
-import '../../documents/models/nodes/embeddable.dart';
+import '../../documents/models/nodes/block-embed.model.dart';
+import '../../documents/models/styling-attributes.dart';
 import '../../embeds/services/image.utils.dart';
 import '../../selection/services/selection-actions.service.dart';
 import '../state/editor-config.state.dart';
 
 // Handles all the clipboard operations, cut, copy, paste
 class ClipboardService {
+  final _editorControllerState = EditorControllerState();
   final _selectionActionsService = SelectionActionsService();
   final _editorConfigState = EditorConfigState();
   final _editorTextService = EditorTextService();
   final _cursorService = CursorService();
+  final _pasteState = PasteState();
 
   static final _instance = ClipboardService._privateConstructor();
 
@@ -26,12 +29,14 @@ class ClipboardService {
 
   void copySelection(
     SelectionChangedCause cause,
-    EditorController controller,
   ) {
+    final controller = _editorControllerState.controller;
+
     controller.copiedImageUrl = null;
-    _editorTextService.pastePlainText = controller.getPlainText();
-    _editorTextService.pasteStyle =
-        controller.getAllIndividualSelectionStyles();
+    _pasteState.setPastePlainText(controller.getPlainText());
+    _pasteState.setPasteStyle(
+        controller.getAllIndividualSelectionStyles(),
+    );
 
     final selection = _editorTextService.textEditingValue.selection;
     final text = _editorTextService.textEditingValue.text;
@@ -66,12 +71,14 @@ class ClipboardService {
 
   void cutSelection(
     SelectionChangedCause cause,
-    EditorController controller,
   ) {
+    final controller = _editorControllerState.controller;
+
     controller.copiedImageUrl = null;
-    _editorTextService.pastePlainText = controller.getPlainText();
-    _editorTextService.pasteStyle =
-        controller.getAllIndividualSelectionStyles();
+    _pasteState.setPastePlainText(controller.getPlainText());
+    _pasteState.setPasteStyle(
+        controller.getAllIndividualSelectionStyles(),
+    );
 
     if (_editorConfigState.config.readOnly) {
       return;
@@ -104,11 +111,12 @@ class ClipboardService {
 
   Future<void> pasteText(
     SelectionChangedCause cause,
-    EditorController controller,
   ) async {
     if (_editorConfigState.config.readOnly) {
       return;
     }
+
+    final controller = _editorControllerState.controller;
 
     if (controller.copiedImageUrl != null) {
       final index = _editorTextService.textEditingValue.selection.baseOffset;
@@ -119,7 +127,7 @@ class ClipboardService {
       controller.replaceText(
         index,
         length,
-        BlockEmbed.image(copied.item1),
+        BlockEmbedM.image(copied.item1),
         null,
       );
 
@@ -127,7 +135,7 @@ class ClipboardService {
         controller.formatText(
           getImageNode(controller, index + 1).item1,
           1,
-          StyleAttribute(copied.item2),
+          StyleAttributeM(copied.item2),
         );
       }
 

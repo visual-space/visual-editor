@@ -1,4 +1,4 @@
-import '../../documents/models/attribute.dart';
+import '../../documents/models/attribute.model.dart';
 import '../models/rule-type.enum.dart';
 import '../models/rule.model.dart';
 
@@ -13,7 +13,7 @@ abstract class FormatRuleM extends RuleM {
   void validateArgs(
     int? len,
     Object? data,
-    Attribute? attribute,
+    AttributeM? attribute,
   ) {
     assert(len != null);
     assert(data == null);

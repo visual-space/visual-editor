@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../controller/services/editor-controller.dart';
-import '../../../documents/models/nodes/embeddable.dart';
+import '../../../documents/models/nodes/block-embed.model.dart';
 import '../../../shared/models/editor-dialog-theme.model.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
 import '../../models/media-pick.enum.dart';
@@ -25,7 +25,7 @@ class ImageButton extends StatelessWidget {
   const ImageButton({
     required this.icon,
     required this.controller,
-    this.iconSize = kDefaultIconSize,
+    this.iconSize = defaultIconSize,
     this.onImagePickCallback,
     this.fillColor,
     this.filePickImpl,
@@ -98,7 +98,7 @@ class ImageButton extends StatelessWidget {
       controller.replaceText(
         index,
         length,
-        BlockEmbed.image(value),
+        BlockEmbedM.image(value),
         null,
       );
     }

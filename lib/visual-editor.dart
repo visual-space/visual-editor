@@ -1,16 +1,16 @@
 library visual_editor;
 
+export 'blocks/models/default-styles.model.dart';
 export 'blocks/models/default-text-block-style.model.dart';
-export 'blocks/services/default-link-action-picker-delegate.dart';
-export 'blocks/services/default-styles.utils.dart';
-export 'blocks/widgets/style-widgets.dart';
+export 'blocks/services/default-link-action-picker-delegate.utils.dart';
+export 'blocks/style-widgets.dart';
 export 'controller/services/editor-controller.dart';
 export 'delta/models/delta.model.dart';
-export 'documents/models/attribute.dart';
-export 'documents/models/document.dart';
-export 'documents/models/nodes/embeddable.dart';
-export 'documents/models/nodes/leaf.dart';
-export 'documents/models/style.dart';
+export 'documents/models/attribute.model.dart';
+export 'documents/models/document.model.dart';
+export 'documents/models/nodes/embeddable.model.dart';
+export 'documents/models/nodes/leaf.model.dart';
+export 'documents/models/style.model.dart';
 export 'editor/models/editor-cfg.model.dart';
 export 'editor/widgets/visual-editor.dart';
 export 'highlights/models/highlight.model.dart';

@@ -6,7 +6,9 @@ import 'base/text-boundary.model.dart';
 // (and newlines), IOW white spaces and some other punctuations are considered
 // a part of the next word in the search direction.
 class WhitespaceBoundary extends TextBoundaryM {
-  const WhitespaceBoundary(this.textEditingValue);
+  const WhitespaceBoundary(
+    this.textEditingValue,
+  );
 
   @override
   final TextEditingValue textEditingValue;

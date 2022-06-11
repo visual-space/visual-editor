@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../controller/services/editor-text.service.dart';
 import '../../state/editor-config.state.dart';
 
-// +++ DOC
 class SelectAllAction extends ContextAction<SelectAllTextIntent> {
   final _editorTextService = EditorTextService();
   final _editorConfigState = EditorConfigState();

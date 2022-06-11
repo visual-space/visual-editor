@@ -5,28 +5,30 @@ import 'package:gallery_saver/gallery_saver.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../controller/services/editor-controller.dart';
-import '../../documents/models/attribute.dart';
-import '../../documents/models/nodes/embeddable.dart';
-import '../../documents/models/nodes/leaf.dart' as leaf;
+import '../../documents/models/attribute.model.dart';
+import '../../documents/models/nodes/block-embed.model.dart';
+import '../../documents/models/nodes/embed.model.dart';
+import '../../documents/models/styling-attributes.dart';
 import '../../shared/translations/toolbar.i18n.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../../shared/utils/string.utils.dart';
 import '../services/image.utils.dart';
 import 'image-resizer.dart';
+import 'simple-dialog-item.dart';
 import 'video-app.dart';
 import 'youtube-video-app.dart';
 
 Widget defaultEmbedBuilder(
   BuildContext context,
   EditorController controller,
-  leaf.Embed node,
+  EmbedM node,
   bool readOnly,
 ) {
   assert(!kIsWeb, 'Please provide EmbedBuilder for Web');
   Tuple2<double?, double?>? _widthHeight;
 
   switch (node.value.type) {
-    case BlockEmbed.imageType:
+    case BlockEmbedM.imageType:
       final imageUrl = standardizeImageUrl(node.value.data);
       var image;
       final style = node.style.attributes['style'];
@@ -35,34 +37,40 @@ Widget defaultEmbedBuilder(
         final _attrs = parseKeyValuePairs(
           style.value.toString(),
           {
-            Attribute.mobileWidth,
-            Attribute.mobileHeight,
-            Attribute.mobileMargin,
-            Attribute.mobileAlignment
+            AttributeM.mobileWidth,
+            AttributeM.mobileHeight,
+            AttributeM.mobileMargin,
+            AttributeM.mobileAlignment
           },
         );
 
         if (_attrs.isNotEmpty) {
           assert(
-              _attrs[Attribute.mobileWidth] != null &&
-                  _attrs[Attribute.mobileHeight] != null,
+              _attrs[AttributeM.mobileWidth] != null &&
+                  _attrs[AttributeM.mobileHeight] != null,
               'mobileWidth and mobileHeight must be specified');
-          final w = double.parse(_attrs[Attribute.mobileWidth]!);
-          final h = double.parse(_attrs[Attribute.mobileHeight]!);
+
+          final w = double.parse(_attrs[AttributeM.mobileWidth]!);
+          final h = double.parse(_attrs[AttributeM.mobileHeight]!);
           _widthHeight = Tuple2(w, h);
-          final m = _attrs[Attribute.mobileMargin] == null
+          final m = _attrs[AttributeM.mobileMargin] == null
               ? 0.0
-              : double.parse(_attrs[Attribute.mobileMargin]!);
-          final a = getAlignment(_attrs[Attribute.mobileAlignment]);
+              : double.parse(_attrs[AttributeM.mobileMargin]!);
+          final a = getAlignment(_attrs[AttributeM.mobileAlignment]);
+
           image = Padding(
-              padding: EdgeInsets.all(m),
-              child: imageByUrl(imageUrl, width: w, height: h, alignment: a));
+            padding: EdgeInsets.all(m),
+            child: imageByUrl(imageUrl, width: w, height: h, alignment: a),
+          );
         }
       }
 
       if (_widthHeight == null) {
         image = imageByUrl(imageUrl);
-        _widthHeight = Tuple2((image as Image).width, image.height);
+        _widthHeight = Tuple2(
+          (image as Image).width,
+          image.height,
+        );
       }
 
       if (!readOnly && isMobile()) {
@@ -71,7 +79,7 @@ Widget defaultEmbedBuilder(
             showDialog(
                 context: context,
                 builder: (context) {
-                  final resizeOption = _SimpleDialogItem(
+                  final resizeOption = SimpleDialogItem(
                     icon: Icons.settings_outlined,
                     color: Colors.lightBlueAccent,
                     text: 'Resize'.i18n,
@@ -82,13 +90,21 @@ Widget defaultEmbedBuilder(
                         builder: (context) {
                           final _screenSize = MediaQuery.of(context).size;
                           return ImageResizer(
-                            onImageResize: (w, h) {
+                            onImageResize: (width, height) {
                               final res = getImageNode(
-                                  controller, controller.selection.start);
+                                controller,
+                                controller.selection.start,
+                              );
                               final attr = replaceStyleString(
-                                  getImageStyleString(controller), w, h);
+                                getImageStyleString(controller),
+                                width,
+                                height,
+                              );
                               controller.formatText(
-                                  res.item1, 1, StyleAttribute(attr));
+                                res.item1,
+                                1,
+                                StyleAttributeM(attr),
+                              );
                             },
                             imageWidth: _widthHeight?.item1,
                             imageHeight: _widthHeight?.item2,
@@ -99,7 +115,8 @@ Widget defaultEmbedBuilder(
                       );
                     },
                   );
-                  final copyOption = _SimpleDialogItem(
+
+                  final copyOption = SimpleDialogItem(
                     icon: Icons.copy_all_outlined,
                     color: Colors.cyanAccent,
                     text: 'Copy'.i18n,
@@ -116,7 +133,8 @@ Widget defaultEmbedBuilder(
                       Navigator.pop(context);
                     },
                   );
-                  final removeOption = _SimpleDialogItem(
+
+                  final removeOption = SimpleDialogItem(
                     icon: Icons.delete_forever_outlined,
                     color: Colors.red.shade200,
                     text: 'Remove'.i18n,
@@ -134,13 +152,15 @@ Widget defaultEmbedBuilder(
                       Navigator.pop(context);
                     },
                   );
+
                   return Padding(
                     padding: const EdgeInsets.fromLTRB(50, 0, 50, 0),
                     child: SimpleDialog(
-                        shape: const RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(10))),
-                        children: [resizeOption, copyOption, removeOption]),
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                      children: [resizeOption, copyOption, removeOption],
+                    ),
                   );
                 });
           },
@@ -154,7 +174,8 @@ Widget defaultEmbedBuilder(
 
       // We provide option menu for mobile platform excluding base64 image
       return _menuOptionsForReadonlyImage(context, imageUrl, image);
-    case BlockEmbed.videoType:
+
+    case BlockEmbedM.videoType:
       final videoUrl = node.value.data;
 
       if (videoUrl.contains('youtube.com') || videoUrl.contains('youtu.be')) {
@@ -170,6 +191,7 @@ Widget defaultEmbedBuilder(
         context: context,
         readOnly: readOnly,
       );
+
     default:
       // Throwing an error here does not help at all.
       // Even when there's only one Operation with a video attribute in the
@@ -183,82 +205,57 @@ Widget defaultEmbedBuilder(
         'embed builder of VisualEditor. You must pass your own builder function '
         'to embedBuilder property of VisualEditor or EditorField widgets.',
       );
+
       return const SizedBox.shrink();
   }
 }
 
 Widget _menuOptionsForReadonlyImage(
-    BuildContext context, String imageUrl, Widget image) {
+  BuildContext context,
+  String imageUrl,
+  Widget image,
+) {
   return GestureDetector(
-      onTap: () {
-        showDialog(
-            context: context,
-            builder: (context) {
-              final saveOption = _SimpleDialogItem(
-                icon: Icons.save,
-                color: Colors.greenAccent,
-                text: 'Save'.i18n,
-                onPressed: () {
-                  imageUrl = appendFileExtensionToImageUrl(imageUrl);
-                  GallerySaver.saveImage(imageUrl).then((_) {
-                    ScaffoldMessenger.of(context)
-                        .showSnackBar(SnackBar(content: Text('Saved'.i18n)));
-                    Navigator.pop(context);
-                  });
-                },
-              );
-              final zoomOption = _SimpleDialogItem(
-                icon: Icons.zoom_in,
-                color: Colors.cyanAccent,
-                text: 'Zoom'.i18n,
-                onPressed: () {
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              ImageTapWrapper(imageUrl: imageUrl)));
-                },
-              );
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(50, 0, 50, 0),
-                child: SimpleDialog(
-                    shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10))),
-                    children: [saveOption, zoomOption]),
-              );
-            });
-      },
-      child: image);
-}
+    onTap: () {
+      showDialog(
+          context: context,
+          builder: (context) {
+            final saveOption = SimpleDialogItem(
+              icon: Icons.save,
+              color: Colors.greenAccent,
+              text: 'Save'.i18n,
+              onPressed: () {
+                imageUrl = appendFileExtensionToImageUrl(imageUrl);
+                GallerySaver.saveImage(imageUrl).then((_) {
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(SnackBar(content: Text('Saved'.i18n)));
+                  Navigator.pop(context);
+                });
+              },
+            );
 
-class _SimpleDialogItem extends StatelessWidget {
-  const _SimpleDialogItem({
-    required this.icon,
-    required this.color,
-    required this.text,
-    required this.onPressed,
-    Key? key,
-  }) : super(key: key);
+            final zoomOption = SimpleDialogItem(
+              icon: Icons.zoom_in,
+              color: Colors.cyanAccent,
+              text: 'Zoom'.i18n,
+              onPressed: () {
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            ImageTapWrapper(imageUrl: imageUrl)));
+              },
+            );
 
-  final IconData icon;
-  final Color color;
-  final String text;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return SimpleDialogOption(
-      onPressed: onPressed,
-      child: Row(
-        children: [
-          Icon(icon, size: 36, color: color),
-          Padding(
-            padding: const EdgeInsetsDirectional.only(start: 16),
-            child:
-                Text(text, style: const TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(50, 0, 50, 0),
+              child: SimpleDialog(
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10))),
+                  children: [saveOption, zoomOption]),
+            );
+          });
+    },
+    child: image,
+  );
 }

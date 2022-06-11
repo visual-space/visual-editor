@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../controller/services/editor-controller.dart';
-import '../../../documents/models/nodes/embeddable.dart';
+import '../../../documents/models/nodes/block-embed.model.dart';
 import '../../../shared/models/editor-dialog-theme.model.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
 import '../../models/media-pick.enum.dart';
@@ -25,7 +25,7 @@ class VideoButton extends StatelessWidget {
   const VideoButton({
     required this.icon,
     required this.controller,
-    this.iconSize = kDefaultIconSize,
+    this.iconSize = defaultIconSize,
     this.onVideoPickCallback,
     this.fillColor,
     this.filePickImpl,
@@ -95,7 +95,7 @@ class VideoButton extends StatelessWidget {
       final index = controller.selection.baseOffset;
       final length = controller.selection.extentOffset - index;
 
-      controller.replaceText(index, length, BlockEmbed.video(value), null);
+      controller.replaceText(index, length, BlockEmbedM.video(value), null);
     }
   }
 }

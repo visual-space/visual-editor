@@ -21,7 +21,7 @@ class CameraButton extends StatelessWidget {
   const CameraButton({
     required this.icon,
     required this.controller,
-    this.iconSize = kDefaultIconSize,
+    this.iconSize = defaultIconSize,
     this.fillColor,
     this.onImagePickCallback,
     this.onVideoPickCallback,

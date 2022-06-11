@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:visual_editor/visual-editor.dart' hide Text;
+import 'package:visual_editor/visual-editor.dart';
 
 import '../pages/sample-highlights-const.dart';
 
@@ -63,7 +63,7 @@ class _DemoScaffoldState extends State<DemoScaffold> {
       final result = await rootBundle.loadString(
         'assets/${widget.documentFilename}',
       );
-      final doc = Document.fromJson(jsonDecode(result));
+      final doc = DocumentM.fromJson(jsonDecode(result));
       setState(() {
         _controller = EditorController(
           document: doc,
@@ -73,7 +73,7 @@ class _DemoScaffoldState extends State<DemoScaffold> {
         _loading = false;
       });
     } catch (error) {
-      final doc = Document()..insert(0, 'Empty asset');
+      final doc = DocumentM()..insert(0, 'Empty asset');
       setState(() {
         _controller = EditorController(
           document: doc,

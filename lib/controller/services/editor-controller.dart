@@ -6,15 +6,14 @@ import 'package:tuple/tuple.dart';
 
 import '../../delta/models/delta.model.dart';
 import '../../delta/services/delta.utils.dart';
-import '../../documents/models/attribute.dart';
+import '../../documents/models/attribute.model.dart';
 import '../../documents/models/change-source.enum.dart';
-import '../../documents/models/document.dart';
-import '../../documents/models/nodes/embeddable.dart';
-import '../../documents/models/nodes/leaf.dart';
-import '../../documents/models/style.dart';
+import '../../documents/models/document.model.dart';
+import '../../documents/models/nodes/embeddable.model.dart';
+import '../../documents/models/nodes/leaf.model.dart';
+import '../../documents/models/style.model.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../highlights/state/highlights.state.dart';
-import '../../selection/services/text-selection.service.dart';
 import '../state/document.state.dart';
 
 // Return false to ignore the event.
@@ -36,7 +35,7 @@ typedef DeleteCallback = void Function(int cursorPosition, bool forward);
 // Example: The EditorToolbar listens the notifications emitted by the controller class.
 // If the current text selection has the bold attribute then  the EditorToolbar react by highlighting the bold button.
 //
-// The most important listener is located in the RawEditorState in the initState() and didUpdateWidget() methods.
+// The most important listener is located in the VisualEditorState in the initState() and didUpdateWidget() methods.
 // This listener triggers  _onChangeTextEditingValue() which in turn has several duties, such as
 // - Updating the state of the overlay selection.
 // - Reconnecting to the remote  input.
@@ -59,13 +58,11 @@ typedef DeleteCallback = void Function(int cursorPosition, bool forward);
 // Multiple operations can trigger this behavior: copy/paste, inserting embeds, etc.
 // onDelete - Callback executed after deleting characters.
 // onSelectionCompleted - Custom behavior to be executed after completing a text selection
-// TODO +++ Get rid of the change notifier
 class EditorController extends ChangeNotifier {
-  final _textSelectionService = TextSelectionService();
   final _documentState = DocumentState();
   final _highlightsState = HighlightsState();
 
-  final Document document;
+  final DocumentM document;
   final bool keepStyleOnNewLine;
   TextSelection selection;
   List<HighlightM> highlights;
@@ -77,7 +74,7 @@ class EditorController extends ChangeNotifier {
 
   // Store any styles attribute that got toggled by the tap of a button and that has not been applied yet.
   // It gets reset after each format action within the document.
-  Style toggledStyle = Style();
+  StyleM toggledStyle = StyleM();
 
   bool ignoreFocusOnTextChange = false;
 
@@ -97,13 +94,10 @@ class EditorController extends ChangeNotifier {
   }) {
     _documentState.setDocument(document);
     _highlightsState.setHighlights(highlights);
-
-    // +++ DEL once we remove the change notifier
-    _textSelectionService.setUpdateSelection(updateSelection);
   }
 
   factory EditorController.basic() => EditorController(
-        document: Document(),
+        document: DocumentM(),
         selection: const TextSelection.collapsed(
           offset: 0,
         ),
@@ -120,7 +114,7 @@ class EditorController extends ChangeNotifier {
       );
 
   // Only attributes applied to all characters within this range are included in the result.
-  Style getSelectionStyle() => document
+  StyleM getSelectionStyle() => document
       .collectStyle(
         selection.start,
         selection.end - selection.start,
@@ -128,7 +122,7 @@ class EditorController extends ChangeNotifier {
       .mergeAll(toggledStyle);
 
   // Returns all styles for each node within selection
-  List<Tuple2<int, Style>> getAllIndividualSelectionStyles() {
+  List<Tuple2<int, StyleM>> getAllIndividualSelectionStyles() {
     final styles = document.collectAllIndividualStyles(
       selection.start,
       selection.end - selection.start,
@@ -148,16 +142,18 @@ class EditorController extends ChangeNotifier {
   }
 
   // Returns all styles for any character within the specified text range.
-  List<Style> getAllSelectionStyles() {
+  List<StyleM> getAllSelectionStyles() {
     final styles = document.collectAllStyles(
       selection.start,
       selection.end - selection.start,
     )..add(toggledStyle);
+
     return styles;
   }
 
   void undo() {
     final tup = document.undo();
+
     if (tup.item1) {
       _handleHistoryChange(tup.item2);
     }
@@ -208,7 +204,7 @@ class EditorController extends ChangeNotifier {
     TextSelection? textSelection, {
     bool ignoreFocus = false,
   }) {
-    assert(data is String || data is Embeddable);
+    assert(data is String || data is EmbeddableM);
 
     if (onReplaceText != null && !onReplaceText!(index, len, data)) {
       return;
@@ -230,6 +226,7 @@ class EditorController extends ChangeNotifier {
         // If all attributes are inline, shouldRetainDelta should be false
         final anyAttributeNotInline =
             toggledStyle.values.any((attr) => !attr.isInline);
+
         if (!anyAttributeNotInline) {
           shouldRetainDelta = false;
         }
@@ -248,7 +245,7 @@ class EditorController extends ChangeNotifier {
       final notInlineStyle = style.attributes.values.where((s) => !s.isInline);
       toggledStyle = style.removeAll(notInlineStyle.toSet());
     } else {
-      toggledStyle = Style();
+      toggledStyle = StyleM();
     }
 
     if (textSelection != null) {
@@ -287,22 +284,27 @@ class EditorController extends ChangeNotifier {
   void handleDelete(int cursorPosition, bool forward) =>
       onDelete?.call(cursorPosition, forward);
 
-  void formatTextStyle(int index, int len, Style style) {
+  void formatTextStyle(int index, int len, StyleM style) {
     style.attributes.forEach((key, attr) {
       formatText(index, len, attr);
     });
   }
 
-  void formatText(int index, int len, Attribute? attribute) {
+  void formatText(
+    int index,
+    int len,
+    AttributeM? attribute,
+  ) {
     if (len == 0 &&
         attribute!.isInline &&
-        attribute.key != Attribute.link.key) {
+        attribute.key != AttributeM.link.key) {
       // Add the attribute to our toggledStyle.
       // It will be used later upon insertion.
       toggledStyle = toggledStyle.put(attribute);
     }
 
     final change = document.format(index, len, attribute);
+
     // Transform selection against the composed change and give priority to the change.
     // This is needed in cases when format operation actually inserts data into the document (e.g. embeds).
     final adjustedSelection = selection.copyWith(
@@ -320,7 +322,7 @@ class EditorController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void formatSelection(Attribute? attribute) {
+  void formatSelection(AttributeM? attribute) {
     formatText(
       selection.start,
       selection.end - selection.start,
@@ -344,7 +346,9 @@ class EditorController extends ChangeNotifier {
 
   void moveCursorToEnd() {
     updateSelection(
-      TextSelection.collapsed(offset: plainTextEditingValue.text.length),
+      TextSelection.collapsed(
+        offset: plainTextEditingValue.text.length,
+      ),
       ChangeSource.LOCAL,
     );
   }
@@ -354,7 +358,11 @@ class EditorController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void compose(DeltaM delta, TextSelection textSelection, ChangeSource source) {
+  void compose(
+    DeltaM delta,
+    TextSelection textSelection,
+    ChangeSource source,
+  ) {
     if (delta.isNotEmpty) {
       document.compose(delta, source);
     }
@@ -377,6 +385,7 @@ class EditorController extends ChangeNotifier {
     notifyListeners();
   }
 
+  // +++ Replace with stream
   @override
   void addListener(VoidCallback listener) {
     // By using `_isDisposed`, make sure that `addListener` won't be called on a disposed `ChangeListener`
@@ -410,13 +419,13 @@ class EditorController extends ChangeNotifier {
       baseOffset: math.min(selection.baseOffset, end),
       extentOffset: math.min(selection.extentOffset, end),
     );
-    toggledStyle = Style();
+    toggledStyle = StyleM();
 
     onSelectionChanged?.call(textSelection);
   }
 
   // Given offset, find its leaf node in document
-  Leaf? queryNode(int offset) {
+  LeafM? queryNode(int offset) {
     return document.querySegmentLeafNode(offset).item2;
   }
 
@@ -431,5 +440,5 @@ class EditorController extends ChangeNotifier {
   }
 
   // Notify buttons buttons directly with attributes
-  Map<String, Attribute> toolbarButtonToggler = {};
+  Map<String, AttributeM> toolbarButtonToggler = {};
 }

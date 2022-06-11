@@ -16,20 +16,19 @@ class ExpandedTextBoundary extends TextBoundaryM {
   TextEditingValue get textEditingValue {
     assert(innerTextBoundary.textEditingValue ==
         outerTextBoundary.textEditingValue);
+
     return innerTextBoundary.textEditingValue;
   }
 
   @override
-  TextPosition getLeadingTextBoundaryAt(TextPosition position) {
-    return outerTextBoundary.getLeadingTextBoundaryAt(
-      innerTextBoundary.getLeadingTextBoundaryAt(position),
-    );
-  }
+  TextPosition getLeadingTextBoundaryAt(TextPosition position) =>
+      outerTextBoundary.getLeadingTextBoundaryAt(
+        innerTextBoundary.getLeadingTextBoundaryAt(position),
+      );
 
   @override
-  TextPosition getTrailingTextBoundaryAt(TextPosition position) {
-    return outerTextBoundary.getTrailingTextBoundaryAt(
-      innerTextBoundary.getTrailingTextBoundaryAt(position),
-    );
-  }
+  TextPosition getTrailingTextBoundaryAt(TextPosition position) =>
+      outerTextBoundary.getTrailingTextBoundaryAt(
+        innerTextBoundary.getTrailingTextBoundaryAt(position),
+      );
 }

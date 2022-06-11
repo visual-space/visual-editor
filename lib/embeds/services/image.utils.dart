@@ -8,9 +8,9 @@ import 'package:string_validator/string_validator.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../controller/services/editor-controller.dart';
-import '../../documents/models/attribute.dart';
-import '../../documents/models/nodes/leaf.dart';
-import '../../documents/models/style.dart';
+import '../../documents/models/attribute.model.dart';
+import '../../documents/models/nodes/embed.model.dart';
+import '../../documents/models/style.model.dart';
 
 // +++ Group them in an util or smth
 const List<String> imageFileExtensions = [
@@ -27,14 +27,14 @@ bool isImageBase64(String imageUrl) {
   return !imageUrl.startsWith('http') && isBase64(imageUrl);
 }
 
-Tuple2<int, Embed> getImageNode(EditorController controller, int offset) {
+Tuple2<int, EmbedM> getImageNode(EditorController controller, int offset) {
   var offset = controller.selection.start;
   var imageNode = controller.queryNode(offset);
-  if (imageNode == null || !(imageNode is Embed)) {
+  if (imageNode == null || !(imageNode is EmbedM)) {
     offset = max(0, offset - 1);
     imageNode = controller.queryNode(offset);
   }
-  if (imageNode != null && imageNode is Embed) {
+  if (imageNode != null && imageNode is EmbedM) {
     return Tuple2(offset, imageNode);
   }
 
@@ -44,9 +44,9 @@ Tuple2<int, Embed> getImageNode(EditorController controller, int offset) {
 String getImageStyleString(EditorController controller) {
   final String? s = controller
       .getAllSelectionStyles()
-      .firstWhere((s) => s.attributes.containsKey(Attribute.style.key),
-          orElse: () => Style())
-      .attributes[Attribute.style.key]
+      .firstWhere((s) => s.attributes.containsKey(AttributeM.style.key),
+          orElse: () => StyleM())
+      .attributes[AttributeM.style.key]
       ?.value;
   return s ?? '';
 }

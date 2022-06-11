@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../controller/services/editor-controller.dart';
-import '../../documents/models/attribute.dart';
-import '../../documents/models/style.dart';
+import '../../documents/models/attribute.model.dart';
+import '../../documents/models/style.model.dart';
 import '../models/editor-icon-theme.model.dart';
 
 // Collides with Flutter DropdownButton
@@ -16,7 +16,7 @@ class DropdownBtn<T> extends StatefulWidget {
   final Map<String, int> rawitemsmap;
   final ValueChanged<T> onSelected;
   final EditorIconThemeM? iconTheme;
-  final Attribute attribute;
+  final AttributeM attribute;
   final EditorController controller;
 
   const DropdownBtn({
@@ -41,7 +41,7 @@ class DropdownBtn<T> extends StatefulWidget {
 class _DropdownBtnState<T> extends State<DropdownBtn<T>> {
   String _currentValue = '';
 
-  Style get _selectionStyle => widget.controller.getSelectionStyle();
+  StyleM get _selectionStyle => widget.controller.getSelectionStyle();
 
   @override
   void initState() {
@@ -72,8 +72,8 @@ class _DropdownBtnState<T> extends State<DropdownBtn<T>> {
     setState(() => _currentValue = _getKeyName(_selectionStyle.attributes));
   }
 
-  String _getKeyName(Map<String, Attribute> attrs) {
-    if (widget.attribute.key == Attribute.size.key) {
+  String _getKeyName(Map<String, AttributeM> attrs) {
+    if (widget.attribute.key == AttributeM.size.key) {
       final attribute = attrs[widget.attribute.key];
 
       if (attribute == null) {

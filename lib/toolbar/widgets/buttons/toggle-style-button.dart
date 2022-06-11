@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../../../controller/services/editor-controller.dart';
-import '../../../documents/models/attribute.dart';
-import '../../../documents/models/style.dart';
+import '../../../documents/models/attribute.model.dart';
+import '../../../documents/models/style.model.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
 import '../../models/toggle-style-button-builder.type.dart';
 import '../toolbar.dart';
 
 class ToggleStyleButton extends StatefulWidget {
-  final Attribute attribute;
+  final AttributeM attribute;
   final IconData icon;
   final double iconSize;
   final Color? fillColor;
@@ -20,7 +20,7 @@ class ToggleStyleButton extends StatefulWidget {
     required this.attribute,
     required this.icon,
     required this.controller,
-    this.iconSize = kDefaultIconSize,
+    this.iconSize = defaultIconSize,
     this.fillColor,
     this.childBuilder = defaultToggleStyleButtonBuilder,
     this.iconTheme,
@@ -34,7 +34,7 @@ class ToggleStyleButton extends StatefulWidget {
 class _ToggleStyleButtonState extends State<ToggleStyleButton> {
   bool? _isToggled;
 
-  Style get _selectionStyle => widget.controller.getSelectionStyle();
+  StyleM get _selectionStyle => widget.controller.getSelectionStyle();
 
   @override
   void initState() {
@@ -77,8 +77,8 @@ class _ToggleStyleButtonState extends State<ToggleStyleButton> {
     setState(() => _isToggled = _getIsToggled(_selectionStyle.attributes));
   }
 
-  bool _getIsToggled(Map<String, Attribute> attrs) {
-    if (widget.attribute.key == Attribute.list.key) {
+  bool _getIsToggled(Map<String, AttributeM> attrs) {
+    if (widget.attribute.key == AttributeM.list.key) {
       final attribute = attrs[widget.attribute.key];
       if (attribute == null) {
         return false;
@@ -90,19 +90,19 @@ class _ToggleStyleButtonState extends State<ToggleStyleButton> {
 
   void _toggleAttribute() {
     widget.controller.formatSelection(_isToggled!
-        ? Attribute.clone(widget.attribute, null)
+        ? AttributeM.clone(widget.attribute, null)
         : widget.attribute);
   }
 }
 
 Widget defaultToggleStyleButtonBuilder(
   BuildContext context,
-  Attribute attribute,
+  AttributeM attribute,
   IconData icon,
   Color? fillColor,
   bool? isToggled,
   VoidCallback? onPressed, [
-  double iconSize = kDefaultIconSize,
+  double iconSize = defaultIconSize,
   EditorIconThemeM? iconTheme,
 ]) {
   final theme = Theme.of(context);
@@ -125,7 +125,7 @@ Widget defaultToggleStyleButtonBuilder(
   return IconBtn(
     highlightElevation: 0,
     hoverElevation: 0,
-    size: iconSize * kIconButtonFactor,
+    size: iconSize * iconButtonFactor,
     icon: Icon(icon, size: iconSize, color: iconColor),
     fillColor: fill,
     onPressed: onPressed,

@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-import '../../documents/models/attribute.dart';
+import '../../documents/models/attribute.model.dart';
 
 Map<String, String> parseKeyValuePairs(String string, Set<String> targetKeys) {
   final result = <String, String>{};
@@ -35,8 +35,8 @@ String replaceStyleString(
     result[_key] = pair.substring(_index + 1).trim();
   }
 
-  result[Attribute.mobileWidth] = width.toString();
-  result[Attribute.mobileHeight] = height.toString();
+  result[AttributeM.mobileWidth] = width.toString();
+  result[AttributeM.mobileHeight] = height.toString();
   final sb = StringBuffer();
   for (final pair in result.entries) {
     sb

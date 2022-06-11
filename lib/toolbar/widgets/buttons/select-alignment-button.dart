@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../controller/services/editor-controller.dart';
-import '../../../documents/models/attribute.dart';
-import '../../../documents/models/style.dart';
+import '../../../documents/models/attribute.model.dart';
+import '../../../documents/models/style.model.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
 import '../toolbar.dart';
 
@@ -18,7 +18,7 @@ class SelectAlignmentButton extends StatefulWidget {
 
   const SelectAlignmentButton({
     required this.controller,
-    this.iconSize = kDefaultIconSize,
+    this.iconSize = defaultIconSize,
     this.iconTheme,
     this.showLeftAlignment,
     this.showCenterAlignment,
@@ -32,44 +32,44 @@ class SelectAlignmentButton extends StatefulWidget {
 }
 
 class _SelectAlignmentButtonState extends State<SelectAlignmentButton> {
-  Attribute? _value;
+  AttributeM? _value;
 
-  Style get _selectionStyle => widget.controller.getSelectionStyle();
+  StyleM get _selectionStyle => widget.controller.getSelectionStyle();
 
   @override
   void initState() {
     super.initState();
     setState(() {
-      _value = _selectionStyle.attributes[Attribute.align.key] ??
-          Attribute.leftAlignment;
+      _value = _selectionStyle.attributes[AttributeM.align.key] ??
+          AttributeM.leftAlignment;
     });
     widget.controller.addListener(_didChangeEditingValue);
   }
 
   @override
   Widget build(BuildContext context) {
-    final _valueToText = <Attribute, String>{
+    final _valueToText = <AttributeM, String>{
       if (widget.showLeftAlignment!)
-        Attribute.leftAlignment: Attribute.leftAlignment.value!,
+        AttributeM.leftAlignment: AttributeM.leftAlignment.value!,
       if (widget.showCenterAlignment!)
-        Attribute.centerAlignment: Attribute.centerAlignment.value!,
+        AttributeM.centerAlignment: AttributeM.centerAlignment.value!,
       if (widget.showRightAlignment!)
-        Attribute.rightAlignment: Attribute.rightAlignment.value!,
+        AttributeM.rightAlignment: AttributeM.rightAlignment.value!,
       if (widget.showJustifyAlignment!)
-        Attribute.justifyAlignment: Attribute.justifyAlignment.value!,
+        AttributeM.justifyAlignment: AttributeM.justifyAlignment.value!,
     };
 
-    final _valueAttribute = <Attribute>[
-      if (widget.showLeftAlignment!) Attribute.leftAlignment,
-      if (widget.showCenterAlignment!) Attribute.centerAlignment,
-      if (widget.showRightAlignment!) Attribute.rightAlignment,
-      if (widget.showJustifyAlignment!) Attribute.justifyAlignment
+    final _valueAttribute = <AttributeM>[
+      if (widget.showLeftAlignment!) AttributeM.leftAlignment,
+      if (widget.showCenterAlignment!) AttributeM.centerAlignment,
+      if (widget.showRightAlignment!) AttributeM.rightAlignment,
+      if (widget.showJustifyAlignment!) AttributeM.justifyAlignment
     ];
     final _valueString = <String>[
-      if (widget.showLeftAlignment!) Attribute.leftAlignment.value!,
-      if (widget.showCenterAlignment!) Attribute.centerAlignment.value!,
-      if (widget.showRightAlignment!) Attribute.rightAlignment.value!,
-      if (widget.showJustifyAlignment!) Attribute.justifyAlignment.value!,
+      if (widget.showLeftAlignment!) AttributeM.leftAlignment.value!,
+      if (widget.showCenterAlignment!) AttributeM.centerAlignment.value!,
+      if (widget.showRightAlignment!) AttributeM.rightAlignment.value!,
+      if (widget.showJustifyAlignment!) AttributeM.justifyAlignment.value!,
     ];
 
     final theme = Theme.of(context);
@@ -87,8 +87,8 @@ class _SelectAlignmentButtonState extends State<SelectAlignmentButton> {
           padding: EdgeInsets.symmetric(horizontal: !kIsWeb ? 1.0 : 5.0),
           child: ConstrainedBox(
             constraints: BoxConstraints.tightFor(
-              width: widget.iconSize * kIconButtonFactor,
-              height: widget.iconSize * kIconButtonFactor,
+              width: widget.iconSize * iconButtonFactor,
+              height: widget.iconSize * iconButtonFactor,
             ),
             child: RawMaterialButton(
               hoverElevation: 0,
@@ -103,16 +103,16 @@ class _SelectAlignmentButtonState extends State<SelectAlignmentButton> {
                       theme.toggleableActiveColor)
                   : (widget.iconTheme?.iconUnselectedFillColor ??
                       theme.canvasColor),
-              onPressed: () => _valueAttribute[index] == Attribute.leftAlignment
+              onPressed: () => _valueAttribute[index] == AttributeM.leftAlignment
                   ? widget.controller
-                      .formatSelection(Attribute.clone(Attribute.align, null))
+                      .formatSelection(AttributeM.clone(AttributeM.align, null))
                   : widget.controller.formatSelection(_valueAttribute[index]),
               child: Icon(
-                _valueString[index] == Attribute.leftAlignment.value
+                _valueString[index] == AttributeM.leftAlignment.value
                     ? Icons.format_align_left
-                    : _valueString[index] == Attribute.centerAlignment.value
+                    : _valueString[index] == AttributeM.centerAlignment.value
                         ? Icons.format_align_center
-                        : _valueString[index] == Attribute.rightAlignment.value
+                        : _valueString[index] == AttributeM.rightAlignment.value
                             ? Icons.format_align_right
                             : Icons.format_align_justify,
                 size: widget.iconSize,
@@ -131,8 +131,8 @@ class _SelectAlignmentButtonState extends State<SelectAlignmentButton> {
 
   void _didChangeEditingValue() {
     setState(() {
-      _value = _selectionStyle.attributes[Attribute.align.key] ??
-          Attribute.leftAlignment;
+      _value = _selectionStyle.attributes[AttributeM.align.key] ??
+          AttributeM.leftAlignment;
     });
   }
 
@@ -142,8 +142,8 @@ class _SelectAlignmentButtonState extends State<SelectAlignmentButton> {
     if (oldWidget.controller != widget.controller) {
       oldWidget.controller.removeListener(_didChangeEditingValue);
       widget.controller.addListener(_didChangeEditingValue);
-      _value = _selectionStyle.attributes[Attribute.align.key] ??
-          Attribute.leftAlignment;
+      _value = _selectionStyle.attributes[AttributeM.align.key] ??
+          AttributeM.leftAlignment;
     }
   }
 

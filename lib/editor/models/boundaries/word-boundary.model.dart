@@ -4,7 +4,10 @@ import 'base/text-boundary.model.dart';
 
 // [UAX #29](https://unicode.org/reports/tr29/) defined word boundaries.
 class WordBoundary extends TextBoundaryM {
-  const WordBoundary(this.textLayout, this.textEditingValue);
+  const WordBoundary(
+    this.textLayout,
+    this.textEditingValue,
+  );
 
   final TextLayoutMetrics textLayout;
 
@@ -16,8 +19,8 @@ class WordBoundary extends TextBoundaryM {
     return TextPosition(
       offset: textLayout.getWordBoundary(position).start,
       // Word boundary seems to always report downstream on many platforms.
-      affinity:
-          TextAffinity.downstream, // ignore: avoid_redundant_argument_values
+      // ignore: avoid_redundant_argument_values
+      affinity: TextAffinity.downstream,
     );
   }
 
@@ -26,8 +29,8 @@ class WordBoundary extends TextBoundaryM {
     return TextPosition(
       offset: textLayout.getWordBoundary(position).end,
       // Word boundary seems to always report downstream on many platforms.
-      affinity:
-          TextAffinity.downstream, // ignore: avoid_redundant_argument_values
+      // ignore: avoid_redundant_argument_values
+      affinity: TextAffinity.downstream,
     );
   }
 }

@@ -3,60 +3,43 @@ import 'dart:math' as math;
 import 'package:flutter/rendering.dart';
 
 import '../../blocks/models/editable-box-renderer.model.dart';
-import '../../documents/models/nodes/container.dart';
+import '../../documents/models/nodes/container.model.dart';
 
 // +++ REVIEW
 class EditableContainerParentData
-    extends ContainerBoxParentData<RenderEditableBox> {}
+    extends ContainerBoxParentData<EditableBoxRenderer> {}
 
 // Multi-child render box of editable blocks.
-// Common ancestor for [RenderEditor] and [RenderEditableTextBlock].
 class EditableContainerBoxRenderer extends RenderBox
     with
-        ContainerRenderObjectMixin<RenderEditableBox,
+        ContainerRenderObjectMixin<EditableBoxRenderer,
             EditableContainerParentData>,
-        RenderBoxContainerDefaultsMixin<RenderEditableBox,
+        RenderBoxContainerDefaultsMixin<EditableBoxRenderer,
             EditableContainerParentData> {
   EditableContainerBoxRenderer({
-    required Container container,
+    required ContainerM container,
     required this.textDirection,
-    required this.scrollBottomInset,
-    required EdgeInsetsGeometry padding,
-    List<RenderEditableBox>? children,
+    this.padding = EdgeInsets.zero,
+    List<EditableBoxRenderer>? children,
   })  : assert(padding.isNonNegative),
-        containerRef = container,
-        _padding = padding {
+        containerRef = container {
     addAll(children);
   }
 
-  Container containerRef;
+  ContainerM containerRef;
   TextDirection textDirection;
-  EdgeInsetsGeometry _padding;
-  double scrollBottomInset;
+  EdgeInsetsGeometry padding;
   EdgeInsets? _resolvedPadding;
 
-  Container get container => containerRef;
+  ContainerM get container => containerRef;
 
-  void setContainer(Container c) {
+  void setContainer(ContainerM c) {
     if (containerRef == c) {
       return;
     }
 
     containerRef = c;
     markNeedsLayout();
-  }
-
-  EdgeInsetsGeometry getPadding() => _padding;
-
-  void setPadding(EdgeInsetsGeometry value) {
-    assert(value.isNonNegative);
-
-    if (_padding == value) {
-      return;
-    }
-
-    _padding = value;
-    _markNeedsPaddingResolution();
   }
 
   EdgeInsets? get resolvedPadding => _resolvedPadding;
@@ -66,7 +49,7 @@ class EditableContainerBoxRenderer extends RenderBox
       return;
     }
 
-    _resolvedPadding = _padding.resolve(textDirection);
+    _resolvedPadding = padding.resolve(textDirection);
     _resolvedPadding = _resolvedPadding!.copyWith(left: _resolvedPadding!.left);
 
     assert(_resolvedPadding!.isNonNegative);
@@ -116,7 +99,9 @@ class EditableContainerBoxRenderer extends RenderBox
 
     return _getIntrinsicCrossAxis((child) {
       final childHeight = math.max<double>(
-          0, height - _resolvedPadding!.top + _resolvedPadding!.bottom);
+        0,
+        height - _resolvedPadding!.top + _resolvedPadding!.bottom,
+      );
 
       return child.getMinIntrinsicWidth(childHeight) +
           _resolvedPadding!.left +
@@ -130,7 +115,9 @@ class EditableContainerBoxRenderer extends RenderBox
 
     return _getIntrinsicCrossAxis((child) {
       final childHeight = math.max<double>(
-          0, height - _resolvedPadding!.top + _resolvedPadding!.bottom);
+        0,
+        height - _resolvedPadding!.top + _resolvedPadding!.bottom,
+      );
 
       return child.getMaxIntrinsicWidth(childHeight) +
           _resolvedPadding!.left +
@@ -144,7 +131,9 @@ class EditableContainerBoxRenderer extends RenderBox
 
     return _getIntrinsicMainAxis((child) {
       final childWidth = math.max<double>(
-          0, width - _resolvedPadding!.left + _resolvedPadding!.right);
+        0,
+        width - _resolvedPadding!.left + _resolvedPadding!.right,
+      );
 
       return child.getMinIntrinsicHeight(childWidth) +
           _resolvedPadding!.top +
@@ -158,7 +147,9 @@ class EditableContainerBoxRenderer extends RenderBox
 
     return _getIntrinsicMainAxis((child) {
       final childWidth = math.max<double>(
-          0, width - _resolvedPadding!.left + _resolvedPadding!.right);
+        0,
+        width - _resolvedPadding!.left + _resolvedPadding!.right,
+      );
 
       return child.getMaxIntrinsicHeight(childWidth) +
           _resolvedPadding!.top +
@@ -175,11 +166,6 @@ class EditableContainerBoxRenderer extends RenderBox
   }
 
   // === PRIVATE ===
-
-  void _markNeedsPaddingResolution() {
-    _resolvedPadding = null;
-    markNeedsLayout();
-  }
 
   double _getIntrinsicCrossAxis(double Function(RenderBox child) childSize) {
     var extent = 0.0;

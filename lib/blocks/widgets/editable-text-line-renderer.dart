@@ -2,13 +2,16 @@ import 'dart:math' as math;
 
 import 'package:flutter/rendering.dart';
 
-import '../../controller/services/editor-controller.dart';
+import '../../controller/state/editor-controller.state.dart';
 import '../../cursor/services/cursor.controller.dart';
+import '../../cursor/state/cursor-controller.state.dart';
 import '../../cursor/widgets/cursor-painter.dart';
-import '../../documents/models/attribute.dart';
-import '../../documents/models/nodes/container.dart' as container_node;
-import '../../documents/models/nodes/leaf.dart' as leaf;
-import '../../documents/models/nodes/line.dart';
+import '../../documents/models/attribute.model.dart';
+import '../../documents/models/nodes/container.model.dart' as container_node;
+import '../../documents/models/nodes/line.model.dart';
+import '../../documents/models/nodes/text.model.dart';
+import '../../editor/state/editor-config.state.dart';
+import '../../editor/state/focus-node.state.dart';
 import '../../editor/state/platform-styles.state.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../selection/services/text-selection.utils.dart';
@@ -18,21 +21,22 @@ import '../models/editable-box-renderer.model.dart';
 import '../models/inline-code-style.model.dart';
 import '../models/text-line-slot.enum.dart';
 
-class EditableTextLineRenderer extends RenderEditableBox {
+class EditableTextLineRenderer extends EditableBoxRenderer {
+  final _editorConfigState = EditorConfigState();
+  final _cursorControllerState = CursorControllerState();
+  final _editorControllerState = EditorControllerState();
   final _textSelectionUtils = TextSelectionUtils();
   final _platformStylesState = PlatformStylesState();
+  final _focusNodeState = FocusNodeState();
 
-  EditorController controller;
   RenderBox? _leading;
   RenderContentProxyBox? _body;
-  Line line;
+  LineM line;
   TextDirection textDirection;
   TextSelection textSelection;
-  bool enableInteractiveSelection;
-  bool hasFocus = false;
   double devicePixelRatio;
   EdgeInsetsGeometry padding;
-  CursorController cursorController;
+  late CursorController cursorController;
   EdgeInsets? _resolvedPadding;
   bool? _containsCursor;
   List<TextBox>? _selectedRects;
@@ -42,17 +46,16 @@ class EditableTextLineRenderer extends RenderEditableBox {
 
   // Creates new editable paragraph render box.
   EditableTextLineRenderer({
-    required this.controller,
     required this.line,
     required this.textDirection,
     required this.textSelection,
-    required this.enableInteractiveSelection,
-    required this.hasFocus,
     required this.devicePixelRatio,
     required this.padding,
-    required this.cursorController,
+    // required this.cursorController,
     required this.inlineCodeStyle,
-  });
+  }) {
+    cursorController = _cursorControllerState.controller;
+  }
 
   Iterable<RenderBox> get _children sync* {
     if (_leading != null) {
@@ -61,31 +64,6 @@ class EditableTextLineRenderer extends RenderEditableBox {
     if (_body != null) {
       yield _body!;
     }
-  }
-
-  void setCursorController(CursorController controller) {
-    if (cursorController == controller) {
-      return;
-    }
-    cursorController = controller;
-    markNeedsLayout();
-  }
-
-  void setDevicePixelRatio(double d) {
-    if (devicePixelRatio == d) {
-      return;
-    }
-    devicePixelRatio = d;
-    markNeedsLayout();
-  }
-
-  void setEnableInteractiveSelection(bool val) {
-    if (enableInteractiveSelection == val) {
-      return;
-    }
-
-    markNeedsLayout();
-    markNeedsSemanticsUpdate();
   }
 
   void setTextSelection(TextSelection t) {
@@ -114,31 +92,12 @@ class EditableTextLineRenderer extends RenderEditableBox {
     }
   }
 
-  void setTextDirection(TextDirection t) {
-    if (textDirection == t) {
-      return;
-    }
-    textDirection = t;
-    _resolvedPadding = null;
-    markNeedsLayout();
-  }
-
-  void setLine(Line l) {
+  void setLine(LineM l) {
     if (line == l) {
       return;
     }
     line = l;
     _containsCursor = null;
-    markNeedsLayout();
-  }
-
-  void setPadding(EdgeInsetsGeometry p) {
-    assert(p.isNonNegative);
-    if (padding == p) {
-      return;
-    }
-    padding = p;
-    _resolvedPadding = null;
     markNeedsLayout();
   }
 
@@ -148,12 +107,6 @@ class EditableTextLineRenderer extends RenderEditableBox {
 
   void setBody(RenderContentProxyBox? b) {
     _body = _updateChild(_body, b, TextLineSlot.BODY) as RenderContentProxyBox?;
-  }
-
-  void setInlineCodeStyle(InlineCodeStyle newStyle) {
-    if (inlineCodeStyle == newStyle) return;
-    inlineCodeStyle = newStyle;
-    markNeedsLayout();
   }
 
   // === SELECTION ===
@@ -176,15 +129,18 @@ class EditableTextLineRenderer extends RenderEditableBox {
       dropChild(old);
       children.remove(slot);
     }
+
     if (newChild != null) {
       children[slot] = newChild;
       adoptChild(newChild);
     }
+
     return newChild;
   }
 
   List<TextBox> _getBoxes(TextSelection textSelection) {
     final parentData = _body!.parentData as BoxParentData?;
+
     return _body!.getBoxesForSelection(textSelection).map((box) {
       return TextBox.fromLTRBD(
         box.left + parentData!.offset.dx,
@@ -200,7 +156,9 @@ class EditableTextLineRenderer extends RenderEditableBox {
     if (_resolvedPadding != null) {
       return;
     }
+
     _resolvedPadding = padding.resolve(textDirection);
+
     assert(_resolvedPadding!.isNonNegative);
   }
 
@@ -229,9 +187,11 @@ class EditableTextLineRenderer extends RenderEditableBox {
         null,
       );
     }
+
     final boxes = _getBoxes(textSelection);
     assert(boxes.isNotEmpty);
     final targetBox = first ? boxes.first : boxes.last;
+
     return TextSelectionPoint(
       Offset(first ? targetBox.start : targetBox.end, targetBox.bottom),
       targetBox.direction,
@@ -248,6 +208,7 @@ class EditableTextLineRenderer extends RenderEditableBox {
     )
         .where((element) => element.top < lineDy && element.bottom > lineDy)
         .toList(growable: false);
+
     return TextRange(
       start: getPositionForOffset(Offset(lineBoxes.first.left, lineDy)).offset,
       end: getPositionForOffset(Offset(lineBoxes.last.right, lineDy)).offset,
@@ -302,7 +263,7 @@ class EditableTextLineRenderer extends RenderEditableBox {
   }
 
   @override
-  container_node.Container get container => line;
+  container_node.ContainerM get container => line;
 
   double get cursorWidth => cursorController.style.width;
 
@@ -311,16 +272,13 @@ class EditableTextLineRenderer extends RenderEditableBox {
       preferredLineHeight(const TextPosition(offset: 0));
 
   // TODO: This is no longer producing the highest-fidelity caret
-  // heights for Android, especially when non-alphabetic languages
-  // are involved. The current implementation overrides the height set
-  // here with the full measured height of the text on Android which looks
-  // superior (subjectively and in terms of fidelity) in _paintCaret. We
-  // should rework this properly to once again match the platform. The constant
-  // _kCaretHeightOffset scales poorly for small font sizes.
-  //
-  // On iOS, the cursor is taller than the cursor on Android. The height
-  // of the cursor for iOS is approximate and obtained through an eyeball
-  // comparison.
+  // heights for Android, especially when non-alphabetic languages are involved.
+  // The current implementation overrides the height set here with the full measured height of the
+  // text on Android which looks superior (subjectively and in terms of fidelity) in _paintCaret.
+  // We should rework this properly to once again match the platform.
+  // The constant _kCaretHeightOffset scales poorly for small font sizes.
+  // On iOS, the cursor is taller than the cursor on Android.
+  // The height of the cursor for iOS is approximate and obtained through an eyeball comparison.
   void _computeCaretPrototype() {
     if (isAppleOS()) {
       _caretPrototype = Rect.fromLTWH(0, 0, cursorWidth, cursorHeight + 2);
@@ -341,10 +299,15 @@ class EditableTextLineRenderer extends RenderEditableBox {
   @override
   void attach(covariant PipelineOwner owner) {
     super.attach(owner);
+
     for (final child in _children) {
       child.attach(owner);
     }
-    cursorController.floatingCursorTextPosition.addListener(_onFloatingCursorChange);
+
+    cursorController.floatingCursorTextPosition.addListener(
+      _onFloatingCursorChange,
+    );
+
     if (containsCursor()) {
       cursorController.addListener(markNeedsLayout);
       cursorController.color.addListener(safeMarkNeedsPaint);
@@ -355,11 +318,15 @@ class EditableTextLineRenderer extends RenderEditableBox {
   @override
   void detach() {
     super.detach();
+
     for (final child in _children) {
       child.detach();
     }
-    cursorController.floatingCursorTextPosition
-        .removeListener(_onFloatingCursorChange);
+
+    cursorController.floatingCursorTextPosition.removeListener(
+      _onFloatingCursorChange,
+    );
+
     if (_attachedToCursorController) {
       cursorController.removeListener(markNeedsLayout);
       cursorController.color.removeListener(safeMarkNeedsPaint);
@@ -380,6 +347,7 @@ class EditableTextLineRenderer extends RenderEditableBox {
   @override
   List<DiagnosticsNode> debugDescribeChildren() {
     final value = <DiagnosticsNode>[];
+
     void add(RenderBox? child, String name) {
       if (child != null) {
         value.add(child.toDiagnosticsNode(name: name));
@@ -388,6 +356,7 @@ class EditableTextLineRenderer extends RenderEditableBox {
 
     add(_leading, 'leading');
     add(_body, 'body');
+
     return value;
   }
 
@@ -397,6 +366,7 @@ class EditableTextLineRenderer extends RenderEditableBox {
   @override
   double computeMinIntrinsicWidth(double height) {
     _resolvePadding();
+
     final horizontalPadding = _resolvedPadding!.left + _resolvedPadding!.right;
     final verticalPadding = _resolvedPadding!.top + _resolvedPadding!.bottom;
     final leadingWidth = _leading == null
@@ -405,14 +375,18 @@ class EditableTextLineRenderer extends RenderEditableBox {
     final bodyWidth = _body == null
         ? 0
         : _body!
-            .getMinIntrinsicWidth(math.max(0, height - verticalPadding))
+            .getMinIntrinsicWidth(
+              math.max(0, height - verticalPadding),
+            )
             .ceil();
+
     return horizontalPadding + leadingWidth + bodyWidth;
   }
 
   @override
   double computeMaxIntrinsicWidth(double height) {
     _resolvePadding();
+
     final horizontalPadding = _resolvedPadding!.left + _resolvedPadding!.right;
     final verticalPadding = _resolvedPadding!.top + _resolvedPadding!.bottom;
     final leadingWidth = _leading == null
@@ -421,21 +395,28 @@ class EditableTextLineRenderer extends RenderEditableBox {
     final bodyWidth = _body == null
         ? 0
         : _body!
-            .getMaxIntrinsicWidth(math.max(0, height - verticalPadding))
+            .getMaxIntrinsicWidth(
+              math.max(0, height - verticalPadding),
+            )
             .ceil();
+
     return horizontalPadding + leadingWidth + bodyWidth;
   }
 
   @override
   double computeMinIntrinsicHeight(double width) {
     _resolvePadding();
+
     final horizontalPadding = _resolvedPadding!.left + _resolvedPadding!.right;
     final verticalPadding = _resolvedPadding!.top + _resolvedPadding!.bottom;
+
     if (_body != null) {
-      return _body!
-              .getMinIntrinsicHeight(math.max(0, width - horizontalPadding)) +
+      return _body!.getMinIntrinsicHeight(
+            math.max(0, width - horizontalPadding),
+          ) +
           verticalPadding;
     }
+
     return verticalPadding;
   }
 
@@ -445,8 +426,9 @@ class EditableTextLineRenderer extends RenderEditableBox {
     final horizontalPadding = _resolvedPadding!.left + _resolvedPadding!.right;
     final verticalPadding = _resolvedPadding!.top + _resolvedPadding!.bottom;
     if (_body != null) {
-      return _body!
-              .getMaxIntrinsicHeight(math.max(0, width - horizontalPadding)) +
+      return _body!.getMaxIntrinsicHeight(
+            math.max(0, width - horizontalPadding),
+          ) +
           verticalPadding;
     }
     return verticalPadding;
@@ -476,8 +458,8 @@ class EditableTextLineRenderer extends RenderEditableBox {
       );
       return;
     }
-    final innerConstraints = constraints.deflate(_resolvedPadding!);
 
+    final innerConstraints = constraints.deflate(_resolvedPadding!);
     final indentWidth = textDirection == TextDirection.ltr
         ? _resolvedPadding!.left
         : _resolvedPadding!.right;
@@ -536,20 +518,23 @@ class EditableTextLineRenderer extends RenderEditableBox {
       // Inline code
       if (inlineCodeStyle.backgroundColor != null) {
         for (final item in line.children) {
-          if (item is! leaf.Text ||
+          if (item is! TextM ||
               !item.style.containsKey(
-                Attribute.inlineCode.key,
+                AttributeM.inlineCode.key,
               )) {
             continue;
           }
+
           final textRange = TextSelection(
             baseOffset: item.offset,
             extentOffset: item.offset + item.length,
           );
           final rects = _body!.getBoxesForSelection(textRange);
           final paint = Paint()..color = inlineCodeStyle.backgroundColor!;
+
           for (final box in rects) {
             final rect = box.toRect().translate(0, 1).shift(effectiveOffset);
+
             if (inlineCodeStyle.radius == null) {
               final paintRect = Rect.fromLTRB(
                 rect.left - 2,
@@ -557,6 +542,7 @@ class EditableTextLineRenderer extends RenderEditableBox {
                 rect.right + 2,
                 rect.bottom,
               );
+
               context.canvas.drawRect(paintRect, paint);
             } else {
               final paintRect = RRect.fromLTRBR(
@@ -573,7 +559,7 @@ class EditableTextLineRenderer extends RenderEditableBox {
       }
 
       // Cursor above text (iOS)
-      if (hasFocus &&
+      if (_focusNodeState.node.hasFocus &&
           cursorController.show.value &&
           containsCursor() &&
           !cursorController.style.paintAboveText) {
@@ -583,7 +569,7 @@ class EditableTextLineRenderer extends RenderEditableBox {
       context.paintChild(_body!, effectiveOffset);
 
       // Cursor bellow text (Android)
-      if (hasFocus &&
+      if (_focusNodeState.node.hasFocus &&
           cursorController.show.value &&
           containsCursor() &&
           cursorController.style.paintAboveText) {
@@ -594,7 +580,8 @@ class EditableTextLineRenderer extends RenderEditableBox {
         textSelection,
       );
 
-      if (enableInteractiveSelection && selectionIsWithinDocBounds) {
+      if (_editorConfigState.config.enableInteractiveSelection &&
+          selectionIsWithinDocBounds) {
         final local = _textSelectionUtils.getLocalSelection(
           line,
           textSelection,
@@ -605,7 +592,7 @@ class EditableTextLineRenderer extends RenderEditableBox {
       }
 
       // Highlights
-      controller.highlights.forEach((highlight) {
+      _editorControllerState.controller.highlights.forEach((highlight) {
         final highlightIsWithinDocBounds = _lineContainsSelection(
           highlight.textSelection,
         );
@@ -639,7 +626,7 @@ class EditableTextLineRenderer extends RenderEditableBox {
   ) {
     assert(_selectedRects != null);
 
-    final paint = Paint()..color = _platformStylesState.styles!.selectionColor;
+    final paint = Paint()..color = _platformStylesState.styles.selectionColor;
 
     for (final box in _selectedRects!) {
       context.canvas.drawRect(box.toRect().shift(effectiveOffset), paint);
@@ -675,7 +662,8 @@ class EditableTextLineRenderer extends RenderEditableBox {
         ? TextPosition(
             offset: cursorController.floatingCursorTextPosition.value!.offset -
                 line.documentOffset,
-            affinity: cursorController.floatingCursorTextPosition.value!.affinity,
+            affinity:
+                cursorController.floatingCursorTextPosition.value!.affinity,
           )
         : TextPosition(
             offset: textSelection.extentOffset - line.documentOffset,
@@ -699,20 +687,30 @@ class EditableTextLineRenderer extends RenderEditableBox {
         position: position,
         hitTest: (result, transformed) {
           assert(transformed == position - childParentData.offset);
+
           return _leading!.hitTest(result, position: transformed);
         },
       );
-      if (isHit) return true;
+
+      if (isHit) {
+        return true;
+      }
     }
 
-    if (_body == null) return false;
+    if (_body == null) {
+      return false;
+    }
+
     final parentData = _body!.parentData as BoxParentData;
 
     return result.addWithPaintOffset(
       offset: parentData.offset,
       position: position,
       hitTest: (result, position) {
-        return _body!.hitTest(result, position: position);
+        return _body!.hitTest(
+          result,
+          position: position,
+        );
       },
     );
   }
@@ -729,7 +727,9 @@ class EditableTextLineRenderer extends RenderEditableBox {
     final cursorOffset = cursorController.style.offset;
 
     // Add additional cursor offset (generally only if on iOS).
-    if (cursorOffset != null) rect = rect.shift(cursorOffset);
+    if (cursorOffset != null) {
+      rect = rect.shift(cursorOffset);
+    }
 
     return rect;
   }

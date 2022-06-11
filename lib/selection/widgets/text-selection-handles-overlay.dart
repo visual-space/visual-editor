@@ -4,17 +4,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-import '../../editor/services/editor-renderer.utils.dart';
-import '../../editor/widgets/editor-renderer.dart';
+import '../../editor/services/lines-blocks.service.dart';
+import '../../editor/widgets/editor-renderer-inner.dart';
 import '../models/text-selection-handle-position.enum.dart';
+import '../state/selection-layers.state.dart';
 
 // This widget represents a single draggable text selection handle.
 class TextSelectionHandleOverlay extends StatefulWidget {
   const TextSelectionHandleOverlay({
     required this.selection,
     required this.position,
-    required this.startHandleLayerLink,
-    required this.endHandleLayerLink,
     required this.renderObject,
     required this.onSelectionHandleChanged,
     required this.onSelectionHandleTapped,
@@ -25,9 +24,7 @@ class TextSelectionHandleOverlay extends StatefulWidget {
 
   final TextSelection selection;
   final TextSelectionHandlePosition position;
-  final LayerLink startHandleLayerLink;
-  final LayerLink endHandleLayerLink;
-  final EditorRenderer renderObject;
+  final EditorRendererInner renderObject;
   final ValueChanged<TextSelection?> onSelectionHandleChanged;
   final VoidCallback? onSelectionHandleTapped;
   final TextSelectionControls textSelectionControls;
@@ -51,7 +48,8 @@ class TextSelectionHandleOverlay extends StatefulWidget {
 
 class TextSelectionHandleOverlayState extends State<TextSelectionHandleOverlay>
     with SingleTickerProviderStateMixin {
-  final _editorRendererUtils = EditorRendererUtils();
+  final _linesBlocksService = LinesBlocksService();
+  final _selectionLayersState = SelectionLayersState();
 
   // ignore: unused_field
   late Offset _dragPosition;
@@ -100,14 +98,14 @@ class TextSelectionHandleOverlayState extends State<TextSelectionHandleOverlay>
     final textPosition = widget.position == TextSelectionHandlePosition.START
         ? widget.selection.base
         : widget.selection.extent;
-    final lineHeight = _editorRendererUtils.preferredLineHeight(textPosition);
+    final lineHeight = _linesBlocksService.preferredLineHeight(textPosition);
     final handleSize = widget.textSelectionControls.getHandleSize(lineHeight);
     _dragPosition = details.globalPosition + Offset(0, -handleSize.height);
   }
 
   void _handleDragUpdate(DragUpdateDetails details) {
     _dragPosition += details.delta;
-    final position = _editorRendererUtils.getPositionForOffset(
+    final position = _linesBlocksService.getPositionForOffset(
       details.globalPosition,
     );
 
@@ -165,7 +163,7 @@ class TextSelectionHandleOverlayState extends State<TextSelectionHandleOverlay>
 
     switch (widget.position) {
       case TextSelectionHandlePosition.START:
-        layerLink = widget.startHandleLayerLink;
+        layerLink = _selectionLayersState.startHandleLayerLink;
         type = _chooseType(
           widget.renderObject.textDirection,
           TextSelectionHandleType.left,
@@ -176,7 +174,7 @@ class TextSelectionHandleOverlayState extends State<TextSelectionHandleOverlay>
       case TextSelectionHandlePosition.END:
         // For collapsed selections, we shouldn't be building the [end] handle.
         assert(!widget.selection.isCollapsed);
-        layerLink = widget.endHandleLayerLink;
+        layerLink = _selectionLayersState.endHandleLayerLink;
         type = _chooseType(
           widget.renderObject.textDirection,
           TextSelectionHandleType.right,
@@ -194,7 +192,7 @@ class TextSelectionHandleOverlayState extends State<TextSelectionHandleOverlay>
     final textPosition = widget.position == TextSelectionHandlePosition.START
         ? widget.selection.base
         : widget.selection.extent;
-    final lineHeight = _editorRendererUtils.preferredLineHeight(textPosition);
+    final lineHeight = _linesBlocksService.preferredLineHeight(textPosition);
     final handleAnchor = widget.textSelectionControls.getHandleAnchor(
       type!,
       lineHeight,

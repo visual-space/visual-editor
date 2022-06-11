@@ -4,7 +4,6 @@ import '../../../controller/services/editor-text.service.dart';
 import '../../models/boundaries/base/text-boundary.model.dart';
 import '../../state/editor-config.state.dart';
 
-// +++ DOC
 class UpdateTextSelectionAction<T extends DirectionalCaretMovementIntent>
     extends ContextAction<T> {
   final _editorTextService = EditorTextService();

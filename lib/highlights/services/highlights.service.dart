@@ -1,6 +1,6 @@
 import 'package:flutter/gestures.dart';
 
-import '../../editor/services/editor-renderer.utils.dart';
+import '../../editor/services/lines-blocks.service.dart';
 import '../../editor/state/editor-config.state.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../highlights/state/highlights.state.dart';
@@ -8,7 +8,7 @@ import '../../highlights/state/highlights.state.dart';
 class HighlightsService {
   static final _editorConfigState = EditorConfigState();
   static final _highlightsState = HighlightsState();
-  final _editorRendererUtils = EditorRendererUtils();
+  final _linesBlocksService = LinesBlocksService();
 
   final List<HighlightM> _prevHoveredHighlights = [];
 
@@ -19,7 +19,7 @@ class HighlightsService {
   HighlightsService._privateConstructor();
 
   void onHover(PointerHoverEvent event) {
-    final position = _editorRendererUtils.getPositionForOffset(event.position);
+    final position = _linesBlocksService.getPositionForOffset(event.position);
 
     // Multiple overlapping highlights can be intersected at the same time.
     // Intersecting all highlights avoid "burying" highlights and making them inaccessible.
@@ -66,7 +66,7 @@ class HighlightsService {
     if (_editorConfigState.config.onTapUp != null &&
         _editorConfigState.config.onTapUp!(
           details,
-          _editorRendererUtils.getPositionForOffset,
+          _linesBlocksService.getPositionForOffset,
         )) {
       return;
     }
@@ -75,7 +75,7 @@ class HighlightsService {
   }
 
   void _detectTapOnHighlight(TapUpDetails details) {
-    final position = _editorRendererUtils.getPositionForOffset(
+    final position = _linesBlocksService.getPositionForOffset(
       details.globalPosition,
     );
 

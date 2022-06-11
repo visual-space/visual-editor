@@ -3,7 +3,8 @@ library universal_ui;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:universal_html/html.dart' as html;
-import 'package:visual_editor/visual-editor.dart' hide Text;
+import 'package:visual_editor/documents/models/nodes/embed.model.dart';
+import 'package:visual_editor/visual-editor.dart';
 
 import '../widgets/responsive-widget.dart';
 import 'fake-ui.dart' if (dart.library.html) 'real-ui.dart' as ui_instance;
@@ -25,14 +26,21 @@ class UniversalUI {
 
 var ui = UniversalUI();
 
-Widget defaultEmbedBuilderWeb(BuildContext context, EditorController controller,
-    Embed node, bool readOnly) {
+Widget defaultEmbedBuilderWeb(
+  BuildContext context,
+  EditorController controller,
+  EmbedM node,
+  bool readOnly,
+) {
   switch (node.value.type) {
     case 'image':
       final imageUrl = node.value.data;
       final size = MediaQuery.of(context).size;
       UniversalUI().platformViewRegistry.registerViewFactory(
-          imageUrl, (viewId) => html.ImageElement()..src = imageUrl);
+            imageUrl,
+            (viewId) => html.ImageElement()..src = imageUrl,
+          );
+
       return Padding(
         padding: EdgeInsets.only(
           right: ResponsiveWidget.isMediumScreen(context)

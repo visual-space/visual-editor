@@ -1,29 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../delta/services/delta.utils.dart';
 import '../../documents/models/change-source.enum.dart';
-import '../../visual-editor.dart';
+import '../../documents/models/nodes/embed.model.dart';
 import '../state/document.state.dart';
 import '../state/editor-controller.state.dart';
+import '../state/paste.state.dart';
 
 // Reads and the text value of the editor input.
 // When setting the text value we take in account the current selection and styles.
 class EditorTextService {
   final _editorControllerState = EditorControllerState();
   final _documentState = DocumentState();
+  final _pasteState = PasteState();
+
   static final _instance = EditorTextService._privateConstructor();
 
   factory EditorTextService() => _instance;
 
   EditorTextService._privateConstructor();
-
-  // For pasting style
-  // +++ MOVE to state
-  List<Tuple2<int, Style>> pasteStyle = <Tuple2<int, Style>>[];
-
-  // +++ MOVE to state
-  String pastePlainText = '';
 
   TextEditingValue get textEditingValue {
     return _editorControllerState.controller.plainTextEditingValue;
@@ -64,18 +59,19 @@ class EditorTextService {
   }
 
   void _applyPasteStyle(String insertedText, int start) {
-    if (insertedText == pastePlainText && pastePlainText != '') {
+    if (insertedText == _pasteState.pastePlainText &&
+        _pasteState.pastePlainText != '') {
       final pos = start;
 
-      for (var i = 0; i < pasteStyle.length; i++) {
-        final offset = pasteStyle[i].item1;
-        final style = pasteStyle[i].item2;
+      for (var i = 0; i < _pasteState.pasteStyle.length; i++) {
+        final offset = _pasteState.pasteStyle[i].item1;
+        final style = _pasteState.pasteStyle[i].item2;
 
         _editorControllerState.controller.formatTextStyle(
           pos + offset,
-          i == pasteStyle.length - 1
-              ? pastePlainText.length - offset
-              : pasteStyle[i + 1].item1,
+          i == _pasteState.pasteStyle.length - 1
+              ? _pasteState.pastePlainText.length - offset
+              : _pasteState.pasteStyle[i + 1].item1,
           style,
         );
       }
@@ -86,14 +82,14 @@ class EditorTextService {
     // For clip from editor, it may contain image, a.k.a 65532 or '\uFFFC'.
     // For clip from browser, image is directly ignore.
     // Here we skip image when pasting.
-    if (!text.codeUnits.contains(Embed.kObjectReplacementInt)) {
+    if (!text.codeUnits.contains(EmbedM.kObjectReplacementInt)) {
       return text;
     }
 
     final buffer = StringBuffer();
 
     for (var i = 0; i < text.length; i++) {
-      if (text.codeUnitAt(i) == Embed.kObjectReplacementInt) {
+      if (text.codeUnitAt(i) == EmbedM.kObjectReplacementInt) {
         continue;
       }
 

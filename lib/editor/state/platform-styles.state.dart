@@ -6,9 +6,14 @@ class PlatformStylesState {
 
   PlatformStylesState._privateConstructor();
 
-  PlatformDependentStylesM? _styles;
+  late PlatformDependentStylesM _styles;
+  var _initialised = false;
 
-  PlatformDependentStylesM? get styles => _styles;
+  PlatformDependentStylesM get styles => _styles;
+  bool get isInitialised => _initialised;
 
-  void setPlatformStyles(PlatformDependentStylesM? styles) => _styles = styles;
+  void setPlatformStyles(PlatformDependentStylesM styles) {
+    _initialised = true;
+    _styles = styles;
+  }
 }

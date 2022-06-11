@@ -1,4 +1,4 @@
-import '../widgets/editor-renderer.dart';
+import '../widgets/editor-renderer-inner.dart';
 
 class EditorRendererState {
   factory EditorRendererState() => _instance;
@@ -6,9 +6,9 @@ class EditorRendererState {
 
   EditorRendererState._privateConstructor();
 
-  late EditorRenderer _renderer;
+  late EditorRendererInner _renderer;
 
-  EditorRenderer get renderer => _renderer;
+  EditorRendererInner get renderer => _renderer;
 
-  void setRenderer(EditorRenderer renderer) => _renderer = renderer;
+  void setRenderer(EditorRendererInner renderer) => _renderer = renderer;
 }

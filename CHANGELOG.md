@@ -7,8 +7,11 @@
 * Moved all legacy files in /core to prepare for new modules
 * Renamed to Visual Editor
 * Bumped to Flutter 3.0.0
-* Refactored EditorTextSelectionGestureDetectorBuilder to TextSelectionGesturesBuilder.
-* Simplified architecture for the TextSelectionGestures widget.
+* Removed the mixins from RawEditor
+* Separated code into services.
+* Refactored many methods to avoid reading/manipulating values straight from the RawEditor context.
+  This reduces the coupling, enabling us to isolate code into services that can be unit tested.
+* Merged Editor and RawEditor.
 
 ## [0.0.2]
 * Custom highlights

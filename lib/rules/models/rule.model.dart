@@ -1,5 +1,5 @@
 import '../../delta/models/delta.model.dart';
-import '../../documents/models/attribute.dart';
+import '../../documents/models/attribute.model.dart';
 import 'rule-type.enum.dart';
 
 abstract class RuleM {
@@ -10,7 +10,7 @@ abstract class RuleM {
     int index, {
     int? len,
     Object? data,
-    Attribute? attribute,
+    AttributeM? attribute,
   }) {
     validateArgs(len, data, attribute);
     return applyRule(
@@ -25,7 +25,7 @@ abstract class RuleM {
   void validateArgs(
     int? len,
     Object? data,
-    Attribute? attribute,
+    AttributeM? attribute,
   );
 
   // Applies heuristic rule to an operation on a [document] and returns
@@ -35,7 +35,7 @@ abstract class RuleM {
     int index, {
     int? len,
     Object? data,
-    Attribute? attribute,
+    AttributeM? attribute,
   });
 
   RuleTypeE get type;

@@ -1,5 +1,5 @@
-import '../../../documents/models/attribute.dart';
-import '../../../documents/models/document.dart';
+import '../../../documents/models/attribute.model.dart';
+import '../../../documents/models/document.model.dart';
 import '../../../rules/models/rule-type.enum.dart';
 import '../../delta/models/delta.model.dart';
 import '../models/rule.model.dart';
@@ -13,8 +13,8 @@ class Rules {
   Rules(this._rules);
 
   List<RuleM> _customRules = [];
-
   final List<RuleM> _rules;
+
   static final Rules _instance = Rules([
     const FormatLinkAtCaretPositionRule(),
     const ResolveLineFormatRule(),
@@ -43,15 +43,16 @@ class Rules {
 
   DeltaM apply(
     RuleTypeE ruleType,
-    Document document,
+    DocumentM document,
     int index, {
     int? len,
     Object? data,
-    Attribute? attribute,
+    AttributeM? attribute,
   }) {
     final delta = document.toDelta();
 
     for (final rule in _customRules + _rules) {
+
       if (rule.type != ruleType) {
         continue;
       }

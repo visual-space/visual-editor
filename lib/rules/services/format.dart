@@ -1,6 +1,7 @@
 import '../../delta/models/delta.model.dart';
 import '../../delta/models/operation.model.dart';
-import '../../documents/models/attribute.dart';
+import '../../documents/models/attribute-scope.enum.dart';
+import '../../documents/models/attribute.model.dart';
 import '../models/format-rule.model.dart';
 
 /// Produces Delta with line-level attributes applied strictly to newline characters.
@@ -13,20 +14,21 @@ class ResolveLineFormatRule extends FormatRuleM {
     int index, {
     int? len,
     Object? data,
-    Attribute? attribute,
+    AttributeM? attribute,
   }) {
     if (attribute!.scope != AttributeScope.BLOCK) {
       return null;
     }
 
-    // Apply line styles to all newline characters within range of this
-    // retain operation.
+    // Apply line styles to all newline characters within range of this retain operation.
     var result = DeltaM()..retain(index);
     final itr = DeltaIterator(document)..skip(index);
     Operation op;
+
     for (var cur = 0; cur < len! && itr.hasNext; cur += op.length!) {
       op = itr.next(len - cur);
       final opText = op.data is String ? op.data as String : '';
+
       if (!opText.contains('\n')) {
         result.retain(op.length!);
         continue;
@@ -35,11 +37,13 @@ class ResolveLineFormatRule extends FormatRuleM {
       final delta = _applyAttribute(opText, op, attribute);
       result = result.concat(delta);
     }
+
     // And include extra newline after retain
     while (itr.hasNext) {
       op = itr.next();
       final opText = op.data is String ? op.data as String : '';
       final lf = opText.indexOf('\n');
+
       if (lf < 0) {
         result.retain(op.length!);
         continue;
@@ -49,19 +53,21 @@ class ResolveLineFormatRule extends FormatRuleM {
       result = result.concat(delta);
       break;
     }
+
     return result;
   }
 
   DeltaM _applyAttribute(
     String text,
     Operation op,
-    Attribute attribute, {
+    AttributeM attribute, {
     bool firstOnly = false,
   }) {
     final result = DeltaM();
     var offset = 0;
     var lf = text.indexOf('\n');
     final removedBlocks = _getRemovedBlocks(attribute, op);
+
     while (lf >= 0) {
       final actualStyle = attribute.toJson()..addEntries(removedBlocks);
       result
@@ -77,21 +83,22 @@ class ResolveLineFormatRule extends FormatRuleM {
     }
     // Retain any remaining characters in text
     result.retain(text.length - offset);
+
     return result;
   }
 
   Iterable<MapEntry<String, dynamic>> _getRemovedBlocks(
-    Attribute<dynamic> attribute,
+    AttributeM<dynamic> attribute,
     Operation op,
   ) {
     // Enforce Block Format exclusivity by rule
-    if (!Attribute.exclusiveBlockKeys.contains(attribute.key)) {
+    if (!AttributeM.exclusiveBlockKeys.contains(attribute.key)) {
       return <MapEntry<String, dynamic>>[];
     }
 
     return op.attributes?.keys
             .where((key) =>
-                Attribute.exclusiveBlockKeys.contains(key) &&
+                AttributeM.exclusiveBlockKeys.contains(key) &&
                 attribute.key != key &&
                 attribute.value != null)
             .map((key) => MapEntry<String, dynamic>(key, null)) ??
@@ -109,9 +116,9 @@ class FormatLinkAtCaretPositionRule extends FormatRuleM {
     int index, {
     int? len,
     Object? data,
-    Attribute? attribute,
+    AttributeM? attribute,
   }) {
-    if (attribute!.key != Attribute.link.key || len! > 0) {
+    if (attribute!.key != AttributeM.link.key || len! > 0) {
       return null;
     }
 
@@ -119,13 +126,16 @@ class FormatLinkAtCaretPositionRule extends FormatRuleM {
     final itr = DeltaIterator(document);
     final before = itr.skip(index), after = itr.next();
     int? beg = index, retain = 0;
+
     if (before != null && before.hasAttribute(attribute.key)) {
       beg -= before.length!;
       retain = before.length;
     }
+
     if (after.hasAttribute(attribute.key)) {
       if (retain != null) retain += after.length!;
     }
+
     if (retain == 0) {
       return null;
     }
@@ -133,6 +143,7 @@ class FormatLinkAtCaretPositionRule extends FormatRuleM {
     delta
       ..retain(beg)
       ..retain(retain!, attribute.toJson());
+
     return delta;
   }
 }
@@ -148,7 +159,7 @@ class ResolveInlineFormatRule extends FormatRuleM {
     int index, {
     int? len,
     Object? data,
-    Attribute? attribute,
+    AttributeM? attribute,
   }) {
     if (attribute!.scope != AttributeScope.INLINE) {
       return null;
@@ -156,17 +167,20 @@ class ResolveInlineFormatRule extends FormatRuleM {
 
     final delta = DeltaM()..retain(index);
     final itr = DeltaIterator(document)..skip(index);
-
     Operation op;
+
     for (var cur = 0; cur < len! && itr.hasNext; cur += op.length!) {
       op = itr.next(len - cur);
       final text = op.data is String ? (op.data as String?)! : '';
       var lineBreak = text.indexOf('\n');
+
       if (lineBreak < 0) {
         delta.retain(op.length!, attribute.toJson());
         continue;
       }
+
       var pos = 0;
+
       while (lineBreak >= 0) {
         delta
           ..retain(lineBreak - pos, attribute.toJson())
@@ -174,6 +188,7 @@ class ResolveInlineFormatRule extends FormatRuleM {
         pos = lineBreak + 1;
         lineBreak = text.indexOf('\n', pos);
       }
+
       if (pos < op.length!) {
         delta.retain(op.length! - pos, attribute.toJson());
       }
@@ -193,9 +208,9 @@ class ResolveImageFormatRule extends FormatRuleM {
     int index, {
     int? len,
     Object? data,
-    Attribute? attribute,
+    AttributeM? attribute,
   }) {
-    if (attribute == null || attribute.key != Attribute.style.key) {
+    if (attribute == null || attribute.key != AttributeM.style.key) {
       return null;
     }
 

@@ -1,13 +1,13 @@
 import 'package:flutter/rendering.dart';
 
 import '../../blocks/models/editable-box-renderer.model.dart';
-import '../../editor/services/editor-renderer.utils.dart';
+import '../../editor/services/lines-blocks.service.dart';
 import '../../editor/state/editor-renderer.state.dart';
 import 'text-selection.utils.dart';
 
 class SelectionActionsUtils {
   final _textSelectionUtils = TextSelectionUtils();
-  final _editorRendererUtils = EditorRendererUtils();
+  final _linesBlocksService = LinesBlocksService();
   final _editorRendererState = EditorRendererState();
   static final _instance = SelectionActionsUtils._privateConstructor();
 
@@ -24,7 +24,7 @@ class SelectionActionsUtils {
     TextSelection textSelection,
   ) {
     if (textSelection.isCollapsed) {
-      final child = _editorRendererUtils.childAtPosition(textSelection.extent);
+      final child = _linesBlocksService.childAtPosition(textSelection.extent);
       final localPosition = TextPosition(
         offset: textSelection.extentOffset - child.container.offset,
       );
@@ -78,7 +78,7 @@ class SelectionActionsUtils {
           false,
         )
         .node;
-    RenderEditableBox? extentChild = baseChild;
+    EditableBoxRenderer? extentChild = baseChild;
 
     while (extentChild != null) {
       if (extentChild.container == extentNode) {

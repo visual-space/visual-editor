@@ -21,6 +21,7 @@ bool isKeyboardOS([TargetPlatform? targetPlatform]) {
 
 bool isAppleOS([TargetPlatform? targetPlatform]) {
   targetPlatform ??= defaultTargetPlatform;
+
   return {
     TargetPlatform.macOS,
     TargetPlatform.iOS,
@@ -33,5 +34,6 @@ Future<bool> isIOSSimulator() async {
     final iosInfo = await deviceInfo.iosInfo;
     return !iosInfo.isPhysicalDevice;
   }
+
   return false;
 }

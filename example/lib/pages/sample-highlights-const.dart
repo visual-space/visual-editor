@@ -8,13 +8,13 @@ final SAMPLE_HIGHLIGHTS = [
         extentOffset: 280,
       ),
       onEnter: (_) {
-        print('Entering highlight 1');
+        // print('Entering highlight 1');
       },
       onLeave: (_) {
-        print('Leaving highlight 1');
+        // print('Leaving highlight 1');
       },
       onSingleTapUp: (_) {
-        print('Tapped highlight 1');
+        // print('Tapped highlight 1');
       }
   ),
   HighlightM(
@@ -23,13 +23,13 @@ final SAMPLE_HIGHLIGHTS = [
       extentOffset: 450,
     ),
     onEnter: (_) {
-      print('Entering highlight 2');
+      // print('Entering highlight 2');
     },
     onLeave: (_) {
-      print('Leaving highlight 2');
+      // print('Leaving highlight 2');
     },
     onSingleTapUp: (_) {
-      print('Tapped highlight 2');
+      // print('Tapped highlight 2');
     },
   ),
 ];

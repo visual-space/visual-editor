@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 import '../../../controller/services/editor-controller.dart';
-import '../../../documents/models/attribute.dart';
-import '../../../documents/models/style.dart';
+import '../../../documents/models/attribute.model.dart';
+import '../../../documents/models/style.model.dart';
+import '../../../documents/models/styling-attributes.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
 import '../../../shared/translations/toolbar.i18n.dart';
 import '../../../shared/utils/color.utils.dart';
 import '../toolbar.dart';
 
-/// Controls color styles.
-/// When pressed, this button displays overlay buttons with buttons for each color.
+// Controls color styles.
+// When pressed, this button displays overlay buttons with buttons for each color.
 class ColorButton extends StatefulWidget {
   final IconData icon;
   final double iconSize;
@@ -22,7 +23,7 @@ class ColorButton extends StatefulWidget {
     required this.icon,
     required this.controller,
     required this.background,
-    this.iconSize = kDefaultIconSize,
+    this.iconSize = defaultIconSize,
     this.iconTheme,
     Key? key,
   }) : super(key: key);
@@ -37,7 +38,7 @@ class _ColorButtonState extends State<ColorButton> {
   late bool _isWhite;
   late bool _isWhiteBackground;
 
-  Style get _selectionStyle => widget.controller.getSelectionStyle();
+  StyleM get _selectionStyle => widget.controller.getSelectionStyle();
 
   void _didChangeEditingValue() {
     setState(() {
@@ -66,17 +67,18 @@ class _ColorButtonState extends State<ColorButton> {
     widget.controller.addListener(_didChangeEditingValue);
   }
 
-  bool _getIsToggledColor(Map<String, Attribute> attrs) {
-    return attrs.containsKey(Attribute.color.key);
+  bool _getIsToggledColor(Map<String, AttributeM> attrs) {
+    return attrs.containsKey(AttributeM.color.key);
   }
 
-  bool _getIsToggledBackground(Map<String, Attribute> attrs) {
-    return attrs.containsKey(Attribute.background.key);
+  bool _getIsToggledBackground(Map<String, AttributeM> attrs) {
+    return attrs.containsKey(AttributeM.background.key);
   }
 
   @override
   void didUpdateWidget(covariant ColorButton oldWidget) {
     super.didUpdateWidget(oldWidget);
+
     if (oldWidget.controller != widget.controller) {
       oldWidget.controller.removeListener(_didChangeEditingValue);
       widget.controller.addListener(_didChangeEditingValue);
@@ -120,7 +122,7 @@ class _ColorButtonState extends State<ColorButton> {
     return IconBtn(
       highlightElevation: 0,
       hoverElevation: 0,
-      size: widget.iconSize * kIconButtonFactor,
+      size: widget.iconSize * iconButtonFactor,
       icon: Icon(
         widget.icon,
         size: widget.iconSize,
@@ -134,12 +136,14 @@ class _ColorButtonState extends State<ColorButton> {
 
   void _changeColor(BuildContext context, Color color) {
     var hex = color.value.toRadixString(16);
+
     if (hex.startsWith('ff')) {
       hex = hex.substring(2);
     }
+
     hex = '#$hex';
     widget.controller.formatSelection(
-      widget.background ? BackgroundAttribute(hex) : ColorAttribute(hex),
+      widget.background ? BackgroundAttributeM(hex) : ColorAttributeM(hex),
     );
     Navigator.of(context).pop();
   }

@@ -1,29 +1,20 @@
 import 'package:flutter/material.dart';
 
 import '../../../controller/services/editor-text.service.dart';
-import '../../../controller/state/editor-controller.state.dart';
 import '../clipboard.service.dart';
 
-// +++ DOC
 class CopySelectionAction extends ContextAction<CopySelectionTextIntent> {
   final _editorTextService = EditorTextService();
   final _clipboardService = ClipboardService();
-  final _editorControllerState = EditorControllerState();
 
   CopySelectionAction();
 
   @override
   void invoke(CopySelectionTextIntent intent, [BuildContext? context]) {
     if (intent.collapseSelection) {
-      _clipboardService.cutSelection(
-        intent.cause,
-        _editorControllerState.controller,
-      );
+      _clipboardService.cutSelection(intent.cause);
     } else {
-      _clipboardService.copySelection(
-        intent.cause,
-        _editorControllerState.controller,
-      );
+      _clipboardService.copySelection(intent.cause);
     }
   }
 

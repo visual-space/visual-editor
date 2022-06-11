@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
 import '../../controller/services/editor-text.service.dart';
-import '../../controller/state/editor-controller.state.dart';
 import '../models/boundaries/base/text-boundary.model.dart';
 import '../models/boundaries/character-boundary.model.dart';
 import '../models/boundaries/collapse-selection.boundary.model.dart';
@@ -23,7 +22,6 @@ import 'clipboard.service.dart';
 class KeyboardActionsService {
   final _editorTextService = EditorTextService();
   final _editorRendererState = EditorRendererState();
-  final _editorControllerState = EditorControllerState();
   final _clipboardService = ClipboardService();
 
   static final _instance = KeyboardActionsService._privateConstructor();
@@ -105,10 +103,7 @@ class KeyboardActionsService {
         ),
         PasteTextIntent: _makeOverridable(
           CallbackAction<PasteTextIntent>(
-            onInvoke: (intent) => _clipboardService.pasteText(
-              intent.cause,
-              _editorControllerState.controller,
-            ),
+            onInvoke: (intent) => _clipboardService.pasteText(intent.cause),
           ),
           context,
         ),

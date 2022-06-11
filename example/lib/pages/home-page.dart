@@ -10,7 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:tuple/tuple.dart';
-import 'package:visual_editor/visual-editor.dart' hide Text;
+import 'package:visual_editor/visual-editor.dart';
 
 import '../universal_ui/universal-ui.dart';
 import 'read-only-page.dart';
@@ -34,7 +34,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadFromAssets() async {
     try {
       final result = await rootBundle.loadString('assets/sample_data.json');
-      final doc = Document.fromJson(jsonDecode(result));
+      final doc = DocumentM.fromJson(jsonDecode(result));
       setState(() {
         _controller = EditorController(
           document: doc,
@@ -43,7 +43,7 @@ class _HomePageState extends State<HomePage> {
         );
       });
     } catch (error) {
-      final doc = Document()..insert(0, 'Empty asset');
+      final doc = DocumentM()..insert(0, 'Empty asset');
       setState(() {
         _controller = EditorController(
           document: doc,
@@ -96,10 +96,10 @@ class _HomePageState extends State<HomePage> {
                 .keys
                 .contains('bold')) {
               _controller!.formatSelection(
-                Attribute.clone(Attribute.bold, null),
+                AttributeM.clone(AttributeM.bold, null),
               );
             } else {
-              _controller!.formatSelection(Attribute.bold);
+              _controller!.formatSelection(AttributeM.bold);
             }
           }
         },

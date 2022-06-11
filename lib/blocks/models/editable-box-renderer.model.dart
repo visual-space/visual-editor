@@ -1,13 +1,14 @@
 import 'package:flutter/rendering.dart';
 
-import '../../documents/models/nodes/container.dart';
+import '../../documents/models/nodes/container.model.dart';
 
+// +++ REMOVE MIGRATE
 // Base class for render boxes of editable blocks.
 // Implementations of this class usually work as a wrapper around
 // regular (non-editable) render boxes which implement RenderContentProxyBox.
-abstract class RenderEditableBox extends RenderBox {
+abstract class EditableBoxRenderer extends RenderBox {
   // The document node represented by this render box.
-  Container get container;
+  ContainerM get container;
 
   // Returns preferred line height at specified `position` in text.
   // The `position` parameter must be relative to the node's blocks.

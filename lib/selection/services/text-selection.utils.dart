@@ -4,14 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import '../../controller/state/document.state.dart';
-import '../../documents/models/nodes/node.dart';
-import '../../editor/services/editor-renderer.utils.dart';
+import '../../documents/models/nodes/node.model.dart';
+import '../../editor/services/lines-blocks.service.dart';
 import '../../editor/state/editor-renderer.state.dart';
 import '../../editor/widgets/editable-container-box-renderer.dart';
 
 class TextSelectionUtils {
   final _documentState = DocumentState();
-  final _editorRendererUtils = EditorRendererUtils();
+  final _linesBlocksService = LinesBlocksService();
   final _editorRendererState = EditorRendererState();
 
   factory TextSelectionUtils() => _instance;
@@ -25,7 +25,7 @@ class TextSelectionUtils {
   // The local selection is computed as the union between the extent of the text
   // selection and the extend of the line of text.
   TextSelection getLocalSelection(
-    Node node,
+    NodeM node,
     TextSelection selection,
     fromParent,
   ) {
@@ -78,7 +78,7 @@ class TextSelectionUtils {
     TextPosition position,
     EditableContainerBoxRenderer renderer,
   ) {
-    final child = _editorRendererUtils.childAtPosition(position);
+    final child = _linesBlocksService.childAtPosition(position);
     final nodeOffset = child.container.offset;
     final localPosition = TextPosition(
       offset: position.offset - nodeOffset,
@@ -100,7 +100,7 @@ class TextSelectionUtils {
     TextPosition position,
     EditableContainerBoxRenderer renderer,
   ) {
-    final child = _editorRendererUtils.childAtPosition(position);
+    final child = _linesBlocksService.childAtPosition(position);
     final nodeOffset = child.container.offset;
     final localPosition = TextPosition(
       offset: position.offset - nodeOffset,
@@ -120,7 +120,7 @@ class TextSelectionUtils {
     TextPosition position,
     EditableContainerBoxRenderer renderer,
   ) {
-    final child = _editorRendererUtils.childAtPosition(position);
+    final child = _linesBlocksService.childAtPosition(position);
     final localPosition = TextPosition(
       offset: position.offset - child.container.documentOffset,
     );
@@ -158,7 +158,7 @@ class TextSelectionUtils {
     TextPosition position,
     EditableContainerBoxRenderer renderer,
   ) {
-    final child = _editorRendererUtils.childAtPosition(position);
+    final child = _linesBlocksService.childAtPosition(position);
     final localPosition = TextPosition(
       offset: position.offset - child.container.documentOffset,
     );

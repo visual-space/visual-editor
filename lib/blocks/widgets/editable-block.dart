@@ -1,31 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
-import '../../documents/models/nodes/block.dart';
-import 'text-block-renderer.dart';
+
+import '../../documents/models/nodes/block.model.dart';
+import 'editable-text-block-renderer.dart';
 
 class EditableBlock extends MultiChildRenderObjectWidget {
-  final Block block;
+  final BlockM block;
   final TextDirection textDirection;
   final Tuple2<double, double> padding;
-  final double scrollBottomInset;
   final Decoration decoration;
-  final EdgeInsets? contentPadding;
+  final bool isCodeBlock;
 
   EditableBlock({
     required this.block,
     required this.textDirection,
     required this.padding,
-    required this.scrollBottomInset,
     required this.decoration,
-    required this.contentPadding,
+    required this.isCodeBlock,
     required List<Widget> children,
     Key? key,
-  }) : super(key: key, children: children);
+  }) : super(
+          key: key,
+          children: children,
+        );
 
-  EdgeInsets get _padding =>
-      EdgeInsets.only(top: padding.item1, bottom: padding.item2);
-
-  EdgeInsets get _contentPadding => contentPadding ?? EdgeInsets.zero;
+  EdgeInsets get _padding => EdgeInsets.only(
+        top: padding.item1,
+        bottom: padding.item2,
+      );
 
   @override
   EditableTextBlockRenderer createRenderObject(BuildContext context) {
@@ -33,9 +35,8 @@ class EditableBlock extends MultiChildRenderObjectWidget {
       block: block,
       textDirection: textDirection,
       padding: _padding,
-      scrollBottomInset: scrollBottomInset,
       decoration: decoration,
-      contentPadding: _contentPadding,
+      isCodeBlock: isCodeBlock,
     );
   }
 
@@ -47,9 +48,6 @@ class EditableBlock extends MultiChildRenderObjectWidget {
     renderObject
       ..setContainer(block)
       ..textDirection = textDirection
-      ..scrollBottomInset = scrollBottomInset
-      ..setPadding(_padding)
-      ..decoration = decoration
-      ..contentPadding = _contentPadding;
+      ..decoration = decoration;
   }
 }

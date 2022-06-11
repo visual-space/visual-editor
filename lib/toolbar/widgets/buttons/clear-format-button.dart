@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../controller/services/editor-controller.dart';
-import '../../../documents/models/attribute.dart';
+import '../../../documents/models/attribute.model.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
 import '../toolbar.dart';
 
@@ -14,7 +14,7 @@ class ClearFormatButton extends StatefulWidget {
   const ClearFormatButton({
     required this.icon,
     required this.controller,
-    this.iconSize = kDefaultIconSize,
+    this.iconSize = defaultIconSize,
     this.iconTheme,
     Key? key,
   }) : super(key: key);
@@ -34,7 +34,7 @@ class _ClearFormatButtonState extends State<ClearFormatButton> {
     return IconBtn(
         highlightElevation: 0,
         hoverElevation: 0,
-        size: widget.iconSize * kIconButtonFactor,
+        size: widget.iconSize * iconButtonFactor,
         icon: Icon(
           widget.icon,
           size: widget.iconSize,
@@ -43,7 +43,7 @@ class _ClearFormatButtonState extends State<ClearFormatButton> {
         fillColor: fillColor,
         borderRadius: widget.iconTheme?.borderRadius ?? 2,
         onPressed: () {
-          final attrs = <Attribute>{};
+          final attrs = <AttributeM>{};
           for (final style in widget.controller.getAllSelectionStyles()) {
             for (final attr in style.attributes.values) {
               attrs.add(attr);
@@ -51,7 +51,7 @@ class _ClearFormatButtonState extends State<ClearFormatButton> {
           }
           for (final attr in attrs) {
             widget.controller.formatSelection(
-              Attribute.clone(attr, null),
+              AttributeM.clone(attr, null),
             );
           }
         });

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../controller/services/editor-controller.dart';
-import '../../../documents/models/attribute.dart';
-import '../../../documents/models/style.dart';
+import '../../../documents/models/attribute.model.dart';
+import '../../../documents/models/style.model.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
 import '../../models/toggle-style-button-builder.type.dart';
 import '../toolbar.dart';
@@ -13,14 +13,14 @@ class ToggleCheckListButton extends StatefulWidget {
   final Color? fillColor;
   final EditorController controller;
   final ToggleStyleButtonBuilder childBuilder;
-  final Attribute attribute;
+  final AttributeM attribute;
   final EditorIconThemeM? iconTheme;
 
   const ToggleCheckListButton({
     required this.icon,
     required this.controller,
     required this.attribute,
-    this.iconSize = kDefaultIconSize,
+    this.iconSize = defaultIconSize,
     this.fillColor,
     this.childBuilder = defaultToggleStyleButtonBuilder,
     this.iconTheme,
@@ -34,7 +34,7 @@ class ToggleCheckListButton extends StatefulWidget {
 class _ToggleCheckListButtonState extends State<ToggleCheckListButton> {
   bool? _isToggled;
 
-  Style get _selectionStyle => widget.controller.getSelectionStyle();
+  StyleM get _selectionStyle => widget.controller.getSelectionStyle();
 
   void _didChangeEditingValue() {
     setState(() {
@@ -50,21 +50,21 @@ class _ToggleCheckListButtonState extends State<ToggleCheckListButton> {
     widget.controller.addListener(_didChangeEditingValue);
   }
 
-  bool _getIsToggled(Map<String, Attribute> attrs) {
-    var attribute = widget.controller.toolbarButtonToggler[Attribute.list.key];
+  bool _getIsToggled(Map<String, AttributeM> attrs) {
+    var attribute = widget.controller.toolbarButtonToggler[AttributeM.list.key];
 
     if (attribute == null) {
-      attribute = attrs[Attribute.list.key];
+      attribute = attrs[AttributeM.list.key];
     } else {
       // checkbox tapping causes controller.selection to go to offset 0
-      widget.controller.toolbarButtonToggler.remove(Attribute.list.key);
+      widget.controller.toolbarButtonToggler.remove(AttributeM.list.key);
     }
 
     if (attribute == null) {
       return false;
     }
-    return attribute.value == Attribute.unchecked.value ||
-        attribute.value == Attribute.checked.value;
+    return attribute.value == AttributeM.unchecked.value ||
+        attribute.value == AttributeM.checked.value;
   }
 
   @override
@@ -87,7 +87,7 @@ class _ToggleCheckListButtonState extends State<ToggleCheckListButton> {
   Widget build(BuildContext context) {
     return widget.childBuilder(
       context,
-      Attribute.unchecked,
+      AttributeM.unchecked,
       widget.icon,
       widget.fillColor,
       _isToggled,
@@ -100,8 +100,8 @@ class _ToggleCheckListButtonState extends State<ToggleCheckListButton> {
   void _toggleAttribute() {
     widget.controller.formatSelection(
       _isToggled!
-          ? Attribute.clone(Attribute.unchecked, null)
-          : Attribute.unchecked,
+          ? AttributeM.clone(AttributeM.unchecked, null)
+          : AttributeM.unchecked,
     );
   }
 }

@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../controller/services/editor-controller.dart';
-import '../../../documents/models/attribute.dart';
-import '../../../documents/models/style.dart';
+import '../../../documents/models/attribute.model.dart';
+import '../../../documents/models/style.model.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
 import '../toolbar.dart';
 
@@ -14,7 +14,7 @@ class SelectHeaderStyleButton extends StatefulWidget {
 
   const SelectHeaderStyleButton({
     required this.controller,
-    this.iconSize = kDefaultIconSize,
+    this.iconSize = defaultIconSize,
     this.iconTheme,
     Key? key,
   }) : super(key: key);
@@ -25,9 +25,9 @@ class SelectHeaderStyleButton extends StatefulWidget {
 }
 
 class _SelectHeaderStyleButtonState extends State<SelectHeaderStyleButton> {
-  Attribute? _value;
+  AttributeM? _value;
 
-  Style get _selectionStyle => widget.controller.getSelectionStyle();
+  StyleM get _selectionStyle => widget.controller.getSelectionStyle();
 
   @override
   void initState() {
@@ -40,18 +40,18 @@ class _SelectHeaderStyleButtonState extends State<SelectHeaderStyleButton> {
 
   @override
   Widget build(BuildContext context) {
-    final _valueToText = <Attribute, String>{
-      Attribute.header: 'N',
-      Attribute.h1: 'H1',
-      Attribute.h2: 'H2',
-      Attribute.h3: 'H3',
+    final _valueToText = <AttributeM, String>{
+      AttributeM.header: 'N',
+      AttributeM.h1: 'H1',
+      AttributeM.h2: 'H2',
+      AttributeM.h3: 'H3',
     };
 
-    final _valueAttribute = <Attribute>[
-      Attribute.header,
-      Attribute.h1,
-      Attribute.h2,
-      Attribute.h3
+    final _valueAttribute = <AttributeM>[
+      AttributeM.header,
+      AttributeM.h1,
+      AttributeM.h2,
+      AttributeM.h3
     ];
     final _valueString = <String>['N', 'H1', 'H2', 'H3'];
 
@@ -71,8 +71,8 @@ class _SelectHeaderStyleButtonState extends State<SelectHeaderStyleButton> {
           ),
           child: ConstrainedBox(
             constraints: BoxConstraints.tightFor(
-              width: widget.iconSize * kIconButtonFactor,
-              height: widget.iconSize * kIconButtonFactor,
+              width: widget.iconSize * iconButtonFactor,
+              height: widget.iconSize * iconButtonFactor,
             ),
             child: RawMaterialButton(
               hoverElevation: 0,
@@ -115,14 +115,14 @@ class _SelectHeaderStyleButtonState extends State<SelectHeaderStyleButton> {
     });
   }
 
-  Attribute<dynamic> _getHeaderValue() {
-    final attr = widget.controller.toolbarButtonToggler[Attribute.header.key];
+  AttributeM<dynamic> _getHeaderValue() {
+    final attr = widget.controller.toolbarButtonToggler[AttributeM.header.key];
     if (attr != null) {
       // Checkbox tapping causes controller.selection to go to offset 0
-      widget.controller.toolbarButtonToggler.remove(Attribute.header.key);
+      widget.controller.toolbarButtonToggler.remove(AttributeM.header.key);
       return attr;
     }
-    return _selectionStyle.attributes[Attribute.header.key] ?? Attribute.header;
+    return _selectionStyle.attributes[AttributeM.header.key] ?? AttributeM.header;
   }
 
   @override

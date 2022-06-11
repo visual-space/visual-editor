@@ -1,4 +1,4 @@
-import '../../documents/models/attribute.dart';
+import '../../documents/models/attribute.model.dart';
 import '../models/rule-type.enum.dart';
 import '../models/rule.model.dart';
 
@@ -10,7 +10,7 @@ abstract class DeleteRuleM extends RuleM {
   RuleTypeE get type => RuleTypeE.DELETE;
 
   @override
-  void validateArgs(int? len, Object? data, Attribute? attribute) {
+  void validateArgs(int? len, Object? data, AttributeM? attribute) {
     assert(len != null);
     assert(data == null);
     assert(attribute == null);

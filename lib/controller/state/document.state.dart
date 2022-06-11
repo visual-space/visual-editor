@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import '../../documents/models/document.dart';
+import '../../documents/models/document.model.dart';
 
 class DocumentState {
   factory DocumentState() => _instance;
@@ -8,14 +8,14 @@ class DocumentState {
 
   DocumentState._privateConstructor();
 
-  final _document$ = StreamController<Document>.broadcast();
-  Document _document = Document();
+  final _document$ = StreamController<DocumentM>.broadcast();
+  DocumentM _document = DocumentM();
 
-  Stream<Document> get document$ => _document$.stream;
+  Stream<DocumentM> get document$ => _document$.stream;
 
-  Document get document => _document;
+  DocumentM get document => _document;
 
-  void setDocument(Document document) {
+  void setDocument(DocumentM document) {
     _document = document;
     _document$.sink.add(document);
   }

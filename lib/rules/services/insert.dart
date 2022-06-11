@@ -2,15 +2,16 @@ import 'package:tuple/tuple.dart';
 
 import '../../delta/models/delta.model.dart';
 import '../../delta/models/operation.model.dart';
-import '../../documents/models/attribute.dart';
-import '../../documents/models/document.dart';
-import '../../documents/models/nodes/embeddable.dart';
-import '../../documents/models/style.dart';
+import '../../documents/models/attribute.model.dart';
+import '../../documents/models/document.model.dart';
+import '../../documents/models/nodes/block-embed.model.dart';
+import '../../documents/models/style.model.dart';
+import '../../documents/models/styling-attributes.dart';
 import '../models/insert-rule.model.dart';
 
-/// Preserves line format when user splits the line into two.
-/// This rule ignores scenarios when the line is split on its edge,
-/// meaning a newline is inserted at the beginning or the end of a line.
+// Preserves line format when user splits the line into two.
+// This rule ignores scenarios when the line is split on its edge,
+// meaning a newline is inserted at the beginning or the end of a line.
 class PreserveLineStyleOnSplitRule extends InsertRuleM {
   const PreserveLineStyleOnSplitRule();
 
@@ -20,7 +21,7 @@ class PreserveLineStyleOnSplitRule extends InsertRuleM {
     int index, {
     int? len,
     Object? data,
-    Attribute? attribute,
+    AttributeM? attribute,
   }) {
     if (data is! String || data != '\n') {
       return null;
@@ -28,24 +29,28 @@ class PreserveLineStyleOnSplitRule extends InsertRuleM {
 
     final itr = DeltaIterator(document);
     final before = itr.skip(index);
+
     if (before == null ||
         before.data is! String ||
         (before.data as String).endsWith('\n')) {
       return null;
     }
+
     final after = itr.next();
+
     if (after.data is! String || (after.data as String).startsWith('\n')) {
       return null;
     }
 
     final text = after.data as String;
-
     final delta = DeltaM()..retain(index + (len ?? 0));
+
     if (text.contains('\n')) {
       assert(after.isPlain);
       delta.insert('\n');
       return delta;
     }
+
     final nextNewLine = _getNextNewLine(itr);
     final attributes = nextNewLine.item1?.attributes;
 
@@ -53,14 +58,11 @@ class PreserveLineStyleOnSplitRule extends InsertRuleM {
   }
 }
 
-/// Preserves block style when user inserts text containing newlines.
-///
-/// This rule handles:
-///
-///   * inserting a new line in a block
-///   * pasting text containing multiple lines of text in a block
-///
-/// This rule may also be activated for changes triggered by auto-correct.
+// Preserves block style when user inserts text containing newlines.
+// This rule handles:
+//   * inserting a new line in a block
+//   * pasting text containing multiple lines of text in a block
+// This rule may also be activated for changes triggered by auto-correct.
 class PreserveBlockStyleOnInsertRule extends InsertRuleM {
   const PreserveBlockStyleOnInsertRule();
 
@@ -70,7 +72,7 @@ class PreserveBlockStyleOnInsertRule extends InsertRuleM {
     int index, {
     int? len,
     Object? data,
-    Attribute? attribute,
+    AttributeM? attribute,
   }) {
     if (data is! String || !data.contains('\n')) {
       // Only interested in text containing at least one newline character.
@@ -81,29 +83,30 @@ class PreserveBlockStyleOnInsertRule extends InsertRuleM {
 
     // Look for the next newline.
     final nextNewLine = _getNextNewLine(itr);
-    final lineStyle = Style.fromJson(
+    final lineStyle = StyleM.fromJson(
       nextNewLine.item1?.attributes ?? <String, dynamic>{},
     );
-
     final blockStyle = lineStyle.getBlocksExceptHeader();
+
     // Are we currently in a block? If not then ignore.
     if (blockStyle.isEmpty) {
       return null;
     }
 
     final resetStyle = <String, dynamic>{};
-    // If current line had heading style applied to it we'll need to move this
-    // style to the newly inserted line before it and reset style of the
-    // original line.
-    if (lineStyle.containsKey(Attribute.header.key)) {
+
+    // If current line had heading style applied to it we'll need to move this style to
+    // the newly inserted line before it and reset style of the original line.
+    if (lineStyle.containsKey(AttributeM.header.key)) {
       resetStyle.addAll(
-        Attribute.header.toJson(),
+        AttributeM.header.toJson(),
       );
     }
 
     // Go over each inserted line and ensure block style is applied.
     final lines = data.split('\n');
     final delta = DeltaM()..retain(index + (len ?? 0));
+
     for (var i = 0; i < lines.length; i++) {
       final line = lines[i];
 
@@ -115,11 +118,13 @@ class PreserveBlockStyleOnInsertRule extends InsertRuleM {
         // The first line should inherit the lineStyle entirely.
         delta.insert('\n', lineStyle.toJson());
       } else if (i < lines.length - 1) {
-        // we don't want to insert a newline after the last chunk of text, so -1
+        // We don't want to insert a newline after the last chunk of text, so -1
         final blockAttributes = blockStyle.isEmpty
             ? null
-            : blockStyle.map<String, dynamic>((_, attribute) =>
-                MapEntry<String, dynamic>(attribute.key, attribute.value));
+            : blockStyle.map<String, dynamic>(
+                (_, attribute) =>
+                    MapEntry<String, dynamic>(attribute.key, attribute.value),
+              );
         delta.insert('\n', blockAttributes);
       }
     }
@@ -136,12 +141,9 @@ class PreserveBlockStyleOnInsertRule extends InsertRuleM {
   }
 }
 
-/// Heuristic rule to exit current block when user inserts two consecutive
-/// newlines.
-///
-/// This rule is only applied when the cursor is on the last line of a block.
-/// When the cursor is in the middle of a block we allow adding empty lines
-/// and preserving the block's style.
+// Heuristic rule to exit current block when user inserts two consecutive newlines.
+// This rule is only applied when the cursor is on the last line of a block.
+// When the cursor is in the middle of a block we allow adding empty lines and preserving the block's style.
 class AutoExitBlockRule extends InsertRuleM {
   const AutoExitBlockRule();
 
@@ -162,7 +164,7 @@ class AutoExitBlockRule extends InsertRuleM {
     int index, {
     int? len,
     Object? data,
-    Attribute? attribute,
+    AttributeM? attribute,
   }) {
     if (data is! String || data != '\n') {
       return null;
@@ -170,7 +172,7 @@ class AutoExitBlockRule extends InsertRuleM {
 
     final itr = DeltaIterator(document);
     final prev = itr.skip(index), cur = itr.next();
-    final blockStyle = Style.fromJson(cur.attributes).getBlockExceptHeader();
+    final blockStyle = StyleM.fromJson(cur.attributes).getBlockExceptHeader();
 
     // We are not in a block, ignore.
     if (cur.isPlain || blockStyle == null) {
@@ -182,24 +184,21 @@ class AutoExitBlockRule extends InsertRuleM {
       return null;
     }
 
-    // We are on an empty line. Now we need to determine if we are on the
-    // last line of a block.
-    // First check if `cur` length is greater than 1, this would indicate
-    // that it contains multiple newline characters which share the same style.
+    // We are on an empty line. Now we need to determine if we are on the last line of a block.
+    // First check if `cur` length is greater than 1, this would indicate that it contains
+    // $multiple newline characters which share the same style.
     // This would mean we are not on the last line yet.
-    // `cur.value as String` is safe since we already called isEmptyLine and
-    // know it contains a newline
+    // `cur.value as String` is safe since we already called isEmptyLine and know it contains a newline
     if ((cur.value as String).length > 1) {
       // We are not on the last line of this block, ignore.
       return null;
     }
 
-    // Keep looking for the next newline character to see if it shares the same
-    // block style as `cur`.
+    // Keep looking for the next newline character to see if it shares the same block style as `cur`.
     final nextNewLine = _getNextNewLine(itr);
     if (nextNewLine.item1 != null &&
         nextNewLine.item1!.attributes != null &&
-        Style.fromJson(nextNewLine.item1!.attributes).getBlockExceptHeader() ==
+        StyleM.fromJson(nextNewLine.item1!.attributes).getBlockExceptHeader() ==
             blockStyle) {
       // We are not at the end of this block, ignore.
       return null;
@@ -209,7 +208,7 @@ class AutoExitBlockRule extends InsertRuleM {
     // therefore we can exit this block.
     final attributes = cur.attributes ?? <String, dynamic>{};
     final k = attributes.keys.firstWhere(
-      Attribute.blockKeysExceptHeader.contains,
+      AttributeM.blockKeysExceptHeader.contains,
     );
     attributes[k] = null;
 
@@ -220,9 +219,9 @@ class AutoExitBlockRule extends InsertRuleM {
   }
 }
 
-/// Resets format for a newly inserted line when insert occurred at the end of a line (right before a newline).
-/// This handles scenarios when a new line is added when at the end of a heading line.
-/// The newly added line should be a regular paragraph.
+// Resets format for a newly inserted line when insert occurred at the end of a line (right before a newline).
+// This handles scenarios when a new line is added when at the end of a heading line.
+// The newly added line should be a regular paragraph.
 class ResetLineFormatOnNewLineRule extends InsertRuleM {
   const ResetLineFormatOnNewLineRule();
 
@@ -232,7 +231,7 @@ class ResetLineFormatOnNewLineRule extends InsertRuleM {
     int index, {
     int? len,
     Object? data,
-    Attribute? attribute,
+    AttributeM? attribute,
   }) {
     if (data is! String || data != '\n') {
       return null;
@@ -240,15 +239,18 @@ class ResetLineFormatOnNewLineRule extends InsertRuleM {
 
     final itr = DeltaIterator(document)..skip(index);
     final cur = itr.next();
+
     if (cur.data is! String || !(cur.data as String).startsWith('\n')) {
       return null;
     }
 
     Map<String, dynamic>? resetStyle;
+
     if (cur.attributes != null &&
-        cur.attributes!.containsKey(Attribute.header.key)) {
-      resetStyle = Attribute.header.toJson();
+        cur.attributes!.containsKey(AttributeM.header.key)) {
+      resetStyle = AttributeM.header.toJson();
     }
+
     return DeltaM()
       ..retain(index + (len ?? 0))
       ..insert('\n', cur.attributes)
@@ -257,8 +259,8 @@ class ResetLineFormatOnNewLineRule extends InsertRuleM {
   }
 }
 
-/// Handles all format operations which manipulate embeds.
-/// This rule wraps line breaks around video, not image.
+// Handles all format operations which manipulate embeds.
+// This rule wraps line breaks around video, not image.
 class InsertEmbedsRule extends InsertRuleM {
   const InsertEmbedsRule();
 
@@ -268,7 +270,7 @@ class InsertEmbedsRule extends InsertRuleM {
     int index, {
     int? len,
     Object? data,
-    Attribute? attribute,
+    AttributeM? attribute,
   }) {
     if (data is String) {
       return null;
@@ -276,17 +278,15 @@ class InsertEmbedsRule extends InsertRuleM {
 
     assert(data is Map);
 
-    if (!(data as Map).containsKey(BlockEmbed.videoType)) {
+    if (!(data as Map).containsKey(BlockEmbedM.videoType)) {
       return null;
     }
 
     final delta = DeltaM()..retain(index + (len ?? 0));
     final itr = DeltaIterator(document);
     final prev = itr.skip(index), cur = itr.next();
-
     final textBefore = prev?.data is String ? prev!.data as String? : '';
     final textAfter = cur.data is String ? (cur.data as String?)! : '';
-
     final isNewlineBefore = prev == null || textBefore!.endsWith('\n');
     final isNewlineAfter = textAfter.startsWith('\n');
 
@@ -295,6 +295,7 @@ class InsertEmbedsRule extends InsertRuleM {
     }
 
     Map<String, dynamic>? lineStyle;
+
     if (textAfter.contains('\n')) {
       lineStyle = cur.attributes;
     } else {
@@ -310,26 +311,29 @@ class InsertEmbedsRule extends InsertRuleM {
     if (!isNewlineBefore) {
       delta.insert('\n', lineStyle);
     }
+
     delta.insert(data);
+
     if (!isNewlineAfter) {
       delta.insert('\n');
     }
+
     return delta;
   }
 }
 
-/// Applies link format to text segments within the inserted text that matches
-/// the URL pattern.
-///
-/// The link attribute is applied as the user types.
+// Applies link format to text segments within the inserted text that matches
+// the URL pattern.
+//
+// The link attribute is applied as the user types.
 class AutoFormatMultipleLinksRule extends InsertRuleM {
   const AutoFormatMultipleLinksRule();
 
-  /// Link pattern.
-  ///
-  /// This pattern is used to match a links within a text segment.
-  ///
-  /// It works for the following testing URLs:
+  // Link pattern.
+  //
+  // This pattern is used to match a links within a text segment.
+  //
+  // It works for the following testing URLs:
   // www.google.com
   // http://google.com
   // https://www.google.com
@@ -359,13 +363,13 @@ class AutoFormatMultipleLinksRule extends InsertRuleM {
     int index, {
     int? len,
     Object? data,
-    Attribute? attribute,
+    AttributeM? attribute,
   }) {
     // Only format when inserting text.
     if (data is! String) return null;
 
     // Get current text.
-    final entireText = Document.fromDelta(document).toPlainText();
+    final entireText = DocumentM.fromDelta(document).toPlainText();
 
     // Get word before insertion.
     final leftWordPart = entireText
@@ -425,8 +429,8 @@ class AutoFormatMultipleLinksRule extends InsertRuleM {
       // Keep the leading segment of text and add link with its proper
       // attribute.
       formatterDelta
-        ..retain(separationLength, Attribute.link.toJson())
-        ..retain(link.length, LinkAttribute(link).toJson());
+        ..retain(separationLength, AttributeM.link.toJson())
+        ..retain(link.length, LinkAttributeM(link).toJson());
 
       // Update reference index.
       previousLinkEndRelativeIndex = match.end;
@@ -436,15 +440,14 @@ class AutoFormatMultipleLinksRule extends InsertRuleM {
     final remainingLength = affectedWords.length - previousLinkEndRelativeIndex;
 
     // Remove links from remaining non-link text.
-    formatterDelta.retain(remainingLength, Attribute.link.toJson());
+    formatterDelta.retain(remainingLength, AttributeM.link.toJson());
 
     // Build and return resulting change delta.
     return baseDelta.compose(formatterDelta);
   }
 }
 
-/// Applies link format to text segment (which looks like a link) when user
-/// inserts space character after it.
+// Applies link format to text segment (which looks like a link) when user inserts space character after it.
 class AutoFormatLinksRule extends InsertRuleM {
   const AutoFormatLinksRule();
 
@@ -454,7 +457,7 @@ class AutoFormatLinksRule extends InsertRuleM {
     int index, {
     int? len,
     Object? data,
-    Attribute? attribute,
+    AttributeM? attribute,
   }) {
     if (data is! String || data != ' ') {
       return null;
@@ -462,6 +465,7 @@ class AutoFormatLinksRule extends InsertRuleM {
 
     final itr = DeltaIterator(document);
     final prev = itr.skip(index);
+
     if (prev == null || prev.data is! String) {
       return null;
     }
@@ -469,16 +473,19 @@ class AutoFormatLinksRule extends InsertRuleM {
     try {
       final cand = (prev.data as String).split('\n').last.split(' ').last;
       final link = Uri.parse(cand);
+
       if (!['https', 'http'].contains(link.scheme)) {
         return null;
       }
+
       final attributes = prev.attributes ?? <String, dynamic>{};
 
-      if (attributes.containsKey(Attribute.link.key)) {
+      if (attributes.containsKey(AttributeM.link.key)) {
         return null;
       }
 
-      attributes.addAll(LinkAttribute(link.toString()).toJson());
+      attributes.addAll(LinkAttributeM(link.toString()).toJson());
+
       return DeltaM()
         ..retain(index + (len ?? 0) - cand.length)
         ..retain(cand.length, attributes)
@@ -489,7 +496,7 @@ class AutoFormatLinksRule extends InsertRuleM {
   }
 }
 
-/// Preserves inline styles when user inserts text inside formatted segment.
+// Preserves inline styles when user inserts text inside formatted segment.
 class PreserveInlineStylesRule extends InsertRuleM {
   const PreserveInlineStylesRule();
 
@@ -499,7 +506,7 @@ class PreserveInlineStylesRule extends InsertRuleM {
     int index, {
     int? len,
     Object? data,
-    Attribute? attribute,
+    AttributeM? attribute,
   }) {
     if (data is! String || data.contains('\n')) {
       return null;
@@ -507,6 +514,7 @@ class PreserveInlineStylesRule extends InsertRuleM {
 
     final itr = DeltaIterator(document);
     final prev = itr.skip(index);
+
     if (prev == null ||
         prev.data is! String ||
         (prev.data as String).contains('\n')) {
@@ -515,32 +523,35 @@ class PreserveInlineStylesRule extends InsertRuleM {
 
     final attributes = prev.attributes;
     final text = data;
-    if (attributes == null || !attributes.containsKey(Attribute.link.key)) {
+
+    if (attributes == null || !attributes.containsKey(AttributeM.link.key)) {
       return DeltaM()
         ..retain(index + (len ?? 0))
         ..insert(text, attributes);
     }
 
-    attributes.remove(Attribute.link.key);
+    attributes.remove(AttributeM.link.key);
     final delta = DeltaM()
       ..retain(index + (len ?? 0))
       ..insert(text, attributes.isEmpty ? null : attributes);
     final next = itr.next();
-
     final nextAttributes = next.attributes ?? const <String, dynamic>{};
-    if (!nextAttributes.containsKey(Attribute.link.key)) {
+
+    if (!nextAttributes.containsKey(AttributeM.link.key)) {
       return delta;
     }
-    if (attributes[Attribute.link.key] == nextAttributes[Attribute.link.key]) {
+
+    if (attributes[AttributeM.link.key] == nextAttributes[AttributeM.link.key]) {
       return DeltaM()
         ..retain(index + (len ?? 0))
         ..insert(text, attributes);
     }
+
     return delta;
   }
 }
 
-/// Fallback rule which simply inserts text as-is without any special handling.
+// Fallback rule which simply inserts text as-is without any special handling.
 class CatchAllInsertRule extends InsertRuleM {
   const CatchAllInsertRule();
 
@@ -550,7 +561,7 @@ class CatchAllInsertRule extends InsertRuleM {
     int index, {
     int? len,
     Object? data,
-    Attribute? attribute,
+    AttributeM? attribute,
   }) {
     return DeltaM()
       ..retain(index + (len ?? 0))
@@ -560,13 +571,16 @@ class CatchAllInsertRule extends InsertRuleM {
 
 Tuple2<Operation?, int?> _getNextNewLine(DeltaIterator iterator) {
   Operation op;
+
   for (var skipped = 0; iterator.hasNext; skipped += op.length!) {
     op = iterator.next();
     final lineBreak =
         (op.data is String ? op.data as String? : '')!.indexOf('\n');
+
     if (lineBreak >= 0) {
       return Tuple2(op, skipped);
     }
   }
+
   return const Tuple2(null, null);
 }

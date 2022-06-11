@@ -4,7 +4,6 @@ import '../../../controller/services/editor-text.service.dart';
 import '../../models/boundaries/base/text-boundary.model.dart';
 import '../../state/editor-config.state.dart';
 
-// +++ DOC
 class ExtendSelectionOrCaretPositionAction extends ContextAction<
     ExtendSelectionToNextWordBoundaryOrCaretLocationIntent> {
   final _editorTextService = EditorTextService();
@@ -39,7 +38,6 @@ class ExtendSelectionOrCaretPositionAction extends ContextAction<
         ? textBoundary.getTrailingTextBoundaryAt(extent)
         : textBoundary.getLeadingTextBoundaryAt(extent);
 
-    // +++ ALIASES
     final newSelection = (newExtent.offset - textBoundarySelection.baseOffset) *
                 (textBoundarySelection.extentOffset -
                     textBoundarySelection.baseOffset) <

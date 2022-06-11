@@ -2,9 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../blocks/models/custom-builders.type.dart';
+import '../../blocks/models/default-styles.model.dart';
 import '../../blocks/models/link-action.picker.type.dart';
-import '../../blocks/services/default-link-action-picker-delegate.dart';
-import '../../blocks/services/default-styles.utils.dart';
+import '../../blocks/services/default-link-action-picker-delegate.utils.dart';
 import '../../embeds/widgets/default-embed-builder.dart';
 
 // When instantiating a new Visual Editor, developers can control several styling and behaviour options.
@@ -67,7 +67,6 @@ class EditorCfgM {
 
   final DefaultStyles? customStyles;
 
-  // +++ Consider converting to enum
   // Whether this editor's height will be sized to fill its parent.
   // This only has effect if scrollable is set to `true`.
   // If expands is set to true and wrapped in a parent widget like Expanded or SizedBox, the editor will expand to fill the parent.
@@ -87,7 +86,6 @@ class EditorCfgM {
   // The ScrollPhysics to use when vertically scrolling the input.
   // This only has effect if scrollable is set to `true`.
   // If not specified, it will behave according to the current platform.
-  // See Scrollable.physics.
   final ScrollPhysics? scrollPhysics;
 
   // Callback to invoke when user wants to launch a URL.
@@ -125,7 +123,7 @@ class EditorCfgM {
 
   // Renders custom content to be displayed as provided by the client apps.
   // Custom embeds don't work as editable text, they are standalone blocks of content that have their own internal behaviour.
-  final EmbedBuilder embedBuilder;
+  final EmbedBuilder? embedBuilder;
 
   // Styles can be provided to customize the look and feel of the Visual Editor.
   final CustomStyleBuilder? customStyleBuilder;
@@ -138,7 +136,7 @@ class EditorCfgM {
   // VisualEditor provides default implementation which can be overridden by this field to customize the user experience.
   // By default on iOS the menu is displayed with showCupertinoModalPopup which constructs an instance of CupertinoActionSheet.
   // For Android, the menu is displayed with showModalBottomSheet and a list of Material ListTiles.
-  final LinkActionPickerDelegate linkActionPickerDelegate;
+  final LinkActionPickerDelegate? linkActionPickerDelegate;
 
   // A floating cursor will help you to see what is currently under your thumb when moving the caret.
   final bool floatingCursorDisabled;
@@ -182,5 +180,8 @@ class EditorCfgM {
     this.floatingCursorDisabled = false,
     this.forcePressEnabled = false,
     this.textSelectionControls,
-  });
+  })  : assert(maxHeight == null || maxHeight > 0, 'maxHeight cannot be null'),
+        assert(minHeight == null || minHeight >= 0, 'minHeight cannot be null'),
+        assert(maxHeight == null || minHeight == null || maxHeight >= minHeight,
+            'maxHeight cannot be null');
 }

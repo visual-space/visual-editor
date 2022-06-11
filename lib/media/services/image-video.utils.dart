@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../controller/services/editor-controller.dart';
-import '../../documents/models/nodes/embeddable.dart';
+import '../../documents/models/nodes/block-embed.model.dart';
 import '../../shared/translations/toolbar.i18n.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../../toolbar/models/media-pick.enum.dart';
@@ -78,27 +78,27 @@ class ImageVideoUtils {
     }
 
     if (imageUrl != null) {
-      controller.replaceText(index, length, BlockEmbed.image(imageUrl), null);
+      controller.replaceText(index, length, BlockEmbedM.image(imageUrl), null);
     }
   }
 
   // For video picking logic
   static Future<void> handleVideoButtonTap(
-      BuildContext context,
-      EditorController controller,
-      ImageSource videoSource,
-      OnVideoPickCallback onVideoPickCallback, {
-        FilePickImpl? filePickImpl,
-        WebVideoPickImpl? webVideoPickImpl,
-      }) async {
+    BuildContext context,
+    EditorController controller,
+    ImageSource videoSource,
+    OnVideoPickCallback onVideoPickCallback, {
+    FilePickImpl? filePickImpl,
+    WebVideoPickImpl? webVideoPickImpl,
+  }) async {
     final index = controller.selection.baseOffset;
     final length = controller.selection.extentOffset - index;
 
     String? videoUrl;
     if (kIsWeb) {
       assert(
-      webVideoPickImpl != null,
-      'Please provide webVideoPickImpl for Web '
+          webVideoPickImpl != null,
+          'Please provide webVideoPickImpl for Web '
           '(check out example directory for how to do it)');
       videoUrl = await webVideoPickImpl!(onVideoPickCallback);
     } else if (isMobile()) {
@@ -106,11 +106,11 @@ class ImageVideoUtils {
     } else {
       assert(filePickImpl != null, 'Desktop must provide filePickImpl');
       videoUrl =
-      await _pickVideoDesktop(context, filePickImpl!, onVideoPickCallback);
+          await _pickVideoDesktop(context, filePickImpl!, onVideoPickCallback);
     }
 
     if (videoUrl != null) {
-      controller.replaceText(index, length, BlockEmbed.video(videoUrl), null);
+      controller.replaceText(index, length, BlockEmbedM.video(videoUrl), null);
     }
   }
 

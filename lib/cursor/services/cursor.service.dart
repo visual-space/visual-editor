@@ -3,19 +3,21 @@ import 'dart:math' as math;
 import 'package:flutter/rendering.dart';
 
 import '../../controller/state/scroll-controller.state.dart';
-import '../../editor/services/editor-renderer.utils.dart';
+import '../../editor/services/lines-blocks.service.dart';
 import '../../editor/state/editor-renderer.state.dart';
 
 class CursorService {
   static final _scrollControllerState = ScrollControllerState();
   static final _editorRendererState = EditorRendererState();
-  static final _editorRendererUtils = EditorRendererUtils();
+  static final _linesBlocksService = LinesBlocksService();
   static final _instance = CursorService._privateConstructor();
 
   factory CursorService() => _instance;
 
   CursorService._privateConstructor();
 
+  // Scroll the editor until the content caret is visible
+  // Usually triggered by moving the caret when off screen.
   void bringIntoView(TextPosition position) {
     final localRect = getLocalRectForCaret(position);
     final targetOffset = _getOffsetToRevealCaret(
@@ -33,7 +35,7 @@ class CursorService {
   }
 
   Rect getLocalRectForCaret(TextPosition position) {
-    final targetChild = _editorRendererUtils.childAtPosition(position);
+    final targetChild = _linesBlocksService.childAtPosition(position);
     final localPosition = targetChild.globalToLocalPosition(position);
     final childLocalRect = targetChild.getLocalRectForCaret(localPosition);
     final boxParentData = targetChild.parentData as BoxParentData;
@@ -71,7 +73,7 @@ class CursorService {
       width: rect.width,
       height: math.max(
         rect.height,
-        _editorRendererUtils.preferredLineHeight(position),
+        _linesBlocksService.preferredLineHeight(position),
       ),
     );
 

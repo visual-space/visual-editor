@@ -15,7 +15,7 @@ class HistoryButton extends StatefulWidget {
     required this.icon,
     required this.controller,
     required this.undo,
-    this.iconSize = kDefaultIconSize,
+    this.iconSize = defaultIconSize,
     this.iconTheme,
     Key? key,
   }) : super(key: key);

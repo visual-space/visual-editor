@@ -185,7 +185,7 @@ class TextGesturesService {
     }
   }
 
-  // By default, it services as place holder to enable subclass override.
+  // By default, it controllers as place holder to enable subclass override.
   void onSingleTapCancel() {
     // Subclass should override this method if needed.
   }

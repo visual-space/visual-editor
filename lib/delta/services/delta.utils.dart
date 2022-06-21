@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import '../../documents/models/attribute.model.dart';
 import '../../documents/models/nodes/node.model.dart';
+import '../controllers/delta-iterator.controller.dart';
 import '../models/delta.model.dart';
 
 // Diff between two texts - old text and new text

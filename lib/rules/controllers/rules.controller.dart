@@ -3,19 +3,33 @@ import '../../../documents/models/document.model.dart';
 import '../../../rules/models/rule-type.enum.dart';
 import '../../delta/models/delta.model.dart';
 import '../models/rule.model.dart';
-import 'delete.dart';
-import 'format.dart';
-import 'insert.dart';
+import 'delete/catch-all-delete.rule.dart';
+import 'delete/ensure-embed-line.rule.dart';
+import 'delete/ensure-last-line-break-delete.rule.dart';
+import 'delete/preserve-line-style-on-merge.rule.dart';
+import 'format/format-link-at-caret-position.rule.dart';
+import 'format/resolve-image-format.rule.dart';
+import 'format/resolve-inline-format.rule.dart';
+import 'format/resolve-line-format.rule.dart';
+import 'insert/auto-exit-block.rule.dart';
+import 'insert/auto-format-links.rule.dart';
+import 'insert/auto-format-multiple-links.rule.dart';
+import 'insert/catch-all-insert.rule.dart';
+import 'insert/insert-embeds.rule.dart';
+import 'insert/preserve-block-style-on-insert.rule.dart';
+import 'insert/preserve-inline-styles.rule.dart';
+import 'insert/preserve-line-style-on-split.rule.dart';
+import 'insert/reset-line-format-on-new-line.rule.dart';
 
 // Each editor can have it's own set of rules.
 // Therefore this is not a singleton class.
-class Rules {
-  Rules(this._rules);
+class RulesController {
+  RulesController(this._rules);
 
   List<RuleM> _customRules = [];
   final List<RuleM> _rules;
 
-  static final Rules _instance = Rules([
+  static final RulesController _instance = RulesController([
     const FormatLinkAtCaretPositionRule(),
     const ResolveLineFormatRule(),
     const ResolveInlineFormatRule(),
@@ -35,7 +49,7 @@ class Rules {
     const EnsureLastLineBreakDeleteRule()
   ]);
 
-  static Rules getInstance() => _instance;
+  static RulesController getInstance() => _instance;
 
   void setCustomRules(List<RuleM> customRules) {
     _customRules = customRules;
@@ -56,6 +70,7 @@ class Rules {
       if (rule.type != ruleType) {
         continue;
       }
+
       try {
         final result = rule.apply(
           delta,
@@ -68,10 +83,12 @@ class Rules {
         if (result != null) {
           return result..trim();
         }
+
       } catch (e) {
         rethrow;
       }
     }
+
     throw 'Apply rules failed';
   }
 }

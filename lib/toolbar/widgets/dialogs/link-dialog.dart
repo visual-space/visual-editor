@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../rules/services/insert.dart';
+import '../../../rules/controllers/insert/auto-format-multiple-links.rule.dart';
 import '../../../shared/models/editor-dialog-theme.model.dart';
 import '../../../shared/translations/toolbar.i18n.dart';
 

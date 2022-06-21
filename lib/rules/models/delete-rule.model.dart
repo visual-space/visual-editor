@@ -2,7 +2,7 @@ import '../../documents/models/attribute.model.dart';
 import '../models/rule-type.enum.dart';
 import '../models/rule.model.dart';
 
-/// A heuristic rule for delete operations.
+// A heuristic rule for delete operations.
 abstract class DeleteRuleM extends RuleM {
   const DeleteRuleM();
 

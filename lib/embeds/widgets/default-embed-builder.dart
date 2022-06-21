@@ -14,6 +14,7 @@ import '../../shared/utils/platform.utils.dart';
 import '../../shared/utils/string.utils.dart';
 import '../services/image.utils.dart';
 import 'image-resizer.dart';
+import 'image-tap-wrapper.dart';
 import 'simple-dialog-item.dart';
 import 'video-app.dart';
 import 'youtube-video-app.dart';
@@ -240,19 +241,24 @@ Widget _menuOptionsForReadonlyImage(
               text: 'Zoom'.i18n,
               onPressed: () {
                 Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            ImageTapWrapper(imageUrl: imageUrl)));
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ImageTapWrapper(
+                      imageUrl: imageUrl,
+                    ),
+                  ),
+                );
               },
             );
 
             return Padding(
               padding: const EdgeInsets.fromLTRB(50, 0, 50, 0),
               child: SimpleDialog(
-                  shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(10))),
-                  children: [saveOption, zoomOption]),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                ),
+                children: [saveOption, zoomOption],
+              ),
             );
           });
     },

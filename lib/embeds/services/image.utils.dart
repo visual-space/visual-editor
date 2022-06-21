@@ -3,7 +3,6 @@ import 'dart:io' as io;
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:photo_view/photo_view.dart';
 import 'package:string_validator/string_validator.dart';
 import 'package:tuple/tuple.dart';
 
@@ -11,17 +10,7 @@ import '../../controller/services/editor-controller.dart';
 import '../../documents/models/attribute.model.dart';
 import '../../documents/models/nodes/embed.model.dart';
 import '../../documents/models/style.model.dart';
-
-// +++ Group them in an util or smth
-const List<String> imageFileExtensions = [
-  '.jpeg',
-  '.png',
-  '.jpg',
-  '.gif',
-  '.webp',
-  '.tif',
-  '.heic'
-];
+import '../const/image-file-extensions.const.dart';
 
 bool isImageBase64(String imageUrl) {
   return !imageUrl.startsWith('http') && isBase64(imageUrl);
@@ -75,15 +64,15 @@ String standardizeImageUrl(String url) {
   return url;
 }
 
-/// This is a bug of Gallery Saver Package.
-/// It can not save image that's filename does not end with it's file extension
-/// like below.
-// "https://firebasestorage.googleapis.com/v0/b/eventat-4ba96.appspot.com/o/2019-Metrology-Events.jpg?alt=media&token=bfc47032-5173-4b3f-86bb-9659f46b362a"
-/// If imageUrl does not end with it's file extension,
-/// file extension is added to image url for saving.
+// This is a bug of Gallery Saver Package.
+// It can not save image that's filename does not end with it's file extension like below.
+// "https://firebasestorage.googleapis.com/v0/b/eventat-4ba96.appspot.com/o/
+// 2019-Metrology-Events.jpg?alt=media&token=bfc47032-5173-4b3f-86bb-9659f46b362a"
+// If imageUrl does not end with it's file extension, file extension is added to image url for saving.
 String appendFileExtensionToImageUrl(String url) {
   final endsWithImageFileExtension = imageFileExtensions
       .firstWhere((s) => url.toLowerCase().endsWith(s), orElse: () => '');
+
   if (endsWithImageFileExtension.isNotEmpty) {
     return url;
   }
@@ -92,78 +81,4 @@ String appendFileExtensionToImageUrl(String url) {
       .firstWhere((s) => url.toLowerCase().contains(s), orElse: () => '');
 
   return url + imageFileExtension;
-}
-
-class ImageTapWrapper extends StatelessWidget {
-  const ImageTapWrapper({
-    required this.imageUrl,
-  });
-
-  final String imageUrl;
-
-  ImageProvider _imageProviderByUrl(String imageUrl) {
-    if (imageUrl.startsWith('http')) {
-      return NetworkImage(imageUrl);
-    }
-
-    return FileImage(io.File(imageUrl));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        constraints: BoxConstraints.expand(
-          height: MediaQuery.of(context).size.height,
-        ),
-        child: Stack(
-          children: [
-            PhotoView(
-              imageProvider: _imageProviderByUrl(imageUrl),
-              loadingBuilder: (context, event) {
-                return Container(
-                  color: Colors.black,
-                  child: const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              },
-            ),
-            Positioned(
-              right: 10,
-              top: MediaQuery.of(context).padding.top + 10.0,
-              child: InkWell(
-                onTap: () {
-                  Navigator.pop(context);
-                },
-                child: Stack(
-                  children: [
-                    Opacity(
-                      opacity: 0.2,
-                      child: Container(
-                        height: 30,
-                        width: 30,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 0,
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child:
-                          Icon(Icons.close, color: Colors.grey[400], size: 28),
-                    )
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

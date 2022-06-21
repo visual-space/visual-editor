@@ -4,9 +4,9 @@ import 'package:tuple/tuple.dart';
 
 import '../../delta/models/delta.model.dart';
 import '../../delta/models/operation.model.dart';
+import '../../rules/controllers/rules.controller.dart';
 import '../../rules/models/rule-type.enum.dart';
 import '../../rules/models/rule.model.dart';
-import '../../rules/services/rules.dart';
 import 'attribute.model.dart';
 import 'change-source.enum.dart';
 import 'history.model.dart';
@@ -50,7 +50,7 @@ class DocumentM {
   DeltaM toDelta() => DeltaM.from(_delta);
 
   // Each document instance has it's own set of rules
-  final Rules _rules = Rules.getInstance();
+  final RulesController _rules = RulesController.getInstance();
 
   void setCustomRules(List<RuleM> customRules) {
     _rules.setCustomRules(customRules);

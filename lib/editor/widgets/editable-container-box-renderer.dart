@@ -5,7 +5,6 @@ import 'package:flutter/rendering.dart';
 import '../../blocks/models/editable-box-renderer.model.dart';
 import '../../documents/models/nodes/container.model.dart';
 
-// +++ REVIEW
 class EditableContainerParentData
     extends ContainerBoxParentData<EditableBoxRenderer> {}
 

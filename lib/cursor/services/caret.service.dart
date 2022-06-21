@@ -4,21 +4,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../../blocks/services/lines-blocks.service.dart';
 import '../../controller/state/editor-controller.state.dart';
 import '../../controller/state/scroll-controller.state.dart';
+import '../../editor/state/editor-config.state.dart';
+import '../../editor/state/editor-renderer.state.dart';
+import '../../editor/state/editor-state-widget.state.dart';
+import '../../editor/state/scroll-controller-animation.state.dart';
 import '../../selection/models/drag-text-selection.model.dart';
-import '../../selection/services/selection-actions.utils.dart';
-import '../state/editor-config.state.dart';
-import '../state/editor-renderer.state.dart';
-import '../state/editor-state-widget.state.dart';
-import '../state/scroll-controller-animation.state.dart';
-import 'lines-blocks.service.dart';
+import '../../selection/services/selection-actions.service.dart';
 
 class CaretService {
   final _linesBlocksService = LinesBlocksService();
   final _editorRendererState = EditorRendererState();
   final _editorControllerState = EditorControllerState();
-  final _selectionActionsUtils = SelectionActionsUtils();
+  final _selectionActionsService = SelectionActionsService();
   final _scrollControllerState = ScrollControllerState();
   final _editorConfigState = EditorConfigState();
   final _editorStateWidgetState = EditorStateWidgetState();
@@ -100,7 +100,7 @@ class CaretService {
     // Endpoints coordinates represents lower left or lower right corner of the selection.
     // If we want to scroll up to reveal the caret we need to adjust the dy value by the height of the line.
     // We also add a small margin so that the caret is not too close to the edge of the viewport.
-    final endpoints = _selectionActionsUtils.getEndpointsForSelection(
+    final endpoints = _selectionActionsService.getEndpointsForSelection(
       selection,
     );
 

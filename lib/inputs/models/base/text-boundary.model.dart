@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// +++ REVIEW
 // An interface for retrieving the logical text boundary (left-closed-right-open) at a given location in a document.
 // Depending on the implementation of the TextBoundaryM, the input TextPosition can either point to a code unit, 
 // or a position between 2 code units (which can be visually represented by the caret 

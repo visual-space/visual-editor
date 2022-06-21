@@ -1,10 +1,10 @@
 import 'package:flutter/rendering.dart';
 
 import '../../documents/models/nodes/block.model.dart';
-import '../../editor/services/lines-blocks.service.dart';
 import '../../editor/widgets/editable-container-box-renderer.dart';
 import '../../selection/services/text-selection.utils.dart';
 import '../models/editable-box-renderer.model.dart';
+import '../services/lines-blocks.service.dart';
 
 class EditableTextBlockRenderer extends EditableContainerBoxRenderer
     implements EditableBoxRenderer {
@@ -29,12 +29,13 @@ class EditableTextBlockRenderer extends EditableContainerBoxRenderer
           padding: padding.add(
             isCodeBlock ? const EdgeInsets.all(16) : EdgeInsets.zero,
           ),
-        ){
-    _contentPadding =  isCodeBlock ? const EdgeInsets.all(16) : EdgeInsets.zero;
+        ) {
+    _contentPadding = isCodeBlock ? const EdgeInsets.all(16) : EdgeInsets.zero;
   }
 
   EdgeInsets _contentPadding = EdgeInsets.zero;
   BoxPainter? _painter;
+
   Decoration get decoration => _decoration;
   Decoration _decoration;
 

@@ -1,6 +1,5 @@
-import '../widgets/visual-editor.dart';
+import '../../main.dart';
 
-// +++ DELETE - not needed (too few refs)
 class EditorWidgetState {
   factory EditorWidgetState() => _instance;
   static final _instance = EditorWidgetState._privateConstructor();

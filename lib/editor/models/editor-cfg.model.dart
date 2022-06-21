@@ -142,7 +142,6 @@ class EditorCfgM {
   final bool floatingCursorDisabled;
 
   // If force press is enable, long tap on words selects the word.
-  // +++ TODO REVIEW proper implementation
   final bool forcePressEnabled;
 
   // Custom GUI for text selection controls

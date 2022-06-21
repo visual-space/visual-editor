@@ -7,10 +7,10 @@ import '../../controller/services/editor-text.service.dart';
 import '../../controller/state/editor-controller.state.dart';
 import '../../delta/services/delta.utils.dart';
 import '../../documents/models/change-source.enum.dart';
-import '../state/editor-config.state.dart';
-import '../state/editor-renderer.state.dart';
-import '../state/editor-state-widget.state.dart';
-import '../state/focus-node.state.dart';
+import '../../editor/state/editor-config.state.dart';
+import '../../editor/state/editor-renderer.state.dart';
+import '../../editor/state/editor-state-widget.state.dart';
+import '../../editor/state/focus-node.state.dart';
 
 class TextConnectionService {
   final _editorConfigState = EditorConfigState();

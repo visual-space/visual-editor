@@ -3,22 +3,22 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:tuple/tuple.dart';
 
-import '../../blocks/models/editable-box-renderer.model.dart';
-import '../../blocks/models/link-action-menu.enum.dart';
-import '../../blocks/widgets/editable-text-block-renderer.dart';
-import '../../blocks/widgets/editable-text-line.dart';
-import '../../blocks/widgets/text-line.dart';
 import '../../controller/state/editor-controller.state.dart';
 import '../../documents/models/change-source.enum.dart';
 import '../../documents/models/nodes/block.model.dart';
 import '../../documents/models/nodes/line.model.dart';
 import '../../documents/models/nodes/node.model.dart';
+import '../../editor/state/editor-config.state.dart';
+import '../../editor/state/editor-renderer.state.dart';
+import '../../editor/state/editor-state-widget.state.dart';
+import '../../editor/state/focus-node.state.dart';
+import '../../editor/state/scroll-controller-animation.state.dart';
 import '../../visual-editor.dart';
-import '../state/editor-config.state.dart';
-import '../state/editor-renderer.state.dart';
-import '../state/editor-state-widget.state.dart';
-import '../state/focus-node.state.dart';
-import '../state/scroll-controller-animation.state.dart';
+import '../models/editable-box-renderer.model.dart';
+import '../models/link-action-menu.enum.dart';
+import '../widgets/editable-text-block-renderer.dart';
+import '../widgets/editable-text-line.dart';
+import '../widgets/text-line.dart';
 
 class LinesBlocksService {
   final _editorRendererState = EditorRendererState();
@@ -97,7 +97,6 @@ class LinesBlocksService {
     );
   }
 
-  // +++ REVIEW, the current setup is rather unsafe
   // If an EditableTextBlockRenderer is provided it uses it, otherwise it defaults to the EditorRenderer
   EditableBoxRenderer childAtPosition(
     TextPosition position, [
@@ -138,7 +137,6 @@ class LinesBlocksService {
   // Returns child of this container located at the specified local `offset`.
   // If `offset` is above this container (offset.dy is negative) returns the first child.
   // Likewise, if `offset` is below this container then returns the last child.
-  // +++ REVIEW, the current setup is rather unsafe
   // If an EditableTextBlockRenderer is provided it uses it, otherwise it defaults to the EditorRenderer
   EditableBoxRenderer childAtOffset(
     Offset offset, [

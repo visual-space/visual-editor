@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
+import '../../blocks/services/lines-blocks.service.dart';
 import '../../controller/state/document.state.dart';
 import '../../controller/state/editor-controller.state.dart';
 import '../../documents/models/change-source.enum.dart';
-import '../../editor/services/clipboard.service.dart';
-import '../../editor/services/lines-blocks.service.dart';
 import '../../editor/state/editor-config.state.dart';
 import '../../editor/state/extend-selection.state.dart';
+import '../../inputs/services/clipboard.service.dart';
 import '../../inputs/services/keyboard.service.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../state/last-tap-down.state.dart';
@@ -96,10 +96,8 @@ class TextGesturesService {
 
   // By default, it selects words in the range specified in details and shows buttons if it is necessary.
   // This callback is only applicable when force press is enabled.
+  // Most likely this code was disabled to enable the floating cursor behavior.
   void onForcePressEnd(ForcePressDetails details) {
-    // +++ REVIEW It appears that this feature was disabled in the original code.
-    // No longer working. Maybe it can be restored.
-    //
     // assert(state.forcePressEnabled);
     // if (!state.forcePressEnabled) {
     //   return;

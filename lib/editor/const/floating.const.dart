@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-// The padding applied to text field. +++ REVIEW
+// The padding applied to text field.
 // Used to determine the bounds when moving the floating cursor.
 const EdgeInsets floatingCursorAddedMargin = EdgeInsets.fromLTRB(4, 4, 4, 5);
 

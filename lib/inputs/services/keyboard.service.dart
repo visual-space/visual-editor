@@ -1,13 +1,13 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 
-import '../../editor/services/caret.service.dart';
-import '../../editor/services/input-connection.service.dart';
+import '../../cursor/services/caret.service.dart';
 import '../../editor/services/text-value.service.dart';
 import '../../editor/state/editor-state-widget.state.dart';
 import '../../editor/state/focus-node.state.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../state/keyboard-visible.state.dart';
+import 'input-connection.service.dart';
 
 class KeyboardService {
   final _textConnectionService = TextConnectionService();

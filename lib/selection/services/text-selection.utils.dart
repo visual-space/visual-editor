@@ -3,9 +3,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import '../../blocks/services/lines-blocks.service.dart';
 import '../../controller/state/document.state.dart';
 import '../../documents/models/nodes/node.model.dart';
-import '../../editor/services/lines-blocks.service.dart';
 import '../../editor/state/editor-renderer.state.dart';
 import '../../editor/widgets/editable-container-box-renderer.dart';
 

@@ -1,4 +1,4 @@
-import '../widgets/visual-editor.dart';
+import '../../main.dart';
 
 class EditorStateWidgetState {
   factory EditorStateWidgetState() => _instance;

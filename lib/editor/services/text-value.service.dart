@@ -1,15 +1,16 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../controller/state/editor-controller.state.dart';
+import '../../cursor/services/caret.service.dart';
 import '../../cursor/state/cursor-controller.state.dart';
+import '../../inputs/controllers/update-text-selection-to-adjiacent-line.action.dart';
+import '../../inputs/services/input-connection.service.dart';
 import '../../inputs/services/keyboard.service.dart';
 import '../../inputs/state/keyboard-visible.state.dart';
 import '../../selection/services/selection-actions.service.dart';
 import '../state/editor-state-widget.state.dart';
-import 'caret.service.dart';
-import 'input-connection.service.dart';
-import 'keyboard-actions.service.dart';
 
 class TextValueService {
   final _textConnectionService = TextConnectionService();
@@ -18,7 +19,6 @@ class TextValueService {
   final _cursorControllerState = CursorControllerState();
   final _editorStateWidgetState = EditorStateWidgetState();
   final _keyboardService = KeyboardService();
-  final _keyboardActionsService = KeyboardActionsService();
   final _keyboardVisibleState = KeyboardVisibleState();
   final _caretService = CaretService();
 
@@ -87,8 +87,8 @@ class TextValueService {
       }
     }
 
-    _keyboardActionsService
-        .getAdjacentLineAction()
+    UpdateTextSelectionToAdjacentLineAction<
+            ExtendSelectionVerticallyToAdjacentLineIntent>()
         .stopCurrentVerticalRunIfSelectionChanges();
   }
 }

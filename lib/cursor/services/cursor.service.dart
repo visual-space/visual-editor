@@ -2,8 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/rendering.dart';
 
+import '../../blocks/services/lines-blocks.service.dart';
 import '../../controller/state/scroll-controller.state.dart';
-import '../../editor/services/lines-blocks.service.dart';
 import '../../editor/state/editor-renderer.state.dart';
 
 class CursorService {
@@ -43,10 +43,11 @@ class CursorService {
     return childLocalRect.shift(Offset(0, boxParentData.offset.dy));
   }
 
+  // === PRIVATE ===
+
   // Finds the closest scroll offset to the current scroll offset that fully reveals the given caret rect.
   // If the given rect's main axis extent is too large to be fully revealed in `renderEditable`,
   // it will be centered along the main axis.
-  //
   // If this is a multiline VisualEditor (which means the Editable can only  scroll vertically),
   // the given rect's height will first be extended to match `renderEditable.preferredLineHeight`,
   // before the target scroll offset is calculated.
@@ -61,7 +62,6 @@ class CursorService {
       );
     }
 
-    // +++ EXTRACT
     final editableSize = _editorRendererState.renderer.size;
     final double additionalOffset;
     final Offset unitOffset;
@@ -86,7 +86,7 @@ class CursorService {
 
     unitOffset = const Offset(0, 1);
 
-    // No overscrolling when encountering tall fonts/scripts that extend past the ascent.
+    // No over-scrolling when encountering tall fonts/scripts that extend past the ascent.
     var targetOffset = additionalOffset;
 
     if (_scrollControllerState.controller.hasClients) {

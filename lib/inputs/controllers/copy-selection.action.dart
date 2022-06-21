@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../controller/services/editor-text.service.dart';
-import '../clipboard.service.dart';
+import '../../controller/services/editor-text.service.dart';
+import '../services/clipboard.service.dart';
 
 class CopySelectionAction extends ContextAction<CopySelectionTextIntent> {
   final _editorTextService = EditorTextService();

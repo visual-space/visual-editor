@@ -8,9 +8,9 @@ import '../../controller/state/paste.state.dart';
 import '../../cursor/services/cursor.service.dart';
 import '../../documents/models/nodes/block-embed.model.dart';
 import '../../documents/models/styling-attributes.dart';
+import '../../editor/state/editor-config.state.dart';
 import '../../embeds/services/image.utils.dart';
 import '../../selection/services/selection-actions.service.dart';
-import '../state/editor-config.state.dart';
 
 // Handles all the clipboard operations, cut, copy, paste
 class ClipboardService {
@@ -35,7 +35,7 @@ class ClipboardService {
     controller.copiedImageUrl = null;
     _pasteState.setPastePlainText(controller.getPlainText());
     _pasteState.setPasteStyle(
-        controller.getAllIndividualSelectionStyles(),
+      controller.getAllIndividualSelectionStyles(),
     );
 
     final selection = _editorTextService.textEditingValue.selection;
@@ -77,7 +77,7 @@ class ClipboardService {
     controller.copiedImageUrl = null;
     _pasteState.setPastePlainText(controller.getPlainText());
     _pasteState.setPasteStyle(
-        controller.getAllIndividualSelectionStyles(),
+      controller.getAllIndividualSelectionStyles(),
     );
 
     if (_editorConfigState.config.readOnly) {

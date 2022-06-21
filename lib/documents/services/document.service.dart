@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../../blocks/services/lines-blocks.service.dart';
 import '../../blocks/widgets/editable-text-block.dart';
 import '../../controller/state/document.state.dart';
 import '../../controller/state/editor-controller.state.dart';
 import '../../delta/services/delta.utils.dart';
-import '../../editor/services/lines-blocks.service.dart';
 import '../../editor/state/editor-state-widget.state.dart';
 import '../../editor/state/focus-node.state.dart';
 import '../models/attribute.model.dart';

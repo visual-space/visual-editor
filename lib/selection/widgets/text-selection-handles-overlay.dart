@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-import '../../editor/services/lines-blocks.service.dart';
+import '../../blocks/services/lines-blocks.service.dart';
 import '../../editor/widgets/editor-renderer-inner.dart';
 import '../models/text-selection-handle-position.enum.dart';
 import '../state/selection-layers.state.dart';

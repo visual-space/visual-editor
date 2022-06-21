@@ -2,7 +2,6 @@ import 'package:flutter/rendering.dart';
 
 import '../../documents/models/nodes/container.model.dart';
 
-// +++ REMOVE MIGRATE
 // Base class for render boxes of editable blocks.
 // Implementations of this class usually work as a wrapper around
 // regular (non-editable) render boxes which implement RenderContentProxyBox.

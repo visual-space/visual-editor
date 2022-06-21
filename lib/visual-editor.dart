@@ -12,7 +12,7 @@ export 'documents/models/nodes/embeddable.model.dart';
 export 'documents/models/nodes/leaf.model.dart';
 export 'documents/models/style.model.dart';
 export 'editor/models/editor-cfg.model.dart';
-export 'editor/widgets/visual-editor.dart';
+export 'main.dart';
 export 'highlights/models/highlight.model.dart';
 export 'shared/models/editor-dialog-theme.model.dart';
 export 'shared/models/editor-icon-theme.model.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/gestures.dart';
 
-import '../../editor/services/lines-blocks.service.dart';
+import '../../blocks/services/lines-blocks.service.dart';
 import '../../editor/state/editor-config.state.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../highlights/state/highlights.state.dart';
@@ -41,7 +41,6 @@ class HighlightsService {
 
           // Only once at enter to avoid performance issues
           // Could be further improved if multiple highlights overlap
-          // +++ TODO Connect stream to renderer and review if highlights can be add multiple at once.
           _highlightsState.setHoveredHighlights([highlight]);
         }
 

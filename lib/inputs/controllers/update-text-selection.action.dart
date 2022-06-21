@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../controller/services/editor-text.service.dart';
-import '../../models/boundaries/base/text-boundary.model.dart';
-import '../../state/editor-config.state.dart';
+import '../../controller/services/editor-text.service.dart';
+import '../../editor/state/editor-config.state.dart';
+import '../models/base/text-boundary.model.dart';
 
 class UpdateTextSelectionAction<T extends DirectionalCaretMovementIntent>
     extends ContextAction<T> {

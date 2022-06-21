@@ -8,37 +8,38 @@ import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:i18n_extension/i18n_widget.dart';
 
-import '../../blocks/models/default-styles.model.dart';
-import '../../controller/services/editor-controller.dart';
-import '../../controller/services/editor-text.service.dart';
-import '../../controller/state/document.state.dart';
-import '../../controller/state/editor-controller.state.dart';
-import '../../controller/state/scroll-controller.state.dart';
-import '../../cursor/services/cursor.service.dart';
-import '../../documents/models/document.model.dart';
-import '../../documents/services/document.service.dart';
-import '../../inputs/services/keyboard.service.dart';
-import '../../inputs/widgets/editor-keyboard-listener.dart';
-import '../../selection/services/selection-actions.service.dart';
-import '../../selection/services/text-selection.service.dart';
-import '../../selection/state/selection-layers.state.dart';
-import '../../selection/widgets/text-gestures.dart';
-import '../models/editor-cfg.model.dart';
-import '../services/clipboard.service.dart';
-import '../services/editor.service.dart';
-import '../services/floating-cursor.service.dart';
-import '../services/input-connection.service.dart';
-import '../services/keyboard-actions.service.dart';
-import '../services/styles.service.dart';
-import '../services/text-value.service.dart';
-import '../state/editor-config.state.dart';
-import '../state/editor-state-widget.state.dart';
-import '../state/editor-widget.state.dart';
-import '../state/focus-node.state.dart';
-import 'document-styles.dart';
-import 'editor-renderer.dart';
-import 'proxy/baseline-proxy.dart';
-import 'scroll/editor-single-child-scroll-view.dart';
+import 'blocks/models/default-styles.model.dart';
+import 'controller/services/editor-controller.dart';
+import 'controller/services/editor-text.service.dart';
+import 'controller/state/document.state.dart';
+import 'controller/state/editor-controller.state.dart';
+import 'controller/state/scroll-controller.state.dart';
+import 'cursor/controllers/floating-cursor.controller.dart';
+import 'cursor/services/cursor.service.dart';
+import 'documents/models/document.model.dart';
+import 'documents/services/document.service.dart';
+import 'inputs/services/clipboard.service.dart';
+import 'inputs/services/input-connection.service.dart';
+import 'inputs/services/keyboard-actions.service.dart';
+import 'inputs/services/keyboard.service.dart';
+import 'inputs/widgets/editor-keyboard-listener.dart';
+import 'selection/controllers/selection-actions.controller.dart';
+import 'selection/services/selection-actions.service.dart';
+import 'selection/services/text-selection.service.dart';
+import 'selection/state/selection-layers.state.dart';
+import 'selection/widgets/text-gestures.dart';
+import 'editor/models/editor-cfg.model.dart';
+import 'editor/services/editor.service.dart';
+import 'editor/services/styles.service.dart';
+import 'editor/services/text-value.service.dart';
+import 'editor/state/editor-config.state.dart';
+import 'editor/state/editor-state-widget.state.dart';
+import 'editor/state/editor-widget.state.dart';
+import 'editor/state/focus-node.state.dart';
+import 'editor/widgets/document-styles.dart';
+import 'editor/widgets/editor-renderer.dart';
+import 'editor/widgets/proxy/baseline-proxy.dart';
+import 'editor/widgets/scroll/editor-single-child-scroll-view.dart';
 
 // This is the main class of the Visual Editor.
 // There are 2 constructors available, one for controlling all the settings of the editor in precise detail.
@@ -136,7 +137,6 @@ class VisualEditorState extends State<VisualEditor>
   final _cursorService = CursorService();
   final _clipboardService = ClipboardService();
   final _textConnectionService = TextConnectionService();
-  final _floatingCursorService = FloatingCursorService();
   final _scrollControllerState = ScrollControllerState();
   final _keyboardService = KeyboardService();
   final _keyboardActionsService = KeyboardActionsService();
@@ -151,12 +151,10 @@ class VisualEditorState extends State<VisualEditor>
   final _textValueService = TextValueService();
   final _selectionLayersState = SelectionLayersState();
 
+  SelectionActionsController? selectionActionsController;
+  late FloatingCursorController _floatingCursorController;
   final _editorKey = GlobalKey<State<VisualEditor>>();
   final _editorRendererKey = GlobalKey<State<VisualEditor>>();
-
-  // Controls the floating cursor animation when it is released.
-  // The floating cursor is animated to merge with the regular cursor.
-  late AnimationController _floatingCursorResetController;
   KeyboardVisibilityController? keyboardVisibilityCtrl;
   StreamSubscription<bool>? keyboardVisibilitySub;
   bool _didAutoFocus = false;
@@ -173,9 +171,9 @@ class VisualEditorState extends State<VisualEditor>
     _listedToClipboardAndUpdateEditor();
     _subscribeToTextChangesAndUpdateEditor();
     _listenToScrollAndUpdateOverlayMenu();
-    _initFloatingCursorAnimationController();
     _initKeyboard();
     _listenToFocusAndUpdateCaretAndOverlayMenu();
+    _floatingCursorController = FloatingCursorController();
   }
 
   @override
@@ -296,13 +294,8 @@ class VisualEditorState extends State<VisualEditor>
   }
 
   @override
-  void updateFloatingCursor(
-    RawFloatingCursorPoint point,
-  ) {
-    _floatingCursorService.updateFloatingCursor(
-      point,
-      _floatingCursorResetController,
-    );
+  void updateFloatingCursor(RawFloatingCursorPoint point) {
+    _floatingCursorController.updateFloatingCursor(point);
   }
 
   @override
@@ -373,15 +366,17 @@ class VisualEditorState extends State<VisualEditor>
   // Intercept RawKeyEvent on Web to prevent it from propagating to parents that
   // might interfere with the editor key behavior, such as SingleChildScrollView.
   // SingleChildScrollView reacts to keys.
-  Widget _conditionalPreventKeyPropagationToParentIfWeb({required Widget child}) => kIsWeb
-      ? RawKeyboardListener(
-          focusNode: FocusNode(
-            onKey: (node, event) => KeyEventResult.skipRemainingHandlers,
-          ),
-          child: child,
-          onKey: (_) {},
-        )
-      : child;
+  Widget _conditionalPreventKeyPropagationToParentIfWeb(
+          {required Widget child}) =>
+      kIsWeb
+          ? RawKeyboardListener(
+              focusNode: FocusNode(
+                onKey: (node, event) => KeyEventResult.skipRemainingHandlers,
+              ),
+              child: child,
+              onKey: (_) {},
+            )
+          : child;
 
   Widget _documentStyles({required Widget child}) => DocumentStyles(
         styles: styles!,
@@ -389,7 +384,7 @@ class VisualEditorState extends State<VisualEditor>
       );
 
   Widget _hotkeysActions({required Widget child}) => Actions(
-        actions: _getActionsSafe(context),
+        actions: _keyboardActionsService.getActions(context),
         child: child,
       );
 
@@ -463,12 +458,6 @@ class VisualEditorState extends State<VisualEditor>
         )
       : _documentState.document;
 
-  Map<Type, Action<Intent>> _getActionsSafe(BuildContext context) {
-    return _editorRendererKey.currentContext != null
-        ? _keyboardActionsService.getActions(context)
-        : {};
-  }
-
   void _listenToFocusAndUpdateCaretAndOverlayMenu() {
     _focusNodeState.node.addListener(
       _editorService.handleFocusChanged,
@@ -477,16 +466,6 @@ class VisualEditorState extends State<VisualEditor>
 
   void _initKeyboard() {
     _keyboardService.initKeyboard(_textValueService);
-  }
-
-  // Floating cursor
-  void _initFloatingCursorAnimationController() {
-    _floatingCursorResetController = AnimationController(vsync: this);
-    _floatingCursorResetController.addListener(
-      () => _floatingCursorService.onFloatingCursorResetTick(
-        _floatingCursorResetController,
-      ),
-    );
   }
 
   void _listenToScrollAndUpdateOverlayMenu() {
@@ -508,7 +487,7 @@ class VisualEditorState extends State<VisualEditor>
   void _cacheStateWidget() => _editorStateWidgetState.setEditorState(this);
 
   void _updateSelectionOverlayOnScroll() {
-    _selectionActionsService.selectionActions?.updateOnScroll();
+    selectionActionsController?.updateOnScroll();
   }
 
   void onChangedClipboardStatus() {

@@ -5,22 +5,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 
-import '../../editor/services/lines-blocks.service.dart';
+import '../../blocks/services/lines-blocks.service.dart';
 import '../../editor/state/editor-state-widget.state.dart';
 import '../../editor/state/platform-styles.state.dart';
 import '../../editor/widgets/editor-renderer-inner.dart';
 import '../models/drag-text-selection.model.dart';
 import '../models/text-selection-handle-position.enum.dart';
-import '../services/selection-actions.utils.dart';
+import '../services/selection-actions.service.dart';
 import '../state/selection-layers.state.dart';
 import '../widgets/text-selection-handles-overlay.dart';
 
 // Manages a pair of text selection handles (overlay entries for selection handles).
 // The selection handles are displayed in the Overlay that most closely encloses the given BuildContext.
-// +++ REFACTOR ? MERGE WITH SERVICE ?
 class SelectionActionsController {
   final _linesBlocksService = LinesBlocksService();
-  final _selectionActionsUtils = SelectionActionsUtils();
+  final _selectionActionsService = SelectionActionsService();
   final _platformStylesState = PlatformStylesState();
   final _editorStateWidgetState = EditorStateWidgetState();
   final _selectionLayersState = SelectionLayersState();
@@ -246,7 +245,7 @@ class SelectionActionsController {
     try {
       // Building with an invalid selection with throw an exception.
       // This happens where the selection has changed, but the buttons hasn't been dismissed yet.
-      endpoints = _selectionActionsUtils.getEndpointsForSelection(
+      endpoints = _selectionActionsService.getEndpointsForSelection(
         _selection,
       );
     } catch (_) {

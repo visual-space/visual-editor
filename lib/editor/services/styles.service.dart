@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../../cursor/controllers/cursor.controller.dart';
 import '../../cursor/models/cursor-style.model.dart';
-import '../../cursor/services/cursor.controller.dart';
 import '../../cursor/state/cursor-controller.state.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../models/cursor-style-cfg.model.dart';

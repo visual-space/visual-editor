@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../rules/controllers/insert/auto-format-multiple-links.rule.dart';
-import '../../../rules/controllers/insert/catch-all-insert.rule.dart';
 import '../../../shared/models/editor-dialog-theme.model.dart';
 import '../../../shared/translations/toolbar.i18n.dart';
 

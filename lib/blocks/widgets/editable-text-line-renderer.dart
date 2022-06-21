@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/rendering.dart';
 
 import '../../controller/state/editor-controller.state.dart';
-import '../../cursor/services/cursor.controller.dart';
+import '../../cursor/controllers/cursor.controller.dart';
 import '../../cursor/state/cursor-controller.state.dart';
 import '../../cursor/widgets/cursor-painter.dart';
 import '../../documents/models/attribute.model.dart';
@@ -96,6 +96,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     if (line == l) {
       return;
     }
+
     line = l;
     _containsCursor = null;
     markNeedsLayout();
@@ -640,7 +641,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     Offset effectiveOffset,
   ) {
     assert(highlightedRects.isNotEmpty);
-    // final isHovered = _hoveredHighlights.contains(highlight); RESTORE +++
+    // final isHovered = _hoveredHighlights.contains(highlight); RESTORE
     const isHovered = false;
     final paint = Paint()
       ..color = isHovered ? highlight.hoverColor : highlight.color;

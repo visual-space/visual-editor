@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../controller/state/editor-controller.state.dart';
+import '../../cursor/services/caret.service.dart';
 import '../../cursor/state/cursor-controller.state.dart';
+import '../../inputs/services/input-connection.service.dart';
 import '../../selection/services/selection-actions.service.dart';
 import '../state/editor-state-widget.state.dart';
 import '../state/focus-node.state.dart';
-import 'caret.service.dart';
-import 'input-connection.service.dart';
 import 'text-value.service.dart';
 
 class EditorService {
@@ -56,8 +56,8 @@ class EditorService {
 
     assert(!_textConnectionService.hasConnection);
 
-    _selectionActionsService.selectionActions?.dispose();
-    _selectionActionsService.selectionActions = null;
+    _editorStateWidgetState.editor.selectionActionsController?.dispose();
+    _editorStateWidgetState.editor.selectionActionsController = null;
     _editorControllerState.controller.removeListener(
       _textValueService.onTextEditingValueChanged,
     );

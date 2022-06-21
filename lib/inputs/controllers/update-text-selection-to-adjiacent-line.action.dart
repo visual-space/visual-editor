@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../../controller/services/editor-text.service.dart';
-import '../../../controller/state/editor-controller.state.dart';
-import '../../controllers/vertical-caret-movement-run.controller.dart';
-import '../../state/editor-config.state.dart';
-import '../../state/editor-renderer.state.dart';
+import '../../controller/services/editor-text.service.dart';
+import '../../controller/state/editor-controller.state.dart';
+import '../../editor/controllers/vertical-caret-movement-run.controller.dart';
+import '../../editor/state/editor-config.state.dart';
+import '../../editor/state/editor-renderer.state.dart';
 
 class UpdateTextSelectionToAdjacentLineAction<
     T extends DirectionalCaretMovementIntent> extends ContextAction<T> {
@@ -19,9 +19,9 @@ class UpdateTextSelectionToAdjacentLineAction<
   TextSelection? _runSelection;
 
   void stopCurrentVerticalRunIfSelectionChanges() {
-    final runSelection = _runSelection;
+    final prevRunSelection = _runSelection;
 
-    if (runSelection == null) {
+    if (prevRunSelection == null) {
       assert(_verticalMovementRun == null);
       return;
     }
@@ -30,8 +30,8 @@ class UpdateTextSelectionToAdjacentLineAction<
     final currentSelection = _editorControllerState.controller.selection;
     final continueCurrentRun = currentSelection.isValid &&
         currentSelection.isCollapsed &&
-        currentSelection.baseOffset == runSelection.baseOffset &&
-        currentSelection.extentOffset == runSelection.extentOffset;
+        currentSelection.baseOffset == prevRunSelection.baseOffset &&
+        currentSelection.extentOffset == prevRunSelection.extentOffset;
 
     if (!continueCurrentRun) {
       _verticalMovementRun = null;
@@ -62,7 +62,8 @@ class UpdateTextSelectionToAdjacentLineAction<
         ? currentRun.current
         : (intent.forward
             ? TextPosition(
-                offset: _editorTextService.textEditingValue.text.length)
+                offset: _editorTextService.textEditingValue.text.length,
+              )
             : const TextPosition(offset: 0));
     final newSelection = collapseSelection
         ? TextSelection.fromPosition(newExtent)

@@ -5,7 +5,6 @@ import 'package:flutter/widgets.dart';
 import '../../editor/state/focus-node.state.dart';
 import '../models/cursor-style.model.dart';
 
-// +++ REVIEW
 // Controls the cursor of an editable widget.
 // This class is a [ChangeNotifier] and allows to listen for updates on the cursor [style].
 class CursorController extends ChangeNotifier {
@@ -80,27 +79,6 @@ class CursorController extends ChangeNotifier {
     super.dispose();
   }
 
-  void _cursorTick(Timer timer) {
-    _targetCursorVisibility = !_targetCursorVisibility;
-    final targetOpacity = _targetCursorVisibility ? 1.0 : 0.0;
-
-    if (style.opacityAnimates) {
-      // If we want to show the cursor, we will animate the opacity to the value
-      // of 1.0, and likewise if we want to make it disappear, to 0.0.
-      // An easing curve is used for the animation to mimic the aesthetics of the native iOS cursor.
-      // These values and curves have been obtained through eyeballing,
-      // so are likely not exactly the same as the values for native iOS.
-      _blinkOpacityController.animateTo(targetOpacity, curve: Curves.easeOut);
-    } else {
-      _blinkOpacityController.value = targetOpacity;
-    }
-  }
-
-  void _waitForStart(Timer timer) {
-    _cursorTimer?.cancel();
-    _cursorTimer = Timer.periodic(_blinkHalfPeriod, _cursorTick);
-  }
-
   void startCursorTimer() {
     if (_isDisposed) {
       return;
@@ -129,9 +107,7 @@ class CursorController extends ChangeNotifier {
     }
   }
 
-  void startOrStopCursorTimerIfNeeded(
-    TextSelection selection,
-  ) {
+  void startOrStopCursorTimerIfNeeded(TextSelection selection) {
     if (show.value &&
         _cursorTimer == null &&
         _focusNodeState.node.hasFocus &&
@@ -141,6 +117,29 @@ class CursorController extends ChangeNotifier {
         (!_focusNodeState.node.hasFocus || !selection.isCollapsed)) {
       stopCursorTimer();
     }
+  }
+
+  // === PRIVATE ===
+
+  void _cursorTick(Timer timer) {
+    _targetCursorVisibility = !_targetCursorVisibility;
+    final targetOpacity = _targetCursorVisibility ? 1.0 : 0.0;
+
+    if (style.opacityAnimates) {
+      // If we want to show the cursor, we will animate the opacity to the value
+      // of 1.0, and likewise if we want to make it disappear, to 0.0.
+      // An easing curve is used for the animation to mimic the aesthetics of the native iOS cursor.
+      // These values and curves have been obtained through eyeballing,
+      // so are likely not exactly the same as the values for native iOS.
+      _blinkOpacityController.animateTo(targetOpacity, curve: Curves.easeOut);
+    } else {
+      _blinkOpacityController.value = targetOpacity;
+    }
+  }
+
+  void _waitForStart(Timer timer) {
+    _cursorTimer?.cancel();
+    _cursorTimer = Timer.periodic(_blinkHalfPeriod, _cursorTick);
   }
 
   void _onColorTick() {

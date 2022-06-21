@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../controller/services/editor-text.service.dart';
-import '../../state/editor-config.state.dart';
+import '../../controller/services/editor-text.service.dart';
+import '../../editor/state/editor-config.state.dart';
 
 class SelectAllAction extends ContextAction<SelectAllTextIntent> {
   final _editorTextService = EditorTextService();

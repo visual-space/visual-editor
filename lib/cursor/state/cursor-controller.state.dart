@@ -1,4 +1,4 @@
-import '../services/cursor.controller.dart';
+import '../controllers/cursor.controller.dart';
 
 class CursorControllerState {
   factory CursorControllerState() => _instance;

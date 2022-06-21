@@ -2,14 +2,15 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../blocks/services/lines-blocks.service.dart';
 import '../../controller/services/editor-text.service.dart';
 import '../../controller/state/editor-controller.state.dart';
 import '../../cursor/services/cursor.service.dart';
 import '../../documents/models/change-source.enum.dart';
-import '../../editor/services/clipboard.service.dart';
-import '../../editor/services/lines-blocks.service.dart';
+import '../../editor/state/editor-state-widget.state.dart';
 import '../../editor/state/extend-selection.state.dart';
 import '../../editor/state/focus-node.state.dart';
+import '../../inputs/services/clipboard.service.dart';
 import '../../inputs/services/keyboard.service.dart';
 import '../../inputs/state/keyboard-visible.state.dart';
 import '../state/last-tap-down.state.dart';
@@ -17,6 +18,7 @@ import 'selection-actions.service.dart';
 import 'text-selection.utils.dart';
 
 class TextSelectionService {
+  final _editorStateWidgetState = EditorStateWidgetState();
   final _editorTextService = EditorTextService();
   final _editorControllerState = EditorControllerState();
   final _extendSelectionState = ExtendSelectionState();
@@ -87,7 +89,6 @@ class TextSelectionService {
         TextSelection.collapsed(offset: word.start),
         cause,
       );
-
     } else {
       handleSelectionChange(
         TextSelection.collapsed(
@@ -171,7 +172,6 @@ class TextSelectionService {
         ),
         cause,
       );
-
     } else if (toPosition.offset > selOrigin.extentOffset) {
       handleSelectionChange(
         TextSelection(
@@ -215,7 +215,7 @@ class TextSelectionService {
     );
 
     // Mobiles only
-    _selectionActionsService.selectionActions?.handlesVisible =
+    _editorStateWidgetState.editor.selectionActionsController?.handlesVisible =
         _selectionActionsService.shouldShowSelectionHandles();
 
     if (!_keyboardVisibleState.isVisible) {

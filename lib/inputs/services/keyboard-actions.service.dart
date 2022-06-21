@@ -1,22 +1,22 @@
 import 'package:flutter/cupertino.dart';
 
 import '../../controller/services/editor-text.service.dart';
-import '../models/boundaries/base/text-boundary.model.dart';
-import '../models/boundaries/character-boundary.model.dart';
-import '../models/boundaries/collapse-selection.boundary.model.dart';
-import '../models/boundaries/document-boundary.model.dart';
-import '../models/boundaries/expanded-text-boundary.dart';
-import '../models/boundaries/line-break.model.dart';
-import '../models/boundaries/mixed.boundary.model.dart';
-import '../models/boundaries/whitespace-boundary.model.dart';
-import '../models/boundaries/word-boundary.model.dart';
-import '../state/editor-renderer.state.dart';
-import 'actions/copy-selection.action.dart';
-import 'actions/delete-text.action.dart';
-import 'actions/extend-selection-or-caret-position.action.dart';
-import 'actions/select-all.action.dart';
-import 'actions/update-text-selection-to-adjiacent-line.action.dart';
-import 'actions/update-text-selection.action.dart';
+import '../../editor/models/boundaries/character-boundary.model.dart';
+import '../../editor/state/editor-renderer.state.dart';
+import '../controllers/copy-selection.action.dart';
+import '../controllers/delete-text.action.dart';
+import '../controllers/extend-selection-or-caret-position.action.dart';
+import '../controllers/select-all.action.dart';
+import '../controllers/update-text-selection-to-adjiacent-line.action.dart';
+import '../controllers/update-text-selection.action.dart';
+import '../models/base/text-boundary.model.dart';
+import '../models/collapse-selection.boundary.model.dart';
+import '../models/document-boundary.model.dart';
+import '../models/expanded-text-boundary.dart';
+import '../models/line-break.model.dart';
+import '../models/mixed.boundary.model.dart';
+import '../models/whitespace-boundary.model.dart';
+import '../models/word-boundary.model.dart';
 import 'clipboard.service.dart';
 
 class KeyboardActionsService {
@@ -30,16 +30,34 @@ class KeyboardActionsService {
 
   KeyboardActionsService._privateConstructor();
 
+  // The method returns a map of intents and actions.
+  // This system is built in Flutter to facilitate handling of text fields.
+  // Custom behaviours can be defined when handling text.
+  //
+  // Needs refactoring:
+  // Several types of actions are grouped together in one single factory class.
+  // For example the DeleteTextAction can change it's behavior by
+  // being initialised with different boundaries methods.
+  // Also it contains a lot of if branches.
+  // I'm thinking some of this code overlaps partly and can be isolated in
+  // unique classes for a simpler code architecture.
   Map<Type, Action<Intent>> getActions(BuildContext context) =>
       <Type, Action<Intent>>{
+        // === VARIOUS ===
+
         DoNothingAndStopPropagationTextIntent: DoNothingAction(
           consumesKey: false,
         ),
-        ReplaceTextIntent: _replaceTextAction,
-        UpdateSelectionIntent: _updateSelectionAction,
+        ReplaceTextIntent: CallbackAction<ReplaceTextIntent>(
+          onInvoke: _clipboardService.replaceText,
+        ),
+        UpdateSelectionIntent: CallbackAction<UpdateSelectionIntent>(
+          onInvoke: _updateSelection,
+        ),
         DirectionalFocusIntent: DirectionalFocusAction.forTextField(),
 
-        // Delete
+        // === DELETE ===
+
         DeleteCharacterIntent: _makeOverridable(
           DeleteTextAction<DeleteCharacterIntent>(_characterBoundary),
           context,
@@ -53,7 +71,8 @@ class KeyboardActionsService {
           context,
         ),
 
-        // Extend/Move Selection
+        // === EXTEND/MOVE SELECTION ===
+
         ExtendSelectionByCharacterIntent: _makeOverridable(
           UpdateTextSelectionAction<ExtendSelectionByCharacterIntent>(
             false,
@@ -76,13 +95,14 @@ class KeyboardActionsService {
           context,
         ),
         ExtendSelectionVerticallyToAdjacentLineIntent: _makeOverridable(
-          getAdjacentLineAction(),
+          UpdateTextSelectionToAdjacentLineAction<
+              ExtendSelectionVerticallyToAdjacentLineIntent>(),
           context,
         ),
         ExtendSelectionToDocumentBoundaryIntent: _makeOverridable(
           UpdateTextSelectionAction<ExtendSelectionToDocumentBoundaryIntent>(
             true,
-            _documentBoundary,
+            (intent) => DocumentBoundary(_editorTextService.textEditingValue),
           ),
           context,
         ),
@@ -92,7 +112,8 @@ class KeyboardActionsService {
           context,
         ),
 
-        // Copy Paste
+        // === COPY PASTE ===
+
         SelectAllTextIntent: _makeOverridable(
           SelectAllAction(),
           context,
@@ -112,22 +133,16 @@ class KeyboardActionsService {
   // === PRIVATE ===
 
   TextBoundaryM _characterBoundary(DirectionalTextEditingIntent intent) {
-    final TextBoundaryM atomicTextBoundary = CharacterBoundary(
-      _editorTextService.textEditingValue,
-    );
+    final TextBoundaryM atomicTextBoundary = CharacterBoundary();
 
     return CollapsedSelectionBoundary(atomicTextBoundary, intent.forward);
   }
 
-  TextBoundaryM _nextWordBoundary(
-    DirectionalTextEditingIntent intent,
-  ) {
+  TextBoundaryM _nextWordBoundary(DirectionalTextEditingIntent intent) {
     final TextBoundaryM atomicTextBoundary;
     final TextBoundaryM boundary;
 
-    // final TextEditingValue textEditingValue =
-    //     _textEditingValueforTextLayoutMetrics;
-    atomicTextBoundary = CharacterBoundary(_editorTextService.textEditingValue);
+    atomicTextBoundary = CharacterBoundary();
 
     // This isn't enough. Newline characters.
     boundary = ExpandedTextBoundary(
@@ -146,15 +161,11 @@ class KeyboardActionsService {
     return CollapsedSelectionBoundary(mixedBoundary, intent.forward);
   }
 
-  TextBoundaryM _linebreak(
-    DirectionalTextEditingIntent intent,
-  ) {
+  TextBoundaryM _linebreak(DirectionalTextEditingIntent intent) {
     final TextBoundaryM atomicTextBoundary;
     final TextBoundaryM boundary;
 
-    // final TextEditingValue textEditingValue =
-    //     _textEditingValueforTextLayoutMetrics;
-    atomicTextBoundary = CharacterBoundary(_editorTextService.textEditingValue);
+    atomicTextBoundary = CharacterBoundary();
     boundary = LineBreak(
       _editorRendererState.renderer,
       _editorTextService.textEditingValue,
@@ -180,9 +191,9 @@ class KeyboardActionsService {
           );
   }
 
-  TextBoundaryM _documentBoundary(DirectionalTextEditingIntent intent) =>
-      DocumentBoundary(_editorTextService.textEditingValue);
-
+  // Needs improved documentation.
+  // Currently not sure why all actions need to be overridable.
+  // Flutter explains that actions can be overriden, but it's unclear when and why to do so.
   Action<T> _makeOverridable<T extends Intent>(
     Action<T> defaultAction,
     BuildContext context,
@@ -193,10 +204,6 @@ class KeyboardActionsService {
     );
   }
 
-  late final _replaceTextAction = CallbackAction<ReplaceTextIntent>(
-    onInvoke: _clipboardService.replaceText,
-  );
-
   void _updateSelection(UpdateSelectionIntent intent) {
     _editorTextService.userUpdateTextEditingValue(
       intent.currentTextEditingValue.copyWith(
@@ -205,10 +212,6 @@ class KeyboardActionsService {
       intent.cause,
     );
   }
-
-  late final _updateSelectionAction = CallbackAction<UpdateSelectionIntent>(
-    onInvoke: _updateSelection,
-  );
 
   UpdateTextSelectionToAdjacentLineAction<
           ExtendSelectionVerticallyToAdjacentLineIntent>

@@ -21,6 +21,7 @@ class WhitespaceBoundary extends TextBoundaryM {
         return TextPosition(offset: index);
       }
     }
+
     return const TextPosition(offset: 0);
   }
 
@@ -35,6 +36,7 @@ class WhitespaceBoundary extends TextBoundaryM {
         return TextPosition(offset: index + 1);
       }
     }
+
     return TextPosition(offset: textEditingValue.text.length);
   }
 }

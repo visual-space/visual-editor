@@ -7,18 +7,17 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 import '../../blocks/models/editable-box-renderer.model.dart';
+import '../../blocks/services/lines-blocks.service.dart';
 import '../../controller/state/editor-controller.state.dart';
 import '../../cursor/state/cursor-controller.state.dart';
 import '../../cursor/widgets/floating-cursor.painter.dart';
 import '../../documents/models/document.model.dart';
-import '../../selection/services/selection-actions.utils.dart';
+import '../../selection/services/selection-actions.service.dart';
 import '../../selection/services/text-selection.utils.dart';
 import '../../selection/state/selection-layers.state.dart';
 import '../controllers/vertical-caret-movement-run.controller.dart';
-import '../services/lines-blocks.service.dart';
 import '../state/editor-config.state.dart';
 import '../state/editor-renderer.state.dart';
-import '../state/extend-selection.state.dart';
 import '../state/focus-node.state.dart';
 import 'editable-container-box-renderer.dart';
 
@@ -33,10 +32,9 @@ class EditorRendererInner extends EditableContainerBoxRenderer
   final _textSelectionUtils = TextSelectionUtils();
   final _linesBlocksService = LinesBlocksService();
   final _editorRendererState = EditorRendererState();
-  final _selectionActionsUtils = SelectionActionsUtils();
+  final _selectionActionsService = SelectionActionsService();
   final _focusNodeState = FocusNodeState();
   final _selectionLayersState = SelectionLayersState();
-  final _extendSelectionState = ExtendSelectionState();
 
   DocumentM document;
   Rect? floatingCursorRect;
@@ -79,7 +77,7 @@ class EditorRendererInner extends EditableContainerBoxRenderer
       );
 
   EditorRendererInner({
-    required this.document, // +++ Move to service
+    required this.document,
     required TextDirection textDirection,
     ViewportOffset? offset,
     List<EditableBoxRenderer>? children,
@@ -90,10 +88,6 @@ class EditorRendererInner extends EditableContainerBoxRenderer
           container: document.root,
           textDirection: textDirection,
         ) {
-    // +++ MOVE to controller
-    _extendSelectionState.setOrigin(
-      _editorControllerState.controller.selection,
-    );
     _editorRendererState.setRenderer(this);
     super.padding = _editorConfigState.config.padding;
   }
@@ -192,7 +186,8 @@ class EditorRendererInner extends EditableContainerBoxRenderer
     }
 
     final selection = _editorControllerState.controller.selection;
-    final selectionEndpoints = _selectionActionsUtils.getEndpointsForSelection(
+    final selectionEndpoints =
+        _selectionActionsService.getEndpointsForSelection(
       selection,
     );
 

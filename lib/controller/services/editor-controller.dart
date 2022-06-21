@@ -12,6 +12,7 @@ import '../../documents/models/document.model.dart';
 import '../../documents/models/nodes/embeddable.model.dart';
 import '../../documents/models/nodes/leaf.model.dart';
 import '../../documents/models/style.model.dart';
+import '../../editor/state/extend-selection.state.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../highlights/state/highlights.state.dart';
 import '../state/document.state.dart';
@@ -61,6 +62,7 @@ typedef DeleteCallback = void Function(int cursorPosition, bool forward);
 class EditorController extends ChangeNotifier {
   final _documentState = DocumentState();
   final _highlightsState = HighlightsState();
+  final _extendSelectionState = ExtendSelectionState();
 
   final DocumentM document;
   final bool keepStyleOnNewLine;
@@ -94,6 +96,7 @@ class EditorController extends ChangeNotifier {
   }) {
     _documentState.setDocument(document);
     _highlightsState.setHighlights(highlights);
+    _extendSelectionState.setOrigin(selection);
   }
 
   factory EditorController.basic() => EditorController(
@@ -385,7 +388,6 @@ class EditorController extends ChangeNotifier {
     notifyListeners();
   }
 
-  // +++ Replace with stream
   @override
   void addListener(VoidCallback listener) {
     // By using `_isDisposed`, make sure that `addListener` won't be called on a disposed `ChangeListener`

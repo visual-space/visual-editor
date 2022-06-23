@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -26,6 +28,7 @@ class SelectHeaderStyleButton extends StatefulWidget {
 
 class _SelectHeaderStyleButtonState extends State<SelectHeaderStyleButton> {
   AttributeM? _value;
+  late final StreamSubscription _updateListener;
 
   StyleM get _selectionStyle => widget.controller.getSelectionStyle();
 
@@ -35,7 +38,9 @@ class _SelectHeaderStyleButtonState extends State<SelectHeaderStyleButton> {
     setState(() {
       _value = _getHeaderValue();
     });
-    widget.controller.addListener(_didChangeEditingValue);
+    _updateListener = widget.controller.editorState.updateEditor$.listen(
+      (_) => _didChangeEditingValue,
+    );
   }
 
   @override
@@ -109,6 +114,14 @@ class _SelectHeaderStyleButtonState extends State<SelectHeaderStyleButton> {
     );
   }
 
+  @override
+  void dispose() {
+    _updateListener.cancel();
+    super.dispose();
+  }
+
+  // === PRIVATE ===
+
   void _didChangeEditingValue() {
     setState(() {
       _value = _getHeaderValue();
@@ -122,22 +135,7 @@ class _SelectHeaderStyleButtonState extends State<SelectHeaderStyleButton> {
       widget.controller.toolbarButtonToggler.remove(AttributeM.header.key);
       return attr;
     }
-    return _selectionStyle.attributes[AttributeM.header.key] ?? AttributeM.header;
-  }
-
-  @override
-  void didUpdateWidget(covariant SelectHeaderStyleButton oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.controller != widget.controller) {
-      oldWidget.controller.removeListener(_didChangeEditingValue);
-      widget.controller.addListener(_didChangeEditingValue);
-      _value = _getHeaderValue();
-    }
-  }
-
-  @override
-  void dispose() {
-    widget.controller.removeListener(_didChangeEditingValue);
-    super.dispose();
+    return _selectionStyle.attributes[AttributeM.header.key] ??
+        AttributeM.header;
   }
 }

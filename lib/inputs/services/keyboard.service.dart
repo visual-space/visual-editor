@@ -22,6 +22,7 @@ class KeyboardService {
 
   KeyboardService._privateConstructor();
 
+  // TextValueService is provided via input to avoid circular reference issues.
   void initKeyboard(TextValueService _textValueService) {
     if (isKeyboardOS()) {
       _keyboardVisibleState.setKeyboardVisible(true);
@@ -73,7 +74,8 @@ class KeyboardService {
 
   // KeyboardVisibilityController only checks for keyboards that adjust the screen size.
   // Also watch for hardware keyboards that don't alter the screen (i.e. Chromebook, Android tablet
-  // and any hardware keyboards from an OS not listed in isKeyboardOS())
+  // and any hardware keyboards from an OS not listed in isKeyboardOS()).
+  // TextValueService is provided via input to avoid circular reference issues.
   bool hardwareKeyboardEvent(TextValueService _textValueService) {
     if (!_keyboardVisibleState.isVisible) {
       // Hardware keyboard key pressed. Set visibility to true

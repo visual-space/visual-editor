@@ -4,11 +4,13 @@ import 'package:flutter/widgets.dart';
 
 import '../../editor/state/focus-node.state.dart';
 import '../models/cursor-style.model.dart';
+import '../state/cursor.state.dart';
 
 // Controls the cursor of an editable widget.
 // This class is a [ChangeNotifier] and allows to listen for updates on the cursor [style].
-class CursorController extends ChangeNotifier {
+class CursorController {
   final _focusNodeState = FocusNodeState();
+  final _cursorState = CursorState();
 
   // The time it takes for the cursor to fade from fully opaque to fully transparent and vice versa.
   // A full cursor blink, from transparent to opaque to transparent, is twice this duration.
@@ -43,7 +45,7 @@ class CursorController extends ChangeNotifier {
   set style(CursorStyle value) {
     if (_style == value) return;
     _style = value;
-    notifyListeners();
+    _cursorState.updateCursor();
   }
 
   // True when this [CursorCont] instance has been disposed.
@@ -64,7 +66,9 @@ class CursorController extends ChangeNotifier {
     _blinkOpacityController.addListener(_onColorTick);
   }
 
-  @override
+  // TODO this should be called to avoid memory leaks.
+  // Though its unclear what's the perfect moment to do so.
+  // I plan to udpdate as soon as I figure out the right place.
   void dispose() {
     _blinkOpacityController.removeListener(_onColorTick);
     stopCursorTimer();
@@ -75,8 +79,6 @@ class CursorController extends ChangeNotifier {
     color.dispose();
 
     assert(_cursorTimer == null);
-
-    super.dispose();
   }
 
   void startCursorTimer() {

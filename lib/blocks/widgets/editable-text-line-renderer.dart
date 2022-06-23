@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/rendering.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import '../../controller/state/editor-controller.state.dart';
 import '../../cursor/controllers/cursor.controller.dart';
 import '../../cursor/state/cursor-controller.state.dart';
+import '../../cursor/state/cursor.state.dart';
 import '../../cursor/widgets/cursor-painter.dart';
 import '../../documents/models/attribute.model.dart';
 import '../../documents/models/nodes/container.model.dart' as container_node;
@@ -28,6 +30,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
   final _textSelectionUtils = TextSelectionUtils();
   final _platformStylesState = PlatformStylesState();
   final _focusNodeState = FocusNodeState();
+  final _cursorState = CursorState();
 
   RenderBox? _leading;
   RenderContentProxyBox? _body;
@@ -43,6 +46,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
   late Rect _caretPrototype;
   InlineCodeStyle inlineCodeStyle;
   final Map<TextLineSlot, RenderBox> children = <TextLineSlot, RenderBox>{};
+  late StreamSubscription _cursorStateListener;
 
   // Creates new editable paragraph render box.
   EditableTextLineRenderer({
@@ -51,7 +55,6 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     required this.textSelection,
     required this.devicePixelRatio,
     required this.padding,
-    // required this.cursorController,
     required this.inlineCodeStyle,
   }) {
     cursorController = _cursorControllerState.controller;
@@ -66,23 +69,25 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     }
   }
 
-  void setTextSelection(TextSelection t) {
-    if (textSelection == t) {
+  void setTextSelection(TextSelection selection) {
+    if (textSelection == selection) {
       return;
     }
 
     final containsSelection = _lineContainsSelection(textSelection);
     if (_attachedToCursorController) {
-      cursorController.removeListener(markNeedsLayout);
+      _cursorStateListener.cancel();
       cursorController.color.removeListener(safeMarkNeedsPaint);
       _attachedToCursorController = false;
     }
 
-    textSelection = t;
+    textSelection = selection;
     _selectedRects = null;
     _containsCursor = null;
     if (attached && containsCursor()) {
-      cursorController.addListener(markNeedsLayout);
+      _cursorStateListener = _cursorState.updateCursor$.listen((_) {
+        markNeedsLayout();
+      });
       cursorController.color.addListener(safeMarkNeedsPaint);
       _attachedToCursorController = true;
     }
@@ -92,18 +97,18 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     }
   }
 
-  void setLine(LineM l) {
-    if (line == l) {
+  void setLine(LineM _line) {
+    if (line == _line) {
       return;
     }
 
-    line = l;
+    line = _line;
     _containsCursor = null;
     markNeedsLayout();
   }
 
-  void setLeading(RenderBox? l) {
-    _leading = _updateChild(_leading, l, TextLineSlot.LEADING);
+  void setLeading(RenderBox? leading) {
+    _leading = _updateChild(_leading, leading, TextLineSlot.LEADING);
   }
 
   void setBody(RenderContentProxyBox? b) {
@@ -310,7 +315,9 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     );
 
     if (containsCursor()) {
-      cursorController.addListener(markNeedsLayout);
+      _cursorStateListener = _cursorState.updateCursor$.listen((_) {
+        markNeedsLayout();
+      });
       cursorController.color.addListener(safeMarkNeedsPaint);
       _attachedToCursorController = true;
     }
@@ -329,7 +336,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     );
 
     if (_attachedToCursorController) {
-      cursorController.removeListener(markNeedsLayout);
+      _cursorStateListener.cancel();
       cursorController.color.removeListener(safeMarkNeedsPaint);
       _attachedToCursorController = false;
     }

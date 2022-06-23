@@ -47,3 +47,16 @@ Widget _editorToolbar() => EditorToolbar.basic(
     toolbarIconAlignment: WrapAlignment.start,
   );
 ```
+
+## Toolbar buttons
+Visual Editor lib exports all the buttons that form the toolbar. This means you can create a new custom toolbar out of the buttons VisualEditor provides plus your own custom buttons. To keep them in sync with your editor every single button receives the controller as an input. Unlike other classes of the code base the buttons do receive the controller explicitly.
+
+```
+ColorButton(
+    icon: Icons.color_lens,
+    iconSize: toolbarIconSize,
+    controller: controller,
+    background: false,
+    iconTheme: iconTheme,
+),
+```

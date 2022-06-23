@@ -8,16 +8,14 @@ import '../../inputs/services/input-connection.service.dart';
 import '../../selection/services/selection-actions.service.dart';
 import '../state/editor-state-widget.state.dart';
 import '../state/focus-node.state.dart';
-import 'text-value.service.dart';
 
 class EditorService {
   final _textConnectionService = TextConnectionService();
   final _selectionActionsService = SelectionActionsService();
   final _editorControllerState = EditorControllerState();
+  final _editorStateWidgetState = EditorStateWidgetState();
   final _cursorControllerState = CursorControllerState();
   final _focusNodeState = FocusNodeState();
-  final _editorStateWidgetState = EditorStateWidgetState();
-  final _textValueService = TextValueService();
   final _caretService = CaretService();
 
   static final _instance = EditorService._privateConstructor();
@@ -27,6 +25,8 @@ class EditorService {
   EditorService._privateConstructor();
 
   void handleFocusChanged() {
+    final editor = _editorStateWidgetState.editor;
+
     _textConnectionService.openOrCloseConnection();
     _cursorControllerState.controller.startOrStopCursorTimerIfNeeded(
       _editorControllerState.controller.selection,
@@ -35,16 +35,16 @@ class EditorService {
 
     if (_focusNodeState.node.hasFocus) {
       WidgetsBinding.instance.addObserver(
-        _editorStateWidgetState.editor,
+        editor,
       );
       _caretService.showCaretOnScreen();
     } else {
       WidgetsBinding.instance.removeObserver(
-        _editorStateWidgetState.editor,
+        editor,
       );
     }
 
-    _editorStateWidgetState.editor.safeUpdateKeepAlive();
+    editor.safeUpdateKeepAlive();
   }
 
   void disposeEditor() {
@@ -56,11 +56,9 @@ class EditorService {
 
     assert(!_textConnectionService.hasConnection);
 
-    _editorStateWidgetState.editor.selectionActionsController?.dispose();
-    _editorStateWidgetState.editor.selectionActionsController = null;
-    _editorControllerState.controller.removeListener(
-      _textValueService.onTextEditingValueChanged,
-    );
+    editor.selectionActionsController?.dispose();
+    editor.selectionActionsController = null;
+    editor.editorUpdatesListener.cancel();
     _focusNodeState.node.removeListener(
       handleFocusChanged,
     );

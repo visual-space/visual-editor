@@ -1,22 +1,27 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 
-import '../widgets/keyboard-listener-provider.dart';
-
 // Stores the keystrokes and provides a stream of keystrokes.
-class PressedKeysState extends ChangeNotifier {
-  static PressedKeysState of(BuildContext context) {
-    final widget =
-        context.dependOnInheritedWidgetOfExactType<PressedKeysStateProvider>();
-    return widget!.pressedKeys;
-  }
+class PressedKeysState {
+  factory PressedKeysState() => _instance;
+  static final _instance = PressedKeysState._privateConstructor();
 
+  PressedKeysState._privateConstructor();
+
+  late Set<LogicalKeyboardKey> _pressedKeys;
   bool _metaPressed = false;
   bool _controlPressed = false;
+
+  final _pressedKeys$ = StreamController<Set<LogicalKeyboardKey>>.broadcast();
+
+  Stream<Set<LogicalKeyboardKey>> get pressedKeys$ => _pressedKeys$.stream;
 
   bool get metaPressed => _metaPressed;
 
   bool get controlPressed => _controlPressed;
+
+  Set<LogicalKeyboardKey> get pressedKeys => _pressedKeys;
 
   // Emits only when the modifier keys are pressed or released
   void emitPressedKeys(Set<LogicalKeyboardKey> pressedKeys) {
@@ -26,9 +31,12 @@ class PressedKeysState extends ChangeNotifier {
     if (_metaPressed != meta || _controlPressed != control) {
       _metaPressed = meta;
       _controlPressed = control;
-      notifyListeners();
+      _pressedKeys = pressedKeys;
+      _pressedKeys$.sink.add(pressedKeys);
     }
   }
+
+  // === PRIVATE ===
 
   bool _isControlPressed(Set<LogicalKeyboardKey> pressedKeys) {
     return pressedKeys.contains(LogicalKeyboardKey.controlLeft) ||

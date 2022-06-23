@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -33,6 +35,7 @@ class SelectAlignmentButton extends StatefulWidget {
 
 class _SelectAlignmentButtonState extends State<SelectAlignmentButton> {
   AttributeM? _value;
+  late final StreamSubscription _updateListener;
 
   StyleM get _selectionStyle => widget.controller.getSelectionStyle();
 
@@ -43,7 +46,9 @@ class _SelectAlignmentButtonState extends State<SelectAlignmentButton> {
       _value = _selectionStyle.attributes[AttributeM.align.key] ??
           AttributeM.leftAlignment;
     });
-    widget.controller.addListener(_didChangeEditingValue);
+    _updateListener = widget.controller.editorState.updateEditor$.listen(
+      (_) => _didChangeEditingValue,
+    );
   }
 
   @override
@@ -103,7 +108,8 @@ class _SelectAlignmentButtonState extends State<SelectAlignmentButton> {
                       theme.toggleableActiveColor)
                   : (widget.iconTheme?.iconUnselectedFillColor ??
                       theme.canvasColor),
-              onPressed: () => _valueAttribute[index] == AttributeM.leftAlignment
+              onPressed: () => _valueAttribute[index] ==
+                      AttributeM.leftAlignment
                   ? widget.controller
                       .formatSelection(AttributeM.clone(AttributeM.align, null))
                   : widget.controller.formatSelection(_valueAttribute[index]),
@@ -129,27 +135,18 @@ class _SelectAlignmentButtonState extends State<SelectAlignmentButton> {
     );
   }
 
+  @override
+  void dispose() {
+    _updateListener.cancel();
+    super.dispose();
+  }
+
+  // === PRIVATE ===
+
   void _didChangeEditingValue() {
     setState(() {
       _value = _selectionStyle.attributes[AttributeM.align.key] ??
           AttributeM.leftAlignment;
     });
-  }
-
-  @override
-  void didUpdateWidget(covariant SelectAlignmentButton oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.controller != widget.controller) {
-      oldWidget.controller.removeListener(_didChangeEditingValue);
-      widget.controller.addListener(_didChangeEditingValue);
-      _value = _selectionStyle.attributes[AttributeM.align.key] ??
-          AttributeM.leftAlignment;
-    }
-  }
-
-  @override
-  void dispose() {
-    widget.controller.removeListener(_didChangeEditingValue);
-    super.dispose();
   }
 }

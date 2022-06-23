@@ -52,12 +52,6 @@ class _DemoScaffoldState extends State<DemoScaffold> {
     }
   }
 
-  @override
-  void dispose() {
-    _controller?.dispose();
-    super.dispose();
-  }
-
   Future<void> _loadFromAssets() async {
     try {
       final result = await rootBundle.loadString(

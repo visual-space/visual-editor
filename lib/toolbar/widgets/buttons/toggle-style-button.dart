@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../controller/services/editor-controller.dart';
@@ -33,6 +35,7 @@ class ToggleStyleButton extends StatefulWidget {
 
 class _ToggleStyleButtonState extends State<ToggleStyleButton> {
   bool? _isToggled;
+  late final StreamSubscription _updateListener;
 
   StyleM get _selectionStyle => widget.controller.getSelectionStyle();
 
@@ -40,7 +43,9 @@ class _ToggleStyleButtonState extends State<ToggleStyleButton> {
   void initState() {
     super.initState();
     _isToggled = _getIsToggled(_selectionStyle.attributes);
-    widget.controller.addListener(_didChangeEditingValue);
+    _updateListener = widget.controller.editorState.updateEditor$.listen(
+      (_) => _didChangeEditingValue,
+    );
   }
 
   @override
@@ -58,20 +63,12 @@ class _ToggleStyleButtonState extends State<ToggleStyleButton> {
   }
 
   @override
-  void didUpdateWidget(covariant ToggleStyleButton oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.controller != widget.controller) {
-      oldWidget.controller.removeListener(_didChangeEditingValue);
-      widget.controller.addListener(_didChangeEditingValue);
-      _isToggled = _getIsToggled(_selectionStyle.attributes);
-    }
-  }
-
-  @override
   void dispose() {
-    widget.controller.removeListener(_didChangeEditingValue);
+    _updateListener.cancel();
     super.dispose();
   }
+
+  // === PRIVATE ===
 
   void _didChangeEditingValue() {
     setState(() => _isToggled = _getIsToggled(_selectionStyle.attributes));

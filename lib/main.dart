@@ -18,6 +18,19 @@ import 'cursor/controllers/floating-cursor.controller.dart';
 import 'cursor/services/cursor.service.dart';
 import 'documents/models/document.model.dart';
 import 'documents/services/document.service.dart';
+import 'editor/models/editor-cfg.model.dart';
+import 'editor/services/editor.service.dart';
+import 'editor/services/styles.service.dart';
+import 'editor/services/text-value.service.dart';
+import 'editor/state/editor-config.state.dart';
+import 'editor/state/editor-state-widget.state.dart';
+import 'editor/state/editor-widget.state.dart';
+import 'editor/state/editor.state.dart';
+import 'editor/state/focus-node.state.dart';
+import 'editor/widgets/document-styles.dart';
+import 'editor/widgets/editor-renderer.dart';
+import 'editor/widgets/proxy/baseline-proxy.dart';
+import 'editor/widgets/scroll/editor-single-child-scroll-view.dart';
 import 'inputs/services/clipboard.service.dart';
 import 'inputs/services/input-connection.service.dart';
 import 'inputs/services/keyboard-actions.service.dart';
@@ -28,18 +41,6 @@ import 'selection/services/selection-actions.service.dart';
 import 'selection/services/text-selection.service.dart';
 import 'selection/state/selection-layers.state.dart';
 import 'selection/widgets/text-gestures.dart';
-import 'editor/models/editor-cfg.model.dart';
-import 'editor/services/editor.service.dart';
-import 'editor/services/styles.service.dart';
-import 'editor/services/text-value.service.dart';
-import 'editor/state/editor-config.state.dart';
-import 'editor/state/editor-state-widget.state.dart';
-import 'editor/state/editor-widget.state.dart';
-import 'editor/state/focus-node.state.dart';
-import 'editor/widgets/document-styles.dart';
-import 'editor/widgets/editor-renderer.dart';
-import 'editor/widgets/proxy/baseline-proxy.dart';
-import 'editor/widgets/scroll/editor-single-child-scroll-view.dart';
 
 // This is the main class of the Visual Editor.
 // There are 2 constructors available, one for controlling all the settings of the editor in precise detail.
@@ -131,6 +132,7 @@ class VisualEditorState extends State<VisualEditor>
         WidgetsBindingObserver,
         TickerProviderStateMixin<VisualEditor>
     implements TextSelectionDelegate, TextInputClient {
+  final _editorState = EditorState();
   final _selectionActionsService = SelectionActionsService();
   final _textSelectionService = TextSelectionService();
   final _editorTextService = EditorTextService();
@@ -143,7 +145,6 @@ class VisualEditorState extends State<VisualEditor>
   final _editorService = EditorService();
   final _editorStateWidgetState = EditorStateWidgetState();
   final _editorConfigState = EditorConfigState();
-  final _editorControllerState = EditorControllerState();
   final _focusNodeState = FocusNodeState();
   final _documentService = DocumentService();
   final _documentState = DocumentState();
@@ -156,11 +157,12 @@ class VisualEditorState extends State<VisualEditor>
   final _editorKey = GlobalKey<State<VisualEditor>>();
   final _editorRendererKey = GlobalKey<State<VisualEditor>>();
   KeyboardVisibilityController? keyboardVisibilityCtrl;
-  StreamSubscription<bool>? keyboardVisibilitySub;
+  late final StreamSubscription<bool>? keyboardVisibilitySub;
   bool _didAutoFocus = false;
   DefaultStyles? styles;
   final ClipboardStatusNotifier clipboardStatus = ClipboardStatusNotifier();
   ViewportOffset? _offset;
+  late final StreamSubscription editorUpdatesListener;
 
   TextDirection get textDirection => Directionality.of(context);
 
@@ -169,7 +171,7 @@ class VisualEditorState extends State<VisualEditor>
     super.initState();
     _cacheStateWidget();
     _listedToClipboardAndUpdateEditor();
-    _subscribeToTextChangesAndUpdateEditor();
+    _subscribeToEditorUpdates();
     _listenToScrollAndUpdateOverlayMenu();
     _initKeyboard();
     _listenToFocusAndUpdateCaretAndOverlayMenu();
@@ -474,9 +476,9 @@ class VisualEditorState extends State<VisualEditor>
     );
   }
 
-  void _subscribeToTextChangesAndUpdateEditor() {
-    _editorControllerState.controller.addListener(
-      _textValueService.onTextEditingValueChanged,
+  void _subscribeToEditorUpdates() {
+    editorUpdatesListener = _editorState.updateEditor$.listen(
+      (_) => _textValueService.updateEditor(),
     );
   }
 

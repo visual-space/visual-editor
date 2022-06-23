@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
@@ -37,23 +39,9 @@ class _ColorButtonState extends State<ColorButton> {
   late bool _isToggledBackground;
   late bool _isWhite;
   late bool _isWhiteBackground;
+  late final StreamSubscription _updateListener;
 
   StyleM get _selectionStyle => widget.controller.getSelectionStyle();
-
-  void _didChangeEditingValue() {
-    setState(() {
-      _isToggledColor = _getIsToggledColor(
-        widget.controller.getSelectionStyle().attributes,
-      );
-      _isToggledBackground = _getIsToggledBackground(
-        widget.controller.getSelectionStyle().attributes,
-      );
-      _isWhite = _isToggledColor &&
-          _selectionStyle.attributes['color']!.value == '#ffffff';
-      _isWhiteBackground = _isToggledBackground &&
-          _selectionStyle.attributes['background']!.value == '#ffffff';
-    });
-  }
 
   @override
   void initState() {
@@ -64,7 +52,9 @@ class _ColorButtonState extends State<ColorButton> {
         _selectionStyle.attributes['color']!.value == '#ffffff';
     _isWhiteBackground = _isToggledBackground &&
         _selectionStyle.attributes['background']!.value == '#ffffff';
-    widget.controller.addListener(_didChangeEditingValue);
+    _updateListener = widget.controller.editorState.updateEditor$.listen(
+      (_) => _didChangeEditingValue,
+    );
   }
 
   bool _getIsToggledColor(Map<String, AttributeM> attrs) {
@@ -76,26 +66,8 @@ class _ColorButtonState extends State<ColorButton> {
   }
 
   @override
-  void didUpdateWidget(covariant ColorButton oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    if (oldWidget.controller != widget.controller) {
-      oldWidget.controller.removeListener(_didChangeEditingValue);
-      widget.controller.addListener(_didChangeEditingValue);
-      _isToggledColor = _getIsToggledColor(_selectionStyle.attributes);
-      _isToggledBackground = _getIsToggledBackground(
-        _selectionStyle.attributes,
-      );
-      _isWhite = _isToggledColor &&
-          _selectionStyle.attributes['color']!.value == '#ffffff';
-      _isWhiteBackground = _isToggledBackground &&
-          _selectionStyle.attributes['background']!.value == '#ffffff';
-    }
-  }
-
-  @override
   void dispose() {
-    widget.controller.removeListener(_didChangeEditingValue);
+    _updateListener.cancel();
     super.dispose();
   }
 
@@ -132,6 +104,23 @@ class _ColorButtonState extends State<ColorButton> {
       borderRadius: widget.iconTheme?.borderRadius ?? 2,
       onPressed: _showColorPicker,
     );
+  }
+
+  // === PRIVATE ===
+
+  void _didChangeEditingValue() {
+    setState(() {
+      _isToggledColor = _getIsToggledColor(
+        widget.controller.getSelectionStyle().attributes,
+      );
+      _isToggledBackground = _getIsToggledBackground(
+        widget.controller.getSelectionStyle().attributes,
+      );
+      _isWhite = _isToggledColor &&
+          _selectionStyle.attributes['color']!.value == '#ffffff';
+      _isWhiteBackground = _isToggledBackground &&
+          _selectionStyle.attributes['background']!.value == '#ffffff';
+    });
   }
 
   void _changeColor(BuildContext context, Color color) {

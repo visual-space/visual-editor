@@ -55,6 +55,8 @@ class VideoButton extends StatelessWidget {
     );
   }
 
+  // === PRIVATE ===
+
   Future<void> _onPressedHandler(BuildContext context) async {
     if (onVideoPickCallback != null) {
       final selector =

@@ -49,6 +49,8 @@ class _HistoryButtonState extends State<HistoryButton> {
     );
   }
 
+  // === PRIVATE ===
+
   void _setIconColor() {
     if (!mounted) return;
 

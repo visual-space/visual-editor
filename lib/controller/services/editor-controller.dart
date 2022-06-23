@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:tuple/tuple.dart';
 
@@ -12,6 +11,7 @@ import '../../documents/models/document.model.dart';
 import '../../documents/models/nodes/embeddable.model.dart';
 import '../../documents/models/nodes/leaf.model.dart';
 import '../../documents/models/style.model.dart';
+import '../../editor/state/editor.state.dart';
 import '../../editor/state/extend-selection.state.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../highlights/state/highlights.state.dart';
@@ -27,11 +27,10 @@ typedef DeleteCallback = void Function(int cursorPosition, bool forward);
 // The controller defines several properties that represent the state of the document and the state of the editor,
 // plus several methods that notify the listeners.
 //
-// For ex, when users interact with the document the updateSelection() method
-// is invoked. The method itself is one of the many that trigger
-// notifyListeners(). Most of the listeners that subscribe to the state changes
-// of the controller are located in the EditorToolbar and are directly
-// controlling the state of the buttons.
+// For ex, when users interact with the document the updateSelection() method is invoked.
+// The method itself is one of the many that trigger the updateEditor$ stream.
+// Most of the listeners that subscribe to the state changes of the controller are located in the
+// EditorToolbar and are directly controlling the state of the buttons.
 //
 // Example: The EditorToolbar listens the notifications emitted by the controller class.
 // If the current text selection has the bold attribute then  the EditorToolbar react by highlighting the bold button.
@@ -59,7 +58,8 @@ typedef DeleteCallback = void Function(int cursorPosition, bool forward);
 // Multiple operations can trigger this behavior: copy/paste, inserting embeds, etc.
 // onDelete - Callback executed after deleting characters.
 // onSelectionCompleted - Custom behavior to be executed after completing a text selection
-class EditorController extends ChangeNotifier {
+class EditorController {
+  final editorState = EditorState();
   final _documentState = DocumentState();
   final _highlightsState = HighlightsState();
   final _extendSelectionState = ExtendSelectionState();
@@ -79,10 +79,6 @@ class EditorController extends ChangeNotifier {
   StyleM toggledStyle = StyleM();
 
   bool ignoreFocusOnTextChange = false;
-
-  // True when this EditorController instance has been disposed.
-  // A safety mechanism to ensure that listeners don't crash when adding, removing or listeners to this instance.
-  bool _isDisposed = false;
 
   EditorController({
     required this.document,
@@ -172,7 +168,7 @@ class EditorController extends ChangeNotifier {
       );
     } else {
       // No need to move cursor
-      notifyListeners();
+      editorState.updateEditor();
     }
   }
 
@@ -275,7 +271,7 @@ class EditorController extends ChangeNotifier {
       ignoreFocusOnTextChange = true;
     }
 
-    notifyListeners();
+    editorState.updateEditor();
     ignoreFocusOnTextChange = false;
   }
 
@@ -322,7 +318,7 @@ class EditorController extends ChangeNotifier {
       );
     }
 
-    notifyListeners();
+    editorState.updateEditor();
   }
 
   void formatSelection(AttributeM? attribute) {
@@ -358,7 +354,7 @@ class EditorController extends ChangeNotifier {
 
   void updateSelection(TextSelection textSelection, ChangeSource source) {
     _updateSelection(textSelection, source);
-    notifyListeners();
+    editorState.updateEditor();
   }
 
   void compose(
@@ -385,33 +381,7 @@ class EditorController extends ChangeNotifier {
       _updateSelection(textSelection, source);
     }
 
-    notifyListeners();
-  }
-
-  @override
-  void addListener(VoidCallback listener) {
-    // By using `_isDisposed`, make sure that `addListener` won't be called on a disposed `ChangeListener`
-    if (!_isDisposed) {
-      super.addListener(listener);
-    }
-  }
-
-  @override
-  void removeListener(VoidCallback listener) {
-    // By using `_isDisposed`, make sure that `removeListener` won't be called on a disposed `ChangeListener`
-    if (!_isDisposed) {
-      super.removeListener(listener);
-    }
-  }
-
-  @override
-  void dispose() {
-    if (!_isDisposed) {
-      document.close();
-    }
-
-    _isDisposed = true;
-    super.dispose();
+    editorState.updateEditor();
   }
 
   void _updateSelection(TextSelection textSelection, ChangeSource source) {

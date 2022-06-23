@@ -1,9 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
-import '../../controller/services/editor-controller.dart';
-import '../../documents/models/attribute.model.dart';
-import '../../documents/models/style.model.dart';
-import '../models/editor-icon-theme.model.dart';
+import '../../../controller/services/editor-controller.dart';
+import '../../../documents/models/attribute.model.dart';
+import '../../../documents/models/style.model.dart';
+import '../../../shared/models/editor-icon-theme.model.dart';
 
 // Collides with Flutter DropdownButton
 class DropdownBtn<T> extends StatefulWidget {
@@ -40,13 +42,16 @@ class DropdownBtn<T> extends StatefulWidget {
 
 class _DropdownBtnState<T> extends State<DropdownBtn<T>> {
   String _currentValue = '';
+  late final StreamSubscription _updateListener;
 
   StyleM get _selectionStyle => widget.controller.getSelectionStyle();
 
   @override
   void initState() {
     super.initState();
-    widget.controller.addListener(_didChangeEditingValue);
+    _updateListener = widget.controller.editorState.updateEditor$.listen(
+      (_) => _didChangeEditingValue,
+    );
     _currentValue = widget.rawitemsmap.keys.elementAt(
       widget.initialValue as int,
     );
@@ -54,19 +59,32 @@ class _DropdownBtnState<T> extends State<DropdownBtn<T>> {
 
   @override
   void dispose() {
-    widget.controller.removeListener(_didChangeEditingValue);
+    _updateListener.cancel();
     super.dispose();
   }
 
   @override
-  void didUpdateWidget(covariant DropdownBtn<T> oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.controller != widget.controller) {
-      oldWidget.controller.removeListener(_didChangeEditingValue);
-      widget.controller.addListener(_didChangeEditingValue);
-      //_isToggled = _getIsToggled(_selectionStyle.attributes);
-    }
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: BoxConstraints.tightFor(height: widget.iconSize * 1.81),
+      child: RawMaterialButton(
+        visualDensity: VisualDensity.compact,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(
+            widget.iconTheme?.borderRadius ?? 2,
+          ),
+        ),
+        fillColor: widget.fillColor,
+        elevation: 0,
+        hoverElevation: widget.hoverElevation,
+        highlightElevation: widget.hoverElevation,
+        onPressed: _showMenu,
+        child: _buildContent(context),
+      ),
+    );
   }
+
+  // === PRIVATE ===
 
   void _didChangeEditingValue() {
     setState(() => _currentValue = _getKeyName(_selectionStyle.attributes));
@@ -90,27 +108,6 @@ class _DropdownBtnState<T> extends State<DropdownBtn<T>> {
     return widget.rawitemsmap.keys
         .elementAt(widget.initialValue as int)
         .toString();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: BoxConstraints.tightFor(height: widget.iconSize * 1.81),
-      child: RawMaterialButton(
-        visualDensity: VisualDensity.compact,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(
-            widget.iconTheme?.borderRadius ?? 2,
-          ),
-        ),
-        fillColor: widget.fillColor,
-        elevation: 0,
-        hoverElevation: widget.hoverElevation,
-        highlightElevation: widget.hoverElevation,
-        onPressed: _showMenu,
-        child: _buildContent(context),
-      ),
-    );
   }
 
   void _showMenu() {

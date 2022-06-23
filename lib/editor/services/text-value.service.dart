@@ -65,7 +65,13 @@ class TextValueService {
     }
   }
 
-  void onTextEditingValueChanged() {
+  // Any interaction:
+  // - Changing cursor position
+  // - Changing selection range
+  // - Adding styles
+  // - Adding characters
+  // - Undo redo
+  void updateEditor() {
     final ignoreFocus =
         _editorControllerState.controller.ignoreFocusOnTextChange;
 

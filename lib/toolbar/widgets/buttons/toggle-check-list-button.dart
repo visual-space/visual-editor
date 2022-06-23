@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../controller/services/editor-controller.dart';
@@ -33,21 +35,46 @@ class ToggleCheckListButton extends StatefulWidget {
 
 class _ToggleCheckListButtonState extends State<ToggleCheckListButton> {
   bool? _isToggled;
+  late final StreamSubscription _updateListener;
 
   StyleM get _selectionStyle => widget.controller.getSelectionStyle();
+
+  @override
+  void initState() {
+    super.initState();
+    _isToggled = _getIsToggled(_selectionStyle.attributes);
+    _updateListener = widget.controller.editorState.updateEditor$.listen(
+      (_) => _didChangeEditingValue,
+    );
+  }
+
+  @override
+  void dispose() {
+    _updateListener.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.childBuilder(
+      context,
+      AttributeM.unchecked,
+      widget.icon,
+      widget.fillColor,
+      _isToggled,
+      _toggleAttribute,
+      widget.iconSize,
+      widget.iconTheme,
+    );
+  }
+
+  // === PRIVATE ===
 
   void _didChangeEditingValue() {
     setState(() {
       _isToggled =
           _getIsToggled(widget.controller.getSelectionStyle().attributes);
     });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _isToggled = _getIsToggled(_selectionStyle.attributes);
-    widget.controller.addListener(_didChangeEditingValue);
   }
 
   bool _getIsToggled(Map<String, AttributeM> attrs) {
@@ -65,36 +92,6 @@ class _ToggleCheckListButtonState extends State<ToggleCheckListButton> {
     }
     return attribute.value == AttributeM.unchecked.value ||
         attribute.value == AttributeM.checked.value;
-  }
-
-  @override
-  void didUpdateWidget(covariant ToggleCheckListButton oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.controller != widget.controller) {
-      oldWidget.controller.removeListener(_didChangeEditingValue);
-      widget.controller.addListener(_didChangeEditingValue);
-      _isToggled = _getIsToggled(_selectionStyle.attributes);
-    }
-  }
-
-  @override
-  void dispose() {
-    widget.controller.removeListener(_didChangeEditingValue);
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return widget.childBuilder(
-      context,
-      AttributeM.unchecked,
-      widget.icon,
-      widget.fillColor,
-      _isToggled,
-      _toggleAttribute,
-      widget.iconSize,
-      widget.iconTheme,
-    );
   }
 
   void _toggleAttribute() {

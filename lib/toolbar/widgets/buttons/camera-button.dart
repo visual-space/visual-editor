@@ -62,6 +62,8 @@ class CameraButton extends StatelessWidget {
     );
   }
 
+  // === PRIVATE ===
+
   Future<void> _handleCameraButtonTap(
     BuildContext context,
     EditorController controller, {

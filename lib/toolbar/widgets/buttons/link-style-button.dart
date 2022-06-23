@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 
@@ -32,33 +34,22 @@ class LinkStyleButton extends StatefulWidget {
 }
 
 class _LinkStyleButtonState extends State<LinkStyleButton> {
-  void _didChangeSelection() {
-    setState(() {});
-  }
+  final GlobalKey _toolTipKey = GlobalKey();
+  late final StreamSubscription _updateListener;
 
   @override
   void initState() {
     super.initState();
-    widget.controller.addListener(_didChangeSelection);
-  }
-
-  @override
-  void didUpdateWidget(covariant LinkStyleButton oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    if (oldWidget.controller != widget.controller) {
-      oldWidget.controller.removeListener(_didChangeSelection);
-      widget.controller.addListener(_didChangeSelection);
-    }
+    _updateListener = widget.controller.editorState.updateEditor$.listen(
+      (_) => _didChangeSelection,
+    );
   }
 
   @override
   void dispose() {
     super.dispose();
-    widget.controller.removeListener(_didChangeSelection);
+    _updateListener.cancel();
   }
-
-  final GlobalKey _toolTipKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -105,6 +96,12 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
     );
   }
 
+  // === PRIVATE ===
+
+  void _didChangeSelection() {
+    setState(() {});
+  }
+
   void _openLinkDialog(BuildContext context) {
     showDialog<dynamic>(
       context: context,
@@ -135,7 +132,6 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
           text: text,
         );
       },
-
     ).then(
       (value) {
         if (value != null) _linkSubmitted(value);

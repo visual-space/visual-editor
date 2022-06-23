@@ -18,7 +18,7 @@ import '../../editor/state/editor-config.state.dart';
 import '../../editor/widgets/proxy/embed-proxy.dart';
 import '../../editor/widgets/proxy/rich-text-proxy.dart';
 import '../../embeds/widgets/default-embed-builder.dart';
-import '../../inputs/state/pressed-keys-state.dart';
+import '../../inputs/state/pressed-keys.state.dart';
 import '../../shared/utils/color.utils.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../const/link-prefixes.const.dart';
@@ -53,7 +53,8 @@ class _TextLineState extends State<TextLine> {
   bool _metaOrControlPressed = false;
   UniqueKey _richTextKey = UniqueKey();
   final _linkRecognizers = <NodeM, GestureRecognizer>{};
-  PressedKeysState? _pressedKeys;
+  StreamSubscription? _pressedKeysListener;
+  final _pressedKeysState = PressedKeysState();
   late EmbedBuilder _embedBuilder;
 
   @override
@@ -65,7 +66,7 @@ class _TextLineState extends State<TextLine> {
 
   @override
   void dispose() {
-    _pressedKeys?.removeListener(_pressedKeysChanged);
+    _pressedKeysListener?.cancel();
     _linkRecognizers
       ..forEach((key, value) => value.dispose())
       ..clear();
@@ -114,14 +115,9 @@ class _TextLineState extends State<TextLine> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_pressedKeys == null) {
-      _pressedKeys = PressedKeysState.of(context);
-      _pressedKeys!.addListener(_pressedKeysChanged);
-    } else {
-      _pressedKeys!.removeListener(_pressedKeysChanged);
-      _pressedKeys = PressedKeysState.of(context);
-      _pressedKeys!.addListener(_pressedKeysChanged);
-    }
+    _pressedKeysListener?.cancel();
+    _pressedKeysListener = _pressedKeysState.pressedKeys$
+        .listen((pressedKeys) => _pressedKeysChanged);
   }
 
   bool get canLaunchLinks {
@@ -145,7 +141,7 @@ class _TextLineState extends State<TextLine> {
 
   void _pressedKeysChanged() {
     final metaOrControlPressed =
-        _pressedKeys!.metaPressed || _pressedKeys!.controlPressed;
+        _pressedKeysState.metaPressed || _pressedKeysState.controlPressed;
     if (_metaOrControlPressed != metaOrControlPressed) {
       setState(() {
         _metaOrControlPressed = metaOrControlPressed;
@@ -167,7 +163,6 @@ class _TextLineState extends State<TextLine> {
 
     for (final child in widget.line.children) {
       if (child is EmbedM) {
-
         if (textNodes.isNotEmpty) {
           textSpanChildren
               .add(_buildTextSpan(widget.styles, textNodes, lineStyle));

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../state/pressed-keys-state.dart';
-import 'keyboard-listener-provider.dart';
+import '../state/pressed-keys.state.dart';
 
 // Wraps the editor and connects it to the hardware keyboard.
 // Creates a state class to store and stream keystrokes.
@@ -20,13 +19,12 @@ class EditorKeyboardListener extends StatefulWidget {
 }
 
 class EditorKeyboardListenerState extends State<EditorKeyboardListener> {
-  final PressedKeysState _pressedKeys = PressedKeysState();
+  final _pressedKeysState = PressedKeysState();
 
   @override
   void initState() {
     super.initState();
     _subscribeToKeystrokes();
-    _emitPressedKeys();
   }
 
   @override
@@ -36,12 +34,7 @@ class EditorKeyboardListenerState extends State<EditorKeyboardListener> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return PressedKeysStateProvider(
-      pressedKeys: _pressedKeys,
-      child: widget.child,
-    );
-  }
+  Widget build(BuildContext context) => widget.child;
 
   // === PRIVATE ===
 
@@ -51,17 +44,14 @@ class EditorKeyboardListenerState extends State<EditorKeyboardListener> {
 
   void _unsubscribeToKeystrokes() {
     HardwareKeyboard.instance.removeHandler(_emitPressedKeyHandler);
-    _pressedKeys.dispose();
   }
 
   bool _emitPressedKeyHandler(KeyEvent event) {
-    _emitPressedKeys();
+    _pressedKeysState.emitPressedKeys(
+      HardwareKeyboard.instance.logicalKeysPressed,
+    );
+
     return false;
   }
 
-  void _emitPressedKeys() {
-    _pressedKeys.emitPressedKeys(
-      HardwareKeyboard.instance.logicalKeysPressed,
-    );
-  }
 }

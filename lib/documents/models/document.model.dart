@@ -291,8 +291,8 @@ class DocumentM {
 
   static void _autoAppendNewlineAfterEmbeddable(
     int i,
-    List<Operation> ops,
-    Operation op,
+    List<OperationM> ops,
+    OperationM op,
     DeltaM res,
     String type,
   ) {
@@ -305,7 +305,7 @@ class DocumentM {
         op.data is String &&
         (op.data as String).isNotEmpty &&
         !(op.data as String).endsWith('\n')) {
-      res.push(Operation.insert('\n'));
+      res.push(OperationM.insert('\n'));
     }
 
     // Embed could be image or video
@@ -318,7 +318,7 @@ class DocumentM {
 
     if (opInsertEmbed && (i + 1 == ops.length - 1 || !nextOpIsLineBreak)) {
       // Automatically append '\n' for embeddable
-      res.push(Operation.insert('\n'));
+      res.push(OperationM.insert('\n'));
     }
   }
 

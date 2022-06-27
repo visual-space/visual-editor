@@ -12,7 +12,8 @@
 * Refactored many methods to avoid reading/manipulating values straight from the RawEditor context.
   This reduces the coupling, enabling us to isolate code into services that can be unit tested.
 * Merged Editor and RawEditor.
-* Replaced ChangeNotifiers with stae streams.
+* Replaced ChangeNotifiers with state streams.
+* Added migration guide
 
 ## [0.0.2]
 * Custom highlights

@@ -24,7 +24,7 @@ class ResolveLineFormatRule extends FormatRuleM {
     // Apply line styles to all newline characters within range of this retain operation.
     var result = DeltaM()..retain(index);
     final itr = DeltaIterator(document)..skip(index);
-    Operation op;
+    OperationM op;
 
     for (var cur = 0; cur < len! && itr.hasNext; cur += op.length!) {
       op = itr.next(len - cur);
@@ -60,7 +60,7 @@ class ResolveLineFormatRule extends FormatRuleM {
 
   DeltaM _applyAttribute(
     String text,
-    Operation op,
+    OperationM op,
     AttributeM attribute, {
     bool firstOnly = false,
   }) {
@@ -90,7 +90,7 @@ class ResolveLineFormatRule extends FormatRuleM {
 
   Iterable<MapEntry<String, dynamic>> _getRemovedBlocks(
     AttributeM<dynamic> attribute,
-    Operation op,
+    OperationM op,
   ) {
     // Enforce Block Format exclusivity by rule
     if (!AttributeM.exclusiveBlockKeys.contains(attribute.key)) {

@@ -14,13 +14,13 @@ import 'operation.model.dart';
 // When delta includes also "retain" or "delete" operations it is a "change delta".
 class DeltaM {
   // Creates new empty DeltaM.
-  factory DeltaM() => DeltaM._(<Operation>[]);
+  factory DeltaM() => DeltaM._(<OperationM>[]);
 
-  DeltaM._(List<Operation> operations) : _operations = operations;
+  DeltaM._(List<OperationM> operations) : _operations = operations;
 
   // Creates new DeltaM from other.
   factory DeltaM.from(DeltaM other) => DeltaM._(
-        List<Operation>.from(other._operations),
+        List<OperationM>.from(other._operations),
       );
 
   // Placeholder char for embed in diff()
@@ -110,9 +110,9 @@ class DeltaM {
     return attributes.keys.isNotEmpty ? attributes : null;
   }
 
-  final List<Operation> _operations;
+  final List<OperationM> _operations;
 
-  List<Operation> get operations => _operations;
+  List<OperationM> get operations => _operations;
 
   int _modificationCount = 0;
 
@@ -126,7 +126,7 @@ class DeltaM {
     DataDecoder? dataDecoder,
   }) {
     return DeltaM._(data
-        .map((op) => Operation.fromJson(
+        .map((op) => OperationM.fromJson(
               op,
               dataDecoder: dataDecoder,
             ))
@@ -134,7 +134,7 @@ class DeltaM {
   }
 
   // Returns list of operations in this delta.
-  List<Operation> toList() => List.from(_operations);
+  List<OperationM> toList() => List.from(_operations);
 
   // Returns JSON-serializable version of this delta.
   List toJson() => toList().map((operation) => operation.toJson()).toList();
@@ -149,24 +149,24 @@ class DeltaM {
   int get length => _operations.length;
 
   // Returns Operation at specified index in this delta.
-  Operation operator [](int index) => _operations[index];
+  OperationM operator [](int index) => _operations[index];
 
   // Returns Operation at specified index in this delta.
-  Operation elementAt(int index) => _operations.elementAt(index);
+  OperationM elementAt(int index) => _operations.elementAt(index);
 
   // Returns the first Operation in this delta.
-  Operation get first => _operations.first;
+  OperationM get first => _operations.first;
 
   // Returns the last Operation in this delta.
-  Operation get last => _operations.last;
+  OperationM get last => _operations.last;
 
   @override
   bool operator ==(dynamic other) {
     if (identical(this, other)) return true;
     if (other is! DeltaM) return false;
     final typedOther = other;
-    const comparator = ListEquality<Operation>(
-      DefaultEquality<Operation>(),
+    const comparator = ListEquality<OperationM>(
+      DefaultEquality<OperationM>(),
     );
 
     return comparator.equals(_operations, typedOther._operations);
@@ -179,23 +179,23 @@ class DeltaM {
   void retain(int count, [Map<String, dynamic>? attributes]) {
     assert(count >= 0);
     if (count == 0) return; // No-op
-    push(Operation.retain(count, attributes));
+    push(OperationM.retain(count, attributes));
   }
 
   // Insert data at current position.
   void insert(dynamic data, [Map<String, dynamic>? attributes]) {
     if (data is String && data.isEmpty) return; // No-op
-    push(Operation.insert(data, attributes));
+    push(OperationM.insert(data, attributes));
   }
 
   // Delete count characters from current position.
   void delete(int count) {
     assert(count >= 0);
     if (count == 0) return;
-    push(Operation.delete(count));
+    push(OperationM.delete(count));
   }
 
-  void _mergeWithTail(Operation operation) {
+  void _mergeWithTail(OperationM operation) {
     assert(isNotEmpty);
     assert(last.key == operation.key);
     assert(operation.data is String && last.data is String);
@@ -210,7 +210,7 @@ class DeltaM {
       index - 1,
       index,
       [
-        Operation(operation.key, length, resultText, operation.attributes),
+        OperationM(operation.key, length, resultText, operation.attributes),
       ],
     );
   }
@@ -219,7 +219,7 @@ class DeltaM {
   // Performs compaction by composing [operation] with current tail operation of this delta, when possible.
   // For instance, if current tail is `insert('abc')` and pushed operation is `insert('123')` then existing
   // tail is replaced with `insert('abc123')` - a compound result of the two operations.
-  void push(Operation operation) {
+  void push(OperationM operation) {
     if (operation.isEmpty) return;
 
     var index = _operations.length;
@@ -268,7 +268,7 @@ class DeltaM {
   // Composes next operation from thisIter and otherIter.
   // Returns new operation or `null` if operations from thisIter and otherIter nullify each other.
   // For instance, for the pair `insert('abc')` and `delete(3)` composition result would be empty string.
-  Operation? _composeOperation(
+  OperationM? _composeOperation(
     DeltaIterator thisIter,
     DeltaIterator otherIter,
   ) {
@@ -287,9 +287,9 @@ class DeltaM {
         keepNull: thisOp.isRetain,
       );
       if (thisOp.isRetain) {
-        return Operation.retain(thisOp.length, attributes);
+        return OperationM.retain(thisOp.length, attributes);
       } else if (thisOp.isInsert) {
-        return Operation.insert(thisOp.data, attributes);
+        return OperationM.insert(thisOp.data, attributes);
       } else {
         throw StateError('Unreachable');
       }
@@ -322,7 +322,7 @@ class DeltaM {
   // Returns a new lazy Iterable with elements that are created by calling
   // if on each element of this Iterable in iteration order.
   // Convenience method
-  Iterable<T> map<T>(T Function(Operation) f) {
+  Iterable<T> map<T>(T Function(OperationM) f) {
     return _operations.map<T>(f);
   }
 
@@ -412,13 +412,13 @@ class DeltaM {
 
   // Transforms next operation from otherIter against next operation in thisIter.
   // Returns `null` if both operations nullify each other.
-  Operation? _transformOperation(
+  OperationM? _transformOperation(
     DeltaIterator thisIter,
     DeltaIterator otherIter,
     bool priority,
   ) {
     if (thisIter.isNextInsert && (priority || !otherIter.isNextInsert)) {
-      return Operation.retain(thisIter.next().length);
+      return OperationM.retain(thisIter.next().length);
     } else if (otherIter.isNextInsert) {
       return otherIter.next();
     }
@@ -436,7 +436,7 @@ class DeltaM {
       return otherOp;
     } else {
       // Retain otherOp which is either retain or insert.
-      return Operation.retain(
+      return OperationM.retain(
         length,
         transformAttributes(thisOp.attributes, otherOp.attributes, priority),
       );
@@ -549,7 +549,7 @@ class DeltaM {
     final actualEnd = end ?? DeltaIterator.maxLength;
 
     while (index < actualEnd && opIterator.hasNext) {
-      Operation op;
+      OperationM op;
       if (index < start) {
         op = opIterator.next(start - index);
       } else {

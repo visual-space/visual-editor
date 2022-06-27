@@ -3,8 +3,8 @@ import 'package:tuple/tuple.dart';
 import '../../../delta/controllers/delta-iterator.controller.dart';
 import '../../../delta/models/operation.model.dart';
 
-Tuple2<Operation?, int?> getNextNewLine(DeltaIterator iterator) {
-  Operation op;
+Tuple2<OperationM?, int?> getNextNewLine(DeltaIterator iterator) {
+  OperationM op;
 
   for (var skipped = 0; iterator.hasNext; skipped += op.length!) {
     op = iterator.next();

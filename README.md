@@ -44,7 +44,7 @@ final json = jsonEncode(_controller.document.toDelta().toJson());
 const blogPost = jsonDecode(response);
 
 final _controller = EditorController(
-  document: Document.fromJson(blogPost),
+  document: DocumentM.fromJson(blogPost),
   selection: TextSelection.collapsed(offset: 0)
 );
 ```
@@ -81,6 +81,7 @@ _controller.document.toPlainText(); // Extract plain text
 Learn more about Visual Editor architecture and how to use the features.
 
 - **[Guidelines](https://github.com/visual-space/visual-editor/blob/develop/GUIDELINES.md)** - Coding guidelines for improving code quality and architecture clarity.
+- **[Migration](https://github.com/visual-space/visual-editor/blob/develop/MIGRATING.md)** - A simple guide with instructions to migrate from Flutter Quill.
 - **[Editor](https://github.com/visual-space/visual-editor/blob/develop/lib/editor/editor.md)** - Renders the document content as commanded by the `EditorController`.
 - **[Delta](https://github.com/visual-space/visual-editor/blob/develop/lib/delta/delta.md)** - Delta documents are used to store text edits and styling attributes.
 - **[Toolbar](https://github.com/visual-space/visual-editor/blob/develop/lib/toolbar/toolbar.md)** - Displays buttons used to edit the styling of the text.

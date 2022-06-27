@@ -7,11 +7,11 @@ const _attributeEquality = DeepCollectionEquality();
 const _valueEquality = DeepCollectionEquality();
 
 // Operation performed on a rich-text document.
-class Operation {
+class OperationM {
   // Default data decoder which simply passes through the original value.
   static Object? _passThroughDataDecoder(Object? data) => data;
 
-  Operation(
+  OperationM(
     this.key,
     this.length,
     this.data,
@@ -19,7 +19,7 @@ class Operation {
   )   : assert(_validKeys.contains(key), 'Invalid operation key "$key".'),
         assert(
           () {
-            if (key != Operation.insertKey) return true;
+            if (key != OperationM.insertKey) return true;
             return data is String ? data.length == length : length == 1;
           }(),
           'Length of insert operation must be equal to the data length.',
@@ -28,17 +28,17 @@ class Operation {
             attributes != null ? Map<String, dynamic>.from(attributes) : null;
 
   // Deletes length of characters.
-  factory Operation.delete(int length) =>
-      Operation(Operation.deleteKey, length, '', null);
+  factory OperationM.delete(int length) =>
+      OperationM(OperationM.deleteKey, length, '', null);
 
   // Inserts text with optional attributes.
-  factory Operation.insert(dynamic data, [Map<String, dynamic>? attributes]) =>
-      Operation(Operation.insertKey, data is String ? data.length : 1, data,
+  factory OperationM.insert(dynamic data, [Map<String, dynamic>? attributes]) =>
+      OperationM(OperationM.insertKey, data is String ? data.length : 1, data,
           attributes);
 
   // Retains length of characters and optionally applies attributes.
-  factory Operation.retain(int? length, [Map<String, dynamic>? attributes]) =>
-      Operation(Operation.retainKey, length, '', attributes);
+  factory OperationM.retain(int? length, [Map<String, dynamic>? attributes]) =>
+      OperationM(OperationM.retainKey, length, '', attributes);
 
   static const String insertKey = 'insert';
 
@@ -68,21 +68,21 @@ class Operation {
 
   // Creates new [Operation] from JSON payload.
   // If `dataDecoder` parameter is not null then it is used to additionally decode the operation's data object. Only applied to insert operations.
-  static Operation fromJson(Map data, {DataDecoder? dataDecoder}) {
+  static OperationM fromJson(Map data, {DataDecoder? dataDecoder}) {
     dataDecoder ??= _passThroughDataDecoder;
     final map = Map<String, dynamic>.from(data);
-    if (map.containsKey(Operation.insertKey)) {
-      final data = dataDecoder(map[Operation.insertKey]);
+    if (map.containsKey(OperationM.insertKey)) {
+      final data = dataDecoder(map[OperationM.insertKey]);
       final dataLength = data is String ? data.length : 1;
-      return Operation(
-          Operation.insertKey, dataLength, data, map[Operation.attributesKey]);
-    } else if (map.containsKey(Operation.deleteKey)) {
-      final int? length = map[Operation.deleteKey];
-      return Operation(Operation.deleteKey, length, '', null);
-    } else if (map.containsKey(Operation.retainKey)) {
-      final int? length = map[Operation.retainKey];
-      return Operation(
-          Operation.retainKey, length, '', map[Operation.attributesKey]);
+      return OperationM(
+          OperationM.insertKey, dataLength, data, map[OperationM.attributesKey]);
+    } else if (map.containsKey(OperationM.deleteKey)) {
+      final int? length = map[OperationM.deleteKey];
+      return OperationM(OperationM.deleteKey, length, '', null);
+    } else if (map.containsKey(OperationM.retainKey)) {
+      final int? length = map[OperationM.retainKey];
+      return OperationM(
+          OperationM.retainKey, length, '', map[OperationM.attributesKey]);
     }
     throw ArgumentError.value(data, 'Invalid data for Delta operation.');
   }
@@ -90,19 +90,19 @@ class Operation {
   // Returns JSON-serializable representation of this operation.
   Map<String, dynamic> toJson() {
     final json = {key: value};
-    if (_attributes != null) json[Operation.attributesKey] = attributes;
+    if (_attributes != null) json[OperationM.attributesKey] = attributes;
     return json;
   }
 
   // Returns value of this operation.
   // For insert operations this returns text, for delete and retain - length.
-  dynamic get value => (key == Operation.insertKey) ? data : length;
+  dynamic get value => (key == OperationM.insertKey) ? data : length;
 
-  bool get isDelete => key == Operation.deleteKey;
+  bool get isDelete => key == OperationM.deleteKey;
 
-  bool get isInsert => key == Operation.insertKey;
+  bool get isInsert => key == OperationM.insertKey;
 
-  bool get isRetain => key == Operation.retainKey;
+  bool get isRetain => key == OperationM.retainKey;
 
   // E.g. is plain text.
   bool get isPlain => _attributes == null || _attributes!.isEmpty;
@@ -118,7 +118,7 @@ class Operation {
   @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
-    if (other is! Operation) return false;
+    if (other is! OperationM) return false;
     final typedOther = other;
     return key == typedOther.key &&
         length == typedOther.length &&
@@ -131,7 +131,7 @@ class Operation {
       isNotPlain && _attributes!.containsKey(name);
 
   // other operation has the same attributes as this one.
-  bool hasSameAttributes(Operation other) {
+  bool hasSameAttributes(OperationM other) {
     // Treat null and empty equal
     if ((_attributes?.isEmpty ?? true) &&
         (other._attributes?.isEmpty ?? true)) {

@@ -23,7 +23,7 @@ class ResolveInlineFormatRule extends FormatRuleM {
 
     final delta = DeltaM()..retain(index);
     final itr = DeltaIterator(document)..skip(index);
-    Operation op;
+    OperationM op;
 
     for (var cur = 0; cur < len! && itr.hasNext; cur += op.length!) {
       op = itr.next(len - cur);

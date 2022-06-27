@@ -14,11 +14,11 @@ class DeltaIterator {
   int _index = 0;
   int _offset = 0;
 
-  bool get isNextInsert => nextOperationKey == Operation.insertKey;
+  bool get isNextInsert => nextOperationKey == OperationM.insertKey;
 
-  bool get isNextDelete => nextOperationKey == Operation.deleteKey;
+  bool get isNextDelete => nextOperationKey == OperationM.deleteKey;
 
-  bool get isNextRetain => nextOperationKey == Operation.retainKey;
+  bool get isNextRetain => nextOperationKey == OperationM.retainKey;
 
   String? get nextOperationKey {
     if (_index < delta.length) {
@@ -50,7 +50,7 @@ class DeltaIterator {
   // TODO: Note that we used double.infinity as the default value
   // For length here but this can now cause a type error since operation length is expected to be an int.
   // Changing default length to maxLength is a workaround to avoid breaking changes.
-  Operation next([int length = maxLength]) {
+  OperationM next([int length = maxLength]) {
     if (_modificationCount != delta.modificationCount) {
       throw ConcurrentModificationError(delta);
     }
@@ -78,16 +78,16 @@ class DeltaIterator {
       final opLength = opData is String ? opData.length : 1;
       final opActualLength = opIsNotEmpty ? opLength : actualLength;
 
-      return Operation(opKey, opActualLength, opData, opAttributes);
+      return OperationM(opKey, opActualLength, opData, opAttributes);
     }
-    return Operation.retain(length);
+    return OperationM.retain(length);
   }
 
   // Skips length characters in source delta.
   // Returns last skipped operation, or `null` if there was nothing to skip.
-  Operation? skip(int length) {
+  OperationM? skip(int length) {
     var skipped = 0;
-    Operation? op;
+    OperationM? op;
 
     while (skipped < length && hasNext) {
       final opLength = peekLength();

@@ -12,7 +12,7 @@ import '../../models/rules.utils.dart';
 class AutoExitBlockRule extends InsertRuleM {
   const AutoExitBlockRule();
 
-  bool _isEmptyLine(Operation? before, Operation? after) {
+  bool _isEmptyLine(OperationM? before, OperationM? after) {
     if (before == null) {
       return true;
     }

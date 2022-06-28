@@ -6,9 +6,9 @@ class EditorConfigState {
 
   EditorConfigState._privateConstructor();
 
-  EditorCfgM _config = const EditorCfgM();
+  EditorConfigM _config = const EditorConfigM();
 
-  EditorCfgM get config => _config;
+  EditorConfigM get config => _config;
 
-  void setEditorConfig(EditorCfgM config) => _config = config;
+  void setEditorConfig(EditorConfigM config) => _config = config;
 }

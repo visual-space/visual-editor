@@ -1,6 +1,9 @@
 # Migrating from Quill
 Visual Editor is a fork of Flutter Quill. The main reason we separated from Quill was the opaque architecture. We needed an easy to maintain code base, however the architecture of Quill made it really hard to follow the code flow and adding improvements was difficult at best. Therefore we decided to completely refactor the general architecture of Quill and reorganise it into modules, services, states and models. Due to these changes if you desire to migrate from Flutter Quill to Visual Editor.
 
+## Feedback Requested
+If you encounter any difficulties during the migration please start a new ticket. We will attempt to respond to your query and update this doc accordingly.
+
 ## Backwards Compatibility
 Most of the features present in Flutter Quill have been preserved. However in time Visual Editor is expected to drift. At the moment the migration process is rather easy to follow. However we can't guarantee this for the long run. Changes over the years might make the two versions incompatible.
 
@@ -29,7 +32,7 @@ During the refactoring we decided to move all the model classes in distinct `/mo
 - `Operation` - `OperationM`
 
 ## Editor Configuration
-The migration of models includes also the properties of the VisualEditor. They are now separated to a distinct model `EditorCfgM`. We made this choice to facilitate the transport of the config properties trough the codebase a lot easier.
+The migration of models includes also the properties of the VisualEditor. They are now separated to a distinct model `EditorConfigM`. We made this choice to facilitate the transport of the config properties trough the codebase a lot easier.
 
 ```dart
   Widget _buildWelcomeEditor(BuildContext context) {
@@ -68,7 +71,7 @@ Now becomes:
       controller: _controller!,
       scrollController: ScrollController(),
       focusNode: _focusNode,
-      config: EditorCfgM(
+      config: EditorConfigM(
         placeholder: 'Add blocks',
         customStyles: DefaultStyles(
           h1: DefaultTextBlockStyle(

@@ -10,7 +10,7 @@ class EditorState {
 
   Stream<void> get updateEditor$ => _updateEditor$.stream;
 
-  void updateEditor() {
+  void refreshEditor() {
     _updateEditor$.sink.add(null);
   }
 }

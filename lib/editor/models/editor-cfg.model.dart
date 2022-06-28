@@ -14,7 +14,7 @@ import '../../embeds/widgets/default-embed-builder.dart';
 // Grouping these properties in a class makes passing these properties around a lot easier.
 // Note that the editor and scroll controllers are passed at the top level not here in the config.
 @immutable
-class EditorCfgM {
+class EditorConfigM {
   // Whether the editor should create a scrollable container for its blocks.
   // When set to `true` the editor's height can be controlled by minHeight, maxHeight and expands properties.
   // When set to `false` the editor always expands to fit the entire blocks of the document and
@@ -148,7 +148,7 @@ class EditorCfgM {
   final TextSelectionControls? textSelectionControls;
 
   // Customize any of the settings available in VisualEditor
-  const EditorCfgM({
+  const EditorConfigM({
     this.scrollable = true,
     this.padding = EdgeInsets.zero,
     this.autoFocus = false,

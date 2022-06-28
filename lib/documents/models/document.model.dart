@@ -61,21 +61,22 @@ class DocumentM {
 
   final HistoryM _history = HistoryM();
 
-  // Stream of [Change]s applied to this document.
+  bool get hasUndo => _history.hasUndo;
+
+  bool get hasRedo => _history.hasRedo;
+
+  // Stream of Changes applied to this document.
   Stream<Tuple3<DeltaM, DeltaM, ChangeSource>> get changes => _observer.stream;
 
-  // Inserts [data] in this document at specified [index].
-  //
-  // The `data` parameter can be either a String or an instance of
-  // [Embeddable].
-  //
+  // Inserts data in this document at specified index.
+  // The `data` parameter can be either a String or an instance of Embeddable.
   // Applies heuristic rules before modifying this document and
-  // produces a change event with its source set to [ChangeSource.local].
-  //
-  // Returns an instance of [DeltaM] actually composed into this document.
+  // produces a change event with its source set to ChangeSource.local.
+  // Returns an instance of DeltaM actually composed into this document.
   DeltaM insert(int index, Object? data, {int replaceLength = 0}) {
     assert(index >= 0);
     assert(data is String || data is EmbeddableM);
+
     if (data is EmbeddableM) {
       data = data.toJson();
     } else if ((data as String).isEmpty) {
@@ -89,14 +90,16 @@ class DocumentM {
       data: data,
       len: replaceLength,
     );
+
     compose(delta, ChangeSource.LOCAL);
+
     return delta;
   }
 
-  // Deletes [length] of characters from this document starting at [index].
+  // Deletes length of characters from this document starting at index.
   // This method applies heuristic rules before modifying this document and
-  // produces a [Change] with source set to [ChangeSource.local].
-  // Returns an instance of [DeltaM] actually composed into this document.
+  // produces a Change with source set to ChangeSource.local.
+  // Returns an instance of DeltaM actually composed into this document.
   DeltaM delete(int index, int len) {
     assert(index >= 0 && len > 0);
     final delta = _rules.apply(
@@ -111,10 +114,10 @@ class DocumentM {
     return delta;
   }
 
-  // Replaces [length] of characters starting at [index] with [data].
+  // Replaces length of characters starting at index with data.
   // This method applies heuristic rules before modifying this document and
-  // produces a change event with its source set to [ChangeSource.local].
-  // Returns an instance of [DeltaM] actually composed into this document.
+  // produces a change event with its source set to ChangeSource.local.
+  // Returns an instance of DeltaM actually composed into this document.
   DeltaM replace(int index, int len, Object? data) {
     assert(index >= 0);
     assert(data is String || data is EmbeddableM);
@@ -139,12 +142,12 @@ class DocumentM {
     return delta;
   }
 
-  // Formats segment of this document with specified [attribute].
+  // Formats segment of this document with specified attribute.
   // Applies heuristic rules before modifying this document and
-  // produces a change event with its source set to [ChangeSource.local].
-  // Returns an instance of [DeltaM] actually composed into this document.
-  // The returned [DeltaM] may be empty in which case this document remains
-  // unchanged and no change event is published to the [changes] stream.
+  // produces a change event with its source set to ChangeSource.local.
+  // Returns an instance of DeltaM actually composed into this document.
+  // The returned DeltaM may be empty in which case this document remains
+  // unchanged and no change event is published to the changes stream.
   DeltaM format(int index, int len, AttributeM? attribute) {
     assert(index >= 0 && len >= 0 && attribute != null);
 
@@ -216,11 +219,11 @@ class DocumentM {
     return Tuple2(line, segment);
   }
 
-  // Composes [change] Delta into this document.
-  // Use this method with caution as it does not apply heuristic rules to the [change].
-  // It is callers responsibility to ensure that the [change] conforms to the document
+  // Composes change Delta into this document.
+  // Use this method with caution as it does not apply heuristic rules to the change.
+  // It is callers responsibility to ensure that the change conforms to the document
   // models semantics and can be composed with the current state of this document.
-  // In case the [change] is invalid, behavior of this method is unspecified.
+  // In case the change is invalid, behavior of this method is unspecified.
   void compose(DeltaM delta, ChangeSource changeSource) {
     assert(!_observer.isClosed);
     delta.trim();
@@ -272,9 +275,7 @@ class DocumentM {
     return _history.redo(this);
   }
 
-  bool get hasUndo => _history.hasUndo;
-
-  bool get hasRedo => _history.hasRedo;
+  // === PRIVATE ===
 
   static DeltaM _transform(DeltaM delta) {
     final res = DeltaM();

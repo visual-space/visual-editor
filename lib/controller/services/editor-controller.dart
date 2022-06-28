@@ -68,17 +68,42 @@ class EditorController {
   final bool keepStyleOnNewLine;
   TextSelection selection;
   List<HighlightM> highlights;
-
   ReplaceTextCallback? onReplaceText;
   DeleteCallback? onDelete;
   void Function()? onSelectionCompleted;
   void Function(TextSelection textSelection)? onSelectionChanged;
+  bool ignoreFocusOnTextChange = false;
 
   // Store any styles attribute that got toggled by the tap of a button and that has not been applied yet.
   // It gets reset after each format action within the document.
   StyleM toggledStyle = StyleM();
 
-  bool ignoreFocusOnTextChange = false;
+  // DeltaM: Document state before change.
+  // DeltaM: Change delta applied to the document.
+  // ChangeSource: The source of this change.
+  Stream<Tuple3<DeltaM, DeltaM, ChangeSource>> get changes => document.changes;
+
+  // Clipboard for image url and its corresponding style item1 is url and item2 is style string
+  Tuple2<String, String>? _copiedImageUrl;
+
+  Tuple2<String, String>? get copiedImageUrl => _copiedImageUrl;
+
+  set copiedImageUrl(Tuple2<String, String>? value) {
+    _copiedImageUrl = value;
+    Clipboard.setData(const ClipboardData(text: ''));
+  }
+
+  // Notify buttons buttons directly with attributes
+  Map<String, AttributeM> toolbarButtonToggler = {};
+
+  TextEditingValue get plainTextEditingValue => TextEditingValue(
+        text: document.toPlainText(),
+        selection: selection,
+      );
+
+  bool get hasUndo => document.hasUndo;
+
+  bool get hasRedo => document.hasRedo;
 
   EditorController({
     required this.document,
@@ -100,16 +125,6 @@ class EditorController {
         selection: const TextSelection.collapsed(
           offset: 0,
         ),
-      );
-
-  // DeltaM: Document state before change.
-  // DeltaM: Change delta applied to the document.
-  // ChangeSource: The source of this change.
-  Stream<Tuple3<DeltaM, DeltaM, ChangeSource>> get changes => document.changes;
-
-  TextEditingValue get plainTextEditingValue => TextEditingValue(
-        text: document.toPlainText(),
-        selection: selection,
       );
 
   // Only attributes applied to all characters within this range are included in the result.
@@ -158,20 +173,6 @@ class EditorController {
     }
   }
 
-  void _handleHistoryChange(int? length) {
-    if (length! != 0) {
-      updateSelection(
-        TextSelection.collapsed(
-          offset: selection.baseOffset + length,
-        ),
-        ChangeSource.LOCAL,
-      );
-    } else {
-      // No need to move cursor
-      editorState.updateEditor();
-    }
-  }
-
   void redo() {
     final tup = document.redo();
 
@@ -180,9 +181,15 @@ class EditorController {
     }
   }
 
-  bool get hasUndo => document.hasUndo;
-
-  bool get hasRedo => document.hasRedo;
+  // Update editor with a new document
+  void update(DeltaM delta) {
+    clear();
+    compose(
+      delta,
+      const TextSelection.collapsed(offset: 0),
+      ChangeSource.LOCAL,
+    );
+  }
 
   // Clear editor
   void clear() {
@@ -223,8 +230,9 @@ class EditorController {
           delta.length == 2 &&
           delta.last.data == '\n') {
         // If all attributes are inline, shouldRetainDelta should be false
-        final anyAttributeNotInline =
-            toggledStyle.values.any((attr) => !attr.isInline);
+        final anyAttributeNotInline = toggledStyle.values.any(
+          (attr) => !attr.isInline,
+        );
 
         if (!anyAttributeNotInline) {
           shouldRetainDelta = false;
@@ -234,7 +242,10 @@ class EditorController {
       if (shouldRetainDelta) {
         final retainDelta = DeltaM()
           ..retain(index)
-          ..retain(data is String ? data.length : 1, toggledStyle.toJson());
+          ..retain(
+            data is String ? data.length : 1,
+            toggledStyle.toJson(),
+          );
         document.compose(retainDelta, ChangeSource.LOCAL);
       }
     }
@@ -271,7 +282,7 @@ class EditorController {
       ignoreFocusOnTextChange = true;
     }
 
-    editorState.updateEditor();
+    editorState.refreshEditor();
     ignoreFocusOnTextChange = false;
   }
 
@@ -318,7 +329,7 @@ class EditorController {
       );
     }
 
-    editorState.updateEditor();
+    editorState.refreshEditor();
   }
 
   void formatSelection(AttributeM? attribute) {
@@ -352,9 +363,12 @@ class EditorController {
     );
   }
 
-  void updateSelection(TextSelection textSelection, ChangeSource source) {
+  void updateSelection(
+    TextSelection textSelection,
+    ChangeSource source,
+  ) {
     _updateSelection(textSelection, source);
-    editorState.updateEditor();
+    editorState.refreshEditor();
   }
 
   void compose(
@@ -381,7 +395,28 @@ class EditorController {
       _updateSelection(textSelection, source);
     }
 
-    editorState.updateEditor();
+    editorState.refreshEditor();
+  }
+
+  // Given offset, find its leaf node in document
+  LeafM? queryNode(int offset) {
+    return document.querySegmentLeafNode(offset).item2;
+  }
+
+  // === PRIVATE ===
+
+  void _handleHistoryChange(int? length) {
+    if (length! != 0) {
+      updateSelection(
+        TextSelection.collapsed(
+          offset: selection.baseOffset + length,
+        ),
+        ChangeSource.LOCAL,
+      );
+    } else {
+      // No need to move cursor
+      editorState.refreshEditor();
+    }
   }
 
   void _updateSelection(TextSelection textSelection, ChangeSource source) {
@@ -395,22 +430,4 @@ class EditorController {
 
     onSelectionChanged?.call(textSelection);
   }
-
-  // Given offset, find its leaf node in document
-  LeafM? queryNode(int offset) {
-    return document.querySegmentLeafNode(offset).item2;
-  }
-
-  // Clipboard for image url and its corresponding style item1 is url and item2 is style string
-  Tuple2<String, String>? _copiedImageUrl;
-
-  Tuple2<String, String>? get copiedImageUrl => _copiedImageUrl;
-
-  set copiedImageUrl(Tuple2<String, String>? value) {
-    _copiedImageUrl = value;
-    Clipboard.setData(const ClipboardData(text: ''));
-  }
-
-  // Notify buttons buttons directly with attributes
-  Map<String, AttributeM> toolbarButtonToggler = {};
 }

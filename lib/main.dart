@@ -86,7 +86,7 @@ class VisualEditor extends StatefulWidget {
   final EditorController controller;
   final FocusNode focusNode;
   final ScrollController scrollController;
-  final EditorCfgM config;
+  final EditorConfigM config;
 
   VisualEditor({
     required this.controller,
@@ -115,7 +115,7 @@ class VisualEditor extends StatefulWidget {
         controller: controller,
         scrollController: ScrollController(),
         focusNode: FocusNode(),
-        config: EditorCfgM(
+        config: EditorConfigM(
           autoFocus: true,
           readOnly: readOnly,
           keyboardAppearance: keyboardAppearance ?? Brightness.light,

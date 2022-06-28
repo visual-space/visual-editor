@@ -1,8 +1,8 @@
-![Visual-editor-teaser](https://github.com/visual-space/visual-editor/blob/develop/example/assets/visual-editor-teaser.jpg)
+![Visual-editor-teaser](https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/visual-editor-teaser.jpg)
 
 Visual Editor is a Rich Text editor for [Flutter] originally forked from [Flutter Quill]. The editor is built around the powerful [Quilljs Delta] document format originally developed by QuillJs. Delta documents can be easily converted to JSON, the encoding is easy to read and modify and offers many extensibility options.
 
-<img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/visual-editor-demo.gif"/>
+<img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/visual-editor-demo.gif"/>
 
 **Why fork Flutter Quill?**
 
@@ -62,14 +62,14 @@ _controller.document.toPlainText(); // Extract plain text
     <tr style="border: 0px;">
         <td width="50%" style="text-align: center; border: 0px;">
             <a href="https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA" target="_blank" rel="Subscribe to Youtube">
-                <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/youtube.jpg"/>
+                <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/youtube.jpg"/>
             </a>
             <h2>Youtube</h2>
             <p>Subscribe to our <a href="https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA" target="_blank" rel="Subscribe to Youtube">Visual Coding</a> Youtube channel to learn the skills needed to use and extend Visual Editor. Our episodes go in many topics including Flutter and production ready Software Architecture.</p>
         </td>
         <td width="50%" style="text-align: center; border: 0px;">
             <a href="https://discord.gg/XpGygmXde4" target="_blank" rel="Join on Discord">
-                <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/discord.jpg"/>
+                <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/discord.jpg"/>
             </a>
             <h2>Discord</h2>
             <p>Join us on <a href="https://discord.gg/XpGygmXde4" target="_blank" rel="Join on Discord">Visual Editor Discord</a> to get live advice from the maintainers and core users. Our goal is to create a friendly and active support community that shares help and resources.</p>

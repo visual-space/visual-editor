@@ -1,127 +1,106 @@
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:filesystem_picker/filesystem_picker.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:visual_editor/visual-editor.dart';
 
-import '../pages/sample-highlights-const.dart';
-
-typedef DemoContentBuilder = Widget Function(
-  BuildContext context,
-  EditorController? controller,
-);
-
-// Common scaffold for all examples.
+// Scaffold used by all pages in the demo app.
+// It provides the navigation menu used to navigate between examples.
 class DemoScaffold extends StatefulWidget {
   const DemoScaffold({
-    required this.documentFilename,
-    required this.builder,
-    this.actions,
-    this.showToolbar = true,
-    this.floatingActionButton,
+    required this.child,
     Key? key,
   }) : super(key: key);
 
-  /// Filename of the document to load into the editor.
-  final String documentFilename;
-  final DemoContentBuilder builder;
-  final List<Widget>? actions;
-  final Widget? floatingActionButton;
-  final bool showToolbar;
+  final Widget child;
 
   @override
   _DemoScaffoldState createState() => _DemoScaffoldState();
 }
 
 class _DemoScaffoldState extends State<DemoScaffold> {
-  final _scaffoldKey = GlobalKey<ScaffoldState>();
-  EditorController? _controller;
-
-  bool _loading = false;
-
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_controller == null && !_loading) {
-      _loading = true;
-      _loadFromAssets();
-    }
-  }
-
-  Future<void> _loadFromAssets() async {
-    try {
-      final result = await rootBundle.loadString(
-        'assets/${widget.documentFilename}',
-      );
-      final doc = DocumentM.fromJson(jsonDecode(result));
-      setState(() {
-        _controller = EditorController(
-          document: doc,
-          selection: const TextSelection.collapsed(offset: 0),
-          highlights: SAMPLE_HIGHLIGHTS,
-        );
-        _loading = false;
-      });
-    } catch (error) {
-      final doc = DocumentM()..insert(0, 'Empty asset');
-      setState(() {
-        _controller = EditorController(
-          document: doc,
-          selection: const TextSelection.collapsed(offset: 0),
-          highlights: SAMPLE_HIGHLIGHTS,
-        );
-        _loading = false;
-      });
-    }
-  }
-
-  Future<String?> openFileSystemPickerForDesktop(BuildContext context) async {
-    return await FilesystemPicker.open(
-      context: context,
-      rootDirectory: await getApplicationDocumentsDirectory(),
-      fsType: FilesystemType.file,
-      fileTileSelectMode: FileTileSelectMode.wholeTile,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final actions = widget.actions ?? <Widget>[];
-    var toolbar = EditorToolbar.basic(controller: _controller!);
-    if (_isDesktop()) {
-      toolbar = EditorToolbar.basic(
-        controller: _controller!,
-        filePickImpl: openFileSystemPickerForDesktop,
-      );
-    }
-    return Scaffold(
-      key: _scaffoldKey,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Theme.of(context).canvasColor,
-        centerTitle: false,
-        titleSpacing: 0,
-        leading: IconButton(
-          icon: Icon(
-            Icons.chevron_left,
-            color: Colors.grey.shade800,
-            size: 18,
+  Widget build(BuildContext context) =>
+      Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.grey.shade800,
+          elevation: 0,
+          centerTitle: false,
+          title: GestureDetector(
+            child: const Text('Visual Editor'),
           ),
-          onPressed: () => Navigator.pop(context),
+          actions: [],
         ),
-        title: _loading || !widget.showToolbar ? null : toolbar,
-        actions: actions,
-      ),
-      floatingActionButton: widget.floatingActionButton,
-      body: _loading
-          ? const Center(child: Text('Loading...'))
-          : widget.builder(context, _controller),
+        drawer: Container(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery
+                .of(context)
+                .size
+                .width * 0.7,
+          ),
+          color: Colors.grey.shade800,
+          child: _menuBar(context),
+        ),
+        body: SafeArea(
+          child: widget.child,
+        ),
+      );
+
+  Widget _menuBar(BuildContext context) {
+    final size = MediaQuery
+        .of(context)
+        .size;
+
+    // TODO Separate const containing all the nav options
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _divider(size),
+        _navOption(
+          title: 'All styles',
+          route: '/all-styles',
+        ),
+        _divider(size),
+        _navOption(
+          title: 'Read only',
+          route: '/read-only',
+        ),
+        _divider(size),
+        _navOption(
+          title: 'Multiple Editors',
+          route: '/multiple-editors',
+        ),
+        _divider(size),
+      ],
     );
   }
 
-  bool _isDesktop() => !kIsWeb && !Platform.isAndroid && !Platform.isIOS;
+  ListTile _navOption({
+    required String title,
+    required String route,
+  }) {
+    return ListTile(
+      title: Center(
+        child: Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      dense: true,
+      visualDensity: VisualDensity.compact,
+      onTap: () {
+        print('+++ GOTO $route');
+        Navigator.pushNamed(context, route);
+      },
+    );
+  }
+
+  Widget _divider(Size size) =>
+      Divider(
+        thickness: 2,
+        color: Colors.white.withOpacity(0.1),
+        indent: size.width * 0.1,
+        endIndent: size.width * 0.1,
+      );
+
 }

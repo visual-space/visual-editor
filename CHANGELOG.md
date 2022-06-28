@@ -14,6 +14,7 @@
 * Merged Editor and RawEditor.
 * Replaced ChangeNotifiers with state streams.
 * Added migration guide
+* Updated demo pages
 
 ## [0.0.2]
 * Custom highlights

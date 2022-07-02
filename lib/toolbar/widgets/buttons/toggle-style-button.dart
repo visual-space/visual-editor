@@ -2,14 +2,17 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../../controller/services/editor-controller.dart';
+import '../../../controller/controllers/editor-controller.dart';
 import '../../../documents/models/attribute.model.dart';
 import '../../../documents/models/style.model.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
+import '../../../shared/state/editor-state-receiver.dart';
+import '../../../shared/state/editor.state.dart';
 import '../../models/toggle-style-button-builder.type.dart';
 import '../toolbar.dart';
 
-class ToggleStyleButton extends StatefulWidget {
+// ignore: must_be_immutable
+class ToggleStyleButton extends StatefulWidget with EditorStateReceiver {
   final AttributeM attribute;
   final IconData icon;
   final double iconSize;
@@ -18,7 +21,16 @@ class ToggleStyleButton extends StatefulWidget {
   final ToggleStyleButtonBuilder childBuilder;
   final EditorIconThemeM? iconTheme;
 
-  const ToggleStyleButton({
+  // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
+  // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
+  late EditorState _state;
+
+  @override
+  void setState(EditorState state) {
+    _state = state;
+  }
+
+  ToggleStyleButton({
     required this.attribute,
     required this.icon,
     required this.controller,
@@ -27,7 +39,9 @@ class ToggleStyleButton extends StatefulWidget {
     this.childBuilder = defaultToggleStyleButtonBuilder,
     this.iconTheme,
     Key? key,
-  }) : super(key: key);
+  }) : super(key: key) {
+    controller.setStateInEditorStateReceiver(this);
+  }
 
   @override
   _ToggleStyleButtonState createState() => _ToggleStyleButtonState();
@@ -43,7 +57,7 @@ class _ToggleStyleButtonState extends State<ToggleStyleButton> {
   void initState() {
     super.initState();
     _isToggled = _getIsToggled(_selectionStyle.attributes);
-    _updateListener = widget.controller.editorState.updateEditor$.listen(
+    _updateListener = widget._state.refreshEditor.updateEditor$.listen(
       (_) => _didChangeEditingValue,
     );
   }

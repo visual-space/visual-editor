@@ -4,30 +4,44 @@ import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../blocks/services/link.utils.dart';
-import '../../../controller/services/editor-controller.dart';
+import '../../../controller/controllers/editor-controller.dart';
 import '../../../documents/models/attribute.model.dart';
 import '../../../documents/models/styling-attributes.dart';
 import '../../../shared/models/editor-dialog-theme.model.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
+import '../../../shared/state/editor-state-receiver.dart';
+import '../../../shared/state/editor.state.dart';
 import '../../../shared/translations/toolbar.i18n.dart';
 import '../dialogs/link-style-dialog.dart';
 import '../toolbar.dart';
 
-class LinkStyleButton extends StatefulWidget {
+// ignore: must_be_immutable
+class LinkStyleButton extends StatefulWidget with EditorStateReceiver {
   final EditorController controller;
   final IconData? icon;
   final double iconSize;
   final EditorIconThemeM? iconTheme;
   final EditorDialogThemeM? dialogTheme;
 
-  const LinkStyleButton({
+  // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
+  // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
+  late EditorState _state;
+
+  @override
+  void setState(EditorState state) {
+    _state = state;
+  }
+
+  LinkStyleButton({
     required this.controller,
     this.iconSize = defaultIconSize,
     this.icon,
     this.iconTheme,
     this.dialogTheme,
     Key? key,
-  }) : super(key: key);
+  }) : super(key: key) {
+    controller.setStateInEditorStateReceiver(this);
+  }
 
   @override
   _LinkStyleButtonState createState() => _LinkStyleButtonState();
@@ -40,7 +54,7 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
   @override
   void initState() {
     super.initState();
-    _updateListener = widget.controller.editorState.updateEditor$.listen(
+    _updateListener = widget._state.refreshEditor.updateEditor$.listen(
       (_) => _didChangeSelection,
     );
   }

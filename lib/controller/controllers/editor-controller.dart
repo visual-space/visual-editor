@@ -3,19 +3,17 @@ import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:tuple/tuple.dart';
 
-import '../../delta/models/delta.model.dart';
-import '../../delta/services/delta.utils.dart';
 import '../../documents/models/attribute.model.dart';
 import '../../documents/models/change-source.enum.dart';
+import '../../documents/models/delta/delta.model.dart';
 import '../../documents/models/document.model.dart';
 import '../../documents/models/nodes/embeddable.model.dart';
 import '../../documents/models/nodes/leaf.model.dart';
 import '../../documents/models/style.model.dart';
-import '../../editor/state/editor.state.dart';
-import '../../editor/state/extend-selection.state.dart';
+import '../../documents/services/delta.utils.dart';
 import '../../highlights/models/highlight.model.dart';
-import '../../highlights/state/highlights.state.dart';
-import '../state/document.state.dart';
+import '../../shared/state/editor-state-receiver.dart';
+import '../../shared/state/editor.state.dart';
 
 // Return false to ignore the event.
 typedef ReplaceTextCallback = bool Function(int index, int len, Object? data);
@@ -58,11 +56,10 @@ typedef DeleteCallback = void Function(int cursorPosition, bool forward);
 // Multiple operations can trigger this behavior: copy/paste, inserting embeds, etc.
 // onDelete - Callback executed after deleting characters.
 // onSelectionCompleted - Custom behavior to be executed after completing a text selection
+
 class EditorController {
-  final editorState = EditorState();
-  final _documentState = DocumentState();
-  final _highlightsState = HighlightsState();
-  final _extendSelectionState = ExtendSelectionState();
+  // Stores the entire state of an editor instance.
+  final _state = EditorState();
 
   final DocumentM document;
   final bool keepStyleOnNewLine;
@@ -88,8 +85,8 @@ class EditorController {
 
   Tuple2<String, String>? get copiedImageUrl => _copiedImageUrl;
 
-  set copiedImageUrl(Tuple2<String, String>? value) {
-    _copiedImageUrl = value;
+  set copiedImageUrl(Tuple2<String, String>? imgUrl) {
+    _copiedImageUrl = imgUrl;
     Clipboard.setData(const ClipboardData(text: ''));
   }
 
@@ -115,9 +112,7 @@ class EditorController {
     this.onSelectionCompleted,
     this.onSelectionChanged,
   }) {
-    _documentState.setDocument(document);
-    _highlightsState.setHighlights(highlights);
-    _extendSelectionState.setOrigin(selection);
+    _state.document.setDocument(document);
   }
 
   factory EditorController.basic() => EditorController(
@@ -126,6 +121,10 @@ class EditorController {
           offset: 0,
         ),
       );
+
+  void setStateInEditorStateReceiver(EditorStateReceiver receiver) {
+    receiver.setState(_state);
+  }
 
   // Only attributes applied to all characters within this range are included in the result.
   StyleM getSelectionStyle() => document
@@ -282,7 +281,7 @@ class EditorController {
       ignoreFocusOnTextChange = true;
     }
 
-    editorState.refreshEditor();
+    _state.refreshEditor.refreshEditor();
     ignoreFocusOnTextChange = false;
   }
 
@@ -329,7 +328,7 @@ class EditorController {
       );
     }
 
-    editorState.refreshEditor();
+    _state.refreshEditor.refreshEditor();
   }
 
   void formatSelection(AttributeM? attribute) {
@@ -368,7 +367,7 @@ class EditorController {
     ChangeSource source,
   ) {
     _updateSelection(textSelection, source);
-    editorState.refreshEditor();
+    _state.refreshEditor.refreshEditor();
   }
 
   void compose(
@@ -395,7 +394,7 @@ class EditorController {
       _updateSelection(textSelection, source);
     }
 
-    editorState.refreshEditor();
+    _state.refreshEditor.refreshEditor();
   }
 
   // Given offset, find its leaf node in document
@@ -415,7 +414,7 @@ class EditorController {
       );
     } else {
       // No need to move cursor
-      editorState.refreshEditor();
+      _state.refreshEditor.refreshEditor();
     }
   }
 

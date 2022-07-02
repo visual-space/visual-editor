@@ -4,25 +4,12 @@ import 'package:flutter/rendering.dart';
 
 import '../../blocks/models/editable-box-renderer.model.dart';
 import '../../blocks/services/lines-blocks.service.dart';
-import '../../controller/services/editor-text.service.dart';
-import '../../controller/state/editor-controller.state.dart';
-import '../../editor/state/editor-config.state.dart';
-import '../../editor/state/editor-renderer.state.dart';
-import '../../editor/state/editor-state-widget.state.dart';
-import '../../editor/state/editor-widget.state.dart';
-import '../../editor/state/focus-node.state.dart';
+import '../../shared/state/editor.state.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../controllers/selection-actions.controller.dart';
 import 'text-selection.utils.dart';
 
 class SelectionActionsService {
-  final _editorConfigState = EditorConfigState();
-  final _editorStateWidgetState = EditorStateWidgetState();
-  final _editorTextService = EditorTextService();
-  final _editorRendererState = EditorRendererState();
-  final _editorWidgetState = EditorWidgetState();
-  final _editorControllerState = EditorControllerState();
-  final _focusNodeState = FocusNodeState();
   final _textSelectionUtils = TextSelectionUtils();
   final _linesBlocksService = LinesBlocksService();
 
@@ -39,9 +26,13 @@ class SelectionActionsService {
   // selection that contains some text but whose ends meet in the middle).
   List<TextSelectionPoint> getEndpointsForSelection(
     TextSelection textSelection,
+    EditorState state,
   ) {
     if (textSelection.isCollapsed) {
-      final child = _linesBlocksService.childAtPosition(textSelection.extent);
+      final child = _linesBlocksService.childAtPosition(
+        textSelection.extent,
+        state,
+      );
       final localPosition = TextPosition(
         offset: textSelection.extentOffset - child.container.offset,
       );
@@ -58,7 +49,7 @@ class SelectionActionsService {
       ];
     }
 
-    final renderer = _editorRendererState.renderer;
+    final renderer = state.refs.renderer;
     final baseNode = renderer.containerRef
         .queryChild(
           textSelection.start,
@@ -131,12 +122,12 @@ class SelectionActionsService {
   // Web is using native dom elements to enable clipboard functionality of the buttons: copy, paste, select, cut.
   // It might also provide additional functionality depending on the browser (such as translate).
   // Due to this we should not show Flutter buttons for the editable text elements.
-  bool showToolbar() {
+  bool showToolbar(EditorState state) {
     if (kIsWeb) {
       return false;
     }
-    
-    final selectionActions = _editorStateWidgetState.editor.selectionActionsController;
+
+    final selectionActions = state.refs.editorState.selectionActionsController;
 
     final hasSelection = selectionActions == null;
     final hasToolbarAlready = selectionActions!.toolbar != null;
@@ -145,14 +136,17 @@ class SelectionActionsService {
       return false;
     }
 
-    selectionActions.update(_editorStateWidgetState.editor.textEditingValue);
+    selectionActions.update(state.refs.editorState.textEditingValue);
     selectionActions.showToolbar();
 
     return true;
   }
 
-  void hideToolbar([bool hideHandles = true]) {
-    final selectionActions = _editorStateWidgetState.editor.selectionActionsController;
+  void hideToolbar(
+    EditorState state, [
+    bool hideHandles = true,
+  ]) {
+    final selectionActions = state.refs.editorState.selectionActionsController;
 
     // If the buttons is currently visible.
     if (selectionActions?.toolbar != null) {
@@ -160,38 +154,41 @@ class SelectionActionsService {
     }
   }
 
-  void updateOrDisposeSelectionOverlayIfNeeded() {
-    final selectionActions = _editorStateWidgetState.editor.selectionActionsController;
+  void updateOrDisposeSelectionOverlayIfNeeded(EditorState state) {
+    final selectionActions = state.refs.editorState.selectionActionsController;
 
     if (selectionActions != null) {
-      if (!_focusNodeState.node.hasFocus ||
-          _editorTextService.textEditingValue.selection.isCollapsed) {
+      if (!state.refs.focusNode.hasFocus ||
+          state.refs.editorController.plainTextEditingValue.selection
+              .isCollapsed) {
         selectionActions.dispose();
-        _editorStateWidgetState.editor.selectionActionsController = null;
+        state.refs.editorState.selectionActionsController = null;
       } else {
         selectionActions.update(
-          _editorTextService.textEditingValue,
+          state.refs.editorController.plainTextEditingValue,
         );
       }
-    } else if (_focusNodeState.node.hasFocus) {
-      final editor = _editorStateWidgetState.editor;
+    } else if (state.refs.focusNode.hasFocus) {
+      final editor = state.refs.editorState;
 
-      _editorStateWidgetState.editor.selectionActionsController = SelectionActionsController(
-        value: _editorTextService.textEditingValue,
-        debugRequiredFor: _editorWidgetState.editor,
-        renderObject: _editorRendererState.renderer,
-        textSelectionControls: _editorConfigState.config.textSelectionControls,
+      state.refs.editorState.selectionActionsController =
+          SelectionActionsController(
+        value: state.refs.editorController.plainTextEditingValue,
+        debugRequiredFor: state.refs.editor,
+        renderObject: state.refs.renderer,
+        textSelectionControls: state.editorConfig.config.textSelectionControls,
         selectionDelegate: editor,
         clipboardStatus: editor.clipboardStatus,
+        state: state,
       );
 
-      selectionActions!.handlesVisible = shouldShowSelectionHandles();
+      selectionActions!.handlesVisible = shouldShowSelectionHandles(state);
       selectionActions.showHandles();
     }
   }
 
-  bool shouldShowSelectionHandles() {
-    final context = _editorStateWidgetState.editor.context;
+  bool shouldShowSelectionHandles(EditorState state) {
+    final context = state.refs.editorState.context;
     // Whether to show selection handles.
     // When a selection is active, there will be two handles at each side of boundary,
     // or one handle if the selection is collapsed.
@@ -199,6 +196,6 @@ class SelectionActionsService {
     final showSelectionHandles = isMobile(Theme.of(context).platform);
 
     return showSelectionHandles &&
-        !_editorControllerState.controller.selection.isCollapsed;
+        !state.refs.editorController.selection.isCollapsed;
   }
 }

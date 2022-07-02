@@ -6,6 +6,7 @@ import '../../blocks/models/default-styles.model.dart';
 import '../../blocks/models/link-action.picker.type.dart';
 import '../../blocks/services/default-link-action-picker-delegate.utils.dart';
 import '../../embeds/widgets/default-embed-builder.dart';
+import '../../shared/state/editor.state.dart';
 
 // When instantiating a new Visual Editor, developers can control several styling and behaviour options.
 // They are all defined here in this model for the sake of clear separation of code.
@@ -94,31 +95,31 @@ class EditorConfigM {
   // Returns whether gesture is handled
   final bool Function(
     TapDownDetails details,
-    TextPosition Function(Offset offset),
+    TextPosition Function(Offset offset, EditorState state),
   )? onTapDown;
 
   // Returns whether gesture is handled
   final bool Function(
     TapUpDetails details,
-    TextPosition Function(Offset offset),
+    TextPosition Function(Offset offset, EditorState state),
   )? onTapUp;
 
   // Returns whether gesture is handled
   final bool Function(
     LongPressStartDetails details,
-    TextPosition Function(Offset offset),
+    TextPosition Function(Offset offset, EditorState state),
   )? onSingleLongTapStart;
 
   // Returns whether gesture is handled
   final bool Function(
     LongPressMoveUpdateDetails details,
-    TextPosition Function(Offset offset),
+    TextPosition Function(Offset offset, EditorState state),
   )? onSingleLongTapMoveUpdate;
 
   // Returns whether gesture is handled
   final bool Function(
     LongPressEndDetails details,
-    TextPosition Function(Offset offset),
+    TextPosition Function(Offset offset, EditorState state),
   )? onSingleLongTapEnd;
 
   // Renders custom content to be displayed as provided by the client apps.

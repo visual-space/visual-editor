@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'pages/all-styles.page.dart';
+import 'pages/custom-toolbar.page.dart';
 import 'pages/multiple-editors.page.dart';
 import 'pages/read-only.page.dart';
 
@@ -21,13 +22,13 @@ class DemoApp extends StatelessWidget {
 
       // TODO Add examples for:
       // Custom styles
-      // Custom toolbar
       // Highlights
       // Exposed utils
       routes: {
         '/all-styles': (context) => AllStylesPage(),
         '/read-only': (context) => ReadOnlyPage(),
         '/multiple-editors': (context) => MultipleEditorsPage(),
+        '/custom-toolbar': (context) => CustomToolbarPage(),
       },
     );
   }

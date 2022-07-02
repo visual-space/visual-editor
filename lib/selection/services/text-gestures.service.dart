@@ -4,29 +4,20 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
 import '../../blocks/services/lines-blocks.service.dart';
-import '../../controller/state/document.state.dart';
-import '../../controller/state/editor-controller.state.dart';
 import '../../documents/models/change-source.enum.dart';
-import '../../editor/state/editor-config.state.dart';
-import '../../editor/state/extend-selection.state.dart';
 import '../../inputs/services/clipboard.service.dart';
 import '../../inputs/services/keyboard.service.dart';
+import '../../shared/state/editor.state.dart';
 import '../../shared/utils/platform.utils.dart';
-import '../state/last-tap-down.state.dart';
 import 'selection-actions.service.dart';
 import 'text-selection.service.dart';
 
 class TextGesturesService {
-  final _editorControllerState = EditorControllerState();
   final _textSelectionService = TextSelectionService();
-  final _extendSelectionState = ExtendSelectionState();
   final _selectionActionsService = SelectionActionsService();
   final _keyboardService = KeyboardService();
-  final _editorConfigState = EditorConfigState();
-  final _documentState = DocumentState();
   final _clipboardService = ClipboardService();
   final _linesBlocksService = LinesBlocksService();
-  final _lastTapDownState = LastTapDownState();
 
   // Whether to show the selection buttons.
   // It is based on the signal source when a onTapDown is called.
@@ -39,19 +30,24 @@ class TextGesturesService {
 
   TextGesturesService._privateConstructor();
 
-  bool selectAllEnabled() => _clipboardService.toolbarOptions().selectAll;
+  bool selectAllEnabled(EditorState state) =>
+      _clipboardService.toolbarOptions(state).selectAll;
 
-  void updateSelection(TextSelection textSelection, ChangeSource source) {
-    _editorControllerState.controller.updateSelection(textSelection, source);
+  void updateSelection(
+    TextSelection textSelection,
+    ChangeSource source,
+    EditorState state,
+  ) {
+    state.refs.editorController.updateSelection(textSelection, source);
   }
 
   // === HANDLERS ===
 
   // By default, it forwards the tap to RenderEditable.handleTapDown and sets shouldShowSelectionToolbar
   // to true if the tap was initiated by a finger or stylus.
-  void onTapDown(TapDownDetails details) {
-    if (_editorConfigState.config.onTapDown != null) {
-      if (_editorConfigState.config.onTapDown!(
+  void onTapDown(TapDownDetails details, EditorState state) {
+    if (state.editorConfig.config.onTapDown != null) {
+      if (state.editorConfig.config.onTapDown!(
         details,
         _linesBlocksService.getPositionForOffset,
       )) {
@@ -59,7 +55,7 @@ class TextGesturesService {
       }
     }
 
-    _lastTapDownState.setLastTapDown(details.globalPosition);
+    state.lastTapDown.setLastTapDown(details.globalPosition);
 
     // The selection overlay should only be shown when the user is interacting
     // through a touch screen (via either a finger or a stylus).
@@ -72,25 +68,29 @@ class TextGesturesService {
   }
 
   // By default, it selects the word at the position of the force press, if selection is enabled.
-  void onForcePressStart(ForcePressDetails details) {
-    assert(_editorConfigState.config.forcePressEnabled);
+  void onForcePressStart(
+    ForcePressDetails details,
+    EditorState state,
+  ) {
+    assert(state.editorConfig.config.forcePressEnabled);
 
-    if (!_editorConfigState.config.forcePressEnabled) {
+    if (!state.editorConfig.config.forcePressEnabled) {
       return;
     }
 
     _shouldShowSelectionToolbar = true;
-    if (_editorConfigState.config.enableInteractiveSelection) {
+    if (state.editorConfig.config.enableInteractiveSelection) {
       _textSelectionService.selectWordsInRange(
         details.globalPosition,
         null,
         SelectionChangedCause.forcePress,
+        state,
       );
     }
 
-    if (_editorConfigState.config.enableInteractiveSelection &&
+    if (state.editorConfig.config.enableInteractiveSelection &&
         _shouldShowSelectionToolbar) {
-      _selectionActionsService.showToolbar();
+      _selectionActionsService.showToolbar(state);
     }
   }
 
@@ -118,20 +118,21 @@ class TextGesturesService {
   void onSingleTapUp(
     TapUpDetails details,
     TargetPlatform platform,
+    EditorState state,
   ) {
-    if (_editorConfigState.config.onTapUp != null &&
-        _editorConfigState.config.onTapUp!(
+    if (state.editorConfig.config.onTapUp != null &&
+        state.editorConfig.config.onTapUp!(
           details,
           _linesBlocksService.getPositionForOffset,
         )) {
       return;
     }
 
-    _selectionActionsService.hideToolbar();
+    _selectionActionsService.hideToolbar(state);
 
     try {
-      if (_editorConfigState.config.enableInteractiveSelection &&
-          !_isPositionSelected(details)) {
+      if (state.editorConfig.config.enableInteractiveSelection &&
+          !_isPositionSelected(details, state)) {
         if (isAppleOS(platform)) {
           switch (details.kind) {
             case PointerDeviceKind.mouse:
@@ -144,15 +145,17 @@ class TextGesturesService {
               if (_isShiftClick(details.kind)) {
                 _textSelectionService.extendSelection(
                   details.globalPosition,
+                  state,
                   cause: SelectionChangedCause.tap,
                 );
-                _textSelectionService.onSelectionCompleted();
+                _textSelectionService.onSelectionCompleted(state);
               } else {
                 _textSelectionService.selectPositionAt(
-                  from: _lastTapDownState.position!,
+                  from: state.lastTapDown.position!,
                   cause: SelectionChangedCause.tap,
+                  state: state,
                 );
-                _textSelectionService.onSelectionCompleted();
+                _textSelectionService.onSelectionCompleted(state);
               }
 
               break;
@@ -161,8 +164,11 @@ class TextGesturesService {
 
             case PointerDeviceKind.unknown:
               // On macOS/iOS/iPadOS a touch tap places the cursor at the edge of the word.
-              _textSelectionService.selectWordEdge(SelectionChangedCause.tap);
-              _textSelectionService.onSelectionCompleted();
+              _textSelectionService.selectWordEdge(
+                SelectionChangedCause.tap,
+                state,
+              );
+              _textSelectionService.onSelectionCompleted(state);
               break;
 
             case PointerDeviceKind.trackpad:
@@ -171,15 +177,16 @@ class TextGesturesService {
           }
         } else {
           _textSelectionService.selectPositionAt(
-            from: _lastTapDownState.position!,
+            from: state.lastTapDown.position!,
             cause: SelectionChangedCause.tap,
+            state: state,
           );
 
-          _textSelectionService.onSelectionCompleted();
+          _textSelectionService.onSelectionCompleted(state);
         }
       }
     } finally {
-      _keyboardService.requestKeyboard();
+      _keyboardService.requestKeyboard(state);
     }
   }
 
@@ -193,9 +200,10 @@ class TextGesturesService {
     LongPressStartDetails details,
     TargetPlatform platform,
     BuildContext context,
+    EditorState state,
   ) {
-    if (_editorConfigState.config.onSingleLongTapStart != null) {
-      if (_editorConfigState.config.onSingleLongTapStart!(
+    if (state.editorConfig.config.onSingleLongTapStart != null) {
+      if (state.editorConfig.config.onSingleLongTapStart!(
         details,
         _linesBlocksService.getPositionForOffset,
       )) {
@@ -203,17 +211,19 @@ class TextGesturesService {
       }
     }
 
-    if (_editorConfigState.config.enableInteractiveSelection) {
+    if (state.editorConfig.config.enableInteractiveSelection) {
       if (isAppleOS(platform)) {
         _textSelectionService.selectPositionAt(
           from: details.globalPosition,
           cause: SelectionChangedCause.longPress,
+          state: state,
         );
       } else {
         _textSelectionService.selectWordsInRange(
-          _lastTapDownState.position!,
+          state.lastTapDown.position!,
           null,
           SelectionChangedCause.longPress,
+          state,
         );
         Feedback.forLongPress(context);
       }
@@ -224,9 +234,10 @@ class TextGesturesService {
   void onSingleLongTapMoveUpdate(
     LongPressMoveUpdateDetails details,
     TargetPlatform platform,
+    EditorState state,
   ) {
-    if (_editorConfigState.config.onSingleLongTapMoveUpdate != null) {
-      if (_editorConfigState.config.onSingleLongTapMoveUpdate!(
+    if (state.editorConfig.config.onSingleLongTapMoveUpdate != null) {
+      if (state.editorConfig.config.onSingleLongTapMoveUpdate!(
         details,
         _linesBlocksService.getPositionForOffset,
       )) {
@@ -234,7 +245,7 @@ class TextGesturesService {
       }
     }
 
-    if (!_editorConfigState.config.enableInteractiveSelection) {
+    if (!state.editorConfig.config.enableInteractiveSelection) {
       return;
     }
 
@@ -242,43 +253,46 @@ class TextGesturesService {
       _textSelectionService.selectPositionAt(
         from: details.globalPosition,
         cause: SelectionChangedCause.longPress,
+        state: state,
       );
     } else {
       _textSelectionService.selectWordsInRange(
         details.globalPosition - details.offsetFromOrigin,
         details.globalPosition,
         SelectionChangedCause.longPress,
+        state,
       );
     }
   }
 
   // By default, it shows buttons if necessary.
-  void onSingleLongTapEnd(LongPressEndDetails details) {
-    if (_editorConfigState.config.onSingleLongTapEnd != null) {
-      if (_editorConfigState.config.onSingleLongTapEnd!(
+  void onSingleLongTapEnd(LongPressEndDetails details, EditorState state) {
+    if (state.editorConfig.config.onSingleLongTapEnd != null) {
+      if (state.editorConfig.config.onSingleLongTapEnd!(
         details,
         _linesBlocksService.getPositionForOffset,
       )) {
         return;
       }
 
-      if (_editorConfigState.config.enableInteractiveSelection) {
-        _textSelectionService.onSelectionCompleted();
+      if (state.editorConfig.config.enableInteractiveSelection) {
+        _textSelectionService.onSelectionCompleted(state);
       }
     }
 
     if (_shouldShowSelectionToolbar) {
-      _selectionActionsService.showToolbar();
+      _selectionActionsService.showToolbar(state);
     }
   }
 
   // By default, it selects a word through RenderEditable.selectWord if  selectionEnabled and shows buttons if necessary.
-  void onDoubleTapDown(TapDownDetails details) {
-    if (_editorConfigState.config.enableInteractiveSelection) {
+  void onDoubleTapDown(TapDownDetails details, EditorState state) {
+    if (state.editorConfig.config.enableInteractiveSelection) {
       _textSelectionService.selectWordsInRange(
-        _lastTapDownState.position!,
+        state.lastTapDown.position!,
         null,
         SelectionChangedCause.tap,
+        state,
       );
 
       // Allow the selection to get updated before trying to bring up toolbars.
@@ -286,17 +300,18 @@ class TextGesturesService {
       // selection hasn't been set when the toolbars get added.
       SchedulerBinding.instance.addPostFrameCallback((_) {
         if (_shouldShowSelectionToolbar) {
-          _selectionActionsService.showToolbar();
+          _selectionActionsService.showToolbar(state);
         }
       });
     }
   }
 
   // By default, it selects a text position specified in details.
-  void onDragSelectionStart(DragStartDetails details) {
+  void onDragSelectionStart(DragStartDetails details, EditorState state) {
     final newSelection = _textSelectionService.selectPositionAt(
       from: details.globalPosition,
       cause: SelectionChangedCause.drag,
+      state: state,
     );
 
     // Fail safe
@@ -305,31 +320,34 @@ class TextGesturesService {
     }
 
     // Make sure to remember the origin for extend selection.
-    _extendSelectionState.setOrigin(newSelection);
+    state.extendSelection.setOrigin(newSelection);
   }
 
   // By default, it updates the selection location specified in the provided details objects.
   void onDragSelectionUpdate(
     DragStartDetails startDetails,
     DragUpdateDetails updateDetails,
+    EditorState state,
   ) {
     _textSelectionService.extendSelection(
       updateDetails.globalPosition,
+      state,
       cause: SelectionChangedCause.drag,
     );
   }
 
   // === PRIVATE ===
 
-  bool _isPositionSelected(TapUpDetails details) {
-    if (_documentState.document.isEmpty()) {
+  bool _isPositionSelected(TapUpDetails details, EditorState state) {
+    if (state.document.document.isEmpty()) {
       return false;
     }
 
     final pos = _linesBlocksService.getPositionForOffset(
       details.globalPosition,
+      state,
     );
-    final result = _documentState.document.querySegmentLeafNode(pos.offset);
+    final result = state.document.document.querySegmentLeafNode(pos.offset);
     final line = result.item1;
 
     if (line == null) {
@@ -342,6 +360,7 @@ class TextGesturesService {
       updateSelection(
         TextSelection.collapsed(offset: pos.offset),
         ChangeSource.LOCAL,
+        state,
       );
 
       return true;

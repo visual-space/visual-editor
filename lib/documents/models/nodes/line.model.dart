@@ -3,9 +3,9 @@ import 'dart:math' as math;
 import 'package:collection/collection.dart';
 import 'package:tuple/tuple.dart';
 
-import '../../../delta/models/delta.model.dart';
 import '../attribute-scope.enum.dart';
 import '../attribute.model.dart';
+import '../delta/delta.model.dart';
 import '../style.model.dart';
 import 'block.model.dart';
 import 'container.model.dart';
@@ -168,6 +168,7 @@ class LineM extends ContainerM<LeafM?> {
     if (isLFDeleted) {
       // Our newline character deleted with all style information.
       clearStyle();
+
       if (local > 1) {
         // Exclude newline character from delete range for children.
         super.delete(index, local - 1);
@@ -244,6 +245,7 @@ class LineM extends ContainerM<LeafM?> {
         newStyle = newStyle.mergeAll(parentStyleToMerge);
         _applyBlockStyles(newStyle);
       } // Else the same style, no-op.
+
     } else if (blockStyle.value != null) {
       // Only wrap with a new block if this is not an unset
       _applyBlockStyles(newStyle);
@@ -519,7 +521,6 @@ class LineM extends ContainerM<LeafM?> {
         // Blank line
         plainText.write('\n');
         _len -= 1;
-
       } else {
         _len = _getNodeText(node, plainText, offset - node.offset, _len);
 

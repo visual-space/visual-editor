@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:i18n_extension/i18n_widget.dart';
 
-import '../../controller/services/editor-controller.dart';
+import '../../controller/controllers/editor-controller.dart';
 import '../../documents/models/attribute.model.dart';
 import '../../shared/models/editor-dialog-theme.model.dart';
 import '../../shared/models/editor-icon-theme.model.dart';
@@ -23,7 +23,7 @@ import 'buttons/toggle-check-list-button.dart';
 import 'buttons/toggle-style-button.dart';
 import 'buttons/video-button.dart';
 
-export '../../media/services/image-video.utils.dart';
+export '../../embeds/services/image-video.utils.dart';
 export '../../shared/widgets/quill-icon-button.dart';
 export 'buttons/clear-format-button.dart';
 export 'buttons/color-button.dart';
@@ -44,15 +44,47 @@ const defaultIconSize = 18.0;
 const iconButtonFactor = 1.77;
 
 class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
+  // If you want custom order for the buttons you can provide a list of
+  // children straight to the the EditorToolbar constructor.
+  // However in this case it's almost pointless to use this Widget
+  // since it does not provide much functionality on top of the custom buttons set.
+  // You can build your own widget, just remember to provide the the locale via the I18n Widget.
+  final List<Widget> children;
+  final double toolbarHeight;
+
+  // The spacing between buttons
+  final double buttonsSpacing;
+  final WrapAlignment toolbarIconAlignment;
+
+  // Renders the buttons on multiple rows.
+  // If disabled renders the buttons on a single row with arrows.
+  final bool multiRowsDisplay;
+
+  // The color of the buttons.
+  // Defaults to ThemeData.canvasColor of the current Theme if no color is given.
+  final Color? color;
+
+  final FilePickImpl? filePickImpl;
+
+  // The locale to use for the editor buttons, defaults to system locale
+  // More https://github.com/singerdmx/flutter-quill#translation
+  final Locale? locale;
+
+  // Custom buttons can be appended to the end of the Toolbar buttons row.
+  final List<EditorCustomButton> customButtons;
+
+  @override
+  Size get preferredSize => Size.fromHeight(toolbarHeight);
+
   const EditorToolbar({
     required this.children,
     this.toolbarHeight = 36,
     this.toolbarIconAlignment = WrapAlignment.center,
-    this.toolbarSectionSpacing = 4,
+    this.buttonsSpacing = 4,
     this.multiRowsDisplay = true,
     this.color,
     this.filePickImpl,
-    this.customIcons = const [],
+    this.customButtons = const [],
     this.locale,
     Key? key,
   }) : super(key: key);
@@ -99,7 +131,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
     FilePickImpl? filePickImpl,
     WebImagePickImpl? webImagePickImpl,
     WebVideoPickImpl? webVideoPickImpl,
-    List<EditorCustomIcon> customIcons = const [],
+    List<EditorCustomButton> customIcons = const [],
 
     // Map of font sizes in int
     Map<String, int>? fontSizeValues,
@@ -159,10 +191,10 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
     return EditorToolbar(
       key: key,
       toolbarHeight: toolbarIconSize * 2,
-      toolbarSectionSpacing: toolbarSectionSpacing,
+      buttonsSpacing: toolbarSectionSpacing,
       toolbarIconAlignment: toolbarIconAlignment,
       multiRowsDisplay: multiRowsDisplay,
-      customIcons: customIcons,
+      customButtons: customIcons,
       locale: locale,
       children: [
         if (showUndo)
@@ -473,28 +505,6 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  final List<Widget> children;
-  final double toolbarHeight;
-  final double toolbarSectionSpacing;
-  final WrapAlignment toolbarIconAlignment;
-  final bool multiRowsDisplay;
-
-  // The color of the buttons.
-  // Defaults to ThemeData.canvasColor of the current Theme if no color is given.
-  final Color? color;
-
-  final FilePickImpl? filePickImpl;
-
-  // The locale to use for the editor buttons, defaults to system locale
-  // More https://github.com/singerdmx/flutter-quill#translation
-  final Locale? locale;
-
-  // List of custom icons
-  final List<EditorCustomIcon> customIcons;
-
-  @override
-  Size get preferredSize => Size.fromHeight(toolbarHeight);
-
   @override
   Widget build(BuildContext context) {
     return I18n(
@@ -503,7 +513,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
           ? Wrap(
               alignment: toolbarIconAlignment,
               runSpacing: 4,
-              spacing: toolbarSectionSpacing,
+              spacing: buttonsSpacing,
               children: children,
             )
           : Container(

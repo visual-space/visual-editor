@@ -7,18 +7,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../controller/state/editor-controller.state.dart';
 import '../../documents/models/attribute.model.dart';
 import '../../documents/models/nodes/embed.model.dart';
 import '../../documents/models/nodes/line.model.dart';
 import '../../documents/models/nodes/node.model.dart';
 import '../../documents/models/nodes/text.model.dart';
 import '../../documents/models/style.model.dart';
-import '../../editor/state/editor-config.state.dart';
 import '../../editor/widgets/proxy/embed-proxy.dart';
 import '../../editor/widgets/proxy/rich-text-proxy.dart';
 import '../../embeds/widgets/default-embed-builder.dart';
-import '../../inputs/state/pressed-keys.state.dart';
+import '../../shared/state/editor.state.dart';
 import '../../shared/utils/color.utils.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../const/link-prefixes.const.dart';
@@ -28,39 +26,48 @@ import '../models/link-action-menu.enum.dart';
 import '../models/link-action.picker.type.dart';
 import '../services/link.utils.dart';
 
+// ignore: must_be_immutable
 class TextLine extends StatefulWidget {
   final LineM line;
   final TextDirection? textDirection;
   final DefaultStyles styles;
   final LinkActionPicker linkActionPicker;
 
-  const TextLine({
+  // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
+  // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
+  late EditorState _state;
+
+  void setState(EditorState state) {
+    _state = state;
+  }
+
+  TextLine({
     required this.line,
     required this.styles,
     required this.linkActionPicker,
+    required EditorState state,
     this.textDirection,
     Key? key,
-  }) : super(key: key);
+  }) : super(key: key) {
+    setState(state);
+  }
 
   @override
   State<TextLine> createState() => _TextLineState();
 }
 
 class _TextLineState extends State<TextLine> {
-  final _editorConfigState = EditorConfigState();
-  final _editorControllerState = EditorControllerState();
 
   bool _metaOrControlPressed = false;
   UniqueKey _richTextKey = UniqueKey();
   final _linkRecognizers = <NodeM, GestureRecognizer>{};
   StreamSubscription? _pressedKeysListener;
-  final _pressedKeysState = PressedKeysState();
   late EmbedBuilder _embedBuilder;
 
   @override
   void initState() {
     _embedBuilder =
-        _editorConfigState.config.embedBuilder ?? defaultEmbedBuilder;
+        widget._state.editorConfig.config.embedBuilder ?? defaultEmbedBuilder;
     super.initState();
   }
 
@@ -84,9 +91,9 @@ class _TextLineState extends State<TextLine> {
       return EmbedProxy(
         _embedBuilder(
           context,
-          _editorControllerState.controller,
+          widget._state.refs.editorController,
           embed,
-          _editorConfigState.config.readOnly,
+          widget._state.editorConfig.config.readOnly,
         ),
       );
     }
@@ -116,14 +123,14 @@ class _TextLineState extends State<TextLine> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _pressedKeysListener?.cancel();
-    _pressedKeysListener = _pressedKeysState.pressedKeys$
+    _pressedKeysListener = widget._state.pressedKeys.pressedKeys$
         .listen((pressedKeys) => _pressedKeysChanged);
   }
 
   bool get canLaunchLinks {
     // In readOnly mode users can launch links
     // by simply tapping (clicking) on them
-    if (_editorConfigState.config.readOnly) return true;
+    if (widget._state.editorConfig.config.readOnly) return true;
 
     // In editing mode it depends on the platform:
     // Desktop platforms (macos, linux, windows):
@@ -140,8 +147,8 @@ class _TextLineState extends State<TextLine> {
   // === PRIVATE ===
 
   void _pressedKeysChanged() {
-    final metaOrControlPressed =
-        _pressedKeysState.metaPressed || _pressedKeysState.controlPressed;
+    final metaOrControlPressed = widget._state.pressedKeys.metaPressed ||
+        widget._state.pressedKeys.controlPressed;
     if (_metaOrControlPressed != metaOrControlPressed) {
       setState(() {
         _metaOrControlPressed = metaOrControlPressed;
@@ -174,9 +181,9 @@ class _TextLineState extends State<TextLine> {
           child: EmbedProxy(
             _embedBuilder(
               context,
-              _editorControllerState.controller,
+              widget._state.refs.editorController,
               child,
-              _editorConfigState.config.readOnly,
+              widget._state.editorConfig.config.readOnly,
             ),
           ),
         );
@@ -281,7 +288,7 @@ class _TextLineState extends State<TextLine> {
     TextStyle textStyle,
     Map<String, AttributeM> attributes,
   ) {
-    if (_editorConfigState.config.customStyleBuilder == null) {
+    if (widget._state.editorConfig.config.customStyleBuilder == null) {
       return textStyle;
     }
 
@@ -291,7 +298,7 @@ class _TextLineState extends State<TextLine> {
       if (attr != null) {
         // Custom Attribute
         final customAttr =
-            _editorConfigState.config.customStyleBuilder!.call(attr);
+            widget._state.editorConfig.config.customStyleBuilder!.call(attr);
         textStyle = textStyle.merge(customAttr);
       }
     });
@@ -435,7 +442,7 @@ class _TextLineState extends State<TextLine> {
       return _linkRecognizers[segment]!;
     }
 
-    if (isDesktop() || _editorConfigState.config.readOnly) {
+    if (isDesktop() || widget._state.editorConfig.config.readOnly) {
       _linkRecognizers[segment] = TapGestureRecognizer()
         ..onTap = () => _tapNodeLink(segment);
     } else {
@@ -461,7 +468,7 @@ class _TextLineState extends State<TextLine> {
       return;
     }
 
-    var launchUrl = _editorConfigState.config.onLaunchUrl;
+    var launchUrl = widget._state.editorConfig.config.onLaunchUrl;
     launchUrl ??= _launchUrl;
 
     link = link.trim();
@@ -477,7 +484,7 @@ class _TextLineState extends State<TextLine> {
 
   Future<void> _longPressLink(NodeM node) async {
     final link = node.style.attributes[AttributeM.link.key]!.value!;
-    final action = await widget.linkActionPicker(node);
+    final action = await widget.linkActionPicker(node, widget._state);
 
     switch (action) {
       case LinkMenuAction.launch:
@@ -493,7 +500,7 @@ class _TextLineState extends State<TextLine> {
 
       case LinkMenuAction.remove:
         final range = getLinkRange(node);
-        _editorControllerState.controller.formatText(
+        widget._state.refs.editorController.formatText(
           range.start,
           range.end - range.start,
           AttributeM.link,

@@ -2,24 +2,17 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 
-import '../../controller/state/editor-controller.state.dart';
 import '../../cursor/services/caret.service.dart';
-import '../../cursor/state/cursor-controller.state.dart';
 import '../../inputs/controllers/update-text-selection-to-adjiacent-line.action.dart';
 import '../../inputs/services/input-connection.service.dart';
 import '../../inputs/services/keyboard.service.dart';
-import '../../inputs/state/keyboard-visible.state.dart';
 import '../../selection/services/selection-actions.service.dart';
-import '../state/editor-state-widget.state.dart';
+import '../../shared/state/editor.state.dart';
 
 class TextValueService {
   final _textConnectionService = TextConnectionService();
   final _selectionActionsService = SelectionActionsService();
-  final _editorControllerState = EditorControllerState();
-  final _cursorControllerState = CursorControllerState();
-  final _editorStateWidgetState = EditorStateWidgetState();
   final _keyboardService = KeyboardService();
-  final _keyboardVisibleState = KeyboardVisibleState();
   final _caretService = CaretService();
 
   static final _instance = TextValueService._privateConstructor();
@@ -28,22 +21,22 @@ class TextValueService {
 
   TextValueService._privateConstructor();
 
-  void onChangeTextEditingValue(bool ignoreCaret) {
-    _textConnectionService.updateRemoteValueIfNeeded();
+  void onChangeTextEditingValue(bool ignoreCaret, EditorState state) {
+    _textConnectionService.updateRemoteValueIfNeeded(state);
 
     if (ignoreCaret) {
       return;
     }
 
-    _caretService.showCaretOnScreen();
-    _cursorControllerState.controller.startOrStopCursorTimerIfNeeded(
-      _editorControllerState.controller.selection,
+    _caretService.showCaretOnScreen(state);
+    state.refs.cursorController.startOrStopCursorTimerIfNeeded(
+      state.refs.editorController.selection,
     );
 
     if (_textConnectionService.hasConnection) {
       // To keep the cursor from blinking while typing, we want to restart the
       // cursor timer every time a new character is typed.
-      _cursorControllerState.controller
+      state.refs.cursorController
         ..stopCursorTimer(resetCharTicks: false)
         ..startCursorTimer();
     }
@@ -54,14 +47,14 @@ class TextValueService {
     // If we try to update selection overlay immediately it'll not be able to find
     // the new child since it hasn't been built yet.
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      if (!_editorStateWidgetState.editor.mounted) {
+      if (!state.refs.editorState.mounted) {
         return;
       }
-      _selectionActionsService.updateOrDisposeSelectionOverlayIfNeeded();
+      _selectionActionsService.updateOrDisposeSelectionOverlayIfNeeded(state);
     });
 
-    if (_editorStateWidgetState.editor.mounted) {
-      _editorStateWidgetState.editor.refresh();
+    if (state.refs.editorState.mounted) {
+      state.refs.editorState.refresh();
     }
   }
 
@@ -71,30 +64,29 @@ class TextValueService {
   // - Adding styles
   // - Adding characters
   // - Undo redo
-  void updateEditor() {
-    final ignoreFocus =
-        _editorControllerState.controller.ignoreFocusOnTextChange;
+  void updateEditor(EditorState state) {
+    final ignoreFocus = state.refs.editorController.ignoreFocusOnTextChange;
 
     if (kIsWeb) {
-      onChangeTextEditingValue(ignoreFocus);
+      onChangeTextEditingValue(ignoreFocus, state);
       if (!ignoreFocus) {
-        _keyboardService.requestKeyboard();
+        _keyboardService.requestKeyboard(state);
       }
       return;
     }
 
-    if (ignoreFocus || _keyboardVisibleState.isVisible) {
-      onChangeTextEditingValue(ignoreFocus);
+    if (ignoreFocus || state.keyboardVisible.isVisible) {
+      onChangeTextEditingValue(ignoreFocus, state);
     } else {
-      _keyboardService.requestKeyboard();
+      _keyboardService.requestKeyboard(state);
 
-      if (_editorStateWidgetState.editor.mounted) {
-        _editorStateWidgetState.editor.refresh();
+      if (state.refs.editorState.mounted) {
+        state.refs.editorState.refresh();
       }
     }
 
     UpdateTextSelectionToAdjacentLineAction<
-            ExtendSelectionVerticallyToAdjacentLineIntent>()
+            ExtendSelectionVerticallyToAdjacentLineIntent>(state)
         .stopCurrentVerticalRunIfSelectionChanges();
   }
 }

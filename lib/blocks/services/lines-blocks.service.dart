@@ -3,16 +3,11 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:tuple/tuple.dart';
 
-import '../../controller/state/editor-controller.state.dart';
 import '../../documents/models/change-source.enum.dart';
 import '../../documents/models/nodes/block.model.dart';
 import '../../documents/models/nodes/line.model.dart';
 import '../../documents/models/nodes/node.model.dart';
-import '../../editor/state/editor-config.state.dart';
-import '../../editor/state/editor-renderer.state.dart';
-import '../../editor/state/editor-state-widget.state.dart';
-import '../../editor/state/focus-node.state.dart';
-import '../../editor/state/scroll-controller-animation.state.dart';
+import '../../shared/state/editor.state.dart';
 import '../../visual-editor.dart';
 import '../models/editable-box-renderer.model.dart';
 import '../models/link-action-menu.enum.dart';
@@ -21,27 +16,21 @@ import '../widgets/editable-text-line.dart';
 import '../widgets/text-line.dart';
 
 class LinesBlocksService {
-  final _editorRendererState = EditorRendererState();
-  final _editorControllerState = EditorControllerState();
-  final _editorStateWidgetState = EditorStateWidgetState();
-  final _focusNodeState = FocusNodeState();
-  final _editorConfigState = EditorConfigState();
-  final _scrollControllerAnimationState = ScrollControllerAnimationState();
-
   static final _instance = LinesBlocksService._privateConstructor();
 
   factory LinesBlocksService() => _instance;
 
   LinesBlocksService._privateConstructor();
 
-  EditableTextLine getEditableTextLineFromNode(LineM node) {
-    final editor = _editorStateWidgetState.editor;
+  EditableTextLine getEditableTextLineFromNode(LineM node, EditorState state) {
+    final editor = state.refs.editorState;
 
     final textLine = TextLine(
       line: node,
       textDirection: editor.textDirection,
       styles: editor.styles!,
       linkActionPicker: linkActionPicker,
+      state: state,
     );
 
     final editableTextLine = EditableTextLine(
@@ -54,44 +43,48 @@ class LinesBlocksService {
         editor.styles,
       ),
       textDirection: editor.textDirection,
-      textSelection: _editorControllerState.controller.selection,
-      hasFocus: _focusNodeState.node.hasFocus,
+      textSelection: state.refs.editorController.selection,
+      hasFocus: state.refs.focusNode.hasFocus,
       devicePixelRatio: MediaQuery.of(editor.context).devicePixelRatio,
+      state: state,
     );
 
     return editableTextLine;
   }
 
   // Updates the checkbox positioned at [offset] in document by changing its attribute according to [value].
-  void handleCheckboxTap(int offset, bool value) {
-    if (!_editorConfigState.config.readOnly) {
-      _scrollControllerAnimationState.disableAnimationOnce(true);
+  void handleCheckboxTap(int offset, bool value, EditorState state) {
+    if (!state.editorConfig.config.readOnly) {
+      state.scrollAnimation.disableAnimationOnce(true);
       final attribute = value ? AttributeM.checked : AttributeM.unchecked;
 
-      _editorControllerState.controller.formatText(offset, 0, attribute);
+      state.refs.editorController.formatText(offset, 0, attribute);
 
       // Checkbox tapping causes controller.selection to go to offset 0.
       // Stop toggling those two buttons buttons.
-      _editorControllerState.controller.toolbarButtonToggler = {
+      state.refs.editorController.toolbarButtonToggler = {
         AttributeM.list.key: attribute,
         AttributeM.header.key: AttributeM.header
       };
 
       // Go back from offset 0 to current selection.
       SchedulerBinding.instance.addPostFrameCallback((_) {
-        _editorControllerState.controller.updateSelection(
-            TextSelection.collapsed(offset: offset), ChangeSource.LOCAL);
+        state.refs.editorController.updateSelection(
+          TextSelection.collapsed(offset: offset),
+          ChangeSource.LOCAL,
+        );
       });
     }
   }
 
-  Future<LinkMenuAction> linkActionPicker(NodeM linkNode) async {
+  Future<LinkMenuAction> linkActionPicker(
+      NodeM linkNode, EditorState state) async {
     final link = linkNode.style.attributes[AttributeM.link.key]!.value!;
-    final linkDelegate = _editorConfigState.config.linkActionPickerDelegate ??
+    final linkDelegate = state.editorConfig.config.linkActionPickerDelegate ??
         defaultLinkActionPickerDelegate;
 
     return linkDelegate(
-      _editorStateWidgetState.editor.context,
+      state.refs.editorState.context,
       link,
       linkNode,
     );
@@ -99,10 +92,11 @@ class LinesBlocksService {
 
   // If an EditableTextBlockRenderer is provided it uses it, otherwise it defaults to the EditorRenderer
   EditableBoxRenderer childAtPosition(
-    TextPosition position, [
+    TextPosition position,
+    EditorState state, [
     EditableTextBlockRenderer? blockRenderer,
   ]) {
-    final renderer = blockRenderer ?? _editorRendererState.renderer;
+    final renderer = blockRenderer ?? state.refs.renderer;
     assert(renderer.firstChild != null);
 
     final targetNode = renderer.container
@@ -139,10 +133,11 @@ class LinesBlocksService {
   // Likewise, if `offset` is below this container then returns the last child.
   // If an EditableTextBlockRenderer is provided it uses it, otherwise it defaults to the EditorRenderer
   EditableBoxRenderer childAtOffset(
-    Offset offset, [
+    Offset offset,
+    EditorState state, [
     EditableTextBlockRenderer? blockRenderer,
   ]) {
-    final renderer = blockRenderer ?? _editorRendererState.renderer;
+    final renderer = blockRenderer ?? state.refs.renderer;
     assert(renderer.firstChild != null);
 
     renderer.resolvePadding();
@@ -176,9 +171,9 @@ class LinesBlocksService {
   // Otherwise, the selection is not collapsed and the returned list is of length two.
   // In this case, however, the two points might actually be co-located (e.g., because of a bidirectional
   // selection that contains some text but whose ends meet in the middle).
-  TextPosition getPositionForOffset(Offset offset) {
-    final local = _editorRendererState.renderer.globalToLocal(offset);
-    final child = childAtOffset(local);
+  TextPosition getPositionForOffset(Offset offset, EditorState state) {
+    final local = state.refs.renderer.globalToLocal(offset);
+    final child = childAtOffset(local, state);
     final parentData = child.parentData as BoxParentData;
     final localOffset = local - parentData.offset;
     final localPosition = child.getPositionForOffset(localOffset);
@@ -189,8 +184,8 @@ class LinesBlocksService {
     );
   }
 
-  double preferredLineHeight(TextPosition position) {
-    final child = childAtPosition(position);
+  double preferredLineHeight(TextPosition position, EditorState state) {
+    final child = childAtPosition(position, state);
 
     return child.preferredLineHeight(
       TextPosition(offset: position.offset - child.container.offset),

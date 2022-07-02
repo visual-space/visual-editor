@@ -3,11 +3,6 @@ import 'package:tuple/tuple.dart';
 import '../../documents/models/style.model.dart';
 
 class PasteState {
-  factory PasteState() => _instance;
-  static final _instance = PasteState._privateConstructor();
-
-  PasteState._privateConstructor();
-
   List<Tuple2<int, StyleM>> _pasteStyle = [];
   String _pastePlainText = '';
 

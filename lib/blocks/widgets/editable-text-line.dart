@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../documents/models/nodes/line.model.dart';
+import '../../shared/state/editor.state.dart';
 import '../models/default-styles.model.dart';
 import 'editable-text-line-renderer.dart';
 import 'text-line-element-renderer.dart';
 
+// ignore: must_be_immutable
 class EditableTextLine extends RenderObjectWidget {
   final LineM line;
   final Widget? leading;
@@ -17,7 +19,15 @@ class EditableTextLine extends RenderObjectWidget {
   final bool hasFocus;
   final double devicePixelRatio;
 
-  const EditableTextLine({
+  // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
+  // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
+  late EditorState _state;
+
+  void setState(EditorState state) {
+    _state = state;
+  }
+
+  EditableTextLine({
     required this.line,
     required this.leading,
     required this.body,
@@ -27,7 +37,10 @@ class EditableTextLine extends RenderObjectWidget {
     required this.textSelection,
     required this.hasFocus,
     required this.devicePixelRatio,
-  });
+    required EditorState state,
+  }) {
+    setState(state);
+  }
 
   @override
   RenderObjectElement createElement() {
@@ -45,6 +58,7 @@ class EditableTextLine extends RenderObjectWidget {
       devicePixelRatio: devicePixelRatio,
       padding: _getPadding(),
       inlineCodeStyle: defaultStyles.inlineCode!,
+      state: _state,
     );
   }
 

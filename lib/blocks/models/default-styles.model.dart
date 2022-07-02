@@ -8,31 +8,6 @@ import 'inline-code-style.model.dart';
 
 // Default document styles
 class DefaultStyles {
-  DefaultStyles({
-    this.h1,
-    this.h2,
-    this.h3,
-    this.paragraph,
-    this.bold,
-    this.italic,
-    this.small,
-    this.underline,
-    this.strikeThrough,
-    this.inlineCode,
-    this.link,
-    this.color,
-    this.placeHolder,
-    this.lists,
-    this.quote,
-    this.code,
-    this.indent,
-    this.align,
-    this.leading,
-    this.sizeSmall,
-    this.sizeLarge,
-    this.sizeHuge,
-  });
-
   final DefaultTextBlockStyle? h1;
   final DefaultTextBlockStyle? h2;
   final DefaultTextBlockStyle? h3;
@@ -57,6 +32,31 @@ class DefaultStyles {
   final DefaultTextBlockStyle? indent;
   final DefaultTextBlockStyle? align;
   final DefaultTextBlockStyle? leading;
+
+  DefaultStyles({
+    this.h1,
+    this.h2,
+    this.h3,
+    this.paragraph,
+    this.bold,
+    this.italic,
+    this.small,
+    this.underline,
+    this.strikeThrough,
+    this.inlineCode,
+    this.link,
+    this.color,
+    this.placeHolder,
+    this.lists,
+    this.quote,
+    this.code,
+    this.indent,
+    this.align,
+    this.leading,
+    this.sizeSmall,
+    this.sizeLarge,
+    this.sizeHuge,
+  });
 
   static DefaultStyles getInstance(BuildContext context) {
     final themeData = Theme.of(context);

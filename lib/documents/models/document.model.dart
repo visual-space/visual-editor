@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:tuple/tuple.dart';
 
-import '../../delta/models/delta.model.dart';
-import '../../delta/models/operation.model.dart';
 import '../../rules/controllers/rules.controller.dart';
 import '../../rules/models/rule-type.enum.dart';
 import '../../rules/models/rule.model.dart';
 import 'attribute.model.dart';
 import 'change-source.enum.dart';
+import 'delta/delta.model.dart';
+import 'delta/operation.model.dart';
 import 'history.model.dart';
 import 'nodes/block-embed.model.dart';
 import 'nodes/block.model.dart';
@@ -102,15 +102,18 @@ class DocumentM {
   // Returns an instance of DeltaM actually composed into this document.
   DeltaM delete(int index, int len) {
     assert(index >= 0 && len > 0);
+
     final delta = _rules.apply(
       RuleTypeE.DELETE,
       this,
       index,
       len: len,
     );
+
     if (delta.isNotEmpty) {
       compose(delta, ChangeSource.LOCAL);
     }
+
     return delta;
   }
 
@@ -196,26 +199,33 @@ class DocumentM {
   ChildQueryM queryChild(int offset) {
     // TODO: prevent user from moving caret after last line-break.
     final res = _root.queryChild(offset, true);
+
     if (res.node is LineM) {
       return res;
     }
+
     final block = res.node as BlockM;
+
     return block.queryChild(res.offset, true);
   }
 
   // Given offset, find its leaf node in document
   Tuple2<LineM?, LeafM?> querySegmentLeafNode(int offset) {
     final result = queryChild(offset);
+
     if (result.node == null) {
       return const Tuple2(null, null);
     }
 
     final line = result.node as LineM;
     final segmentResult = line.queryChild(result.offset, false);
+
     if (segmentResult.node == null) {
       return Tuple2(line, null);
     }
+
     final segment = segmentResult.node as LeafM;
+
     return Tuple2(line, segment);
   }
 
@@ -380,11 +390,13 @@ class DocumentM {
     }
 
     final node = root.children.first;
+
     if (!node.isLast) {
       return false;
     }
 
     final delta = node.toDelta();
+
     return delta.length == 1 &&
         delta.first.data == '\n' &&
         delta.first.key == 'insert';

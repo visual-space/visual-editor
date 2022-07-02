@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../controller/services/editor-controller.dart';
+import '../../controller/controllers/editor-controller.dart';
 import '../../documents/models/nodes/block-embed.model.dart';
 import '../../shared/translations/toolbar.i18n.dart';
 import '../../shared/utils/platform.utils.dart';

@@ -18,14 +18,14 @@ After:
 
 Note that we renamed the `Text` class so we will no longer colide with the Text class from Flutter.
 
-## Rename Classes
+## Renamed Classes
 Most of the top classes have been renamed to better reflect the new architecture. 
 
 - `QuillEditor` - `VisualEditor`
 - `QuillController` - `EditorController`
 - `QuillToolbar` - `EditorToolbar`
 
-## Model Classes
+## Model Classes Suffix
 During the refactoring we decided to move all the model classes in distinct `/models` folders. All model classes now use the M suffix to indicate they are a model classes. This convention is similar to how Java suffixes interfaces with I.
 
 - `Document` - `DocumentM`
@@ -91,5 +91,13 @@ Now becomes:
     );
 ```
 
-## Expected changes
+## Toolbar Configuration
+- `customIcons` becomes `customButtons` - We've renamed the property to better express it's purpose. When reading custom icons, it could be understood as giving the ability to replace the icon set on the existing buttons.
+- `toolbarSectionSpacing` becomes `buttonsSpacing` - It suggested that it applies only to groups of buttons when in fact it applies to buttons and groups. Possibly this behavior will be reviewed to give better control on button and section spacings by adding a new property `sectionSpacing`.
+- `EditorCustomIcon` becomes `EditorCustomButton` - Icons mean static images. Buttons indicate also a reaction when tapping.
+
+## Expected Changes
 We plan to [ditch the Tuple library](https://github.com/visual-space/visual-editor/issues/45) in favor of using specialised models to better identify the code paths where a certain object shape is needed.
+
+
+Join on [discord](https://discord.gg/XpGygmXde4) to get advice and help or follow us on [YouTube Visual Coding](https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA) to learn more about the architecture of Visual Editor and other Flutter apps.

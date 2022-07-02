@@ -4,33 +4,22 @@ import 'package:flutter/material.dart';
 
 import '../../blocks/services/lines-blocks.service.dart';
 import '../../controller/services/editor-text.service.dart';
-import '../../controller/state/editor-controller.state.dart';
 import '../../cursor/services/cursor.service.dart';
 import '../../documents/models/change-source.enum.dart';
-import '../../editor/state/editor-state-widget.state.dart';
-import '../../editor/state/extend-selection.state.dart';
-import '../../editor/state/focus-node.state.dart';
 import '../../inputs/services/clipboard.service.dart';
 import '../../inputs/services/keyboard.service.dart';
-import '../../inputs/state/keyboard-visible.state.dart';
-import '../state/last-tap-down.state.dart';
+import '../../shared/state/editor.state.dart';
 import 'selection-actions.service.dart';
 import 'text-selection.utils.dart';
 
 class TextSelectionService {
-  final _editorStateWidgetState = EditorStateWidgetState();
   final _editorTextService = EditorTextService();
-  final _editorControllerState = EditorControllerState();
-  final _extendSelectionState = ExtendSelectionState();
   final _cursorService = CursorService();
   final _clipboardService = ClipboardService();
   final _linesBlocksService = LinesBlocksService();
   final _textSelectionUtils = TextSelectionUtils();
-  final _lastTapDownState = LastTapDownState();
   final _selectionActionsService = SelectionActionsService();
   final _keyboardService = KeyboardService();
-  final _keyboardVisibleState = KeyboardVisibleState();
-  final _focusNodeState = FocusNodeState();
 
   factory TextSelectionService() => _instance;
 
@@ -38,7 +27,8 @@ class TextSelectionService {
 
   TextSelectionService._privateConstructor();
 
-  bool selectAllEnabled() => _clipboardService.toolbarOptions().selectAll;
+  bool selectAllEnabled(EditorState state) =>
+      _clipboardService.toolbarOptions(state).selectAll;
 
   // Selects the set words of a paragraph in a given range of global positions.
   // The first and last endpoints of the selection will always be at the beginning and end of a word respectively.
@@ -46,13 +36,18 @@ class TextSelectionService {
     Offset from,
     Offset? to,
     SelectionChangedCause cause,
+    EditorState state,
   ) {
-    final firstPosition = _linesBlocksService.getPositionForOffset(from);
-    final firstWord = _textSelectionUtils.getWordAtPosition(firstPosition);
+    final firstPosition = _linesBlocksService.getPositionForOffset(from, state);
+    final firstWord = _textSelectionUtils.getWordAtPosition(
+      firstPosition,
+      state,
+    );
     final lastWord = to == null
         ? firstWord
         : _textSelectionUtils.getWordAtPosition(
-            _linesBlocksService.getPositionForOffset(to),
+            _linesBlocksService.getPositionForOffset(to, state),
+            state,
           );
 
     handleSelectionChange(
@@ -62,17 +57,19 @@ class TextSelectionService {
         affinity: firstWord.affinity,
       ),
       cause,
+      state,
     );
   }
 
   // Move the selection to the beginning or end of a word.
-  void selectWordEdge(SelectionChangedCause cause) {
-    assert(_lastTapDownState.position != null);
+  void selectWordEdge(SelectionChangedCause cause, EditorState state) {
+    assert(state.lastTapDown.position != null);
 
     final position = _linesBlocksService.getPositionForOffset(
-      _lastTapDownState.position!,
+      state.lastTapDown.position!,
+      state,
     );
-    final child = _linesBlocksService.childAtPosition(position);
+    final child = _linesBlocksService.childAtPosition(position, state);
     final nodeOffset = child.container.offset;
     final localPosition = TextPosition(
       offset: position.offset - nodeOffset,
@@ -88,6 +85,7 @@ class TextSelectionService {
       handleSelectionChange(
         TextSelection.collapsed(offset: word.start),
         cause,
+        state,
       );
     } else {
       handleSelectionChange(
@@ -96,6 +94,7 @@ class TextSelectionService {
           affinity: TextAffinity.upstream,
         ),
         cause,
+        state,
       );
     }
   }
@@ -106,11 +105,12 @@ class TextSelectionService {
   TextSelection? selectPositionAt({
     required Offset from,
     required SelectionChangedCause cause,
+    required EditorState state,
     Offset? to,
   }) {
-    final fromPosition = _linesBlocksService.getPositionForOffset(from);
+    final fromPosition = _linesBlocksService.getPositionForOffset(from, state);
     final toPosition =
-        to == null ? null : _linesBlocksService.getPositionForOffset(to);
+        to == null ? null : _linesBlocksService.getPositionForOffset(to, state);
     var baseOffset = fromPosition.offset;
     var extentOffset = fromPosition.offset;
 
@@ -126,42 +126,45 @@ class TextSelectionService {
     );
 
     // Call onSelectionChanged only when the selection actually changed.
-    handleSelectionChange(newSelection, cause);
+    handleSelectionChange(newSelection, cause, state);
 
     return newSelection;
   }
 
-  void selectAll(SelectionChangedCause cause) {
+  void selectAll(SelectionChangedCause cause, EditorState state) {
     _editorTextService.userUpdateTextEditingValue(
-      _editorTextService.textEditingValue.copyWith(
+      state.refs.editorController.plainTextEditingValue.copyWith(
         selection: TextSelection(
           baseOffset: 0,
-          extentOffset: _editorTextService.textEditingValue.text.length,
+          extentOffset: state.refs.editorController.plainTextEditingValue.text.length,
         ),
       ),
       cause,
+      state,
     );
 
     if (cause == SelectionChangedCause.toolbar) {
       _cursorService.bringIntoView(
-        _editorTextService.textEditingValue.selection.extent,
+        state.refs.editorController.plainTextEditingValue.selection.extent,
+        state,
       );
     }
   }
 
   // Extends current selection to the position closest to specified offset.
   void extendSelection(
-    Offset to, {
+    Offset to,
+    EditorState state, {
     required SelectionChangedCause cause,
   }) {
-    final selOrigin = _extendSelectionState.origin;
+    final selOrigin = state.extendSelection.origin;
 
     // The below logic does not exactly match the native version because
     // we do not allow swapping of base and extent positions.
     assert(selOrigin != null);
 
-    final selection = _editorControllerState.controller.selection;
-    final toPosition = _linesBlocksService.getPositionForOffset(to);
+    final selection = state.refs.editorController.selection;
+    final toPosition = _linesBlocksService.getPositionForOffset(to, state);
 
     if (toPosition.offset < selOrigin!.baseOffset) {
       handleSelectionChange(
@@ -171,6 +174,7 @@ class TextSelectionService {
           affinity: selection.affinity,
         ),
         cause,
+        state,
       );
     } else if (toPosition.offset > selOrigin.extentOffset) {
       handleSelectionChange(
@@ -180,6 +184,7 @@ class TextSelectionService {
           affinity: selection.affinity,
         ),
         cause,
+        state,
       );
     }
   }
@@ -187,18 +192,19 @@ class TextSelectionService {
   void handleSelectionChange(
     TextSelection nextSelection,
     SelectionChangedCause cause,
+    EditorState state,
   ) {
     final focusingEmpty = nextSelection.baseOffset == 0 &&
         nextSelection.extentOffset == 0 &&
-        !_focusNodeState.node.hasFocus;
+        !state.refs.focusNode.hasFocus;
 
-    if (nextSelection == _editorControllerState.controller.selection &&
+    if (nextSelection == state.refs.editorController.selection &&
         cause != SelectionChangedCause.keyboard &&
         !focusingEmpty) {
       return;
     }
 
-    onSelectionChanged(nextSelection, cause);
+    onSelectionChanged(nextSelection, cause, state);
   }
 
   // Ticks only when a new selection is made.
@@ -206,36 +212,37 @@ class TextSelectionService {
   void onSelectionChanged(
     TextSelection selection,
     SelectionChangedCause cause,
+    EditorState state,
   ) {
-    final oldSelection = _editorControllerState.controller.selection;
+    final oldSelection = state.refs.editorController.selection;
 
-    _editorControllerState.controller.updateSelection(
+    state.refs.editorController.updateSelection(
       selection,
       ChangeSource.LOCAL,
     );
 
     // Mobiles only
-    _editorStateWidgetState.editor.selectionActionsController?.handlesVisible =
-        _selectionActionsService.shouldShowSelectionHandles();
+    state.refs.editorState.selectionActionsController?.handlesVisible =
+        _selectionActionsService.shouldShowSelectionHandles(state);
 
-    if (!_keyboardVisibleState.isVisible) {
+    if (!state.keyboardVisible.isVisible) {
       // This will show the keyboard for all selection changes on the editor,
       // not just changes triggered by user gestures.
-      _keyboardService.requestKeyboard();
+      _keyboardService.requestKeyboard(state);
     }
 
     if (cause == SelectionChangedCause.drag) {
       // When user updates the selection while dragging make sure to bring
       // the updated position (base or extent) into view.
       if (oldSelection.baseOffset != selection.baseOffset) {
-        _cursorService.bringIntoView(selection.base);
+        _cursorService.bringIntoView(selection.base, state);
       } else if (oldSelection.extentOffset != selection.extentOffset) {
-        _cursorService.bringIntoView(selection.extent);
+        _cursorService.bringIntoView(selection.extent, state);
       }
     }
   }
 
-  void onSelectionCompleted() {
-    _editorControllerState.controller.onSelectionCompleted?.call();
+  void onSelectionCompleted(EditorState state) {
+    state.refs.editorController.onSelectionCompleted?.call();
   }
 }

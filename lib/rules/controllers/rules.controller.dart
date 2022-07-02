@@ -1,7 +1,7 @@
 import '../../../documents/models/attribute.model.dart';
 import '../../../documents/models/document.model.dart';
 import '../../../rules/models/rule-type.enum.dart';
-import '../../delta/models/delta.model.dart';
+import '../../documents/models/delta/delta.model.dart';
 import '../models/rule.model.dart';
 import 'delete/catch-all-delete.rule.dart';
 import 'delete/ensure-embed-line.rule.dart';

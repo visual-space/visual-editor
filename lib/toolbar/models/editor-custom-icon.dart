@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
-// Defines the icon and behavior of an icon used in the buttons
-class EditorCustomIcon {
+// Custom button to be displayed in the Editor Toolbar.
+// It is displayed at the end of the button list.
+class EditorCustomButton {
   final IconData? icon;
   final VoidCallback? onTap;
 
-  const EditorCustomIcon({
+  const EditorCustomButton({
     this.icon,
     this.onTap,
   });

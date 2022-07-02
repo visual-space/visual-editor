@@ -3,23 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../controller/services/editor-text.service.dart';
-import '../../controller/state/editor-controller.state.dart';
-import '../../controller/state/paste.state.dart';
 import '../../cursor/services/cursor.service.dart';
 import '../../documents/models/nodes/block-embed.model.dart';
 import '../../documents/models/styling-attributes.dart';
-import '../../editor/state/editor-config.state.dart';
 import '../../embeds/services/image.utils.dart';
 import '../../selection/services/selection-actions.service.dart';
+import '../../shared/state/editor.state.dart';
 
 // Handles all the clipboard operations, cut, copy, paste
 class ClipboardService {
-  final _editorControllerState = EditorControllerState();
   final _selectionActionsService = SelectionActionsService();
-  final _editorConfigState = EditorConfigState();
   final _editorTextService = EditorTextService();
   final _cursorService = CursorService();
-  final _pasteState = PasteState();
 
   static final _instance = ClipboardService._privateConstructor();
 
@@ -29,17 +24,18 @@ class ClipboardService {
 
   void copySelection(
     SelectionChangedCause cause,
+    EditorState state,
   ) {
-    final controller = _editorControllerState.controller;
+    final controller = state.refs.editorController;
 
     controller.copiedImageUrl = null;
-    _pasteState.setPastePlainText(controller.getPlainText());
-    _pasteState.setPasteStyle(
+    state.paste.setPastePlainText(controller.getPlainText());
+    state.paste.setPasteStyle(
       controller.getAllIndividualSelectionStyles(),
     );
 
-    final selection = _editorTextService.textEditingValue.selection;
-    final text = _editorTextService.textEditingValue.text;
+    final selection = state.refs.editorController.plainTextEditingValue.selection;
+    final text = state.refs.editorController.plainTextEditingValue.text;
 
     if (selection.isCollapsed) {
       return;
@@ -53,39 +49,42 @@ class ClipboardService {
 
     if (cause == SelectionChangedCause.toolbar) {
       _cursorService.bringIntoView(
-        _editorTextService.textEditingValue.selection.extent,
+        state.refs.editorController.plainTextEditingValue.selection.extent,
+        state,
       );
 
       // Collapse the selection and hide the buttons and handles.
       _editorTextService.userUpdateTextEditingValue(
         TextEditingValue(
-          text: _editorTextService.textEditingValue.text,
+          text: state.refs.editorController.plainTextEditingValue.text,
           selection: TextSelection.collapsed(
-            offset: _editorTextService.textEditingValue.selection.end,
+            offset: state.refs.editorController.plainTextEditingValue.selection.end,
           ),
         ),
         SelectionChangedCause.toolbar,
+        state,
       );
     }
   }
 
   void cutSelection(
     SelectionChangedCause cause,
+    EditorState state,
   ) {
-    final controller = _editorControllerState.controller;
+    final controller = state.refs.editorController;
 
     controller.copiedImageUrl = null;
-    _pasteState.setPastePlainText(controller.getPlainText());
-    _pasteState.setPasteStyle(
+    state.paste.setPastePlainText(controller.getPlainText());
+    state.paste.setPasteStyle(
       controller.getAllIndividualSelectionStyles(),
     );
 
-    if (_editorConfigState.config.readOnly) {
+    if (state.editorConfig.config.readOnly) {
       return;
     }
 
-    final selection = _editorTextService.textEditingValue.selection;
-    final text = _editorTextService.textEditingValue.text;
+    final selection = state.refs.editorController.plainTextEditingValue.selection;
+    final text = state.refs.editorController.plainTextEditingValue.text;
 
     if (selection.isCollapsed) {
       return;
@@ -94,34 +93,37 @@ class ClipboardService {
     Clipboard.setData(ClipboardData(text: selection.textInside(text)));
     replaceText(
       ReplaceTextIntent(
-        _editorTextService.textEditingValue,
+        state.refs.editorController.plainTextEditingValue,
         '',
         selection,
         cause,
       ),
+      state,
     );
 
     if (cause == SelectionChangedCause.toolbar) {
       _cursorService.bringIntoView(
-        _editorTextService.textEditingValue.selection.extent,
+        state.refs.editorController.plainTextEditingValue.selection.extent,
+        state,
       );
-      _selectionActionsService.hideToolbar();
+      _selectionActionsService.hideToolbar(state);
     }
   }
 
   Future<void> pasteText(
     SelectionChangedCause cause,
+    EditorState state,
   ) async {
-    if (_editorConfigState.config.readOnly) {
+    if (state.editorConfig.config.readOnly) {
       return;
     }
 
-    final controller = _editorControllerState.controller;
+    final controller = state.refs.editorController;
 
     if (controller.copiedImageUrl != null) {
-      final index = _editorTextService.textEditingValue.selection.baseOffset;
+      final index = state.refs.editorController.plainTextEditingValue.selection.baseOffset;
       final length =
-          _editorTextService.textEditingValue.selection.extentOffset - index;
+          state.refs.editorController.plainTextEditingValue.selection.extentOffset - index;
       final copied = controller.copiedImageUrl!;
 
       controller.replaceText(
@@ -147,7 +149,7 @@ class ClipboardService {
       return;
     }
 
-    final selection = _editorTextService.textEditingValue.selection;
+    final selection = state.refs.editorController.plainTextEditingValue.selection;
 
     if (!selection.isValid) {
       return;
@@ -163,31 +165,34 @@ class ClipboardService {
 
     replaceText(
       ReplaceTextIntent(
-        _editorTextService.textEditingValue,
+        state.refs.editorController.plainTextEditingValue,
         data.text!,
         selection,
         cause,
       ),
+      state,
     );
 
     _cursorService.bringIntoView(
-      _editorTextService.textEditingValue.selection.extent,
+      state.refs.editorController.plainTextEditingValue.selection.extent,
+      state,
     );
 
     // Collapse the selection and hide the buttons and handles.
     _editorTextService.userUpdateTextEditingValue(
       TextEditingValue(
-        text: _editorTextService.textEditingValue.text,
+        text: state.refs.editorController.plainTextEditingValue.text,
         selection: TextSelection.collapsed(
-          offset: _editorTextService.textEditingValue.selection.end,
+          offset: state.refs.editorController.plainTextEditingValue.selection.end,
         ),
       ),
       cause,
+      state,
     );
   }
 
-  ToolbarOptions toolbarOptions() {
-    final enable = _editorConfigState.config.enableInteractiveSelection;
+  ToolbarOptions toolbarOptions(EditorState state) {
+    final enable = state.editorConfig.config.enableInteractiveSelection;
 
     return ToolbarOptions(
       copy: enable,
@@ -197,21 +202,22 @@ class ClipboardService {
     );
   }
 
-  bool cutEnabled() =>
-      toolbarOptions().cut && !_editorConfigState.config.readOnly;
+  bool cutEnabled(EditorState state) =>
+      toolbarOptions(state).cut && !state.editorConfig.config.readOnly;
 
-  bool copyEnabled() => toolbarOptions().copy;
+  bool copyEnabled(EditorState state) => toolbarOptions(state).copy;
 
-  bool pasteEnabled() =>
-      toolbarOptions().paste && !_editorConfigState.config.readOnly;
+  bool pasteEnabled(EditorState state) =>
+      toolbarOptions(state).paste && !state.editorConfig.config.readOnly;
 
-  void replaceText(ReplaceTextIntent intent) {
+  void replaceText(ReplaceTextIntent intent, EditorState state) {
     _editorTextService.userUpdateTextEditingValue(
       intent.currentTextEditingValue.replaced(
         intent.replacementRange,
         intent.replacementText,
       ),
       intent.cause,
+      state,
     );
   }
 }

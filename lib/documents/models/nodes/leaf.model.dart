@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import '../../../delta/models/delta.model.dart';
+import '../delta/delta.model.dart';
 import '../style.model.dart';
 import 'embed.model.dart';
 import 'embeddable.model.dart';

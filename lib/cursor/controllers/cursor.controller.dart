@@ -2,15 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 
-import '../../editor/state/focus-node.state.dart';
+import '../../shared/state/editor.state.dart';
 import '../models/cursor-style.model.dart';
-import '../state/cursor.state.dart';
 
 // Controls the cursor of an editable widget.
 // This class is a [ChangeNotifier] and allows to listen for updates on the cursor [style].
 class CursorController {
-  final _focusNodeState = FocusNodeState();
-  final _cursorState = CursorState();
 
   // The time it takes for the cursor to fade from fully opaque to fully transparent and vice versa.
   // A full cursor blink, from transparent to opaque to transparent, is twice this duration.
@@ -45,20 +42,30 @@ class CursorController {
   set style(CursorStyle value) {
     if (_style == value) return;
     _style = value;
-    _cursorState.updateCursor();
+    _state.cursor.updateCursor();
   }
 
   // True when this [CursorCont] instance has been disposed.
   // A safety mechanism to prevent the value of a disposed controller from getting set.
   bool _isDisposed = false;
 
+  // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
+  // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
+  late EditorState _state;
+
+  void setState(EditorState state) {
+    _state = state;
+  }
+
   CursorController({
     required this.show,
     required CursorStyle style,
+    required EditorState state,
     required TickerProvider tickerProvider,
   })  : _style = style,
         blink = ValueNotifier(false),
         color = ValueNotifier(style.color) {
+    setState(state);
     _blinkOpacityController = AnimationController(
       vsync: tickerProvider,
       duration: _fadeDuration,
@@ -112,11 +119,11 @@ class CursorController {
   void startOrStopCursorTimerIfNeeded(TextSelection selection) {
     if (show.value &&
         _cursorTimer == null &&
-        _focusNodeState.node.hasFocus &&
+        _state.refs.focusNode.hasFocus &&
         selection.isCollapsed) {
       startCursorTimer();
     } else if (_cursorTimer != null &&
-        (!_focusNodeState.node.hasFocus || !selection.isCollapsed)) {
+        (!_state.refs.focusNode.hasFocus || !selection.isCollapsed)) {
       stopCursorTimer();
     }
   }

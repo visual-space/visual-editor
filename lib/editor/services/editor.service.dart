@@ -1,21 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../controller/state/editor-controller.state.dart';
 import '../../cursor/services/caret.service.dart';
-import '../../cursor/state/cursor-controller.state.dart';
 import '../../inputs/services/input-connection.service.dart';
 import '../../selection/services/selection-actions.service.dart';
-import '../state/editor-state-widget.state.dart';
-import '../state/focus-node.state.dart';
+import '../../shared/state/editor.state.dart';
 
 class EditorService {
   final _textConnectionService = TextConnectionService();
   final _selectionActionsService = SelectionActionsService();
-  final _editorControllerState = EditorControllerState();
-  final _editorStateWidgetState = EditorStateWidgetState();
-  final _cursorControllerState = CursorControllerState();
-  final _focusNodeState = FocusNodeState();
   final _caretService = CaretService();
 
   static final _instance = EditorService._privateConstructor();
@@ -24,20 +17,20 @@ class EditorService {
 
   EditorService._privateConstructor();
 
-  void handleFocusChanged() {
-    final editor = _editorStateWidgetState.editor;
+  void handleFocusChanged(EditorState state) {
+    final editor = state.refs.editorState;
 
-    _textConnectionService.openOrCloseConnection();
-    _cursorControllerState.controller.startOrStopCursorTimerIfNeeded(
-      _editorControllerState.controller.selection,
+    _textConnectionService.openOrCloseConnection(state);
+    state.refs.cursorController.startOrStopCursorTimerIfNeeded(
+      state.refs.editorController.selection,
     );
-    _selectionActionsService.updateOrDisposeSelectionOverlayIfNeeded();
+    _selectionActionsService.updateOrDisposeSelectionOverlayIfNeeded(state);
 
-    if (_focusNodeState.node.hasFocus) {
+    if (state.refs.focusNode.hasFocus) {
       WidgetsBinding.instance.addObserver(
         editor,
       );
-      _caretService.showCaretOnScreen();
+      _caretService.showCaretOnScreen(state);
     } else {
       WidgetsBinding.instance.removeObserver(
         editor,
@@ -47,8 +40,8 @@ class EditorService {
     editor.safeUpdateKeepAlive();
   }
 
-  void disposeEditor() {
-    final editor = _editorStateWidgetState.editor;
+  void disposeEditor(EditorState state) {
+    final editor = state.refs.editorState;
 
     _textConnectionService.closeConnectionIfNeeded();
     editor.keyboardVisibilitySub?.cancel();
@@ -59,10 +52,10 @@ class EditorService {
     editor.selectionActionsController?.dispose();
     editor.selectionActionsController = null;
     editor.editorUpdatesListener.cancel();
-    _focusNodeState.node.removeListener(
-      handleFocusChanged,
+    state.refs.focusNode.removeListener(
+      state.refs.editorState.handleFocusChanged,
     );
-    _cursorControllerState.controller.dispose();
+    state.refs.cursorController.dispose();
     editor.clipboardStatus
       ..removeListener(editor.onChangedClipboardStatus)
       ..dispose();

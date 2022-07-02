@@ -1,8 +1,8 @@
 import 'package:tuple/tuple.dart';
 
-import '../../delta/models/delta.model.dart';
-import '../../delta/models/operation.model.dart';
 import 'change-source.enum.dart';
+import 'delta/delta.model.dart';
+import 'delta/operation.model.dart';
 import 'document.model.dart';
 import 'history-stack.model.dart';
 

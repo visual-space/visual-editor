@@ -1,5 +1,5 @@
-import '../../delta/models/delta.model.dart';
 import '../../documents/models/attribute.model.dart';
+import '../../documents/models/delta/delta.model.dart';
 import 'rule-type.enum.dart';
 
 abstract class RuleM {

@@ -3,17 +3,12 @@ import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 
 import '../../cursor/services/caret.service.dart';
 import '../../editor/services/text-value.service.dart';
-import '../../editor/state/editor-state-widget.state.dart';
-import '../../editor/state/focus-node.state.dart';
+import '../../shared/state/editor.state.dart';
 import '../../shared/utils/platform.utils.dart';
-import '../state/keyboard-visible.state.dart';
 import 'input-connection.service.dart';
 
 class KeyboardService {
   final _textConnectionService = TextConnectionService();
-  final _focusNodeState = FocusNodeState();
-  final _keyboardVisibleState = KeyboardVisibleState();
-  final _editorStateWidgetState = EditorStateWidgetState();
   final _caretService = CaretService();
 
   factory KeyboardService() => _instance;
@@ -23,35 +18,36 @@ class KeyboardService {
   KeyboardService._privateConstructor();
 
   // TextValueService is provided via input to avoid circular reference issues.
-  void initKeyboard(TextValueService _textValueService) {
+  void initKeyboard(TextValueService _textValueService, EditorState state) {
     if (isKeyboardOS()) {
-      _keyboardVisibleState.setKeyboardVisible(true);
+      state.keyboardVisible.setKeyboardVisible(true);
     } else {
-      final editor = _editorStateWidgetState.editor;
+      final editor = state.refs.editorState;
 
       // Treat iOS Simulator like a keyboard OS
       isIOSSimulator().then((isIosSimulator) {
         if (isIosSimulator) {
-          _keyboardVisibleState.setKeyboardVisible(true);
+          state.keyboardVisible.setKeyboardVisible(true);
         } else {
           editor.keyboardVisibilityCtrl = KeyboardVisibilityController();
-          _keyboardVisibleState.setKeyboardVisible(
+          state.keyboardVisible.setKeyboardVisible(
             editor.keyboardVisibilityCtrl!.isVisible,
           );
 
           editor.keyboardVisibilitySub =
               editor.keyboardVisibilityCtrl?.onChange.listen((visible) {
-            _keyboardVisibleState.setKeyboardVisible(visible);
+            state.keyboardVisible.setKeyboardVisible(visible);
 
             if (visible) {
               _textValueService.onChangeTextEditingValue(
-                !_focusNodeState.node.hasFocus,
+                !state.refs.focusNode.hasFocus,
+                state,
               );
             }
           });
 
           HardwareKeyboard.instance.addHandler(
-            _editorStateWidgetState.editor.hardwareKeyboardEvent,
+            state.refs.editorState.hardwareKeyboardEvent,
           );
         }
       });
@@ -63,12 +59,12 @@ class KeyboardService {
   // Otherwise, this function will ask the focus system that it become focused.
   // If successful in acquiring focus, the control will then attach to the keyboard and
   // request that the keyboard become visible.
-  void requestKeyboard() {
-    if (_focusNodeState.node.hasFocus) {
-      _textConnectionService.openConnectionIfNeeded();
-      _caretService.showCaretOnScreen();
+  void requestKeyboard(EditorState state) {
+    if (state.refs.focusNode.hasFocus) {
+      _textConnectionService.openConnectionIfNeeded(state);
+      _caretService.showCaretOnScreen(state);
     } else {
-      _focusNodeState.node.requestFocus();
+      state.refs.focusNode.requestFocus();
     }
   }
 
@@ -76,21 +72,22 @@ class KeyboardService {
   // Also watch for hardware keyboards that don't alter the screen (i.e. Chromebook, Android tablet
   // and any hardware keyboards from an OS not listed in isKeyboardOS()).
   // TextValueService is provided via input to avoid circular reference issues.
-  bool hardwareKeyboardEvent(TextValueService _textValueService) {
-    if (!_keyboardVisibleState.isVisible) {
+  bool hardwareKeyboardEvent(TextValueService _textValueService, EditorState state) {
+    if (!state.keyboardVisible.isVisible) {
       // Hardware keyboard key pressed. Set visibility to true
-      _keyboardVisibleState.setKeyboardVisible(true);
+      state.keyboardVisible.setKeyboardVisible(true);
 
       // Update the editor
       _textValueService.onChangeTextEditingValue(
-        !_focusNodeState.node.hasFocus,
+        !state.refs.focusNode.hasFocus,
+        state,
       );
     }
 
     // Remove the key handleR. It's no longer needed.
     // If KeyboardVisibilityController clears visibility, it wil also enable it when appropriate.
     HardwareKeyboard.instance.removeHandler(
-      _editorStateWidgetState.editor.hardwareKeyboardEvent,
+      state.refs.editorState.hardwareKeyboardEvent,
     );
 
     // We didn't handle the event, just needed to know a key was pressed

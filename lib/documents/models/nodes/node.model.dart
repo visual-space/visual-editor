@@ -1,7 +1,7 @@
 import 'dart:collection';
 
-import '../../../delta/models/delta.model.dart';
 import '../attribute.model.dart';
+import '../delta/delta.model.dart';
 import '../style.model.dart';
 import 'container.model.dart';
 import 'root.model.dart';

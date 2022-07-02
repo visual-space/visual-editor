@@ -8,17 +8,12 @@ import 'package:flutter/services.dart';
 
 import '../../blocks/models/editable-box-renderer.model.dart';
 import '../../blocks/services/lines-blocks.service.dart';
-import '../../controller/state/editor-controller.state.dart';
-import '../../cursor/state/cursor-controller.state.dart';
 import '../../cursor/widgets/floating-cursor.painter.dart';
 import '../../documents/models/document.model.dart';
 import '../../selection/services/selection-actions.service.dart';
 import '../../selection/services/text-selection.utils.dart';
-import '../../selection/state/selection-layers.state.dart';
+import '../../shared/state/editor.state.dart';
 import '../controllers/vertical-caret-movement-run.controller.dart';
-import '../state/editor-config.state.dart';
-import '../state/editor-renderer.state.dart';
-import '../state/focus-node.state.dart';
 import 'editable-container-box-renderer.dart';
 
 // Displays a document as a vertical list of document segments (lines and blocks).
@@ -26,15 +21,9 @@ import 'editable-container-box-renderer.dart';
 class EditorRendererInner extends EditableContainerBoxRenderer
     with RelayoutWhenSystemFontsChangeMixin
     implements TextLayoutMetrics {
-  final _editorConfigState = EditorConfigState();
-  final _editorControllerState = EditorControllerState();
-  final _cursorControllerState = CursorControllerState();
   final _textSelectionUtils = TextSelectionUtils();
   final _linesBlocksService = LinesBlocksService();
-  final _editorRendererState = EditorRendererState();
   final _selectionActionsService = SelectionActionsService();
-  final _focusNodeState = FocusNodeState();
-  final _selectionLayersState = SelectionLayersState();
 
   DocumentM document;
   Rect? floatingCursorRect;
@@ -74,10 +63,20 @@ class EditorRendererInner extends EditableContainerBoxRenderer
 
   FloatingCursorPainter get _floatingCursorPainter => FloatingCursorPainter(
         floatingCursorRect: floatingCursorRect,
+        state: _state,
       );
+
+  // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
+  // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
+  late EditorState _state;
+
+  void setState(EditorState state) {
+    _state = state;
+  }
 
   EditorRendererInner({
     required this.document,
+    required EditorState state,
     required TextDirection textDirection,
     ViewportOffset? offset,
     List<EditableBoxRenderer>? children,
@@ -88,14 +87,15 @@ class EditorRendererInner extends EditableContainerBoxRenderer
           container: document.root,
           textDirection: textDirection,
         ) {
-    _editorRendererState.setRenderer(this);
-    super.padding = _editorConfigState.config.padding;
+    setState(state);
+    state.refs.setRenderer(this);
+    super.padding = state.editorConfig.config.padding;
   }
 
   @override
   void performLayout() {
     assert(() {
-      if (!_editorConfigState.config.scrollable ||
+      if (!_state.editorConfig.config.scrollable ||
           !constraints.hasBoundedHeight) {
         return true;
       }
@@ -148,7 +148,7 @@ class EditorRendererInner extends EditableContainerBoxRenderer
     var mainAxisExtent = resolvedPadding!.top;
     var child = firstChild;
 
-    final maxContentWidth = _editorConfigState.config.maxContentWidth;
+    final maxContentWidth = _state.editorConfig.config.maxContentWidth;
     final innerConstraints = BoxConstraints.tightFor(
       width: math.min(
         maxContentWidth ?? double.infinity,
@@ -179,25 +179,26 @@ class EditorRendererInner extends EditableContainerBoxRenderer
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    if (_focusNodeState.node.hasFocus &&
-        _cursorControllerState.controller.show.value &&
-        !_cursorControllerState.controller.style.paintAboveText) {
+    if (_state.refs.focusNode.hasFocus &&
+        _state.refs.cursorController.show.value &&
+        !_state.refs.cursorController.style.paintAboveText) {
       _paintFloatingCursor(context, offset);
     }
 
-    final selection = _editorControllerState.controller.selection;
+    final selection = _state.refs.editorController.selection;
     final selectionEndpoints =
         _selectionActionsService.getEndpointsForSelection(
       selection,
+      _state,
     );
 
     defaultPaint(context, offset);
     _updateSelectionExtentsVisibility(offset + _paintOffset);
     _paintHandleLayers(context, selectionEndpoints);
 
-    if (_focusNodeState.node.hasFocus &&
-        _cursorControllerState.controller.show.value &&
-        _cursorControllerState.controller.style.paintAboveText) {
+    if (_state.refs.focusNode.hasFocus &&
+        _state.refs.cursorController.show.value &&
+        _state.refs.cursorController.style.paintAboveText) {
       _paintFloatingCursor(context, offset);
     }
   }
@@ -220,22 +221,22 @@ class EditorRendererInner extends EditableContainerBoxRenderer
 
   @override
   TextSelection getLineAtOffset(TextPosition position) {
-    return _textSelectionUtils.getLineAtOffset(position, this);
+    return _textSelectionUtils.getLineAtOffset(position, this, _state);
   }
 
   @override
   TextRange getWordBoundary(TextPosition position) {
-    return _textSelectionUtils.getWordBoundary(position, this);
+    return _textSelectionUtils.getWordBoundary(position, this, _state);
   }
 
   @override
   TextPosition getTextPositionAbove(TextPosition position) {
-    return _textSelectionUtils.getTextPositionAbove(position, this);
+    return _textSelectionUtils.getTextPositionAbove(position, this, _state);
   }
 
   @override
   TextPosition getTextPositionBelow(TextPosition position) {
-    return _textSelectionUtils.getTextPositionBelow(position, this);
+    return _textSelectionUtils.getTextPositionBelow(position, this, _state);
   }
 
   VerticalCaretMovementRunController startVerticalCaretMovement(
@@ -256,7 +257,7 @@ class EditorRendererInner extends EditableContainerBoxRenderer
     );
     context.pushLayer(
       LeaderLayer(
-        link: _selectionLayersState.startHandleLayerLink,
+        link: _state.selectionLayers.startHandleLayerLink,
         offset: startPoint,
       ),
       super.paint,
@@ -271,7 +272,7 @@ class EditorRendererInner extends EditableContainerBoxRenderer
       );
       context.pushLayer(
         LeaderLayer(
-          link: _selectionLayersState.endHandleLayerLink,
+          link: _state.selectionLayers.endHandleLayerLink,
           offset: endPoint,
         ),
         super.paint,
@@ -285,7 +286,7 @@ class EditorRendererInner extends EditableContainerBoxRenderer
   }
 
   void _updateSelectionExtentsVisibility(Offset effectiveOffset) {
-    final selection = _editorControllerState.controller.selection;
+    final selection = _state.refs.editorController.selection;
     final visibleRegion = Offset.zero & size;
     final startPosition = TextPosition(
       offset: selection.start,
@@ -316,7 +317,7 @@ class EditorRendererInner extends EditableContainerBoxRenderer
 
   // Returns offset relative to this at which the caret will be painted given a global TextPosition
   Offset _getOffsetForCaret(TextPosition position) {
-    final child = _linesBlocksService.childAtPosition(position);
+    final child = _linesBlocksService.childAtPosition(position, _state);
     final childPosition = child.globalToLocalPosition(position);
     final boxParentData = child.parentData as BoxParentData;
     final localOffsetForCaret = child.getOffsetForCaret(childPosition);

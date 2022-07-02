@@ -2,17 +2,15 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../../../controller/services/editor-text.service.dart';
 import '../../../inputs/models/base/text-boundary.model.dart';
+import '../../../shared/state/editor.state.dart';
 
 // Most apps delete the entire grapheme when the backspace key is pressed.
 // Also always put the new caret location to character boundaries to avoid
 // sending malformed UTF-16 code units to the paragraph builder.
 class CharacterBoundary extends TextBoundaryM {
-  final _editorTextService = EditorTextService();
-
-  CharacterBoundary() {
-    textEditingValue = _editorTextService.textEditingValue;
+  CharacterBoundary(EditorState state) {
+    textEditingValue = state.refs.editorController.plainTextEditingValue;
   }
 
   @override

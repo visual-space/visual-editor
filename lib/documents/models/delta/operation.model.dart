@@ -71,18 +71,27 @@ class OperationM {
   static OperationM fromJson(Map data, {DataDecoder? dataDecoder}) {
     dataDecoder ??= _passThroughDataDecoder;
     final map = Map<String, dynamic>.from(data);
+
     if (map.containsKey(OperationM.insertKey)) {
       final data = dataDecoder(map[OperationM.insertKey]);
       final dataLength = data is String ? data.length : 1;
       return OperationM(
-          OperationM.insertKey, dataLength, data, map[OperationM.attributesKey]);
+        OperationM.insertKey,
+        dataLength,
+        data,
+        map[OperationM.attributesKey],
+      );
     } else if (map.containsKey(OperationM.deleteKey)) {
       final int? length = map[OperationM.deleteKey];
       return OperationM(OperationM.deleteKey, length, '', null);
     } else if (map.containsKey(OperationM.retainKey)) {
       final int? length = map[OperationM.retainKey];
       return OperationM(
-          OperationM.retainKey, length, '', map[OperationM.attributesKey]);
+        OperationM.retainKey,
+        length,
+        '',
+        map[OperationM.attributesKey],
+      );
     }
     throw ArgumentError.value(data, 'Invalid data for Delta operation.');
   }
@@ -137,6 +146,7 @@ class OperationM {
         (other._attributes?.isEmpty ?? true)) {
       return true;
     }
+
     return _attributeEquality.equals(_attributes, other._attributes);
   }
 
@@ -148,8 +158,10 @@ class OperationM {
           (e) => hash2(e.key, e.value),
         ),
       );
+
       return hash3(key, value, attrsHash);
     }
+
     return hash2(key, value);
   }
 
@@ -161,6 +173,7 @@ class OperationM {
             ? (data as String).replaceAll('\n', '⏎')
             : data.toString())
         : '$length';
+
     return '$key⟨ $text ⟩$attr';
   }
 }

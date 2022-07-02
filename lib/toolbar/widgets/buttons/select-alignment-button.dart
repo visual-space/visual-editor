@@ -3,13 +3,16 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../../../controller/services/editor-controller.dart';
+import '../../../controller/controllers/editor-controller.dart';
 import '../../../documents/models/attribute.model.dart';
 import '../../../documents/models/style.model.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
+import '../../../shared/state/editor-state-receiver.dart';
+import '../../../shared/state/editor.state.dart';
 import '../toolbar.dart';
 
-class SelectAlignmentButton extends StatefulWidget {
+// ignore: must_be_immutable
+class SelectAlignmentButton extends StatefulWidget with EditorStateReceiver {
   final EditorController controller;
   final double iconSize;
   final EditorIconThemeM? iconTheme;
@@ -18,7 +21,16 @@ class SelectAlignmentButton extends StatefulWidget {
   final bool? showRightAlignment;
   final bool? showJustifyAlignment;
 
-  const SelectAlignmentButton({
+  // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
+  // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
+  late EditorState _state;
+
+  @override
+  void setState(EditorState state) {
+    _state = state;
+  }
+
+  SelectAlignmentButton({
     required this.controller,
     this.iconSize = defaultIconSize,
     this.iconTheme,
@@ -27,7 +39,9 @@ class SelectAlignmentButton extends StatefulWidget {
     this.showRightAlignment,
     this.showJustifyAlignment,
     Key? key,
-  }) : super(key: key);
+  }) : super(key: key) {
+    controller.setStateInEditorStateReceiver(this);
+  }
 
   @override
   _SelectAlignmentButtonState createState() => _SelectAlignmentButtonState();
@@ -46,7 +60,7 @@ class _SelectAlignmentButtonState extends State<SelectAlignmentButton> {
       _value = _selectionStyle.attributes[AttributeM.align.key] ??
           AttributeM.leftAlignment;
     });
-    _updateListener = widget.controller.editorState.updateEditor$.listen(
+    _updateListener = widget._state.refreshEditor.updateEditor$.listen(
       (_) => _didChangeEditingValue,
     );
   }

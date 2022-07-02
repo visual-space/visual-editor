@@ -5,24 +5,13 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../blocks/services/lines-blocks.service.dart';
-import '../../controller/state/editor-controller.state.dart';
-import '../../controller/state/scroll-controller.state.dart';
-import '../../editor/state/editor-config.state.dart';
-import '../../editor/state/editor-renderer.state.dart';
-import '../../editor/state/editor-state-widget.state.dart';
-import '../../editor/state/scroll-controller-animation.state.dart';
 import '../../selection/models/drag-text-selection.model.dart';
 import '../../selection/services/selection-actions.service.dart';
+import '../../shared/state/editor.state.dart';
 
 class CaretService {
   final _linesBlocksService = LinesBlocksService();
-  final _editorRendererState = EditorRendererState();
-  final _editorControllerState = EditorControllerState();
   final _selectionActionsService = SelectionActionsService();
-  final _scrollControllerState = ScrollControllerState();
-  final _editorConfigState = EditorConfigState();
-  final _editorStateWidgetState = EditorStateWidgetState();
-  final _scrollControllerAnimationState = ScrollControllerAnimationState();
 
   bool _showCaretOnScreenScheduled = false;
 
@@ -32,19 +21,19 @@ class CaretService {
 
   CaretService._privateConstructor();
 
-  void showCaretOnScreen() {
-    if (!_editorConfigState.config.showCursor || _showCaretOnScreenScheduled) {
+  void showCaretOnScreen(EditorState state) {
+    if (!state.editorConfig.config.showCursor || _showCaretOnScreenScheduled) {
       return;
     }
 
     _showCaretOnScreenScheduled = true;
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      if (_editorConfigState.config.scrollable ||
-          _scrollControllerState.controller.hasClients) {
+      if (state.editorConfig.config.scrollable ||
+          state.refs.scrollController.hasClients) {
         _showCaretOnScreenScheduled = false;
-        final renderer = _editorRendererState.renderer;
+        final renderer = state.refs.renderer;
 
-        if (!_editorStateWidgetState.editor.mounted) {
+        if (!state.refs.editorState.mounted) {
           return;
         }
 
@@ -54,24 +43,25 @@ class CaretService {
           ancestor: viewport,
         );
         final offsetInViewport =
-            _scrollControllerState.controller.offset + editorOffset.dy;
+            state.refs.scrollController.offset + editorOffset.dy;
 
         final offset = getOffsetToRevealCursor(
-          _scrollControllerState.controller.position.viewportDimension,
-          _scrollControllerState.controller.offset,
+          state.refs.scrollController.position.viewportDimension,
+          state.refs.scrollController.offset,
           offsetInViewport,
+          state,
         );
 
         if (offset != null) {
-          if (_scrollControllerAnimationState.disabled) {
-            _scrollControllerAnimationState.disableAnimationOnce(false);
+          if (state.scrollAnimation.disabled) {
+            state.scrollAnimation.disableAnimationOnce(false);
             return;
           }
 
-          _scrollControllerState.controller.animateTo(
+          state.refs.scrollController.animateTo(
             math.min(
               offset,
-              _scrollControllerState.controller.position.maxScrollExtent,
+              state.refs.scrollController.position.maxScrollExtent,
             ),
             duration: const Duration(milliseconds: 100),
             curve: Curves.fastOutSlowIn,
@@ -95,13 +85,15 @@ class CaretService {
     double viewportHeight,
     double scrollOffset,
     double offsetInViewport,
+    EditorState state,
   ) {
-    final selection = _editorControllerState.controller.selection;
+    final selection = state.refs.editorController.selection;
     // Endpoints coordinates represents lower left or lower right corner of the selection.
     // If we want to scroll up to reveal the caret we need to adjust the dy value by the height of the line.
     // We also add a small margin so that the caret is not too close to the edge of the viewport.
     final endpoints = _selectionActionsService.getEndpointsForSelection(
       selection,
+      state,
     );
 
     // When we drag the right handle, we should get the last point
@@ -118,11 +110,11 @@ class CaretService {
     }
 
     // Collapsed selection => caret
-    final child = _linesBlocksService.childAtPosition(selection.extent);
+    final child = _linesBlocksService.childAtPosition(selection.extent, state);
     const margin = 8.0;
 
     final offset =
-        margin + offsetInViewport + _editorConfigState.config.scrollBottomInset;
+        margin + offsetInViewport + state.editorConfig.config.scrollBottomInset;
 
     final lineHeight = child.preferredLineHeight(
       TextPosition(

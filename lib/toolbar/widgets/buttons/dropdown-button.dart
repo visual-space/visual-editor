@@ -2,13 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../../controller/services/editor-controller.dart';
+import '../../../controller/controllers/editor-controller.dart';
 import '../../../documents/models/attribute.model.dart';
 import '../../../documents/models/style.model.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
+import '../../../shared/state/editor-state-receiver.dart';
+import '../../../shared/state/editor.state.dart';
 
-// Collides with Flutter DropdownButton
-class DropdownBtn<T> extends StatefulWidget {
+// Btn shortname was used to avoid collision with Flutter DropdownButton.
+// ignore: must_be_immutable
+class DropdownBtn<T> extends StatefulWidget with EditorStateReceiver {
   final double iconSize;
   final Color? fillColor;
   final double hoverElevation;
@@ -21,7 +24,16 @@ class DropdownBtn<T> extends StatefulWidget {
   final AttributeM attribute;
   final EditorController controller;
 
-  const DropdownBtn({
+  // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
+  // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
+  late EditorState _state;
+
+  @override
+  void setState(EditorState state) {
+    _state = state;
+  }
+
+  DropdownBtn({
     required this.initialValue,
     required this.items,
     required this.rawitemsmap,
@@ -34,7 +46,9 @@ class DropdownBtn<T> extends StatefulWidget {
     this.highlightElevation = 1,
     this.iconTheme,
     Key? key,
-  }) : super(key: key);
+  }) : super(key: key) {
+    controller.setStateInEditorStateReceiver(this);
+  }
 
   @override
   _DropdownBtnState<T> createState() => _DropdownBtnState<T>();
@@ -49,7 +63,7 @@ class _DropdownBtnState<T> extends State<DropdownBtn<T>> {
   @override
   void initState() {
     super.initState();
-    _updateListener = widget.controller.editorState.updateEditor$.listen(
+    _updateListener = widget._state.refreshEditor.updateEditor$.listen(
       (_) => _didChangeEditingValue,
     );
     _currentValue = widget.rawitemsmap.keys.elementAt(

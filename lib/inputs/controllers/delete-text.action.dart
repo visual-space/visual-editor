@@ -1,24 +1,26 @@
 import 'package:flutter/material.dart';
 
-import '../../controller/services/editor-text.service.dart';
 import '../../editor/models/boundaries/character-boundary.model.dart';
-import '../../editor/state/editor-config.state.dart';
+import '../../shared/state/editor.state.dart';
 import '../models/base/text-boundary.model.dart';
 
 class DeleteTextAction<T extends DirectionalTextEditingIntent>
     extends ContextAction<T> {
-  final _editorTextService = EditorTextService();
-  final _editorConfigState = EditorConfigState();
-
-  final TextBoundaryM Function(T intent) getTextBoundariesForIntent;
+  final EditorState state;
+  final TextBoundaryM Function(
+    T intent,
+    EditorState state,
+  ) getTextBoundariesForIntent;
 
   DeleteTextAction(
     this.getTextBoundariesForIntent,
+    this.state,
   );
 
   @override
   Object? invoke(T intent, [BuildContext? context]) {
-    final selection = _editorTextService.textEditingValue.selection;
+    final selection =
+        state.refs.editorController.plainTextEditingValue.selection;
 
     assert(selection.isValid);
 
@@ -26,7 +28,7 @@ class DeleteTextAction<T extends DirectionalTextEditingIntent>
       return Actions.invoke(
         context!,
         ReplaceTextIntent(
-          _editorTextService.textEditingValue,
+          state.refs.editorController.plainTextEditingValue,
           '',
           _expandNonCollapsedRange(),
           SelectionChangedCause.keyboard,
@@ -34,7 +36,7 @@ class DeleteTextAction<T extends DirectionalTextEditingIntent>
       );
     }
 
-    final textBoundary = getTextBoundariesForIntent(intent);
+    final textBoundary = getTextBoundariesForIntent(intent, state);
 
     if (!textBoundary.textEditingValue.selection.isValid) {
       return null;
@@ -44,7 +46,7 @@ class DeleteTextAction<T extends DirectionalTextEditingIntent>
       return Actions.invoke(
         context!,
         ReplaceTextIntent(
-          _editorTextService.textEditingValue,
+          state.refs.editorController.plainTextEditingValue,
           '',
           _expandNonCollapsedRange(),
           SelectionChangedCause.keyboard,
@@ -67,18 +69,19 @@ class DeleteTextAction<T extends DirectionalTextEditingIntent>
 
   @override
   bool get isActionEnabled =>
-      !_editorConfigState.config.readOnly &&
-      _editorTextService.textEditingValue.selection.isValid;
+      !state.editorConfig.config.readOnly &&
+      state.refs.editorController.plainTextEditingValue.selection.isValid;
 
   // === PRIVATE ===
 
   TextRange _expandNonCollapsedRange() {
-    final TextRange selection = _editorTextService.textEditingValue.selection;
+    final TextRange selection =
+        state.refs.editorController.plainTextEditingValue.selection;
 
     assert(selection.isValid);
     assert(!selection.isCollapsed);
 
-    final TextBoundaryM atomicBoundary = CharacterBoundary();
+    final TextBoundaryM atomicBoundary = CharacterBoundary(state);
 
     return TextRange(
       start: atomicBoundary

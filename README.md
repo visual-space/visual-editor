@@ -6,9 +6,20 @@ Visual Editor is a Rich Text editor for [Flutter] originally forked from [Flutte
 
 **Why fork Flutter Quill?**
 
-While building the [Visual Space] platform we begun using [Flutter Quill] to render text content for next generation interactive tutorials and projects. However, we had to deal with issues such as severe lack of documentation and testing plus a lack of technical support from the maintainers. Therefore, we decided to fork Quill and improve it with additional features and higher quality standards. Soon we will be publishing the entire Visual Kit, a set of widgets built for productivity apps.
+While building the [Visual Space] platform we begun using [Flutter Quill] to render text content for nextgen interactive tutorials and projects. However, we had to deal with issues such as severe lack of documentation, lack of automatic testing and lack of technical support from the maintainers. Therefore, we decided to fork Quill and improve it with additional features and a focus on higher quality standards.
 
 ## How To Start
+
+**Beta Testing**
+The current version is not stable enough to be reliable and to be published in pub.dev. Until then you can try it out by linking directly from Github:
+
+**pubspec.yaml**
+
+```
+dependencies:
+  visual_editor:
+    git: https://github.com/visual-space/visual-editor.git
+```
 
 **Minimal example**
 
@@ -80,19 +91,31 @@ _controller.document.toPlainText(); // Extract plain text
 ## Documentation
 Learn more about Visual Editor architecture and how to use the features.
 
-- **[Guidelines](https://github.com/visual-space/visual-editor/blob/develop/GUIDELINES.md)** - Coding guidelines for improving code quality and architecture clarity.
-- **[Migration](https://github.com/visual-space/visual-editor/blob/develop/MIGRATING.md)** - A simple guide with instructions to migrate from Flutter Quill.
-- **[Editor](https://github.com/visual-space/visual-editor/blob/develop/lib/editor/editor.md)** - Renders the document content as commanded by the `EditorController`.
-- **[Delta](https://github.com/visual-space/visual-editor/blob/develop/lib/delta/delta.md)** - Delta documents are used to store text edits and styling attributes.
-- **[Toolbar](https://github.com/visual-space/visual-editor/blob/develop/lib/toolbar/toolbar.md)** - Displays buttons used to edit the styling of the text.
+- **[Editor (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/editor/editor.md)** - Renders the document content as commanded by the `EditorController`.
+- **[Editor Controller (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/controller/editor-controller.md)** - Controls the editor, sync the toolbar, exposes useful callbacks.
+- **[Documents (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/documents/documents.md)** - Delta documents are used to store text edits and styling attributes.
+- **[Toolbar (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/toolbar/toolbar.md)** - Displays buttons used to edit the styling of the text.
+- **[Blocks (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/blocks/blocks.md)** - Documents templates are composed of lines of text and blocks of text.
+- **[Embeds (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/embeds/embeds.md)** - Visual Editor can display any custom component inside of the documents.
+- **[Cursor (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/cursor/cursor.md)** - Indicates the position where new characters will be inserted.
+- **[Inputs (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/inputs/inputs.md)** - Hardware Keyboard and Software keyboard.
+- **[Rules (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/rules/rules.md)** - Rules execute behavior when certain condition are met.
+- **[Selection (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/selection/selection.md)** - Rules execute behavior when certain condition are met.
 - **[Highlights](https://github.com/visual-space/visual-editor/blob/develop/lib/highlights/highlights.md)** - Renders temporary text markers sensitive to taps.
+- **[Migration](https://github.com/visual-space/visual-editor/blob/develop/MIGRATING.md)** - A simple guide with instructions to migrate from Flutter Quill.
+  
+**For Contributors:**
+
+- **[State Store](https://github.com/visual-space/visual-editor/blob/develop/lib/shared/state-store.md)** - Explains the state store architecture and how to extend it.
+- **[Project Structure (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/shared/project-structure.md)** - How the codebase is structured and split in modules.
+- **[Guidelines](https://github.com/visual-space/visual-editor/blob/develop/GUIDELINES.md)** - Coding guidelines for improving code quality and architecture clarity.
 
 ## Roadmap & Known Issues
 These features are currently under developed for [Visual Space]. As soon as they are stable we will release them in the open source repository. We've made an effort to document all the known issues and provide priority and status labels to give you a better understanding when the improvements will be delivered.
 
-- **[Maintainable architecture](https://github.com/visual-space/visual-editor/issues/1)** - Beginner friendly source code. [WIP]
+- **[Maintainable architecture](https://github.com/visual-space/visual-editor/issues/1)** - Beginner friendly source code. [COMPLETED]
 - **[Full documentation](https://github.com/visual-space/visual-editor/issues/2)** - Improved learning materials. [WIP]
-- **[Full test coverage](https://github.com/visual-space/visual-editor/issues/3)** - Add test cases from the ground up.
+- **[Full test coverage](https://github.com/visual-space/visual-editor/issues/3)** - Add test cases from the ground up. [WIP]
 - **[Custom Highlights](https://github.com/visual-space/visual-editor/issues/4)** - Highlights custom regions of text that are sensitive to taps [WIP]
 - **[Code Color Coding](https://github.com/visual-space/visual-editor/issues/18)**
 - **[Tables](https://github.com/visual-space/visual-editor/issues/28)**
@@ -115,8 +138,10 @@ These features are currently under developed for [Visual Space]. As soon as they
 Send us a message on [Visual Editor Discord] if you want your app to be listed here.
 
 ## Additional Resources
-[Word Processing Terminology 1](http://w.sunybroome.edu/basic-computer-skills/functions/word_processing/2wp_terminology.html) •
-[Word Processing Terminology 2](https://www.computerhope.com/jargon/word-processor.htm)
+[Word Processing Terminology 1](http://w.sunybroome.edu/basic-computer-skills/functions/word_processing/2wp_terminology.html) • 
+[Word Processing Terminology 2](https://www.computerhope.com/jargon/word-processor.htm) •
+[QuillJs Delta](https://github.com/quilljs/delta) •
+[Designing The Delta Format](https://quilljs.com/guides/designing-the-delta-format)
 
 [Quill]: https://quilljs.com/docs/formats
 [Quilljs Delta]: https://github.com/quilljs/delta

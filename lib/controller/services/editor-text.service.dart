@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../../delta/services/delta.utils.dart';
 import '../../documents/models/change-source.enum.dart';
 import '../../documents/models/nodes/embed.model.dart';
-import '../state/document.state.dart';
-import '../state/editor-controller.state.dart';
-import '../state/paste.state.dart';
+import '../../documents/services/delta.utils.dart';
+import '../../shared/state/editor.state.dart';
 
 // Reads and the text value of the editor input.
 // When setting the text value we take in account the current selection and styles.
 class EditorTextService {
-  final _editorControllerState = EditorControllerState();
-  final _documentState = DocumentState();
-  final _pasteState = PasteState();
 
   static final _instance = EditorTextService._privateConstructor();
 
@@ -20,19 +15,19 @@ class EditorTextService {
 
   EditorTextService._privateConstructor();
 
-  TextEditingValue get textEditingValue {
-    return _editorControllerState.controller.plainTextEditingValue;
-  }
+  // TextEditingValue get textEditingValue {
+  //   return state.refs.editorController.plainTextEditingValue;
+  // }
 
-  set textEditingValue(TextEditingValue value) {
+  void setTextEditingValue(TextEditingValue value, EditorState state) {
     final cursorPosition = value.selection.extentOffset;
-    final oldText = _documentState.document.toPlainText();
+    final oldText = state.document.document.toPlainText();
     final newText = value.text;
     final diff = getDiff(oldText, newText, cursorPosition);
 
     if (diff.deleted == '' && diff.inserted == '') {
       // Only changing selection range
-      _editorControllerState.controller.updateSelection(
+      state.refs.editorController.updateSelection(
         value.selection,
         ChangeSource.LOCAL,
       );
@@ -41,37 +36,38 @@ class EditorTextService {
 
     final insertedText = _adjustInsertedText(diff.inserted);
 
-    _editorControllerState.controller.replaceText(
+    state.refs.editorController.replaceText(
       diff.start,
       diff.deleted.length,
       insertedText,
       value.selection,
     );
 
-    _applyPasteStyle(insertedText, diff.start);
+    _applyPasteStyle(insertedText, diff.start, state);
   }
 
   void userUpdateTextEditingValue(
     TextEditingValue value,
     SelectionChangedCause cause,
+    EditorState state,
   ) {
-    textEditingValue = value;
+    setTextEditingValue(value, state);
   }
 
-  void _applyPasteStyle(String insertedText, int start) {
-    if (insertedText == _pasteState.pastePlainText &&
-        _pasteState.pastePlainText != '') {
+  void _applyPasteStyle(String insertedText, int start, EditorState state ) {
+    if (insertedText == state.paste.pastePlainText &&
+        state.paste.pastePlainText != '') {
       final pos = start;
 
-      for (var i = 0; i < _pasteState.pasteStyle.length; i++) {
-        final offset = _pasteState.pasteStyle[i].item1;
-        final style = _pasteState.pasteStyle[i].item2;
+      for (var i = 0; i < state.paste.pasteStyle.length; i++) {
+        final offset = state.paste.pasteStyle[i].item1;
+        final style = state.paste.pasteStyle[i].item2;
 
-        _editorControllerState.controller.formatTextStyle(
+        state.refs.editorController.formatTextStyle(
           pos + offset,
-          i == _pasteState.pasteStyle.length - 1
-              ? _pasteState.pastePlainText.length - offset
-              : _pasteState.pasteStyle[i + 1].item1,
+          i == state.paste.pasteStyle.length - 1
+              ? state.paste.pastePlainText.length - offset
+              : state.paste.pasteStyle[i + 1].item1,
           style,
         );
       }

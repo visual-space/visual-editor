@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../controller/services/editor-controller.dart';
+import '../../../controller/controllers/editor-controller.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
 import '../../models/media-picker.type.dart';
 import '../toolbar.dart';

@@ -1,6 +1,6 @@
-import '../../../delta/controllers/delta-iterator.controller.dart';
-import '../../../delta/models/delta.model.dart';
+import '../../../documents/controllers/delta.iterator.dart';
 import '../../../documents/models/attribute.model.dart';
+import '../../../documents/models/delta/delta.model.dart';
 import '../../models/insert-rule.model.dart';
 
 // Resets format for a newly inserted line when insert occurred at the end of a line (right before a newline).

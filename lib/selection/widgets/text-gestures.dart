@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../highlights/services/highlights.service.dart';
+import '../../shared/state/editor.state.dart';
 import '../services/text-gestures.service.dart';
 import '../services/text-selection.service.dart';
 import '../services/transparen-tap-gesture-recognizer.dart';
@@ -11,17 +12,29 @@ import '../services/transparen-tap-gesture-recognizer.dart';
 // Multiple callbacks can be called for one sequence of input gestures.
 // An ordinary GestureDetector configured to handle events like tap and double tap will only recognize one or the other.
 // This widget detects: the first tap and then, if another tap down occurs within a time limit, the double tap.
+// ignore: must_be_immutable
 class TextGestures extends StatefulWidget {
   final HitTestBehavior? behavior;
   final GlobalKey editorRendererKey;
   final Widget child;
 
-  const TextGestures({
+  // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
+  // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
+  late EditorState _state;
+
+  void setState(EditorState state) {
+    _state = state;
+  }
+
+  TextGestures({
     required this.behavior,
     required this.editorRendererKey,
     required this.child,
+    required EditorState state,
     Key? key,
-  }) : super(key: key);
+  }) : super(key: key) {
+    setState(state);
+  }
 
   @override
   State<StatefulWidget> createState() => _TextGesturesState();
@@ -51,7 +64,7 @@ class _TextGesturesState extends State<TextGestures> {
     return MouseRegion(
       onHover: _handleHover,
       child: RawGestureDetector(
-        gestures: _setupGestures(),
+        gestures: _setupGestures(widget._state),
         excludeFromSemantics: true,
         behavior: widget.behavior,
         child: widget.child,
@@ -59,7 +72,9 @@ class _TextGesturesState extends State<TextGestures> {
     );
   }
 
-  Map<Type, GestureRecognizerFactory<GestureRecognizer>> _setupGestures() {
+  Map<Type, GestureRecognizerFactory<GestureRecognizer>> _setupGestures(
+    EditorState state,
+  ) {
     final gestures = <Type, GestureRecognizerFactory>{};
 
     // A transparent recognizer is used so that TextSelectionGestures and
@@ -71,8 +86,12 @@ class _TextGesturesState extends State<TextGestures> {
       ),
       (instance) {
         instance
-          ..onTapDown = _handleTapDown
-          ..onTapUp = _handleTapUp
+          ..onTapDown = (details) {
+            _handleTapDown(details, state);
+          }
+          ..onTapUp = (details) {
+            _handleTapUp(details, state);
+          }
           ..onTapCancel = _handleTapCancel;
       },
     );
@@ -103,7 +122,7 @@ class _TextGesturesState extends State<TextGestures> {
           ..dragStartBehavior = DragStartBehavior.down
           ..onStart = _handleDragStart
           ..onUpdate = _handleDragUpdate
-          ..onEnd = _handleDragEnd;
+          ..onEnd = (details) => _handleDragEnd(details, state);
       },
     );
 
@@ -123,12 +142,15 @@ class _TextGesturesState extends State<TextGestures> {
   }
 
   void _handleHover(PointerHoverEvent event) {
-    _highlightsService.onHover(event);
+    _highlightsService.onHover(event, widget._state);
   }
 
   // The down handler is force-run on success of a single tap and optimistically run before a long press success.
-  void _handleTapDown(TapDownDetails details) {
-    _textGesturesService.onTapDown(details);
+  void _handleTapDown(
+    TapDownDetails details,
+    EditorState state,
+  ) {
+    _textGesturesService.onTapDown(details, state);
 
     // This isn't detected as a double tap gesture in the gesture recognizer
     // because it's 2 single taps, each of which may do different things
@@ -137,17 +159,20 @@ class _TextGesturesState extends State<TextGestures> {
     if (_doubleTapTimer != null &&
         _isWithinDoubleTapTolerance(details.globalPosition)) {
       // If there was already a previous tap, the second down hold/tap is a double tap down.
-      _textGesturesService.onDoubleTapDown(details);
+      _textGesturesService.onDoubleTapDown(details, state);
       _doubleTapTimer!.cancel();
       _doubleTapTimeout();
       _isDoubleTap = true;
     }
   }
 
-  void _handleTapUp(TapUpDetails details) {
+  void _handleTapUp(
+    TapUpDetails details,
+    EditorState state,
+  ) {
     if (!_isDoubleTap) {
-      _textGesturesService.onSingleTapUp(details, _platform);
-      _highlightsService.onSingleTapUp(details);
+      _textGesturesService.onSingleTapUp(details, _platform, state);
+      _highlightsService.onSingleTapUp(details, widget._state);
       _lastTapOffset = details.globalPosition;
       _doubleTapTimer = Timer(kDoubleTapTimeout, _doubleTapTimeout);
     }
@@ -167,7 +192,7 @@ class _TextGesturesState extends State<TextGestures> {
     print('\n');
     assert(_lastDragStartDetails == null);
     _lastDragStartDetails = details;
-    _textGesturesService.onDragSelectionStart(details);
+    _textGesturesService.onDragSelectionStart(details, widget._state);
   }
 
   void _handleDragUpdate(DragUpdateDetails details) {
@@ -187,6 +212,7 @@ class _TextGesturesState extends State<TextGestures> {
 
     _textSelectionService.extendSelection(
       _lastDragUpdateDetails!.globalPosition,
+      widget._state,
       cause: SelectionChangedCause.drag,
     );
 
@@ -194,7 +220,7 @@ class _TextGesturesState extends State<TextGestures> {
     _lastDragUpdateDetails = null;
   }
 
-  void _handleDragEnd(DragEndDetails details) {
+  void _handleDragEnd(DragEndDetails details, EditorState state) {
     assert(_lastDragStartDetails != null);
 
     if (_dragUpdateThrottleTimer != null) {
@@ -203,7 +229,7 @@ class _TextGesturesState extends State<TextGestures> {
       _handleDragUpdateThrottled();
     }
 
-    _textSelectionService.onSelectionCompleted();
+    _textSelectionService.onSelectionCompleted(state);
 
     _dragUpdateThrottleTimer = null;
     _lastDragStartDetails = null;
@@ -214,7 +240,7 @@ class _TextGesturesState extends State<TextGestures> {
     _doubleTapTimer?.cancel();
     _doubleTapTimer = null;
 
-    _textGesturesService.onForcePressStart(details);
+    _textGesturesService.onForcePressStart(details, widget._state);
   }
 
   void _forcePressEnded(ForcePressDetails details) {
@@ -227,6 +253,7 @@ class _TextGesturesState extends State<TextGestures> {
         details,
         _platform,
         context,
+        widget._state,
       );
     }
   }
@@ -236,13 +263,14 @@ class _TextGesturesState extends State<TextGestures> {
       _textGesturesService.onSingleLongTapMoveUpdate(
         details,
         _platform,
+        widget._state,
       );
     }
   }
 
   void _handleLongPressEnd(LongPressEndDetails details) {
     if (!_isDoubleTap) {
-      _textGesturesService.onSingleLongTapEnd(details);
+      _textGesturesService.onSingleLongTapEnd(details, widget._state);
     }
 
     _isDoubleTap = false;

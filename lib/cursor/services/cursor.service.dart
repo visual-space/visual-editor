@@ -3,12 +3,9 @@ import 'dart:math' as math;
 import 'package:flutter/rendering.dart';
 
 import '../../blocks/services/lines-blocks.service.dart';
-import '../../controller/state/scroll-controller.state.dart';
-import '../../editor/state/editor-renderer.state.dart';
+import '../../shared/state/editor.state.dart';
 
 class CursorService {
-  static final _scrollControllerState = ScrollControllerState();
-  static final _editorRendererState = EditorRendererState();
   static final _linesBlocksService = LinesBlocksService();
   static final _instance = CursorService._privateConstructor();
 
@@ -18,24 +15,25 @@ class CursorService {
 
   // Scroll the editor until the content caret is visible
   // Usually triggered by moving the caret when off screen.
-  void bringIntoView(TextPosition position) {
-    final localRect = getLocalRectForCaret(position);
+  void bringIntoView(TextPosition position, EditorState state) {
+    final localRect = getLocalRectForCaret(position, state);
     final targetOffset = _getOffsetToRevealCaret(
       localRect,
       position,
+      state,
     );
 
-    if (_scrollControllerState.controller.hasClients) {
-      _scrollControllerState.controller.jumpTo(targetOffset.offset);
+    if (state.refs.scrollController.hasClients) {
+      state.refs.scrollController.jumpTo(targetOffset.offset);
     }
 
-    _editorRendererState.renderer.showOnScreen(
+    state.refs.renderer.showOnScreen(
       rect: targetOffset.rect,
     );
   }
 
-  Rect getLocalRectForCaret(TextPosition position) {
-    final targetChild = _linesBlocksService.childAtPosition(position);
+  Rect getLocalRectForCaret(TextPosition position, EditorState state) {
+    final targetChild = _linesBlocksService.childAtPosition(position, state);
     final localPosition = targetChild.globalToLocalPosition(position);
     final childLocalRect = targetChild.getLocalRectForCaret(localPosition);
     final boxParentData = targetChild.parentData as BoxParentData;
@@ -54,15 +52,16 @@ class CursorService {
   RevealedOffset _getOffsetToRevealCaret(
     Rect rect,
     TextPosition position,
+    EditorState state,
   ) {
-    if (_isConnectedAndAllowedToSelfScroll()) {
+    if (_isConnectedAndAllowedToSelfScroll(state)) {
       return RevealedOffset(
-        offset: _scrollControllerState.controller.offset,
+        offset: state.refs.scrollController.offset,
         rect: rect,
       );
     }
 
-    final editableSize = _editorRendererState.renderer.size;
+    final editableSize = state.refs.renderer.size;
     final double additionalOffset;
     final Offset unitOffset;
 
@@ -73,7 +72,7 @@ class CursorService {
       width: rect.width,
       height: math.max(
         rect.height,
-        _linesBlocksService.preferredLineHeight(position),
+        _linesBlocksService.preferredLineHeight(position, state),
       ),
     );
 
@@ -89,16 +88,16 @@ class CursorService {
     // No over-scrolling when encountering tall fonts/scripts that extend past the ascent.
     var targetOffset = additionalOffset;
 
-    if (_scrollControllerState.controller.hasClients) {
+    if (state.refs.scrollController.hasClients) {
       targetOffset =
-          (additionalOffset + _scrollControllerState.controller.offset).clamp(
-        _scrollControllerState.controller.position.minScrollExtent,
-        _scrollControllerState.controller.position.maxScrollExtent,
+          (additionalOffset + state.refs.scrollController.offset).clamp(
+        state.refs.scrollController.position.minScrollExtent,
+        state.refs.scrollController.position.maxScrollExtent,
       );
     }
 
-    final offsetDelta = (_scrollControllerState.controller.hasClients
-            ? _scrollControllerState.controller.offset
+    final offsetDelta = (state.refs.scrollController.hasClients
+            ? state.refs.scrollController.offset
             : 0) -
         targetOffset;
 
@@ -108,8 +107,8 @@ class CursorService {
     );
   }
 
-  bool _isConnectedAndAllowedToSelfScroll() {
-    return _scrollControllerState.controller.hasClients &&
-        !_scrollControllerState.controller.position.allowImplicitScrolling;
+  bool _isConnectedAndAllowedToSelfScroll(EditorState state) {
+    return state.refs.scrollController.hasClients &&
+        !state.refs.scrollController.position.allowImplicitScrolling;
   }
 }

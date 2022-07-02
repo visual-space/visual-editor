@@ -1,4 +1,4 @@
-import '../../delta/models/delta.model.dart';
+import 'delta/delta.model.dart';
 
 class HistoryStackM {
   HistoryStackM.empty()

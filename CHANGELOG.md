@@ -15,9 +15,14 @@
 * Replaced ChangeNotifiers with state streams.
 * Added migration guide
 * Updated demo pages
+* Migrated state architecture from singleton to one state per editor controller instance.
+* Exported the Toolbar buttons so that custom toolbars can be build from scratch
+* Delta documents sandbox page, preview the json (development aid)
 
 ## [0.0.2]
 * Custom highlights
 
 ## [0.0.1]
 * Rich text editor based on Flutter Quill Delta.
+
+Join on [discord](https://discord.gg/XpGygmXde4) to get advice and help or follow us on [YouTube Visual Coding](https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA) to learn more about the architecture of Visual Editor and other Flutter apps.

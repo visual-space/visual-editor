@@ -1,9 +1,4 @@
 class KeyboardVisibleState {
-  factory KeyboardVisibleState() => _instance;
-  static final _instance = KeyboardVisibleState._privateConstructor();
-
-  KeyboardVisibleState._privateConstructor();
-
   bool _keyboardVisible = false;
 
   bool get isVisible => _keyboardVisible;

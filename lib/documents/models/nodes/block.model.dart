@@ -1,4 +1,4 @@
-import '../../../delta/models/delta.model.dart';
+import '../delta/delta.model.dart';
 import 'container.model.dart';
 import 'line.model.dart';
 import 'node.model.dart';

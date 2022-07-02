@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 
-import '../../delta/services/delta.utils.dart';
 import '../../documents/models/attribute.model.dart';
 import '../../documents/models/nodes/block.model.dart';
 import '../../documents/models/nodes/line.model.dart';
-import '../../editor/state/editor-config.state.dart';
+import '../../documents/services/delta.utils.dart';
 import '../../editor/widgets/document-styles.dart';
+import '../../shared/state/editor.state.dart';
 import '../models/default-styles.model.dart';
 import '../models/link-action.picker.type.dart';
 import '../style-widgets.dart';
@@ -16,8 +16,6 @@ import 'text-line.dart';
 
 // ignore: must_be_immutable
 class EditableTextBlock extends StatelessWidget {
-  final _editorConfigState = EditorConfigState();
-
   final BlockM block;
   final TextDirection textDirection;
   final Tuple2 verticalSpacing;
@@ -28,6 +26,14 @@ class EditableTextBlock extends StatelessWidget {
   final LinkActionPicker linkActionPicker;
   final Map<int, int> indentLevelCounts;
   final Function(int, bool) onCheckboxTap;
+
+  // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
+  // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
+  late EditorState _state;
+
+  void setState(EditorState state) {
+    _state = state;
+  }
 
   EditableTextBlock({
     required this.block,
@@ -40,8 +46,11 @@ class EditableTextBlock extends StatelessWidget {
     required this.linkActionPicker,
     required this.indentLevelCounts,
     required this.onCheckboxTap,
+    required EditorState state,
     Key? key,
-  });
+  }) {
+    setState(state);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +68,11 @@ class EditableTextBlock extends StatelessWidget {
           ) ??
           const BoxDecoration(),
       isCodeBlock: isCodeBlock,
-      children: _buildChildren(context, indentLevelCounts),
+      state: _state,
+      children: _buildChildren(
+        context,
+        indentLevelCounts,
+      ),
     );
   }
 
@@ -106,6 +119,7 @@ class EditableTextBlock extends StatelessWidget {
           textDirection: textDirection,
           styles: styles!,
           linkActionPicker: linkActionPicker,
+          state: _state,
         ),
         indentWidth: _getIndentWidth(),
         verticalSpacing: _getSpacingForLine(
@@ -118,6 +132,7 @@ class EditableTextBlock extends StatelessWidget {
         textSelection: textSelection,
         hasFocus: hasFocus,
         devicePixelRatio: MediaQuery.of(context).devicePixelRatio,
+        state: _state,
       );
 
       final nodeTextDirection = getDirectionOfNode(line);
@@ -170,7 +185,7 @@ class EditableTextBlock extends StatelessWidget {
       return CheckboxPoint(
         size: 14,
         value: true,
-        enabled: !_editorConfigState.config.readOnly,
+        enabled: !_state.editorConfig.config.readOnly,
         onChanged: (checked) => onCheckboxTap(line.documentOffset, checked),
         uiBuilder: defaultStyles?.lists?.checkboxUIBuilder,
       );
@@ -180,7 +195,7 @@ class EditableTextBlock extends StatelessWidget {
       return CheckboxPoint(
         size: 14,
         value: false,
-        enabled: !_editorConfigState.config.readOnly,
+        enabled: !_state.editorConfig.config.readOnly,
         onChanged: (checked) => onCheckboxTap(line.documentOffset, checked),
         uiBuilder: defaultStyles?.lists?.checkboxUIBuilder,
       );

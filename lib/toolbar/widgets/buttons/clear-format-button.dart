@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../controller/services/editor-controller.dart';
+import '../../../controller/controllers/editor-controller.dart';
 import '../../../documents/models/attribute.model.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
 import '../toolbar.dart';

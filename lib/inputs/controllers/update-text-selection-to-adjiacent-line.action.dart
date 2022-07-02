@@ -1,19 +1,15 @@
 import 'package:flutter/material.dart';
 
-import '../../controller/services/editor-text.service.dart';
-import '../../controller/state/editor-controller.state.dart';
 import '../../editor/controllers/vertical-caret-movement-run.controller.dart';
-import '../../editor/state/editor-config.state.dart';
-import '../../editor/state/editor-renderer.state.dart';
+import '../../shared/state/editor.state.dart';
 
 class UpdateTextSelectionToAdjacentLineAction<
     T extends DirectionalCaretMovementIntent> extends ContextAction<T> {
-  final _editorTextService = EditorTextService();
-  final _editorConfigState = EditorConfigState();
-  final _editorControllerState = EditorControllerState();
-  final _editorRendererState = EditorRendererState();
+  final EditorState state;
 
-  UpdateTextSelectionToAdjacentLineAction();
+  UpdateTextSelectionToAdjacentLineAction(
+    this.state,
+  );
 
   VerticalCaretMovementRunController? _verticalMovementRun;
   TextSelection? _runSelection;
@@ -26,8 +22,8 @@ class UpdateTextSelectionToAdjacentLineAction<
       return;
     }
 
-    _runSelection = _editorTextService.textEditingValue.selection;
-    final currentSelection = _editorControllerState.controller.selection;
+    _runSelection = state.refs.editorController.plainTextEditingValue.selection;
+    final currentSelection = state.refs.editorController.selection;
     final continueCurrentRun = currentSelection.isValid &&
         currentSelection.isCollapsed &&
         currentSelection.baseOffset == prevRunSelection.baseOffset &&
@@ -41,19 +37,19 @@ class UpdateTextSelectionToAdjacentLineAction<
 
   @override
   void invoke(T intent, [BuildContext? context]) {
-    assert(_editorTextService.textEditingValue.selection.isValid);
+    assert(state.refs.editorController.plainTextEditingValue.selection.isValid);
 
     final collapseSelection = intent.collapseSelection ||
-        !_editorConfigState.config.enableInteractiveSelection;
-    final value = _editorTextService.textEditingValue;
+        state.editorConfig.config.enableInteractiveSelection;
+    final value = state.refs.editorController.plainTextEditingValue;
 
     if (!value.selection.isValid) {
       return;
     }
 
     final currentRun = _verticalMovementRun ??
-        _editorRendererState.renderer.startVerticalCaretMovement(
-          _editorControllerState.controller.selection.extent,
+        state.refs.renderer.startVerticalCaretMovement(
+          state.refs.editorController.selection.extent,
         );
 
     final shouldMove =
@@ -62,7 +58,8 @@ class UpdateTextSelectionToAdjacentLineAction<
         ? currentRun.current
         : (intent.forward
             ? TextPosition(
-                offset: _editorTextService.textEditingValue.text.length,
+                offset: state
+                    .refs.editorController.plainTextEditingValue.text.length,
               )
             : const TextPosition(offset: 0));
     final newSelection = collapseSelection
@@ -78,7 +75,8 @@ class UpdateTextSelectionToAdjacentLineAction<
       ),
     );
 
-    if (_editorTextService.textEditingValue.selection == newSelection) {
+    if (state.refs.editorController.plainTextEditingValue.selection ==
+        newSelection) {
       _verticalMovementRun = currentRun;
       _runSelection = newSelection;
     }
@@ -86,5 +84,5 @@ class UpdateTextSelectionToAdjacentLineAction<
 
   @override
   bool get isActionEnabled =>
-      _editorTextService.textEditingValue.selection.isValid;
+      state.refs.editorController.plainTextEditingValue.selection.isValid;
 }

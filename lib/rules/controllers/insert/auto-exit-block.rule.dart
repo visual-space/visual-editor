@@ -1,7 +1,7 @@
-import '../../../delta/controllers/delta-iterator.controller.dart';
-import '../../../delta/models/delta.model.dart';
-import '../../../delta/models/operation.model.dart';
+import '../../../documents/controllers/delta.iterator.dart';
 import '../../../documents/models/attribute.model.dart';
+import '../../../documents/models/delta/delta.model.dart';
+import '../../../documents/models/delta/operation.model.dart';
 import '../../../documents/models/style.model.dart';
 import '../../models/insert-rule.model.dart';
 import '../../models/rules.utils.dart';

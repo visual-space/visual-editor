@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:string_validator/string_validator.dart';
 import 'package:tuple/tuple.dart';
 
-import '../../controller/services/editor-controller.dart';
+import '../../controller/controllers/editor-controller.dart';
 import '../../documents/models/attribute.model.dart';
 import '../../documents/models/nodes/embed.model.dart';
 import '../../documents/models/style.model.dart';

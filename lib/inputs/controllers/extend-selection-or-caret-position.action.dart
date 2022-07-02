@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
 
-import '../../controller/services/editor-text.service.dart';
-import '../../editor/state/editor-config.state.dart';
+import '../../shared/state/editor.state.dart';
 import '../models/base/text-boundary.model.dart';
 
 class ExtendSelectionOrCaretPositionAction extends ContextAction<
     ExtendSelectionToNextWordBoundaryOrCaretLocationIntent> {
-  final _editorTextService = EditorTextService();
-  final _editorConfigState = EditorConfigState();
-
+  final EditorState state;
   final TextBoundaryM Function(
     ExtendSelectionToNextWordBoundaryOrCaretLocationIntent intent,
+    EditorState state,
   ) getTextBoundariesForIntent;
 
   ExtendSelectionOrCaretPositionAction(
     this.getTextBoundariesForIntent,
+    this.state,
   );
 
   @override
@@ -22,11 +21,12 @@ class ExtendSelectionOrCaretPositionAction extends ContextAction<
     ExtendSelectionToNextWordBoundaryOrCaretLocationIntent intent, [
     BuildContext? context,
   ]) {
-    final selection = _editorTextService.textEditingValue.selection;
+    final selection =
+        state.refs.editorController.plainTextEditingValue.selection;
 
     assert(selection.isValid);
 
-    final textBoundary = getTextBoundariesForIntent(intent);
+    final textBoundary = getTextBoundariesForIntent(intent, state);
     final textBoundarySelection = textBoundary.textEditingValue.selection;
 
     if (!textBoundarySelection.isValid) {
@@ -63,6 +63,6 @@ class ExtendSelectionOrCaretPositionAction extends ContextAction<
 
   @override
   bool get isActionEnabled =>
-      _editorConfigState.config.enableInteractiveSelection &&
-      _editorTextService.textEditingValue.selection.isValid;
+      state.editorConfig.config.enableInteractiveSelection &&
+      state.refs.editorController.plainTextEditingValue.selection.isValid;
 }

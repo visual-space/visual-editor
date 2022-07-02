@@ -1,25 +1,12 @@
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
-import '../../controller/services/editor-text.service.dart';
-import '../../controller/state/editor-controller.state.dart';
-import '../../delta/services/delta.utils.dart';
 import '../../documents/models/change-source.enum.dart';
-import '../../editor/state/editor-config.state.dart';
-import '../../editor/state/editor-renderer.state.dart';
-import '../../editor/state/editor-state-widget.state.dart';
-import '../../editor/state/focus-node.state.dart';
+import '../../documents/services/delta.utils.dart';
+import '../../shared/state/editor.state.dart';
 
 class TextConnectionService {
-  final _editorConfigState = EditorConfigState();
-  final _editorControllerState = EditorControllerState();
-  final _focusNodeState = FocusNodeState();
-  final _editorRendererState = EditorRendererState();
-  final _editorTextService = EditorTextService();
-  final _editorStateWidgetState = EditorStateWidgetState();
-
   TextInputConnection? _textInputConnection;
   TextEditingValue? _lastKnownRemoteTextEditingValue;
 
@@ -32,8 +19,8 @@ class TextConnectionService {
   // - cmd/ctrl+c shortcut to copy.s
   // - cmd/ctrl+a to select all.
   // - Changing the selection using a physical keyboard.
-  bool get shouldCreateInputConnection =>
-      kIsWeb || !_editorConfigState.config.readOnly;
+  bool shouldCreateInputConnection(EditorState state) =>
+      kIsWeb || !state.editorConfig.config.readOnly;
 
   // Returns `true` if there is open input connection.
   bool get hasConnection =>
@@ -54,36 +41,37 @@ class TextConnectionService {
 
   // Opens or closes input connection based on the current state of
   // [focusNode] and [value].
-  void openOrCloseConnection() {
-    final focusNode = _focusNodeState.node;
+  void openOrCloseConnection(EditorState state) {
+    final focusNode = state.refs.focusNode;
 
     if (focusNode.hasFocus && focusNode.consumeKeyboardToken()) {
-      openConnectionIfNeeded();
+      openConnectionIfNeeded(state);
     } else if (!focusNode.hasFocus) {
       closeConnectionIfNeeded();
     }
   }
 
-  void openConnectionIfNeeded() {
-    if (!shouldCreateInputConnection) {
+  void openConnectionIfNeeded(EditorState state) {
+    if (!shouldCreateInputConnection(state)) {
       return;
     }
 
     if (!hasConnection) {
-      _lastKnownRemoteTextEditingValue = _editorTextService.textEditingValue;
+      _lastKnownRemoteTextEditingValue =
+          state.refs.editorController.plainTextEditingValue;
       _textInputConnection = TextInput.attach(
-        _editorStateWidgetState.editor,
+        state.refs.editorState,
         TextInputConfiguration(
           inputType: TextInputType.multiline,
-          readOnly: _editorConfigState.config.readOnly,
+          readOnly: state.editorConfig.config.readOnly,
           inputAction: TextInputAction.newline,
-          enableSuggestions: _editorConfigState.config.readOnly,
-          keyboardAppearance: _editorConfigState.config.keyboardAppearance,
-          textCapitalization: _editorConfigState.config.textCapitalization,
+          enableSuggestions: state.editorConfig.config.readOnly,
+          keyboardAppearance: state.editorConfig.config.keyboardAppearance,
+          textCapitalization: state.editorConfig.config.textCapitalization,
         ),
       );
 
-      _updateSizeAndTransform();
+      _updateSizeAndTransform(state);
       _textInputConnection!.setEditingState(_lastKnownRemoteTextEditingValue!);
     }
 
@@ -103,12 +91,12 @@ class TextConnectionService {
 
   // Updates remote value based on current state of [document] and [selection].
   // This method may not actually send an update to native side if it thinks remote value is up to date or identical.
-  void updateRemoteValueIfNeeded() {
+  void updateRemoteValueIfNeeded(EditorState state) {
     if (!hasConnection) {
       return;
     }
 
-    final value = _editorTextService.textEditingValue;
+    final value = state.refs.editorController.plainTextEditingValue;
 
     // Since we don't keep track of the composing range in value provided by the Controller
     // we need to add it here manually before comparing with the last known remote value.
@@ -134,8 +122,8 @@ class TextConnectionService {
     );
   }
 
-  void updateEditingValue(TextEditingValue value) {
-    if (!shouldCreateInputConnection) {
+  void updateEditingValue(TextEditingValue value, EditorState state) {
+    if (!shouldCreateInputConnection(state)) {
       return;
     }
 
@@ -161,7 +149,7 @@ class TextConnectionService {
     final text = value.text;
     final cursorPosition = value.selection.extentOffset;
     final diff = getDiff(oldText, text, cursorPosition);
-    final controller = _editorControllerState.controller;
+    final controller = state.refs.editorController;
 
     if (diff.deleted.isEmpty && diff.inserted.isEmpty) {
       controller.updateSelection(value.selection, ChangeSource.LOCAL);
@@ -187,17 +175,17 @@ class TextConnectionService {
 
   // === PRIVATE ===
 
-  void _updateSizeAndTransform() {
+  void _updateSizeAndTransform(EditorState state) {
     if (hasConnection) {
       // Asking for editorRenderer.size here can cause errors if layout hasn't occurred yet.
       // So we schedule a post frame callback instead.
       SchedulerBinding.instance.addPostFrameCallback((_) {
-        if (!_editorStateWidgetState.editor.mounted) {
+        if (!state.refs.editorState.mounted) {
           return;
         }
 
-        final size = _editorRendererState.renderer.size;
-        final transform = _editorRendererState.renderer.getTransformTo(null);
+        final size = state.refs.renderer.size;
+        final transform = state.refs.renderer.getTransformTo(null);
         _textInputConnection?.setEditableSizeAndTransform(size, transform);
       });
     }

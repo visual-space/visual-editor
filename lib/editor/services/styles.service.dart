@@ -3,20 +3,13 @@ import 'package:flutter/material.dart';
 
 import '../../cursor/controllers/cursor.controller.dart';
 import '../../cursor/models/cursor-style.model.dart';
-import '../../cursor/state/cursor-controller.state.dart';
+import '../../shared/state/editor.state.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../models/cursor-style-cfg.model.dart';
 import '../models/platform-dependent-styles.model.dart';
-import '../state/editor-config.state.dart';
-import '../state/editor-state-widget.state.dart';
-import '../state/platform-styles.state.dart';
 
 // Utils used to generate the styles that will be used to render the editor.
 class StylesService {
-  final _editorStateWidgetState = EditorStateWidgetState();
-  final _cursorControllerState = CursorControllerState();
-  final _editorConfigState = EditorConfigState();
-  final _platformStylesState = PlatformStylesState();
 
   static final _instance = StylesService._privateConstructor();
 
@@ -38,20 +31,21 @@ class StylesService {
   // This method needs access to the build context.
   // It also needs to be executed before the rest of the widgets are built.
   // Therefore we built a condition to execute it only once.
-  void getPlatformStylesAndSetCursorControllerOnce(BuildContext context) {
-    if (_platformStylesState.isInitialised) {
+  void getPlatformStylesAndSetCursorControllerOnce(BuildContext context, EditorState state) {
+    if (state.platformStyles.isInitialised) {
       return;
     }
 
-    _platformStylesState.setPlatformStyles(
+    state.platformStyles.setPlatformStyles(
       _getPlatformStyles(context),
     );
 
-    _cursorControllerState.setController(
+    state.refs.setCursorController(
       CursorController(
-        show: ValueNotifier<bool>(_editorConfigState.config.showCursor),
-        style: cursorStyle(),
-        tickerProvider: _editorStateWidgetState.editor,
+        show: ValueNotifier<bool>(state.editorConfig.config.showCursor),
+        style: cursorStyle(state),
+        tickerProvider: state.refs.editorState,
+        state: state
       ),
     );
   }
@@ -96,8 +90,8 @@ class StylesService {
     );
   }
 
-  CursorStyle cursorStyle() {
-    final style = _platformStylesState.styles.cursorStyle;
+  CursorStyle cursorStyle(EditorState state) {
+    final style = state.platformStyles.styles.cursorStyle;
 
     return CursorStyle(
       color: style.cursorColor,
@@ -105,7 +99,7 @@ class StylesService {
       width: 2,
       radius: style.cursorRadius,
       offset: style.cursorOffset,
-      paintAboveText: _editorConfigState.config.paintCursorAboveText ??
+      paintAboveText: state.editorConfig.config.paintCursorAboveText ??
           style.paintCursorAboveText,
       opacityAnimates: style.cursorOpacityAnimates,
     );

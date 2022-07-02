@@ -6,24 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../blocks/services/lines-blocks.service.dart';
-import '../../controller/state/editor-controller.state.dart';
 import '../../editor/const/floating.const.dart';
-import '../../editor/state/editor-config.state.dart';
-import '../../editor/state/editor-renderer.state.dart';
-import '../../editor/state/editor-state-widget.state.dart';
 import '../../selection/services/text-selection.service.dart';
+import '../../shared/state/editor.state.dart';
 import '../services/cursor.service.dart';
-import '../state/cursor-controller.state.dart';
 
 // When long pressing the cursor can be moved by dragging your finger on the screen.
 // The floating cursor helps users see where the cursor is going to be placed
 // while their finger is obscuring the view.
 class FloatingCursorController {
-  final _editorStateWidgetState = EditorStateWidgetState();
-  final _editorControllerState = EditorControllerState();
-  final _editorConfigState = EditorConfigState();
-  final _cursorControllerState = CursorControllerState();
-  final _editorRendererState = EditorRendererState();
   final _linesBlocksService = LinesBlocksService();
   final _cursorService = CursorService();
   final _textSelectionService = TextSelectionService();
@@ -57,8 +48,19 @@ class FloatingCursorController {
   // The time it takes for the floating cursor to snap to the text aligned
   // cursor position after the user has finished placing it.
   final Duration _floatingCursorResetTime = const Duration(milliseconds: 125);
-  
-  FloatingCursorController() {
+
+  // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
+  // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
+  late EditorState _state;
+
+  void setState(EditorState state) {
+    _state = state;
+  }
+
+  FloatingCursorController(
+    EditorState state,
+  ) {
+    setState(state);
     _initFloatingCursorAnimationController();
   }
 
@@ -70,7 +72,7 @@ class FloatingCursorController {
     TextPosition textPosition, {
     double? resetLerpValue,
   }) {
-    if (_editorConfigState.config.floatingCursorDisabled) return;
+    if (_state.editorConfig.config.floatingCursorDisabled) return;
 
     if (dragState == FloatingCursorDragState.Start) {
       _relativeOrigin = Offset.zero;
@@ -82,7 +84,7 @@ class FloatingCursorController {
     }
 
     _floatingCursorOn = dragState != FloatingCursorDragState.End;
-    final renderer = _editorRendererState.renderer;
+    final renderer = _state.refs.renderer;
 
     if (_floatingCursorOn) {
       renderer.floatingCursorTextPosition = textPosition;
@@ -93,7 +95,7 @@ class FloatingCursorController {
               resetLerpValue,
             )!
           : floatingCaretSizeIncrease;
-      final child = _linesBlocksService.childAtPosition(textPosition);
+      final child = _linesBlocksService.childAtPosition(textPosition, _state);
       final caretPrototype = child.getCaretPrototype(
         child.globalToLocalPosition(textPosition),
       );
@@ -101,35 +103,32 @@ class FloatingCursorController {
       renderer.floatingCursorRect =
           sizeAdjustment.inflateRect(caretPrototype).shift(boundedOffset);
 
-      _cursorControllerState.controller.setFloatingCursorTextPosition(
+      _state.refs.cursorController.setFloatingCursorTextPosition(
         renderer.floatingCursorTextPosition,
       );
     } else {
       renderer.floatingCursorRect = null;
-      _cursorControllerState.controller.setFloatingCursorTextPosition(null);
+      _state.refs.cursorController.setFloatingCursorTextPosition(null);
     }
   }
 
-  void updateFloatingCursor(
-    RawFloatingCursorPoint point,
-  ) {
+  void updateFloatingCursor(RawFloatingCursorPoint point) {
     switch (point.state) {
       case FloatingCursorDragState.Start:
         if (_floatingCursorAnimationController.isAnimating) {
           _floatingCursorAnimationController.stop();
-          onFloatingCursorResetTick(
-            _floatingCursorAnimationController,
-          );
+          onFloatingCursorResetTick(_floatingCursorAnimationController);
         }
 
         // We want to send in points that are centered around a (0,0) origin, so we cache the position.
         _pointOffsetOrigin = point.offset;
 
         final currentTextPosition = TextPosition(
-          offset: _editorControllerState.controller.selection.baseOffset,
+          offset: _state.refs.editorController.selection.baseOffset,
         );
         _startCaretRect = _cursorService.getLocalRectForCaret(
           currentTextPosition,
+          _state,
         );
 
         _lastBoundedOffset = _startCaretRect!.center -
@@ -154,15 +153,17 @@ class FloatingCursorController {
 
         final preferredLineHeight = _linesBlocksService.preferredLineHeight(
           _lastTextPosition!,
+          _state,
         );
         _lastBoundedOffset = _calculateBoundedFloatingCursorOffset(
           rawCursorOffset,
           preferredLineHeight,
         );
         _lastTextPosition = _linesBlocksService.getPositionForOffset(
-          _editorRendererState.renderer.localToGlobal(
+          _state.refs.renderer.localToGlobal(
             _lastBoundedOffset! + floatingCursorOffset,
           ),
+          _state,
         );
         setFloatingCursor(
           point.state,
@@ -180,6 +181,7 @@ class FloatingCursorController {
         _textSelectionService.onSelectionChanged(
           newSelection,
           SelectionChangedCause.forcePress,
+          _state,
         );
         break;
 
@@ -204,9 +206,10 @@ class FloatingCursorController {
   void onFloatingCursorResetTick(
     AnimationController _floatingCursorAnimationController,
   ) {
-    final finalPosition =
-        _cursorService.getLocalRectForCaret(_lastTextPosition!).centerLeft -
-            _floatingCursorOffset(_lastTextPosition!);
+    final finalPosition = _cursorService
+            .getLocalRectForCaret(_lastTextPosition!, _state)
+            .centerLeft -
+        _floatingCursorOffset(_lastTextPosition!);
 
     if (_floatingCursorAnimationController.isCompleted) {
       setFloatingCursor(
@@ -249,12 +252,12 @@ class FloatingCursorController {
   ) {
     var deltaPosition = Offset.zero;
     final topBound = floatingCursorAddedMargin.top;
-    final bottomBound = _editorRendererState.renderer.size.height -
+    final bottomBound = _state.refs.renderer.size.height -
         preferredLineHeight +
         floatingCursorAddedMargin.bottom;
     final leftBound = floatingCursorAddedMargin.left;
-    final rightBound = _editorRendererState.renderer.size.width -
-        floatingCursorAddedMargin.right;
+    final rightBound =
+        _state.refs.renderer.size.width - floatingCursorAddedMargin.right;
 
     if (_previousOffset != null) {
       deltaPosition = rawCursorOffset - _previousOffset!;
@@ -324,13 +327,13 @@ class FloatingCursorController {
   // we need this offset to correctly render and move the cursor.
   Offset _floatingCursorOffset(TextPosition textPosition) => Offset(
         0,
-        _linesBlocksService.preferredLineHeight(textPosition) / 2,
+        _linesBlocksService.preferredLineHeight(textPosition, _state) / 2,
       );
 
   // Floating cursor
   void _initFloatingCursorAnimationController() {
     _floatingCursorAnimationController = AnimationController(
-      vsync: _editorStateWidgetState.editor,
+      vsync: _state.refs.editorState,
     );
     _floatingCursorAnimationController.addListener(
       () => onFloatingCursorResetTick(

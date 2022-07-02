@@ -1,6 +1,6 @@
-import '../../../delta/controllers/delta-iterator.controller.dart';
-import '../../../delta/models/delta.model.dart';
+import '../../../documents/controllers/delta.iterator.dart';
 import '../../../documents/models/attribute.model.dart';
+import '../../../documents/models/delta/delta.model.dart';
 import '../../models/delete-rule.model.dart';
 
 // Fallback rule for delete operations which simply deletes specified text

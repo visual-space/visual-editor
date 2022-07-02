@@ -1,8 +1,8 @@
-import '../../../delta/controllers/delta-iterator.controller.dart';
-import '../../../delta/models/delta.model.dart';
-import '../../../delta/models/operation.model.dart';
+import '../../../documents/controllers/delta.iterator.dart';
 import '../../../documents/models/attribute-scope.enum.dart';
 import '../../../documents/models/attribute.model.dart';
+import '../../../documents/models/delta/delta.model.dart';
+import '../../../documents/models/delta/operation.model.dart';
 import '../../models/format-rule.model.dart';
 
 // Produces Delta with inline-level attributes applied to all characters except newlines.

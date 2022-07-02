@@ -4,15 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import '../../blocks/services/lines-blocks.service.dart';
-import '../../controller/state/document.state.dart';
 import '../../documents/models/nodes/node.model.dart';
-import '../../editor/state/editor-renderer.state.dart';
 import '../../editor/widgets/editable-container-box-renderer.dart';
+import '../../shared/state/editor.state.dart';
 
 class TextSelectionUtils {
-  final _documentState = DocumentState();
   final _linesBlocksService = LinesBlocksService();
-  final _editorRendererState = EditorRendererState();
 
   factory TextSelectionUtils() => _instance;
 
@@ -43,8 +40,9 @@ class TextSelectionUtils {
 
   TextSelection getWordAtPosition(
     TextPosition position,
+    EditorState state,
   ) {
-    final word = _editorRendererState.renderer.getWordBoundary(position);
+    final word = state.refs.renderer.getWordBoundary(position);
 
     // When long-pressing past the end of the text, we want a collapsed cursor.
     if (position.offset >= word.end) {
@@ -60,8 +58,9 @@ class TextSelectionUtils {
   TextSelection getLineAtPosition(
     TextPosition position,
     EditableContainerBoxRenderer renderer,
+    EditorState state,
   ) {
-    final line = getLineAtOffset(position, renderer);
+    final line = getLineAtOffset(position, renderer, state);
 
     // When long-pressing past the end of the text, we want a collapsed cursor.
     if (position.offset >= line.end) {
@@ -77,8 +76,9 @@ class TextSelectionUtils {
   TextSelection getLineAtOffset(
     TextPosition position,
     EditableContainerBoxRenderer renderer,
+    EditorState state,
   ) {
-    final child = _linesBlocksService.childAtPosition(position);
+    final child = _linesBlocksService.childAtPosition(position, state);
     final nodeOffset = child.container.offset;
     final localPosition = TextPosition(
       offset: position.offset - nodeOffset,
@@ -99,8 +99,9 @@ class TextSelectionUtils {
   TextRange getWordBoundary(
     TextPosition position,
     EditableContainerBoxRenderer renderer,
+    EditorState state,
   ) {
-    final child = _linesBlocksService.childAtPosition(position);
+    final child = _linesBlocksService.childAtPosition(position, state);
     final nodeOffset = child.container.offset;
     final localPosition = TextPosition(
       offset: position.offset - nodeOffset,
@@ -119,8 +120,9 @@ class TextSelectionUtils {
   TextPosition getTextPositionAbove(
     TextPosition position,
     EditableContainerBoxRenderer renderer,
+    EditorState state,
   ) {
-    final child = _linesBlocksService.childAtPosition(position);
+    final child = _linesBlocksService.childAtPosition(position, state);
     final localPosition = TextPosition(
       offset: position.offset - child.container.documentOffset,
     );
@@ -157,8 +159,9 @@ class TextSelectionUtils {
   TextPosition getTextPositionBelow(
     TextPosition position,
     EditableContainerBoxRenderer renderer,
+    EditorState state,
   ) {
-    final child = _linesBlocksService.childAtPosition(position);
+    final child = _linesBlocksService.childAtPosition(position, state);
     final localPosition = TextPosition(
       offset: position.offset - child.container.documentOffset,
     );
@@ -170,7 +173,7 @@ class TextSelectionUtils {
 
       if (sibling == null) {
         // Reached beginning of the document, move to the last character
-        newPosition = TextPosition(offset: _documentState.document.length - 1);
+        newPosition = TextPosition(offset: state.document.document.length - 1);
       } else {
         final caretOffset = child.getOffsetForCaret(localPosition);
         const testPosition = TextPosition(offset: 0);

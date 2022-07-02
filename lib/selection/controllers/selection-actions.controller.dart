@@ -6,13 +6,11 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../blocks/services/lines-blocks.service.dart';
-import '../../editor/state/editor-state-widget.state.dart';
-import '../../editor/state/platform-styles.state.dart';
 import '../../editor/widgets/editor-renderer-inner.dart';
+import '../../shared/state/editor.state.dart';
 import '../models/drag-text-selection.model.dart';
 import '../models/text-selection-handle-position.enum.dart';
 import '../services/selection-actions.service.dart';
-import '../state/selection-layers.state.dart';
 import '../widgets/text-selection-handles-overlay.dart';
 
 // Manages a pair of text selection handles (overlay entries for selection handles).
@@ -20,9 +18,6 @@ import '../widgets/text-selection-handles-overlay.dart';
 class SelectionActionsController {
   final _linesBlocksService = LinesBlocksService();
   final _selectionActionsService = SelectionActionsService();
-  final _platformStylesState = PlatformStylesState();
-  final _editorStateWidgetState = EditorStateWidgetState();
-  final _selectionLayersState = SelectionLayersState();
 
   TextEditingValue value;
 
@@ -84,6 +79,14 @@ class SelectionActionsController {
 
   Animation<double> get _toolbarOpacity => _toolbarController.view;
 
+  // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
+  // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
+  late EditorState _state;
+
+  void setState(EditorState state) {
+    _state = state;
+  }
+
   SelectionActionsController({
     required this.value,
     required this.renderObject,
@@ -91,16 +94,19 @@ class SelectionActionsController {
     required textSelectionControls,
     required this.selectionDelegate,
     required this.clipboardStatus,
+    required EditorState state,
     this.onSelectionHandleTapped,
     this.dragStartBehavior = DragStartBehavior.start,
     this.handlesVisible = false,
   }) {
+    setState(state);
+
     // The context must not be null and must have an Overlay as an ancestor.
-    _context = _editorStateWidgetState.editor.context;
+    _context = state.refs.editorState.context;
     final overlay = Overlay.of(_context, rootOverlay: true)!;
 
     _textSelectionControls = textSelectionControls ??
-        _platformStylesState.styles.textSelectionControls;
+        _state.platformStyles.styles.textSelectionControls;
 
     _toolbarController = AnimationController(
       duration: const Duration(milliseconds: 150),
@@ -247,6 +253,7 @@ class SelectionActionsController {
       // This happens where the selection has changed, but the buttons hasn't been dismissed yet.
       endpoints = _selectionActionsService.getEndpointsForSelection(
         _selection,
+        _state,
       );
     } catch (_) {
       return Container();
@@ -261,9 +268,11 @@ class SelectionActionsController {
 
     final baseLineHeight = _linesBlocksService.preferredLineHeight(
       _selection.base,
+      _state,
     );
     final extentLineHeight = _linesBlocksService.preferredLineHeight(
       _selection.extent,
+      _state,
     );
     final smallestLineHeight = math.min(baseLineHeight, extentLineHeight);
     final isMultiline = endpoints.last.point.dy - endpoints.first.point.dy >
@@ -284,7 +293,7 @@ class SelectionActionsController {
     return FadeTransition(
       opacity: _toolbarOpacity,
       child: CompositedTransformFollower(
-        link: _selectionLayersState.toolbarLayerLink,
+        link: _state.selectionLayers.toolbarLayerLink,
         showWhenUnlinked: false,
         offset: -editingRegion.topLeft,
         child: _textSelectionControls.buildToolbar(
@@ -321,6 +330,7 @@ class SelectionActionsController {
         textSelectionControls: _textSelectionControls,
         position: position,
         dragStartBehavior: dragStartBehavior,
+        state: _state,
       ),
     );
   }

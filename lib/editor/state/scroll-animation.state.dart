@@ -2,12 +2,7 @@
 // https://github.com/singerdmx/flutter-quill/issues/619
 // We cannot treat {"list": "checked"} and {"list": "unchecked"} as block of the same style.
 // This causes controller.selection to go to offset 0.
-class ScrollControllerAnimationState {
-  factory ScrollControllerAnimationState() => _instance;
-  static final _instance = ScrollControllerAnimationState._privateConstructor();
-
-  ScrollControllerAnimationState._privateConstructor();
-
+class ScrollAnimationState {
   late bool _disabled;
 
   bool get disabled => _disabled;

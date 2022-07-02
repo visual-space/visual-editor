@@ -1,5 +1,4 @@
-# Editor 
-**Document State - Work In Progress** - Working on expanded essential information about the editor.
+# Editor (WIP)
 
 ## Overview
 This is the main class of the Visual Editor. There are 2 constructors available, one for controlling all the settings of the editor in precise detail. The other one is the basic init that will spare you the pain of having to comb trough all the props. The default settings are carefully chosen to satisfy the basic needs of any app that needs rich text editing. The editor can be rendered either in scrollable mode or in expanded mode. Most apps will prefer the scrollable mode and a sticky EditorToolbar on top or at the bottom of the viewport. Use the expanded version when you want to stack multiple editors on top of each other. A placeholder text can be defined to be displayed when the editor has no contents. All the styles of the editor can be overridden using custom styles.
@@ -26,3 +25,4 @@ The Editor uses Flutter `TextField` to render the paragraphs in a column of cont
 ## Gestures
 The VisualEditor class implements `TextSelectionGesturesBuilderDelegate`. This base class is used to separate the features related to gesture detection and to give the opportunity to override them.
 
+Join on [discord](https://discord.gg/XpGygmXde4) to get advice and help or follow us on [YouTube Visual Coding](https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA) to learn more about the architecture of Visual Editor and other Flutter apps.

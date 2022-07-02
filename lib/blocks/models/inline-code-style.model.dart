@@ -3,8 +3,26 @@ import 'package:flutter/material.dart';
 import '../../documents/models/attribute.model.dart';
 import '../../documents/models/style.model.dart';
 
-/// Theme data for inline code.
+// Theme data for inline code.
 class InlineCodeStyle {
+  // Base text style for an inline code.
+  final TextStyle style;
+
+  // Style override for inline code in header level 1.
+  final TextStyle? header1;
+
+  // Style override for inline code in headings level 2.
+  final TextStyle? header2;
+
+  // Style override for inline code in headings level 3.
+  final TextStyle? header3;
+
+  // Background color for inline code.
+  final Color? backgroundColor;
+
+  // Radius used when paining the background.
+  final Radius? radius;
+
   InlineCodeStyle({
     required this.style,
     this.header1,
@@ -14,26 +32,7 @@ class InlineCodeStyle {
     this.radius,
   });
 
-  /// Base text style for an inline code.
-  final TextStyle style;
-
-  /// Style override for inline code in header level 1.
-  final TextStyle? header1;
-
-  /// Style override for inline code in headings level 2.
-  final TextStyle? header2;
-
-  /// Style override for inline code in headings level 3.
-  final TextStyle? header3;
-
-  /// Background color for inline code.
-  final Color? backgroundColor;
-
-  /// Radius used when paining the background.
-  final Radius? radius;
-
-  /// Returns effective style to use for inline code for the specified
-  /// [lineStyle].
+  // Returns effective style to use for inline code for the specified lineStyle.
   TextStyle styleFor(StyleM lineStyle) {
     if (lineStyle.containsKey(AttributeM.h1.key)) {
       return header1 ?? style;

@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
-import '../models/delta.model.dart';
-import '../models/operation.model.dart';
+import '../models/delta/delta.model.dart';
+import '../models/delta/operation.model.dart';
 
 // Specialized iterator for DeltaMs.
 class DeltaIterator {

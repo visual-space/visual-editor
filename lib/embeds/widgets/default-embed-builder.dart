@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:gallery_saver/gallery_saver.dart';
 import 'package:tuple/tuple.dart';
 
-import '../../controller/services/editor-controller.dart';
+import '../../controller/controllers/editor-controller.dart';
 import '../../documents/models/attribute.model.dart';
 import '../../documents/models/nodes/block-embed.model.dart';
 import '../../documents/models/nodes/embed.model.dart';

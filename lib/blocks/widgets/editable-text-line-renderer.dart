@@ -3,20 +3,15 @@ import 'dart:math' as math;
 
 import 'package:flutter/rendering.dart';
 
-import '../../controller/state/editor-controller.state.dart';
 import '../../cursor/controllers/cursor.controller.dart';
-import '../../cursor/state/cursor-controller.state.dart';
-import '../../cursor/state/cursor.state.dart';
 import '../../cursor/widgets/cursor-painter.dart';
 import '../../documents/models/attribute.model.dart';
 import '../../documents/models/nodes/container.model.dart' as container_node;
 import '../../documents/models/nodes/line.model.dart';
 import '../../documents/models/nodes/text.model.dart';
-import '../../editor/state/editor-config.state.dart';
-import '../../editor/state/focus-node.state.dart';
-import '../../editor/state/platform-styles.state.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../selection/services/text-selection.utils.dart';
+import '../../shared/state/editor.state.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../models/content-proxy-box-renderer.model.dart';
 import '../models/editable-box-renderer.model.dart';
@@ -24,13 +19,7 @@ import '../models/inline-code-style.model.dart';
 import '../models/text-line-slot.enum.dart';
 
 class EditableTextLineRenderer extends EditableBoxRenderer {
-  final _editorConfigState = EditorConfigState();
-  final _cursorControllerState = CursorControllerState();
-  final _editorControllerState = EditorControllerState();
   final _textSelectionUtils = TextSelectionUtils();
-  final _platformStylesState = PlatformStylesState();
-  final _focusNodeState = FocusNodeState();
-  final _cursorState = CursorState();
 
   RenderBox? _leading;
   RenderContentProxyBox? _body;
@@ -48,6 +37,14 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
   final Map<TextLineSlot, RenderBox> children = <TextLineSlot, RenderBox>{};
   late StreamSubscription _cursorStateListener;
 
+  // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
+  // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
+  late EditorState _state;
+
+  void setState(EditorState state) {
+    _state = state;
+  }
+
   // Creates new editable paragraph render box.
   EditableTextLineRenderer({
     required this.line,
@@ -56,8 +53,10 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     required this.devicePixelRatio,
     required this.padding,
     required this.inlineCodeStyle,
+    required EditorState state,
   }) {
-    cursorController = _cursorControllerState.controller;
+    setState(state);
+    cursorController = state.refs.cursorController;
   }
 
   Iterable<RenderBox> get _children sync* {
@@ -85,7 +84,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     _selectedRects = null;
     _containsCursor = null;
     if (attached && containsCursor()) {
-      _cursorStateListener = _cursorState.updateCursor$.listen((_) {
+      _cursorStateListener = _state.cursor.updateCursor$.listen((_) {
         markNeedsLayout();
       });
       cursorController.color.addListener(safeMarkNeedsPaint);
@@ -315,7 +314,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     );
 
     if (containsCursor()) {
-      _cursorStateListener = _cursorState.updateCursor$.listen((_) {
+      _cursorStateListener = _state.cursor.updateCursor$.listen((_) {
         markNeedsLayout();
       });
       cursorController.color.addListener(safeMarkNeedsPaint);
@@ -567,7 +566,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
       }
 
       // Cursor above text (iOS)
-      if (_focusNodeState.node.hasFocus &&
+      if (_state.refs.focusNode.hasFocus &&
           cursorController.show.value &&
           containsCursor() &&
           !cursorController.style.paintAboveText) {
@@ -577,7 +576,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
       context.paintChild(_body!, effectiveOffset);
 
       // Cursor bellow text (Android)
-      if (_focusNodeState.node.hasFocus &&
+      if (_state.refs.focusNode.hasFocus &&
           cursorController.show.value &&
           containsCursor() &&
           cursorController.style.paintAboveText) {
@@ -588,7 +587,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
         textSelection,
       );
 
-      if (_editorConfigState.config.enableInteractiveSelection &&
+      if (_state.editorConfig.config.enableInteractiveSelection &&
           selectionIsWithinDocBounds) {
         final local = _textSelectionUtils.getLocalSelection(
           line,
@@ -600,7 +599,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
       }
 
       // Highlights
-      _editorControllerState.controller.highlights.forEach((highlight) {
+      _state.refs.editorController.highlights.forEach((highlight) {
         final highlightIsWithinDocBounds = _lineContainsSelection(
           highlight.textSelection,
         );
@@ -634,7 +633,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
   ) {
     assert(_selectedRects != null);
 
-    final paint = Paint()..color = _platformStylesState.styles.selectionColor;
+    final paint = Paint()..color = _state.platformStyles.styles.selectionColor;
 
     for (final box in _selectedRects!) {
       context.canvas.drawRect(box.toRect().shift(effectiveOffset), paint);

@@ -4,11 +4,6 @@ import 'package:flutter/services.dart';
 
 // Stores the keystrokes and provides a stream of keystrokes.
 class PressedKeysState {
-  factory PressedKeysState() => _instance;
-  static final _instance = PressedKeysState._privateConstructor();
-
-  PressedKeysState._privateConstructor();
-
   late Set<LogicalKeyboardKey> _pressedKeys;
   bool _metaPressed = false;
   bool _controlPressed = false;

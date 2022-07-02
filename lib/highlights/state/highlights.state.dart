@@ -3,10 +3,6 @@ import 'dart:async';
 import '../models/highlight.model.dart';
 
 class HighlightsState {
-  factory HighlightsState() => _instance;
-  static final _instance = HighlightsState._privateConstructor();
-
-  HighlightsState._privateConstructor();
 
   // === HIGHLIGHTS ===
 

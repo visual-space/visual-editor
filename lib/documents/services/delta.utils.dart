@@ -1,37 +1,18 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
-import '../../documents/models/attribute.model.dart';
-import '../../documents/models/nodes/node.model.dart';
-import '../controllers/delta-iterator.controller.dart';
-import '../models/delta.model.dart';
-
-// Diff between two texts - old text and new text
-class Diff {
-
-  // Start index in old text at which changes begin.
-  final int start;
-
-  // The deleted text
-  final String deleted;
-
-  // The inserted text
-  final String inserted;
-
-  Diff(
-    this.start,
-    this.deleted,
-    this.inserted,
-  );
-
-  @override
-  String toString() {
-    return 'Diff[$start, "$deleted", "$inserted"]';
-  }
-}
+import '../controllers/delta.iterator.dart';
+import '../models/attribute.model.dart';
+import '../models/delta/delta.model.dart';
+import '../models/delta/diff.model.dart';
+import '../models/nodes/node.model.dart';
 
 /* Get diff operation between old text and new text */
-Diff getDiff(String oldText, String newText, int cursorPosition) {
+DiffM getDiff(
+  String oldText,
+  String newText,
+  int cursorPosition,
+) {
   var end = oldText.length;
   final delta = newText.length - end;
 
@@ -48,10 +29,13 @@ Diff getDiff(String oldText, String newText, int cursorPosition) {
   final deleted = (start >= end) ? '' : oldText.substring(start, end);
   final inserted = newText.substring(start, end + delta);
 
-  return Diff(start, deleted, inserted);
+  return DiffM(start, deleted, inserted);
 }
 
-int getPositionDelta(DeltaM user, DeltaM actual) {
+int getPositionDelta(
+  DeltaM user,
+  DeltaM actual,
+) {
   if (actual.isEmpty) {
     return 0;
   }

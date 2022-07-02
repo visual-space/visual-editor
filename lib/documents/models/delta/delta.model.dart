@@ -4,7 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:diff_match_patch/diff_match_patch.dart' as dmp;
 import 'package:quiver/core.dart';
 
-import '../controllers/delta-iterator.controller.dart';
+import '../../controllers/delta.iterator.dart';
 import 'data-decoder.type.dart';
 import 'operation.model.dart';
 

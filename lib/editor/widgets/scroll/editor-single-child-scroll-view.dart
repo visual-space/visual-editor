@@ -1,22 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-import '../../../controller/state/scroll-controller.state.dart';
-import '../../state/editor-config.state.dart';
+import '../../../shared/state/editor.state.dart';
 import 'single-child-viewport.dart';
 
 // Very similar to SingleChildView but with a ViewportBuilder argument instead of a Widget
 // Useful when child needs ViewportOffset (e.g. RenderEditor)
+// ignore: must_be_immutable
 class EditorSingleChildScrollView extends StatelessWidget {
-  final _editorConfigState = EditorConfigState();
-  final _scrollControllerState = ScrollControllerState();
+  // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
+  // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
+  late EditorState _state;
+
+  void setState(EditorState state) {
+    _state = state;
+  }
 
   // Creates a box in which a single widget can be scrolled.
   EditorSingleChildScrollView({
     required this.viewportBuilder,
+    required EditorState state,
     Key? key,
     this.restorationId,
-  }) : super(key: key);
+  }) : super(key: key) {
+    setState(state);
+  }
 
   // {@macro flutter.widgets.scrollable.restorationId}
   final String? restorationId;
@@ -36,8 +44,8 @@ class EditorSingleChildScrollView extends StatelessWidget {
     final axisDirection = _getDirection(context);
     final scrollable = Scrollable(
       axisDirection: axisDirection,
-      controller: _scrollControllerState.controller,
-      physics: _editorConfigState.config.scrollPhysics,
+      controller: _state.refs.scrollController,
+      physics: _state.editorConfig.config.scrollPhysics,
       restorationId: restorationId,
       viewportBuilder: (context, offset) {
         return SingleChildViewport(

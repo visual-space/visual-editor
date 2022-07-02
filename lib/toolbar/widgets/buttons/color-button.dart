@@ -3,32 +3,46 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
-import '../../../controller/services/editor-controller.dart';
+import '../../../controller/controllers/editor-controller.dart';
 import '../../../documents/models/attribute.model.dart';
 import '../../../documents/models/style.model.dart';
 import '../../../documents/models/styling-attributes.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
+import '../../../shared/state/editor-state-receiver.dart';
+import '../../../shared/state/editor.state.dart';
 import '../../../shared/translations/toolbar.i18n.dart';
 import '../../../shared/utils/color.utils.dart';
 import '../toolbar.dart';
 
 // Controls color styles.
 // When pressed, this button displays overlay buttons with buttons for each color.
-class ColorButton extends StatefulWidget {
+// ignore: must_be_immutable
+class ColorButton extends StatefulWidget with EditorStateReceiver {
   final IconData icon;
   final double iconSize;
   final bool background;
   final EditorController controller;
   final EditorIconThemeM? iconTheme;
 
-  const ColorButton({
+  // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
+  // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
+  late EditorState _state;
+
+  @override
+  void setState(EditorState state) {
+    _state = state;
+  }
+
+  ColorButton({
     required this.icon,
     required this.controller,
     required this.background,
     this.iconSize = defaultIconSize,
     this.iconTheme,
     Key? key,
-  }) : super(key: key);
+  }) : super(key: key) {
+    controller.setStateInEditorStateReceiver(this);
+  }
 
   @override
   _ColorButtonState createState() => _ColorButtonState();
@@ -52,7 +66,7 @@ class _ColorButtonState extends State<ColorButton> {
         _selectionStyle.attributes['color']!.value == '#ffffff';
     _isWhiteBackground = _isToggledBackground &&
         _selectionStyle.attributes['background']!.value == '#ffffff';
-    _updateListener = widget.controller.editorState.updateEditor$.listen(
+    _updateListener = widget._state.refreshEditor.updateEditor$.listen(
       (_) => _didChangeEditingValue,
     );
   }

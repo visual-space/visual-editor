@@ -3,6 +3,7 @@ import 'package:flutter/rendering.dart';
 import '../../documents/models/nodes/block.model.dart';
 import '../../editor/widgets/editable-container-box-renderer.dart';
 import '../../selection/services/text-selection.utils.dart';
+import '../../shared/state/editor.state.dart';
 import '../models/editable-box-renderer.model.dart';
 import '../services/lines-blocks.service.dart';
 
@@ -11,12 +12,21 @@ class EditableTextBlockRenderer extends EditableContainerBoxRenderer
   final _linesBlocksService = LinesBlocksService();
   final _textSelectionUtils = TextSelectionUtils();
 
+  // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
+  // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
+  late EditorState _state;
+
+  void setState(EditorState state) {
+    _state = state;
+  }
+
   EditableTextBlockRenderer({
     required BlockM block,
     required TextDirection textDirection,
     required EdgeInsetsGeometry padding,
     required Decoration decoration,
     required bool isCodeBlock,
+    required EditorState state,
     List<EditableBoxRenderer>? children,
   })  : _decoration = decoration,
         _configuration = ImageConfiguration(
@@ -30,6 +40,7 @@ class EditableTextBlockRenderer extends EditableContainerBoxRenderer
             isCodeBlock ? const EdgeInsets.all(16) : EdgeInsets.zero,
           ),
         ) {
+    setState(state);
     _contentPadding = isCodeBlock ? const EdgeInsets.all(16) : EdgeInsets.zero;
   }
 
@@ -64,7 +75,7 @@ class EditableTextBlockRenderer extends EditableContainerBoxRenderer
 
   @override
   TextRange getLineBoundary(TextPosition position) {
-    final child = _linesBlocksService.childAtPosition(position, this);
+    final child = _linesBlocksService.childAtPosition(position, _state, this);
     final rangeInChild = child.getLineBoundary(
       TextPosition(
         offset: position.offset - child.container.offset,
@@ -80,7 +91,7 @@ class EditableTextBlockRenderer extends EditableContainerBoxRenderer
 
   @override
   Offset getOffsetForCaret(TextPosition position) {
-    final child = _linesBlocksService.childAtPosition(position, this);
+    final child = _linesBlocksService.childAtPosition(position, _state, this);
 
     return child.getOffsetForCaret(
           TextPosition(
@@ -93,7 +104,7 @@ class EditableTextBlockRenderer extends EditableContainerBoxRenderer
 
   @override
   TextPosition getPositionForOffset(Offset offset) {
-    final child = _linesBlocksService.childAtOffset(offset, this);
+    final child = _linesBlocksService.childAtOffset(offset, _state, this);
     final parentData = child.parentData as BoxParentData;
     final localPosition = child.getPositionForOffset(
       offset - parentData.offset,
@@ -107,7 +118,7 @@ class EditableTextBlockRenderer extends EditableContainerBoxRenderer
 
   @override
   TextRange getWordBoundary(TextPosition position) {
-    final child = _linesBlocksService.childAtPosition(position, this);
+    final child = _linesBlocksService.childAtPosition(position, _state, this);
     final nodeOffset = child.container.offset;
     final childWord = child.getWordBoundary(
       TextPosition(offset: position.offset - nodeOffset),
@@ -123,7 +134,7 @@ class EditableTextBlockRenderer extends EditableContainerBoxRenderer
   TextPosition? getPositionAbove(TextPosition position) {
     assert(position.offset < container.length);
 
-    final child = _linesBlocksService.childAtPosition(position, this);
+    final child = _linesBlocksService.childAtPosition(position, _state, this);
     final childLocalPosition = TextPosition(
       offset: position.offset - child.container.offset,
     );
@@ -156,7 +167,7 @@ class EditableTextBlockRenderer extends EditableContainerBoxRenderer
   TextPosition? getPositionBelow(TextPosition position) {
     assert(position.offset < container.length);
 
-    final child = _linesBlocksService.childAtPosition(position, this);
+    final child = _linesBlocksService.childAtPosition(position, _state, this);
     final childLocalPosition = TextPosition(
       offset: position.offset - child.container.offset,
     );
@@ -188,7 +199,7 @@ class EditableTextBlockRenderer extends EditableContainerBoxRenderer
 
   @override
   double preferredLineHeight(TextPosition position) {
-    final child = _linesBlocksService.childAtPosition(position, this);
+    final child = _linesBlocksService.childAtPosition(position, _state, this);
 
     return child.preferredLineHeight(
       TextPosition(
@@ -318,7 +329,7 @@ class EditableTextBlockRenderer extends EditableContainerBoxRenderer
 
   @override
   Rect getLocalRectForCaret(TextPosition position) {
-    final child = _linesBlocksService.childAtPosition(position, this);
+    final child = _linesBlocksService.childAtPosition(position, _state, this);
     final localPosition = TextPosition(
       offset: position.offset - child.container.offset,
       affinity: position.affinity,
@@ -343,7 +354,7 @@ class EditableTextBlockRenderer extends EditableContainerBoxRenderer
 
   @override
   Rect getCaretPrototype(TextPosition position) {
-    final child = _linesBlocksService.childAtPosition(position, this);
+    final child = _linesBlocksService.childAtPosition(position, _state, this);
     final localPosition = TextPosition(
       offset: position.offset - child.container.offset,
       affinity: position.affinity,

@@ -1,6 +1,6 @@
 import 'package:flutter/rendering.dart';
 
-import '../../../blocks/models/content-proxy-box-renderer.model.dart';
+import '../../../shared/models/content-proxy-box-renderer.model.dart';
 
 class RenderEmbedProxy extends RenderProxyBox implements RenderContentProxyBox {
   RenderEmbedProxy(RenderBox? child) : super(child);

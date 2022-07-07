@@ -105,14 +105,14 @@ There is only one stream that acts as a signal for all the classes and widgets t
 _state.refreshEditor.refreshEditor();
 
 // Listening for the update signal
-_updateListener = widget._state.refreshEditor.updateEditor$.listen(
+_refreshListener = widget._state.refreshEditor.updateEditor$.listen(
   (_) => _didChangeEditingValue,
 );
 
 // Unsubscribing (when widgets are destroyed)
 @override
 void dispose() {
-  _updateListener.cancel();
+  _refreshListener.cancel();
   super.dispose();
 }
 ```

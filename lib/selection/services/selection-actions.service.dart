@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-import '../../blocks/models/editable-box-renderer.model.dart';
 import '../../blocks/services/lines-blocks.service.dart';
+import '../../shared/models/editable-box-renderer.model.dart';
 import '../../shared/state/editor.state.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../controllers/selection-actions.controller.dart';

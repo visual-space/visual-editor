@@ -1,5 +1,6 @@
 import '../../../documents/controllers/delta.iterator.dart';
 import '../../../documents/models/attribute.model.dart';
+import '../../../documents/models/attributes/attributes.model.dart';
 import '../../../documents/models/delta/delta.model.dart';
 import '../../models/insert-rule.model.dart';
 
@@ -31,25 +32,25 @@ class PreserveInlineStylesRule extends InsertRuleM {
     final attributes = prev.attributes;
     final text = data;
 
-    if (attributes == null || !attributes.containsKey(AttributeM.link.key)) {
+    if (attributes == null || !attributes.containsKey(AttributesM.link.key)) {
       return DeltaM()
         ..retain(index + (len ?? 0))
         ..insert(text, attributes);
     }
 
-    attributes.remove(AttributeM.link.key);
+    attributes.remove(AttributesM.link.key);
     final delta = DeltaM()
       ..retain(index + (len ?? 0))
       ..insert(text, attributes.isEmpty ? null : attributes);
     final next = itr.next();
     final nextAttributes = next.attributes ?? const <String, dynamic>{};
 
-    if (!nextAttributes.containsKey(AttributeM.link.key)) {
+    if (!nextAttributes.containsKey(AttributesM.link.key)) {
       return delta;
     }
 
-    if (attributes[AttributeM.link.key] ==
-        nextAttributes[AttributeM.link.key]) {
+    if (attributes[AttributesM.link.key] ==
+        nextAttributes[AttributesM.link.key]) {
       return DeltaM()
         ..retain(index + (len ?? 0))
         ..insert(text, attributes);

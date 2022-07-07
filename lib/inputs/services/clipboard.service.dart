@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 
 import '../../controller/services/editor-text.service.dart';
 import '../../cursor/services/cursor.service.dart';
+import '../../documents/models/attributes/styling-attributes.dart';
 import '../../documents/models/nodes/block-embed.model.dart';
-import '../../documents/models/styling-attributes.dart';
 import '../../embeds/services/image.utils.dart';
 import '../../selection/services/selection-actions.service.dart';
 import '../../shared/state/editor.state.dart';

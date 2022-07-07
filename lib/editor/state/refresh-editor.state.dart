@@ -6,11 +6,11 @@ import 'dart:async';
 // It's triggered by several text editing operations.
 // Read more here: https://github.com/visual-space/visual-editor/blob/develop/lib/shared/state-store.md
 class RefreshEditorState {
-  final _updateEditor$ = StreamController<void>.broadcast();
+  final _refreshEditor$ = StreamController<void>.broadcast();
 
-  Stream<void> get updateEditor$ => _updateEditor$.stream;
+  Stream<void> get refreshEditor$ => _refreshEditor$.stream;
 
   void refreshEditor() {
-    _updateEditor$.sink.add(null);
+    _refreshEditor$.sink.add(null);
   }
 }

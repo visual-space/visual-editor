@@ -1,10 +1,10 @@
 import 'package:flutter/rendering.dart';
 
 import '../../documents/models/nodes/block.model.dart';
-import '../../editor/widgets/multiline-text-area-renderer.dart';
 import '../../selection/services/text-selection.utils.dart';
+import '../../shared/models/editable-box-renderer.model.dart';
 import '../../shared/state/editor.state.dart';
-import '../models/editable-box-renderer.model.dart';
+import '../../shared/widgets/multiline-text-area-renderer.dart';
 import '../services/lines-blocks.service.dart';
 
 class EditableTextBlockRenderer extends MultilineTextAreaRenderer
@@ -18,30 +18,6 @@ class EditableTextBlockRenderer extends MultilineTextAreaRenderer
 
   void setState(EditorState state) {
     _state = state;
-  }
-
-  EditableTextBlockRenderer({
-    required BlockM block,
-    required TextDirection textDirection,
-    required EdgeInsetsGeometry padding,
-    required Decoration decoration,
-    required bool isCodeBlock,
-    required EditorState state,
-    List<EditableBoxRenderer>? children,
-  })  : _decoration = decoration,
-        _configuration = ImageConfiguration(
-          textDirection: textDirection,
-        ),
-        super(
-          children: children,
-          container: block,
-          textDirection: textDirection,
-          padding: padding.add(
-            isCodeBlock ? const EdgeInsets.all(16) : EdgeInsets.zero,
-          ),
-        ) {
-    setState(state);
-    _contentPadding = isCodeBlock ? const EdgeInsets.all(16) : EdgeInsets.zero;
   }
 
   EdgeInsets _contentPadding = EdgeInsets.zero;
@@ -71,6 +47,30 @@ class EditableTextBlockRenderer extends MultilineTextAreaRenderer
 
     _configuration = value;
     markNeedsPaint();
+  }
+
+  EditableTextBlockRenderer({
+    required BlockM block,
+    required TextDirection textDirection,
+    required EdgeInsetsGeometry padding,
+    required Decoration decoration,
+    required bool isCodeBlock,
+    required EditorState state,
+    List<EditableBoxRenderer>? children,
+  })  : _decoration = decoration,
+        _configuration = ImageConfiguration(
+          textDirection: textDirection,
+        ),
+        super(
+          children: children,
+          container: block,
+          textDirection: textDirection,
+          padding: padding.add(
+            isCodeBlock ? const EdgeInsets.all(16) : EdgeInsets.zero,
+          ),
+        ) {
+    setState(state);
+    _contentPadding = isCodeBlock ? const EdgeInsets.all(16) : EdgeInsets.zero;
   }
 
   @override

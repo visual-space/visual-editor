@@ -1,0 +1,15 @@
+[
+  {
+    "insert": "Lorem",
+    "attributes": {
+      "bold": true,
+      "marker": {
+        "type": "expert",
+        "id": "b53d8d53"
+      }
+    }
+  },
+  {
+    "insert": "ipsum dolor sit amet, consectetur adipiscing elit\n"
+  }
+]

@@ -1,5 +1,6 @@
 import '../../../documents/controllers/delta.iterator.dart';
 import '../../../documents/models/attribute.model.dart';
+import '../../../documents/models/attributes/attributes.model.dart';
 import '../../../documents/models/delta/delta.model.dart';
 import '../../models/format-rule.model.dart';
 
@@ -15,7 +16,7 @@ class FormatLinkAtCaretPositionRule extends FormatRuleM {
     Object? data,
     AttributeM? attribute,
   }) {
-    if (attribute!.key != AttributeM.link.key || len! > 0) {
+    if (attribute!.key != AttributesM.link.key || len! > 0) {
       return null;
     }
 

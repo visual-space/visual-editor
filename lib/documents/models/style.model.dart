@@ -1,10 +1,15 @@
 import 'package:collection/collection.dart';
 import 'package:quiver/core.dart';
 
+import '../services/attribute.utils.dart';
 import 'attribute-scope.enum.dart';
 import 'attribute.model.dart';
+import 'attributes/attributes-types.model.dart';
+import 'attributes/attributes.model.dart';
+import 'attributes/styling-attributes.dart';
 
 // Collection of style attributes
+// TODO Improve doc
 class StyleM {
   StyleM() : _attributes = <String, AttributeM>{};
 
@@ -18,13 +23,20 @@ class StyleM {
     }
 
     final result = attributes.map((key, dynamic value) {
-      final attr = AttributeM.fromKeyValue(key, value);
+      final attr = AttributeUtils.fromKeyValue(key, value);
+
+      if (key == AttributesM.marker.key) {
+        final key = value.values.toList()[0];
+        final id = value.values.toList()[1];
+        value = MarkerAttributeValueM(key, id);
+      }
 
       return MapEntry<String, AttributeM>(
         key,
         attr ?? AttributeM(key, AttributeScope.IGNORE, value),
       );
     });
+
     return StyleM.attr(result);
   }
 
@@ -40,7 +52,9 @@ class StyleM {
   Iterable<String> get keys => _attributes.keys;
 
   Iterable<AttributeM> get values => _attributes.values.sorted(
-        (a, b) => AttributeM.getRegistryOrder(a) - AttributeM.getRegistryOrder(b),
+        (a, b) =>
+            AttributeUtils.getRegistryOrder(a) -
+            AttributeUtils.getRegistryOrder(b),
       );
 
   Map<String, AttributeM> get attributes => _attributes;
@@ -81,7 +95,7 @@ class StyleM {
     final m = <String, AttributeM>{};
 
     attributes.forEach((key, value) {
-      if (AttributeM.blockKeysExceptHeader.contains(key)) {
+      if (AttributesTypesM.blockKeysExceptHeader.contains(key)) {
         m[key] = value;
       }
     });
@@ -120,6 +134,7 @@ class StyleM {
   StyleM put(AttributeM attribute) {
     final m = Map<String, AttributeM>.from(attributes);
     m[attribute.key] = attribute;
+
     return StyleM.attr(m);
   }
 

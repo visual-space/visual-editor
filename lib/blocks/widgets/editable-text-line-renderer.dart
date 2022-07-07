@@ -5,16 +5,16 @@ import 'package:flutter/rendering.dart';
 
 import '../../cursor/controllers/cursor.controller.dart';
 import '../../cursor/widgets/cursor-painter.dart';
-import '../../documents/models/attribute.model.dart';
+import '../../documents/models/attributes/attributes.model.dart';
 import '../../documents/models/nodes/container.model.dart' as container_node;
 import '../../documents/models/nodes/line.model.dart';
 import '../../documents/models/nodes/text.model.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../selection/services/text-selection.utils.dart';
+import '../../shared/models/content-proxy-box-renderer.model.dart';
+import '../../shared/models/editable-box-renderer.model.dart';
 import '../../shared/state/editor.state.dart';
 import '../../shared/utils/platform.utils.dart';
-import '../models/content-proxy-box-renderer.model.dart';
-import '../models/editable-box-renderer.model.dart';
 import '../models/inline-code-style.model.dart';
 import '../models/text-line-slot.enum.dart';
 
@@ -529,7 +529,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
         for (final item in line.children) {
           if (item is! TextM ||
               !item.style.containsKey(
-                AttributeM.inlineCode.key,
+                AttributesM.inlineCode.key,
               )) {
             continue;
           }
@@ -601,7 +601,8 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
       }
 
       // Highlights
-      _state.refs.editorController.highlights.forEach((highlight) {
+      // _state.refs.editorController.highlights.forEach((highlight) {
+      _state.highlights.highlights.forEach((highlight) {
         final highlightIsWithinDocBounds = _lineContainsSelection(
           highlight.textSelection,
         );

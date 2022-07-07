@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../documents/models/attribute.model.dart';
+import '../../documents/models/attributes/attributes-aliases.model.dart';
 import '../../documents/models/style.model.dart';
 
 // Theme data for inline code.
@@ -34,13 +34,13 @@ class InlineCodeStyle {
 
   // Returns effective style to use for inline code for the specified lineStyle.
   TextStyle styleFor(StyleM lineStyle) {
-    if (lineStyle.containsKey(AttributeM.h1.key)) {
+    if (lineStyle.containsKey(AttributesAliasesM.h1.key)) {
       return header1 ?? style;
     }
-    if (lineStyle.containsKey(AttributeM.h2.key)) {
+    if (lineStyle.containsKey(AttributesAliasesM.h2.key)) {
       return header2 ?? style;
     }
-    if (lineStyle.containsKey(AttributeM.h3.key)) {
+    if (lineStyle.containsKey(AttributesAliasesM.h3.key)) {
       return header3 ?? style;
     }
     return style;

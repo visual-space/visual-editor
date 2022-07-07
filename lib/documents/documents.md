@@ -1,8 +1,7 @@
 # Documents (WIP)
 
 ## Delta
-
-Deltas are a simple, yet expressive format that can be used to describe contents and changes. The format is JSON based, and is human readable, yet easily parsable by machines. Deltas can describe any rich text document, includes all text and formatting information, without the ambiguity and complexity of HTML.
+Delta is a simple, yet expressive format that can be used to describe contents and changes. The format is JSON based, and is human readable, yet easily parsable by machines. Deltas can describe any rich text document, includes all text and formatting information, without the ambiguity and complexity of HTML.
 
 A Delta is made up of an [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) of Operations, which describe changes to a document. They can be an [`insert`](#insert-operation), [`delete`](#delete-operation) or [`retain`](#retain-operation). Note operations do not take an index. They always describe the change at the current index. Use retains to "keep" or "skip" certain parts of the document.
 
@@ -42,8 +41,86 @@ const restored = delta.compose(death);
 //     { insert: 'White', attributes: { color: '#fff' } }
 //   ]
 // }
-
 ```
+
+## Attributes (WIP)
+Attributes defined the characteristics of text. The delta document stores attributes for each operation.
+
+**Attribute Types:**
+
+- **Inline Keys**: bold, italic, small, underline, strikeThrough, link, color, background, placeholder,
+- **Block Keys**: header, align, list, codeBlock, blockQuote, indent, direction,
+- **Block Keys Except Header**: list, align, codeBlock, blockQuote, indent, direction,
+- **Exclusive Block Keys**: header, list, codeBlock, blockQuote, 
+
+**Attribute Scopes**
+
+- **Inline** - refer to https://quilljs.com/docs/formats/#inline
+- **Block**, - refer to https://quilljs.com/docs/formats/#block
+- **Embeds**, - refer to https://quilljs.com/docs/formats/#embeds
+- **Ignore**, - attributes that can be ignored
+
+**Defining New Attributes (WIP)**
+
+## Text Lines, Text Blocks (WIP)
+
+## How Rendering Works (WIP)
+
+- How TextLine works,
+- How Styles are applied to Text spans,
+- How embeds are rendered
+
+## Conversion From JSON (WIP)
+
+- **DeltaM** -
+- **OperationM** -
+
+## Encoding (WIP)
+Delta json files are converted to in-memory representation as classes.
+
+TODO Document these:
+
+- **DocumentM** - 
+  - **fromJson()** - 
+  - **fromDelta()** - 
+  - **root** - 
+  - **toDelta()** - 
+  - **setCustomRules()** - 
+  - **setCustomRules()** - 
+  - **hasUndo** - 
+  - **hasRedo** - 
+  - **changes** - 
+  - **insert()** - 
+  - **delete()** - 
+  - **replace()** - 
+  - **format()** - 
+  - **compose()** - 
+  - **undo()** - 
+  - **redo()** - 
+  - **toPlainText()** - 
+  - **getPlainText()** - 
+  - **queryChild()** - 
+  - **querySegmentLeafNode()** - 
+- **DeltaM** - 
+- **RootM** - 
+- **ContainerM** - 
+- **NodeM** - 
+- **LineM** - 
+- **TextM** - 
+- **LeafM** - 
+- **OperationM** - 
+- **StyleM** - 
+- **NodeM** - 
+- **EmbeddableM** - 
+
+- **insert** -
+- **delete** -
+- **retain** -
+
+## History (WIP)
+
+## Conversion To Other Data Formats (WIP)
+Not yet implemented.
 
 **Read the full article about the delta format:**
 - https://github.com/quilljs/delta

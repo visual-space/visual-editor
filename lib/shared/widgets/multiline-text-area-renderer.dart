@@ -2,8 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/rendering.dart';
 
-import '../../blocks/models/editable-box-renderer.model.dart';
 import '../../documents/models/nodes/container.model.dart';
+import '../models/editable-box-renderer.model.dart';
 
 class EditableContainerParentData
     extends ContainerBoxParentData<EditableBoxRenderer> {}

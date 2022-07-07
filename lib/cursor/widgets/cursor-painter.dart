@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import '../../blocks/models/content-proxy-box-renderer.model.dart';
+import '../../shared/models/content-proxy-box-renderer.model.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../models/cursor-style.model.dart';
 

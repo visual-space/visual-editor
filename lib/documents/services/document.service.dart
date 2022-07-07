@@ -7,12 +7,13 @@ import '../../blocks/services/lines-blocks.service.dart';
 import '../../blocks/widgets/editable-text-block.dart';
 import '../../shared/state/editor.state.dart';
 import '../models/attribute.model.dart';
+import '../models/attributes/attributes.model.dart';
 import '../models/document.model.dart';
 import '../models/nodes/block.model.dart';
 import '../models/nodes/line.model.dart';
 import 'delta.utils.dart';
 
-// TODO Convert to widget
+// Provides the building blocks of a document (text spans).
 class DocumentService {
   final _linesBlocksService = LinesBlocksService();
 
@@ -84,7 +85,7 @@ class DocumentService {
 
   Widget _editableTextBlock(
     BlockM node,
-    Map<String, AttributeM<dynamic>> attrs,
+    Map<String, AttributeM<dynamic>> attributes,
     Map<int, int> indentLevelCounts,
     EditorState state,
   ) {
@@ -100,7 +101,7 @@ class DocumentService {
       textSelection: state.refs.editorController.selection,
       styles: state.styles.styles,
       hasFocus: state.refs.focusNode.hasFocus,
-      isCodeBlock: attrs.containsKey(AttributeM.codeBlock.key),
+      isCodeBlock: attributes.containsKey(AttributesM.codeBlock.key),
       linkActionPicker: _linesBlocksService.linkActionPicker,
       indentLevelCounts: indentLevelCounts,
       onCheckboxTap: (offset, value) => _linesBlocksService.handleCheckboxTap(

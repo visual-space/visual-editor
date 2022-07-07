@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:string_validator/string_validator.dart';
 
 import '../../controller/controllers/editor-controller.dart';
-import '../../documents/models/attribute.model.dart';
+import '../../documents/models/attributes/attributes.model.dart';
 import '../../documents/models/nodes/embed.model.dart';
 import '../../documents/models/style.model.dart';
 import '../const/image-file-extensions.const.dart';
@@ -33,9 +33,9 @@ ImageNodeM getImageNode(EditorController controller, int offset) {
 String getImageStyleString(EditorController controller) {
   final String? s = controller
       .getAllSelectionStyles()
-      .firstWhere((s) => s.attributes.containsKey(AttributeM.style.key),
+      .firstWhere((s) => s.attributes.containsKey(AttributesM.style.key),
           orElse: () => StyleM())
-      .attributes[AttributeM.style.key]
+      .attributes[AttributesM.style.key]
       ?.value;
   return s ?? '';
 }

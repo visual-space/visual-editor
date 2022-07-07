@@ -8,19 +8,26 @@ class NavMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _divider(size),
-        for (final link in NAV_MENU) ...[
-          _navOption(
-            title: link.title,
-            route: link.route,
-            context: context,
-          ),
-          _divider(size),
-        ],
-      ],
+    return Container(
+      height: double.infinity,
+      padding: EdgeInsets.fromLTRB(10, 90, 10, 90),
+      child: SingleChildScrollView(
+        controller: ScrollController(),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _divider(size),
+            for (final link in NAV_MENU) ...[
+              _navOption(
+                title: link.title,
+                route: link.route,
+                context: context,
+              ),
+              _divider(size),
+            ],
+          ],
+        ),
+      ),
     );
   }
 
@@ -51,7 +58,7 @@ class NavMenu extends StatelessWidget {
   Widget _divider(Size size) => Divider(
         thickness: 2,
         color: Colors.white.withOpacity(0.1),
-        indent: size.width * 0.1,
-        endIndent: size.width * 0.1,
+        // indent: size.width * 0.1,
+        // endIndent: size.width * 0.1,
       );
 }

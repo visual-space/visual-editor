@@ -4,17 +4,6 @@ Renders temporary text markers sensitive to taps. Highlights can be added and re
 ## Data Model
 **highlight.model.dart**
 ```dart
-import 'package:flutter/material.dart';
-import '../../../visual_editor.dart';
-
-const _DEFAULT_HIGHLIGHT_COLOR = Color.fromRGBO(0xFF, 0xC1, 0x17, .3);
-const _HOVERED_HIGHLIGHT_COLOR = Color.fromRGBO(0xFF, 0xC1, 0x17, .5);
-
-// Highlights can be provided to the EditorController.
-// The highlights are dynamic and can be changed at runtime.
-// If you need static highlights you can use the foreground color option.
-// Highlights can be hovered.
-// Callbacks can be defined to react to hovering and tapping.
 @immutable
 class HighlightM {
   final TextSelection textSelection;
@@ -68,25 +57,6 @@ final _controller = EditorController(
   document: doc,
   highlights: SAMPLE_HIGHLIGHTS,
 );
-```
-
-## Storing Highlights in The Delta Document
-We did not implement a custom attribute to store the ids of the highlights. We leave this choice to the client developer. The delta text format can be extended with arbitrary attributes. Use whatever attribute works for you and parse the delta documents to extract teh highlights before providing it to the the EditorController. Thought this could be subject to change depending on the initial feedback.
-
-**Example**
-```json
-[
-  {
-    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-  },
-  {
-    "attributes": {
-      "header": 1
-    },
-    "insert": "\n",
-    "highlightId": "uuid"
-  }
-]
 ```
 
 Join on [discord](https://discord.gg/XpGygmXde4) to get advice and help or follow us on [YouTube Visual Coding](https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA) to learn more about the architecture of Visual Editor and other Flutter apps.

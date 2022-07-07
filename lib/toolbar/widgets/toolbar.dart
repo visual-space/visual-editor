@@ -2,17 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:i18n_extension/i18n_widget.dart';
 
 import '../../controller/controllers/editor-controller.dart';
-import '../../documents/models/attribute.model.dart';
+import '../../documents/models/attributes/attributes-aliases.model.dart';
+import '../../documents/models/attributes/attributes.model.dart';
 import '../../shared/models/editor-dialog-theme.model.dart';
 import '../../shared/models/editor-icon-theme.model.dart';
 import '../../shared/widgets/arrow-scrollable-button-list.dart';
 import '../../shared/widgets/quill-icon-button.dart';
 import '../models/editor-custom-icon.dart';
+import '../models/font-sizes.const.dart';
 import '../models/media-picker.type.dart';
 import 'buttons/camera-button.dart';
 import 'buttons/clear-format-button.dart';
 import 'buttons/color-button.dart';
-import 'buttons/dropdown-button.dart';
 import 'buttons/history-button.dart';
 import 'buttons/image-button.dart';
 import 'buttons/indent-button.dart';
@@ -22,6 +23,8 @@ import 'buttons/select-header-style-button.dart';
 import 'buttons/toggle-check-list-button.dart';
 import 'buttons/toggle-style-button.dart';
 import 'buttons/video-button.dart';
+import 'dropdowns/markers-dropdown.dart';
+import 'dropdowns/sizes-dropdown.dart';
 
 export '../../embeds/services/image-video.utils.dart';
 export '../../shared/widgets/quill-icon-button.dart';
@@ -96,6 +99,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
     WrapAlignment toolbarIconAlignment = WrapAlignment.center,
     bool showDividers = true,
     bool showFontSize = true,
+    bool showMarkers = true,
     bool showBoldButton = true,
     bool showItalicButton = true,
     bool showSmallButton = false,
@@ -173,20 +177,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
     ];
 
     // Default font size values
-    final fontSizes = fontSizeValues ??
-        {
-          'Default': 0,
-          '10': 10,
-          '12': 12,
-          '14': 14,
-          '16': 16,
-          '18': 18,
-          '20': 20,
-          '24': 24,
-          '28': 28,
-          '32': 32,
-          '48': 48
-        };
+    final fontSizes = fontSizeValues ?? FONT_SIZES;
 
     return EditorToolbar(
       key: key,
@@ -214,38 +205,23 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
             iconTheme: iconTheme,
           ),
         if (showFontSize)
-          DropdownBtn(
-            iconTheme: iconTheme,
-            iconSize: toolbarIconSize,
-            attribute: AttributeM.size,
+          SizesDropdown(
+            fontSizes: fontSizes,
             controller: controller,
-            items: [
-              for (MapEntry<String, int> fontSize in fontSizes.entries)
-                PopupMenuItem<int>(
-                  key: ValueKey(fontSize.key),
-                  value: fontSize.value,
-                  child: Text(fontSize.key.toString()),
-                ),
-            ],
-            onSelected: (newSize) {
-              if ((newSize != null) && (newSize as int > 0)) {
-                controller
-                    .formatSelection(AttributeM.fromKeyValue('size', newSize));
-              }
-              if (newSize as int == 0) {
-                controller
-                    .formatSelection(AttributeM.fromKeyValue('size', null));
-              }
-            },
-            rawitemsmap: fontSizes,
-            initialValue: (initialFontSizeValue != null) &&
-                    (initialFontSizeValue <= fontSizes.length - 1)
-                ? initialFontSizeValue
-                : 0,
+            toolbarIconSize: toolbarIconSize,
+            iconTheme: iconTheme,
+            initialFontSizeValue: initialFontSizeValue ?? 11,
+          ),
+        if (showMarkers)
+          MarkersDropdown(
+            markers: [],
+            controller: controller,
+            toolbarIconSize: toolbarIconSize,
+            iconTheme: iconTheme,
           ),
         if (showBoldButton)
           ToggleStyleButton(
-            attribute: AttributeM.bold,
+            attribute: AttributesM.bold,
             icon: Icons.format_bold,
             iconSize: toolbarIconSize,
             controller: controller,
@@ -253,7 +229,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
           ),
         if (showItalicButton)
           ToggleStyleButton(
-            attribute: AttributeM.italic,
+            attribute: AttributesM.italic,
             icon: Icons.format_italic,
             iconSize: toolbarIconSize,
             controller: controller,
@@ -261,7 +237,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
           ),
         if (showSmallButton)
           ToggleStyleButton(
-            attribute: AttributeM.small,
+            attribute: AttributesM.small,
             icon: Icons.format_size,
             iconSize: toolbarIconSize,
             controller: controller,
@@ -269,7 +245,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
           ),
         if (showUnderLineButton)
           ToggleStyleButton(
-            attribute: AttributeM.underline,
+            attribute: AttributesM.underline,
             icon: Icons.format_underline,
             iconSize: toolbarIconSize,
             controller: controller,
@@ -277,7 +253,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
           ),
         if (showStrikeThrough)
           ToggleStyleButton(
-            attribute: AttributeM.strikeThrough,
+            attribute: AttributesM.strikeThrough,
             icon: Icons.format_strikethrough,
             iconSize: toolbarIconSize,
             controller: controller,
@@ -285,7 +261,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
           ),
         if (showInlineCode)
           ToggleStyleButton(
-            attribute: AttributeM.inlineCode,
+            attribute: AttributesM.inlineCode,
             icon: Icons.code,
             iconSize: toolbarIconSize,
             controller: controller,
@@ -375,7 +351,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
           ),
         if (showDirection)
           ToggleStyleButton(
-            attribute: AttributeM.rtl,
+            attribute: AttributesAliasesM.rtl,
             controller: controller,
             icon: Icons.format_textdirection_r_to_l,
             iconSize: toolbarIconSize,
@@ -411,7 +387,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
           ),
         if (showListNumbers)
           ToggleStyleButton(
-            attribute: AttributeM.ol,
+            attribute: AttributesAliasesM.ol,
             controller: controller,
             icon: Icons.format_list_numbered,
             iconSize: toolbarIconSize,
@@ -419,7 +395,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
           ),
         if (showListBullets)
           ToggleStyleButton(
-            attribute: AttributeM.ul,
+            attribute: AttributesAliasesM.ul,
             controller: controller,
             icon: Icons.format_list_bulleted,
             iconSize: toolbarIconSize,
@@ -427,7 +403,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
           ),
         if (showListCheck)
           ToggleCheckListButton(
-            attribute: AttributeM.unchecked,
+            attribute: AttributesAliasesM.unchecked,
             controller: controller,
             icon: Icons.check_box,
             iconSize: toolbarIconSize,
@@ -435,7 +411,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
           ),
         if (showCodeBlock)
           ToggleStyleButton(
-            attribute: AttributeM.codeBlock,
+            attribute: AttributesM.codeBlock,
             controller: controller,
             icon: Icons.code,
             iconSize: toolbarIconSize,
@@ -451,7 +427,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
           ),
         if (showQuote)
           ToggleStyleButton(
-            attribute: AttributeM.blockQuote,
+            attribute: AttributesM.blockQuote,
             controller: controller,
             icon: Icons.format_quote,
             iconSize: toolbarIconSize,

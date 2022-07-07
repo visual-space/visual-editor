@@ -132,8 +132,10 @@ Learn more about Visual Editor architecture and how to use the features.
 - **[Rules (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/rules/rules.md)** - Rules execute behavior when certain condition are met.
 - **[Selection (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/selection/selection.md)** - Rules execute behavior when certain condition are met.
 - **[Highlights](https://github.com/visual-space/visual-editor/blob/develop/lib/highlights/highlights.md)** - Renders temporary text markers sensitive to taps.
+- **[Markers](https://github.com/visual-space/visual-editor/blob/develop/lib/markers/markers.md)** - Renders permanent text markers sensitive to taps as part of the delta document.
 - **[Performance](https://github.com/visual-space/visual-editor/blob/develop/PERFORMANCE.md)** - Basic tips to follow in order to maintain the editor's performance.
 - **[Migration](https://github.com/visual-space/visual-editor/blob/develop/MIGRATING.md)** - A simple guide with instructions to migrate from Flutter Quill.
+- **[Changelog](https://github.com/visual-space/visual-editor/blob/develop/CHANGELOG.md)** - Journal of changes made to the visual editor.
   
 **For Contributors:**
 
@@ -148,12 +150,12 @@ Learn more about Visual Editor architecture and how to use the features.
 Send us a message on [Visual Editor Discord] if you want your app to be listed here.
 
 ## Useful Resources
-[Word Processing Terminology 1](http://w.sunybroome.edu/basic-computer-skills/functions/word_processing/2wp_terminology.html) • 
-[Word Processing Terminology 2](https://www.computerhope.com/jargon/word-processor.htm) •
 [QuillJs Delta](https://github.com/quilljs/delta) •
 [Designing The Delta Format](https://quilljs.com/guides/designing-the-delta-format) •
 [Language Tool](https://languagetool.org) •
-[Language Server Protocol](https://microsoft.github.io/language-server-protocol)
+[Language Server Protocol](https://microsoft.github.io/language-server-protocol) •
+[Word Processing Terminology 1](http://w.sunybroome.edu/basic-computer-skills/functions/word_processing/2wp_terminology.html) • 
+[Word Processing Terminology 2](https://www.computerhope.com/jargon/word-processor.htm)
 
 [Quill]: https://quilljs.com/docs/formats
 [Quilljs Delta]: https://github.com/quilljs/delta

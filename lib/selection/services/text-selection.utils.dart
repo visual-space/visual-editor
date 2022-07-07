@@ -5,8 +5,8 @@ import 'package:flutter/rendering.dart';
 
 import '../../blocks/services/lines-blocks.service.dart';
 import '../../documents/models/nodes/node.model.dart';
-import '../../editor/widgets/multiline-text-area-renderer.dart';
 import '../../shared/state/editor.state.dart';
+import '../../shared/widgets/multiline-text-area-renderer.dart';
 
 class TextSelectionUtils {
   final _linesBlocksService = LinesBlocksService();

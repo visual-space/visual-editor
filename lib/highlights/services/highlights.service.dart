@@ -34,14 +34,14 @@ class HighlightsService {
       final wasHovered = _prevHoveredHighlights.contains(highlight);
 
       if (isHovered) {
-        state.highlights.addHoveredHighlight(highlight);
+        state.highlights.hoverHighlight(highlight);
 
         if (!wasHovered && highlight.onEnter != null) {
           highlight.onEnter!(highlight);
 
           // Only once at enter to avoid performance issues
           // Could be further improved if multiple highlights overlap
-          state.highlights.setHoveredHighlights([highlight]);
+          state.highlights.hoverHighlight(highlight);
         }
 
         if (highlight.onHover != null) {
@@ -52,7 +52,7 @@ class HighlightsService {
           highlight.onLeave!(highlight);
 
           // Only once at exit to avoid performance issues
-          state.highlights.removeHoveredHighlights([highlight]);
+          state.highlights.exitHighlight(highlight);
         }
       }
     });

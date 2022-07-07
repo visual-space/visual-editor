@@ -1,7 +1,8 @@
 import '../../../documents/controllers/delta.iterator.dart';
 import '../../../documents/models/attribute.model.dart';
+import '../../../documents/models/attributes/attributes.model.dart';
+import '../../../documents/models/attributes/styling-attributes.dart';
 import '../../../documents/models/delta/delta.model.dart';
-import '../../../documents/models/styling-attributes.dart';
 import '../../models/insert-rule.model.dart';
 
 // Applies link format to text segment (which looks like a link) when user inserts space character after it.
@@ -37,7 +38,7 @@ class AutoFormatLinksRule extends InsertRuleM {
 
       final attributes = prev.attributes ?? <String, dynamic>{};
 
-      if (attributes.containsKey(AttributeM.link.key)) {
+      if (attributes.containsKey(AttributesM.link.key)) {
         return null;
       }
 

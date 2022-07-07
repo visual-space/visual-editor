@@ -1,5 +1,9 @@
-import 'attribute-scope.enum.dart';
-import 'attribute.model.dart';
+import '../attribute-scope.enum.dart';
+import '../attribute.model.dart';
+import 'marker.model.dart';
+
+// Using the AttributeM model class we are predefining the rich text attributes to be used in the editor.
+// Additional attributes need to be defined here when implementing new text features.
 
 class BoldAttributeM extends AttributeM<bool> {
   BoldAttributeM() : super('bold', AttributeScope.INLINE, true);
@@ -26,29 +30,36 @@ class InlineCodeAttributeM extends AttributeM<bool> {
 }
 
 class FontAttributeM extends AttributeM<String?> {
-  FontAttributeM(String? val) : super('font', AttributeScope.INLINE, val);
+  FontAttributeM(String? value) : super('font', AttributeScope.INLINE, value);
 }
 
 class SizeAttributeM extends AttributeM<String?> {
-  SizeAttributeM(String? val) : super('size', AttributeScope.INLINE, val);
+  SizeAttributeM(String? value) : super('size', AttributeScope.INLINE, value);
 }
 
 class LinkAttributeM extends AttributeM<String?> {
-  LinkAttributeM(String? val) : super('link', AttributeScope.INLINE, val);
+  LinkAttributeM(String? value) : super('link', AttributeScope.INLINE, value);
 }
 
 class ColorAttributeM extends AttributeM<String?> {
-  ColorAttributeM(String? val) : super('color', AttributeScope.INLINE, val);
+  ColorAttributeM(String? value) : super('color', AttributeScope.INLINE, value);
 }
 
 class BackgroundAttributeM extends AttributeM<String?> {
-  BackgroundAttributeM(String? val)
-      : super('background', AttributeScope.INLINE, val);
+  BackgroundAttributeM(String? value)
+      : super('background', AttributeScope.INLINE, value);
 }
 
-// This is custom attribute for hint
+// Displays the placeholder text when no content is available.
 class PlaceholderAttributeM extends AttributeM<bool> {
   PlaceholderAttributeM() : super('placeholder', AttributeScope.INLINE, true);
+}
+
+// On one attribute we can have multiple markers each one with a different id.
+// Multiple markers of the same type can be used per attribute.
+class MarkersAttributeM extends AttributeM<List<MarkerM>?> {
+  MarkersAttributeM(List<MarkerM>? markers)
+      : super('markers', AttributeScope.INLINE, markers);
 }
 
 class HeaderAttributeM extends AttributeM<int?> {
@@ -60,11 +71,11 @@ class IndentAttributeM extends AttributeM<int?> {
 }
 
 class AlignAttributeM extends AttributeM<String?> {
-  AlignAttributeM(String? val) : super('align', AttributeScope.BLOCK, val);
+  AlignAttributeM(String? value) : super('align', AttributeScope.BLOCK, value);
 }
 
 class ListAttributeM extends AttributeM<String?> {
-  ListAttributeM(String? val) : super('list', AttributeScope.BLOCK, val);
+  ListAttributeM(String? value) : super('list', AttributeScope.BLOCK, value);
 }
 
 class CodeBlockAttributeM extends AttributeM<bool> {
@@ -76,27 +87,29 @@ class BlockQuoteAttributeM extends AttributeM<bool> {
 }
 
 class DirectionAttributeM extends AttributeM<String?> {
-  DirectionAttributeM(String? val)
-      : super('direction', AttributeScope.BLOCK, val);
+  DirectionAttributeM(String? value)
+      : super('direction', AttributeScope.BLOCK, value);
 }
 
 class WidthAttributeM extends AttributeM<String?> {
-  WidthAttributeM(String? val) : super('width', AttributeScope.IGNORE, val);
+  WidthAttributeM(String? value) : super('width', AttributeScope.IGNORE, value);
 }
 
 class HeightAttributeM extends AttributeM<String?> {
-  HeightAttributeM(String? val) : super('height', AttributeScope.IGNORE, val);
+  HeightAttributeM(String? value)
+      : super('height', AttributeScope.IGNORE, value);
 }
 
 class StyleAttributeM extends AttributeM<String?> {
-  StyleAttributeM(String? val) : super('style', AttributeScope.IGNORE, val);
+  StyleAttributeM(String? value) : super('style', AttributeScope.IGNORE, value);
 }
 
 class TokenAttributeM extends AttributeM<String> {
-  TokenAttributeM(String val) : super('token', AttributeScope.IGNORE, val);
+  TokenAttributeM(String value) : super('token', AttributeScope.IGNORE, value);
 }
 
-// `script` is supposed to be inline attribute but it is not supported yet
+// `script` is supposed to be inline attribute but it is not supported yet (subscript, superscript)
 class ScriptAttributeM extends AttributeM<String> {
-  ScriptAttributeM(String val) : super('script', AttributeScope.IGNORE, val);
+  ScriptAttributeM(String value)
+      : super('script', AttributeScope.IGNORE, value);
 }

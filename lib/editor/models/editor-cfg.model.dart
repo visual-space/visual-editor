@@ -123,7 +123,7 @@ class EditorConfigM {
   // Custom embeds don't work as editable text, they are standalone blocks of content that have their own internal behaviour.
   final EmbedBuilder? embedBuilder;
 
-  // Styles can be provided to customize the look and feel of the Visual Editor.
+  // Styles can be provided to customize the look and feel of the Visual Editor using custom attributes.
   final CustomStyleBuilder? customStyleBuilder;
 
   // The locale to use for the editor buttons, defaults to system locale.

@@ -9,6 +9,7 @@ import '../../editor/state/styles.state.dart';
 import '../../highlights/state/highlights.state.dart';
 import '../../inputs/state/keyboard-visible.state.dart';
 import '../../inputs/state/pressed-keys.state.dart';
+import '../../markers/state/markers-types.state.dart';
 import '../../selection/state/extend-selection.state.dart';
 import '../../selection/state/last-tap-down.state.dart';
 import '../../selection/state/selection-layers.state.dart';
@@ -24,6 +25,7 @@ import 'references.state.dart';
 // However the issue with the prev design was that multiple instances were sharing the same state.
 // With the current pattern we still have to drill down props, but it's far easier to follow the line.
 // Read more here: https://github.com/visual-space/visual-editor/blob/develop/lib/shared/state-store.md
+
 class EditorState {
   // Controller
   final paste = PasteState();
@@ -47,6 +49,9 @@ class EditorState {
   // Inputs
   final keyboardVisible = KeyboardVisibleState();
   final pressedKeys = PressedKeysState();
+
+  // Markers
+  final markersTypes = MarkersTypesState();
 
   // Selections
   final extendSelection = ExtendSelectionState();

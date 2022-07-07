@@ -5,7 +5,7 @@ import '../../shared/state/editor.state.dart';
 import '../models/vertical-spacing.model.dart';
 import '../services/styles.utils.dart';
 import 'editable-text-line-renderer.dart';
-import 'text-line-element-renderer.dart';
+import 'text-line-renderer.dart';
 
 // ignore: must_be_immutable
 class EditableTextLine extends RenderObjectWidget {
@@ -44,7 +44,7 @@ class EditableTextLine extends RenderObjectWidget {
 
   @override
   RenderObjectElement createElement() {
-    return TextLineElementRenderer(this);
+    return TextLineRenderer(this);
   }
 
   @override

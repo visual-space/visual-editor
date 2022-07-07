@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../../documents/models/attributes/attributes-aliases.model.dart';
+import '../../documents/models/attributes/attributes.model.dart';
 import '../../documents/models/change-source.enum.dart';
 import '../../documents/models/nodes/block.model.dart';
 import '../../documents/models/nodes/line.model.dart';
 import '../../documents/models/nodes/node.model.dart';
+import '../../shared/models/editable-box-renderer.model.dart';
 import '../../shared/state/editor.state.dart';
 import '../../visual-editor.dart';
-import '../models/editable-box-renderer.model.dart';
 import '../models/link-action-menu.enum.dart';
 import '../models/vertical-spacing.model.dart';
 import '../widgets/editable-text-block-renderer.dart';
@@ -56,15 +58,16 @@ class LinesBlocksService {
   void handleCheckboxTap(int offset, bool value, EditorState state) {
     if (!state.editorConfig.config.readOnly) {
       state.scrollAnimation.disableAnimationOnce(true);
-      final attribute = value ? AttributeM.checked : AttributeM.unchecked;
+      final attribute =
+          value ? AttributesAliasesM.checked : AttributesAliasesM.unchecked;
 
       state.refs.editorController.formatText(offset, 0, attribute);
 
       // Checkbox tapping causes controller.selection to go to offset 0.
       // Stop toggling those two buttons buttons.
       state.refs.editorController.toolbarButtonToggler = {
-        AttributeM.list.key: attribute,
-        AttributeM.header.key: AttributeM.header
+        AttributesM.list.key: attribute,
+        AttributesM.header.key: AttributesM.header
       };
 
       // Go back from offset 0 to current selection.
@@ -79,7 +82,7 @@ class LinesBlocksService {
 
   Future<LinkMenuAction> linkActionPicker(
       NodeM linkNode, EditorState state) async {
-    final link = linkNode.style.attributes[AttributeM.link.key]!.value!;
+    final link = linkNode.style.attributes[AttributesM.link.key]!.value!;
     final linkDelegate = state.editorConfig.config.linkActionPickerDelegate ??
         defaultLinkActionPickerDelegate;
 
@@ -198,15 +201,15 @@ class LinesBlocksService {
   ) {
     final attrs = node.style.attributes;
 
-    if (attrs.containsKey(AttributeM.blockQuote.key)) {
+    if (attrs.containsKey(AttributesM.blockQuote.key)) {
       return defaultStyles!.quote!.verticalSpacing;
-    } else if (attrs.containsKey(AttributeM.codeBlock.key)) {
+    } else if (attrs.containsKey(AttributesM.codeBlock.key)) {
       return defaultStyles!.code!.verticalSpacing;
-    } else if (attrs.containsKey(AttributeM.indent.key)) {
+    } else if (attrs.containsKey(AttributesM.indent.key)) {
       return defaultStyles!.indent!.verticalSpacing;
-    } else if (attrs.containsKey(AttributeM.list.key)) {
+    } else if (attrs.containsKey(AttributesM.list.key)) {
       return defaultStyles!.lists!.verticalSpacing;
-    } else if (attrs.containsKey(AttributeM.align.key)) {
+    } else if (attrs.containsKey(AttributesM.align.key)) {
       return defaultStyles!.align!.verticalSpacing;
     }
 
@@ -219,8 +222,8 @@ class LinesBlocksService {
   ) {
     final attrs = line.style.attributes;
 
-    if (attrs.containsKey(AttributeM.header.key)) {
-      final int? level = attrs[AttributeM.header.key]!.value;
+    if (attrs.containsKey(AttributesM.header.key)) {
+      final int? level = attrs[AttributesM.header.key]!.value;
       switch (level) {
         case 1:
           return defaultStyles!.h1!.verticalSpacing;

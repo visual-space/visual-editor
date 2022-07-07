@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/rendering.dart';
 
-import '../../../blocks/models/content-proxy-box-renderer.model.dart';
+import '../../../shared/models/content-proxy-box-renderer.model.dart';
 
 class RenderParagraphProxy extends RenderProxyBox
     implements RenderContentProxyBox {

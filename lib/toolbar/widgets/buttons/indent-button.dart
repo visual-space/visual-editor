@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../controller/controllers/editor-controller.dart';
-import '../../../documents/models/attribute.model.dart';
+import '../../../documents/models/attributes/attributes-aliases.model.dart';
+import '../../../documents/models/attributes/attributes.model.dart';
+import '../../../documents/services/attribute.utils.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
 import '../toolbar.dart';
 
@@ -36,6 +38,7 @@ class _IndentButtonState extends State<IndentButton> {
         widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color;
     final iconFillColor =
         widget.iconTheme?.iconUnselectedFillColor ?? theme.canvasColor;
+
     return IconBtn(
       highlightElevation: 0,
       hoverElevation: 0,
@@ -48,31 +51,38 @@ class _IndentButtonState extends State<IndentButton> {
       buttonsSpacing: widget.buttonsSpacing,
       fillColor: iconFillColor,
       borderRadius: widget.iconTheme?.borderRadius ?? 2,
-      onPressed: () {
-        final indent = widget.controller
-            .getSelectionStyle()
-            .attributes[AttributeM.indent.key];
-        if (indent == null) {
-          if (widget.isIncrease) {
-            widget.controller.formatSelection(AttributeM.indentL1);
-          }
-          return;
-        }
-        if (indent.value == 1 && !widget.isIncrease) {
-          widget.controller.formatSelection(
-            AttributeM.clone(AttributeM.indentL1, null),
-          );
-          return;
-        }
-        if (widget.isIncrease) {
-          widget.controller.formatSelection(
-            AttributeM.getIndentLevel(indent.value + 1),
-          );
-          return;
-        }
-        widget.controller
-            .formatSelection(AttributeM.getIndentLevel(indent.value - 1));
-      },
+      onPressed: _indent,
+    );
+  }
+
+  void _indent() {
+    final indent = widget.controller
+        .getSelectionStyle()
+        .attributes[AttributesM.indent.key];
+
+    if (indent == null) {
+      if (widget.isIncrease) {
+        widget.controller.formatSelection(AttributesAliasesM.indentL1);
+      }
+      return;
+    }
+
+    if (indent.value == 1 && !widget.isIncrease) {
+      widget.controller.formatSelection(
+        AttributeUtils.clone(AttributesAliasesM.indentL1, null),
+      );
+      return;
+    }
+
+    if (widget.isIncrease) {
+      widget.controller.formatSelection(
+        AttributeUtils.getIndentLevel(indent.value + 1),
+      );
+      return;
+    }
+
+    widget.controller.formatSelection(
+      AttributeUtils.getIndentLevel(indent.value - 1),
     );
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-// Collides with Flutter IconButton
+// Collides with Flutter IconButton, therefore we used "Btn" instead of "Button"
 class IconBtn extends StatelessWidget {
   final VoidCallback? onPressed;
   final Widget? icon;

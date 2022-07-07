@@ -1,50 +1,42 @@
-import 'dart:async';
-
 import '../models/highlight.model.dart';
 
 class HighlightsState {
-
   // === HIGHLIGHTS ===
 
   List<HighlightM> _highlights = [];
-  final _highlights$ = StreamController<List<HighlightM>>.broadcast();
 
   List<HighlightM> get highlights => _highlights;
 
-  Stream<List<HighlightM>> get highlights$ => _highlights$.stream;
-
   void setHighlights(List<HighlightM> highlights) {
     _highlights = highlights;
-    _highlights$.sink.add(highlights);
+  }
+
+  void addHighlight(HighlightM highlight) {
+    _highlights.add(highlight);
+  }
+
+  void removeHighlight(HighlightM highlight) {
+    _highlights.remove(highlight);
+  }
+
+  void removeAllHighlights() {
+    _highlights = [];
   }
 
   // === HOVERED HIGHLIGHTS ===
 
   final List<HighlightM> _hoveredHighlights = [];
-  final _hoveredHighlights$ = StreamController<List<HighlightM>>.broadcast();
 
   List<HighlightM> get hoveredHighlights => _hoveredHighlights;
 
-  Stream<List<HighlightM>> get hoveredHighlights$ => _hoveredHighlights$.stream;
-
-  void setHoveredHighlights(List<HighlightM> highlights) {
-    _hoveredHighlights.clear();
-    _hoveredHighlights.addAll(highlights);
-    _hoveredHighlights$.sink.add(_hoveredHighlights);
-  }
-
-  void addHoveredHighlight(HighlightM highlight) {
+  void hoverHighlight(HighlightM highlight) {
     _hoveredHighlights.add(highlight);
-    _hoveredHighlights$.sink.add(_hoveredHighlights);
   }
 
-  void removeHoveredHighlights(List<HighlightM> highlights) {
-    highlights.forEach(_hoveredHighlights.remove);
-    _hoveredHighlights$.sink.add(_hoveredHighlights);
+  void exitHighlight(HighlightM highlight) {
+    _hoveredHighlights.remove(highlight);
   }
 
-  void clearHoveredHighlights() {
-    _hoveredHighlights.clear();
-    _hoveredHighlights$.sink.add(_hoveredHighlights);
-  }
+  // TODO REVIEW
+  void clearHoveredHighlights() {}
 }

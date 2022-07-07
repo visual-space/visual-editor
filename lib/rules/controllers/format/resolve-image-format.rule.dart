@@ -1,4 +1,5 @@
 import '../../../documents/models/attribute.model.dart';
+import '../../../documents/models/attributes/attributes.model.dart';
 import '../../../documents/models/delta/delta.model.dart';
 import '../../models/format-rule.model.dart';
 
@@ -14,7 +15,7 @@ class ResolveImageFormatRule extends FormatRuleM {
     Object? data,
     AttributeM? attribute,
   }) {
-    if (attribute == null || attribute.key != AttributeM.style.key) {
+    if (attribute == null || attribute.key != AttributesM.style.key) {
       return null;
     }
 

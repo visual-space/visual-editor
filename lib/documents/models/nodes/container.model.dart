@@ -8,7 +8,7 @@ import 'node.model.dart';
 // Delegates insert, retain and delete operations to children nodes.
 // For each operation container looks for a child at specified
 // index position and forwards operation to that child.
-// Most of the operation handling logic is implemented by [Line] and [Text].
+// Most of the operation handling logic is implemented by Line and Text.
 abstract class ContainerM<T extends NodeM?> extends NodeM {
   final LinkedList<NodeM> _children = LinkedList<NodeM>();
 
@@ -16,14 +16,13 @@ abstract class ContainerM<T extends NodeM?> extends NodeM {
   LinkedList<NodeM> get children => _children;
 
   // Returns total number of child nodes in this container.
-  //
-  // To get text length of this container see [length].
+  // To get text length of this container see length.
   int get childCount => _children.length;
 
-  // Returns the first child [Node].
+  // Returns the first child Node.
   NodeM get first => _children.first;
 
-  // Returns the last child [Node].
+  // Returns the last child Node.
   NodeM get last => _children.last;
 
   // Returns `true` if this container has no child nodes.
@@ -36,48 +35,49 @@ abstract class ContainerM<T extends NodeM?> extends NodeM {
   // Always returns fresh instance.
   T get defaultChild;
 
-  // Adds [node] to the end of this container children list.
+  // Adds node to the end of this container children list.
   void add(T node) {
     assert(node?.parent == null);
     node?.parent = this;
     _children.add(node as NodeM);
   }
 
-  // Adds [node] to the beginning of this container children list.
+  // Adds node to the beginning of this container children list.
   void addFirst(T node) {
     assert(node?.parent == null);
     node?.parent = this;
     _children.addFirst(node as NodeM);
   }
 
-  // Removes [node] from this container.
+  // Removes node from this container.
   void remove(T node) {
     assert(node?.parent == this);
     node?.parent = null;
     _children.remove(node as NodeM);
   }
 
-  // Moves children of this node to [newParent].
+  // Moves children of this node to newParent.
   void moveChildToNewParent(ContainerM? newParent) {
     if (isEmpty) {
       return;
     }
 
     final last = newParent!.isEmpty ? null : newParent.last as T?;
+
     while (isNotEmpty) {
       final child = first as T;
       child?.unlink();
       newParent.add(child);
     }
 
-    // In case [newParent] already had children we need to make sure combined list is optimized.
+    // In case newParent already had children we need to make sure combined list is optimized.
     if (last != null) last.adjust();
   }
 
-  // Queries the child [Node] at [offset] in this container.
+  // Queries the child Node at offset in this container.
   // The result may contain the found node or `null` if no node is found at specified offset.
-  // [ChildQuery.offset] is set to relative offset within returned child node which points at
-  // the same character position in the document as the original [offset].
+  // ChildQuery.offset is set to relative offset within returned child node which points at
+  // the same character position in the document as the original offset.
   ChildQueryM queryChild(int offset, bool inclusive) {
     if (offset < 0 || offset > length) {
       return ChildQueryM(null, 0);
@@ -92,6 +92,7 @@ abstract class ContainerM<T extends NodeM?> extends NodeM {
 
       offset -= len;
     }
+
     return ChildQueryM(null, 0);
   }
 
@@ -99,7 +100,7 @@ abstract class ContainerM<T extends NodeM?> extends NodeM {
   String toPlainText() => children.map((child) => child.toPlainText()).join();
 
   // Content length of this node's children.
-  // To get number of children in this node use [childCount].
+  // To get number of children in this node use childCount.
   @override
   int get length => _children.fold(0, (cur, node) => cur + node.length);
 

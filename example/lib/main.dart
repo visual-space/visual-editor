@@ -1,9 +1,10 @@
-
 import 'package:flutter/material.dart';
 
 import 'pages/all-styles.page.dart';
 import 'pages/custom-toolbar.page.dart';
 import 'pages/delta-sandbox.page.dart';
+import 'pages/highlights.page.dart';
+import 'pages/markers.page.dart';
 import 'pages/multiple-editors.page.dart';
 import 'pages/overwrite-controller.page.dart';
 import 'pages/placeholder.page.dart';
@@ -34,6 +35,8 @@ class DemoApp extends StatelessWidget {
         '/multiple-editors': (context) => MultipleEditorsPage(),
         '/custom-toolbar': (context) => CustomToolbarPage(),
         '/placeholder': (context) => PlaceholderPage(),
+        '/highlights': (context) => HighlightsPage(),
+        '/markers': (context) => MarkersPage(),
         '/delta-sandbox': (context) => DeltaSandbox(),
         '/overwrite-controller': (context) => OverwriteControllerPage(),
       },

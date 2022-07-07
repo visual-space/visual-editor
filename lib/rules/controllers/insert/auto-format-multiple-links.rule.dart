@@ -1,7 +1,8 @@
 import '../../../documents/models/attribute.model.dart';
+import '../../../documents/models/attributes/attributes.model.dart';
+import '../../../documents/models/attributes/styling-attributes.dart';
 import '../../../documents/models/delta/delta.model.dart';
 import '../../../documents/models/document.model.dart';
-import '../../../documents/models/styling-attributes.dart';
 import '../../models/insert-rule.model.dart';
 
 // Applies link format to text segments within the inserted text that matches the URL pattern.
@@ -107,7 +108,7 @@ class AutoFormatMultipleLinksRule extends InsertRuleM {
       // Keep the leading segment of text and add link with its proper
       // attribute.
       formatterDelta
-        ..retain(separationLength, AttributeM.link.toJson())
+        ..retain(separationLength, AttributesM.link.toJson())
         ..retain(link.length, LinkAttributeM(link).toJson());
 
       // Update reference index.
@@ -118,7 +119,7 @@ class AutoFormatMultipleLinksRule extends InsertRuleM {
     final remainingLength = affectedWords.length - previousLinkEndRelativeIndex;
 
     // Remove links from remaining non-link text.
-    formatterDelta.retain(remainingLength, AttributeM.link.toJson());
+    formatterDelta.retain(remainingLength, AttributesM.link.toJson());
 
     // Build and return resulting change delta.
     return baseDelta.compose(formatterDelta);

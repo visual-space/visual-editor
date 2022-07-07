@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/services.dart';
 
 import '../../documents/models/attribute.model.dart';
+import '../../documents/models/attributes/attributes.model.dart';
 import '../../documents/models/change-source.enum.dart';
 import '../../documents/models/delta/delta-changes.model.dart';
 import '../../documents/models/delta/delta.model.dart';
@@ -14,6 +15,7 @@ import '../../documents/models/style.model.dart';
 import '../../documents/services/delta.utils.dart';
 import '../../embeds/models/image.model.dart';
 import '../../highlights/models/highlight.model.dart';
+import '../../markers/models/marker-type.model.dart';
 import '../../shared/state/editor-state-receiver.dart';
 import '../../shared/state/editor.state.dart';
 import '../models/paste-style.model.dart';
@@ -59,7 +61,6 @@ typedef DeleteCallback = void Function(int cursorPosition, bool forward);
 // Multiple operations can trigger this behavior: copy/paste, inserting embeds, etc.
 // onDelete - Callback executed after deleting characters.
 // onSelectionCompleted - Custom behavior to be executed after completing a text selection
-
 class EditorController {
   // Stores the entire state of an editor instance.
   // We create this in the controller to be able to pass the same
@@ -70,6 +71,7 @@ class EditorController {
   final bool keepStyleOnNewLine;
   TextSelection selection;
   List<HighlightM> highlights;
+  List<MarkerTypeM> markerTypes;
   ReplaceTextCallback? onReplaceText;
   DeleteCallback? onDelete;
   void Function()? onSelectionCompleted;
@@ -109,6 +111,7 @@ class EditorController {
     required this.document,
     this.selection = const TextSelection.collapsed(offset: 0),
     this.highlights = const [],
+    this.markerTypes = const [],
     this.keepStyleOnNewLine = false,
     this.onReplaceText,
     this.onDelete,
@@ -116,6 +119,8 @@ class EditorController {
     this.onSelectionChanged,
   }) {
     _state.document.setDocument(document);
+    _state.highlights.setHighlights(highlights);
+    _state.markersTypes.setMarkersTypes(markerTypes);
   }
 
   // TODO Deprecate (no longer needed)
@@ -129,43 +134,7 @@ class EditorController {
     receiver.setState(_state);
   }
 
-  // Only attributes applied to all characters within this range are included in the result.
-  StyleM getSelectionStyle() => document
-      .collectStyle(
-        selection.start,
-        selection.end - selection.start,
-      )
-      .mergeAll(toggledStyle);
-
-  // Returns all styles for each node within selection
-  List<PasteStyleM> getAllIndividualSelectionStyles() {
-    final styles = document.collectAllIndividualStyles(
-      selection.start,
-      selection.end - selection.start,
-    );
-
-    return styles;
-  }
-
-  // Returns plain text for each node within selection
-  String getPlainText() {
-    final text = document.getPlainText(
-      selection.start,
-      selection.end - selection.start,
-    );
-
-    return text;
-  }
-
-  // Returns all styles for any character within the specified text range.
-  List<StyleM> getAllSelectionStyles() {
-    final styles = document.collectAllStyles(
-      selection.start,
-      selection.end - selection.start,
-    )..add(toggledStyle);
-
-    return styles;
-  }
+  // === HISTORY ===
 
   void undo() {
     final tup = document.undo();
@@ -181,6 +150,18 @@ class EditorController {
     if (tup.applyChanges) {
       _handleHistoryChange(tup.offset);
     }
+  }
+
+  // === DOCUMENT ===
+
+  // Returns plain text for each node within selection
+  String getPlainText() {
+    final text = document.getPlainText(
+      selection.start,
+      selection.end - selection.start,
+    );
+
+    return text;
   }
 
   // Update editor with a new document.
@@ -305,91 +286,6 @@ class EditorController {
     });
   }
 
-  // Called in two cases:
-  // forward == false && textBefore.isEmpty
-  // forward == true && textAfter.isEmpty
-  // Android only
-  // See https://github.com/singerdmx/flutter-quill/discussions/514
-  void handleDelete(int cursorPosition, bool forward) =>
-      onDelete?.call(cursorPosition, forward);
-
-  void formatTextStyle(int index, int len, StyleM style) {
-    style.attributes.forEach((key, attr) {
-      formatText(index, len, attr);
-    });
-  }
-
-  void formatText(
-    int index,
-    int len,
-    AttributeM? attribute,
-  ) {
-    if (len == 0 &&
-        attribute!.isInline &&
-        attribute.key != AttributeM.link.key) {
-      // Add the attribute to our toggledStyle.
-      // It will be used later upon insertion.
-      toggledStyle = toggledStyle.put(attribute);
-    }
-
-    final change = document.format(index, len, attribute);
-
-    // Transform selection against the composed change and give priority to the change.
-    // This is needed in cases when format operation actually inserts data into the document (e.g. embeds).
-    final adjustedSelection = selection.copyWith(
-      baseOffset: change.transformPosition(selection.baseOffset),
-      extentOffset: change.transformPosition(selection.extentOffset),
-    );
-
-    if (selection != adjustedSelection) {
-      _updateSelection(
-        adjustedSelection,
-        ChangeSource.LOCAL,
-      );
-    }
-
-    _state.refreshEditor.refreshEditor();
-  }
-
-  void formatSelection(AttributeM? attribute) {
-    formatText(
-      selection.start,
-      selection.end - selection.start,
-      attribute,
-    );
-  }
-
-  void moveCursorToStart() {
-    updateSelection(
-      const TextSelection.collapsed(offset: 0),
-      ChangeSource.LOCAL,
-    );
-  }
-
-  void moveCursorToPosition(int position) {
-    updateSelection(
-      TextSelection.collapsed(offset: position),
-      ChangeSource.LOCAL,
-    );
-  }
-
-  void moveCursorToEnd() {
-    updateSelection(
-      TextSelection.collapsed(
-        offset: plainTextEditingValue.text.length,
-      ),
-      ChangeSource.LOCAL,
-    );
-  }
-
-  void updateSelection(
-    TextSelection textSelection,
-    ChangeSource source,
-  ) {
-    _updateSelection(textSelection, source);
-    _state.refreshEditor.refreshEditor();
-  }
-
   void compose(
     DeltaM delta,
     TextSelection textSelection,
@@ -417,9 +313,152 @@ class EditorController {
     _state.refreshEditor.refreshEditor();
   }
 
+  // Called in two cases:
+  // forward == false && textBefore.isEmpty
+  // forward == true && textAfter.isEmpty
+  // Android only
+  // See https://github.com/singerdmx/flutter-quill/discussions/514
+  void handleDelete(int cursorPosition, bool forward) =>
+      onDelete?.call(cursorPosition, forward);
+
+  // === TEXT STYLES ===
+
+  void formatTextStyle(int index, int len, StyleM style) {
+    style.attributes.forEach((key, attr) {
+      formatText(index, len, attr);
+    });
+  }
+
+  void formatText(
+    int index,
+    int len,
+    AttributeM? attribute,
+  ) {
+    if (len == 0 &&
+        attribute!.isInline &&
+        attribute.key != AttributesM.link.key) {
+      // Add the attribute to our toggledStyle.
+      // It will be used later upon insertion.
+      toggledStyle = toggledStyle.put(attribute);
+    }
+
+    final change = document.format(index, len, attribute);
+
+    // Transform selection against the composed change and give priority to the change.
+    // This is needed in cases when format operation actually inserts data into the document (e.g. embeds).
+    final adjustedSelection = selection.copyWith(
+      baseOffset: change.transformPosition(selection.baseOffset),
+      extentOffset: change.transformPosition(selection.extentOffset),
+    );
+
+    if (selection != adjustedSelection) {
+      _updateSelection(
+        adjustedSelection,
+        ChangeSource.LOCAL,
+      );
+    }
+
+    _state.refreshEditor.refreshEditor();
+  }
+
+  // Applies an attribute to a selection of text
+  void formatSelection(AttributeM? attribute) {
+    formatText(
+      selection.start,
+      selection.end - selection.start,
+      attribute,
+    );
+  }
+
+  // Only attributes applied to all characters within this range are included in the result.
+  StyleM getSelectionStyle() => document
+      .collectStyle(
+        selection.start,
+        selection.end - selection.start,
+      )
+      .mergeAll(toggledStyle);
+
+  // Returns all styles for each node within selection
+  List<PasteStyleM> getAllIndividualSelectionStyles() {
+    final styles = document.collectAllIndividualStyles(
+      selection.start,
+      selection.end - selection.start,
+    );
+
+    return styles;
+  }
+
+  // Returns all styles for any character within the specified text range.
+  List<StyleM> getAllSelectionStyles() {
+    final styles = document.collectAllStyles(
+      selection.start,
+      selection.end - selection.start,
+    )..add(toggledStyle);
+
+    return styles;
+  }
+
+  // === CURSOR ===
+
+  void moveCursorToStart() {
+    updateSelection(
+      const TextSelection.collapsed(
+        offset: 0,
+      ),
+      ChangeSource.LOCAL,
+    );
+  }
+
+  void moveCursorToPosition(int position) {
+    updateSelection(
+      TextSelection.collapsed(
+        offset: position,
+      ),
+      ChangeSource.LOCAL,
+    );
+  }
+
+  void moveCursorToEnd() {
+    updateSelection(
+      TextSelection.collapsed(
+        offset: plainTextEditingValue.text.length,
+      ),
+      ChangeSource.LOCAL,
+    );
+  }
+
+  // === SELECTION ===
+
+  void updateSelection(
+    TextSelection textSelection,
+    ChangeSource source,
+  ) {
+    _updateSelection(textSelection, source);
+    _state.refreshEditor.refreshEditor();
+  }
+
+  // === NODES ===
+
   // Given offset, find its leaf node in document
   LeafM? queryNode(int offset) {
     return document.querySegmentLeafNode(offset).leaf;
+  }
+
+  // === HIGHLIGHTS ===
+
+  void addHighlight(HighlightM highlight) {
+    _state.highlights.addHighlight(highlight);
+    _state.refreshEditor.refreshEditor();
+  }
+
+  void removeHighlight(HighlightM highlight) {
+    _state.highlights.removeHighlight(highlight);
+    _state.refreshEditor.refreshEditor();
+  }
+
+  void removeAllHighlights(HighlightM highlight) {
+    _state.highlights.removeAllHighlights();
+    _state.refreshEditor.refreshEditor();
   }
 
   // === PRIVATE ===

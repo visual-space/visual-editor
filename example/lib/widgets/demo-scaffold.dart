@@ -29,10 +29,10 @@ class _DemoScaffoldState extends State<DemoScaffold> {
           actions: [],
         ),
         drawer: Container(
-          constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.7,
-          ),
           color: Colors.grey.shade800,
+          constraints: BoxConstraints(
+            maxWidth: 400,
+          ),
           child: NavMenu(),
         ),
         body: SafeArea(

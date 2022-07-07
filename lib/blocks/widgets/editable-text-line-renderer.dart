@@ -1,22 +1,25 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import '../../cursor/controllers/cursor.controller.dart';
 import '../../cursor/widgets/cursor-painter.dart';
-import '../../documents/models/attribute.model.dart';
+import '../../documents/models/attributes/attributes.model.dart';
 import '../../documents/models/nodes/container.model.dart' as container_node;
 import '../../documents/models/nodes/line.model.dart';
+import '../../documents/models/nodes/node.model.dart';
 import '../../documents/models/nodes/text.model.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../selection/services/text-selection.utils.dart';
+import '../../shared/models/content-proxy-box-renderer.model.dart';
+import '../../shared/models/editable-box-renderer.model.dart';
 import '../../shared/state/editor.state.dart';
 import '../../shared/utils/platform.utils.dart';
-import '../models/content-proxy-box-renderer.model.dart';
-import '../models/editable-box-renderer.model.dart';
 import '../models/inline-code-style.model.dart';
 import '../models/text-line-slot.enum.dart';
+import '../services/teyt-lines.utils.dart';
 
 class EditableTextLineRenderer extends EditableBoxRenderer {
   final _textSelectionUtils = TextSelectionUtils();
@@ -514,6 +517,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
 
   @override
   void paint(PaintingContext context, Offset offset) {
+    // Leading (bullets, checkboxes)
     if (_leading != null) {
       final parentData = _leading!.parentData as BoxParentData;
       final effectiveOffset = offset + parentData.offset;
@@ -524,48 +528,35 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
       final parentData = _body!.parentData as BoxParentData;
       final effectiveOffset = offset + parentData.offset;
 
-      // Inline code
+      // Code
       if (inlineCodeStyle.backgroundColor != null) {
-        for (final item in line.children) {
-          if (item is! TextM ||
-              !item.style.containsKey(
-                AttributeM.inlineCode.key,
-              )) {
+        for (final node in line.children) {
+          final isInlineCodeOrCodeBlock = node is! TextM ||
+              !node.style.containsKey(AttributesM.inlineCode.key);
+
+          if (isInlineCodeOrCodeBlock) {
             continue;
           }
 
-          final textRange = TextSelection(
-            baseOffset: item.offset,
-            extentOffset: item.offset + item.length,
+          TextLinesUtils.drawRectFromNode(
+            node,
+            effectiveOffset,
+            context,
+            inlineCodeStyle.backgroundColor!,
+            inlineCodeStyle.radius,
+            _body
           );
-          final rects = _body!.getBoxesForSelection(textRange);
-          final paint = Paint()..color = inlineCodeStyle.backgroundColor!;
-
-          for (final box in rects) {
-            final rect = box.toRect().translate(0, 1).shift(effectiveOffset);
-
-            if (inlineCodeStyle.radius == null) {
-              final paintRect = Rect.fromLTRB(
-                rect.left - 2,
-                rect.top,
-                rect.right + 2,
-                rect.bottom,
-              );
-
-              context.canvas.drawRect(paintRect, paint);
-            } else {
-              final paintRect = RRect.fromLTRBR(
-                rect.left - 2,
-                rect.top,
-                rect.right + 2,
-                rect.bottom,
-                inlineCodeStyle.radius!,
-              );
-              context.canvas.drawRRect(paintRect, paint);
-            }
-          }
         }
       }
+
+      // Markers
+      TextLinesUtils.renderMarkers(
+        effectiveOffset,
+        context,
+        line,
+        _state,
+        _body,
+      );
 
       // Cursor above text (iOS)
       if (_state.refs.focusNode.hasFocus &&
@@ -575,6 +566,8 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
         _paintCursor(context, effectiveOffset, line.hasEmbed);
       }
 
+      // TextLine
+      // The raw text, no highlights, only TextSpans with styling
       context.paintChild(_body!, effectiveOffset);
 
       // Cursor bellow text (Android)
@@ -601,7 +594,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
       }
 
       // Highlights
-      _state.refs.editorController.highlights.forEach((highlight) {
+      _state.highlights.highlights.forEach((highlight) {
         final highlightIsWithinDocBounds = _lineContainsSelection(
           highlight.textSelection,
         );

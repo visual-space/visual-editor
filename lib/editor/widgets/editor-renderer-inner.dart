@@ -6,15 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
-import '../../blocks/models/editable-box-renderer.model.dart';
 import '../../blocks/services/lines-blocks.service.dart';
 import '../../cursor/widgets/floating-cursor.painter.dart';
 import '../../documents/models/document.model.dart';
 import '../../selection/services/selection-actions.service.dart';
 import '../../selection/services/text-selection.utils.dart';
+import '../../shared/models/editable-box-renderer.model.dart';
 import '../../shared/state/editor.state.dart';
+import '../../shared/widgets/multiline-text-area-renderer.dart';
 import '../controllers/vertical-caret-movement-run.controller.dart';
-import 'multiline-text-area-renderer.dart';
 
 // Displays a document as a vertical list of document segments (lines and blocks).
 // Children of RenderEditor must be instances of RenderEditableBox.

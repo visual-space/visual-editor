@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../models/content-proxy-box-renderer.model.dart';
+import '../../shared/models/content-proxy-box-renderer.model.dart';
 import '../models/text-line-slot.enum.dart';
 import 'editable-text-line-renderer.dart';
 import 'editable-text-line.dart';
 
-class TextLineElementRenderer extends RenderObjectElement {
-  TextLineElementRenderer(EditableTextLine line) : super(line);
+// An elements is an instantiation of a widget in the widget tree.
+class TextLineRenderer extends RenderObjectElement {
+  TextLineRenderer(EditableTextLine line) : super(line);
 
   final Map<TextLineSlot, Element> _slotToChildren = <TextLineSlot, Element>{};
 

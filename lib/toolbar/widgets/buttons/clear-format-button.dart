@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../controller/controllers/editor-controller.dart';
 import '../../../documents/models/attribute.model.dart';
+import '../../../documents/services/attribute.utils.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
 import '../toolbar.dart';
 
@@ -33,30 +34,36 @@ class _ClearFormatButtonState extends State<ClearFormatButton> {
         widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color;
     final fillColor =
         widget.iconTheme?.iconUnselectedFillColor ?? theme.canvasColor;
+
     return IconBtn(
-        highlightElevation: 0,
-        hoverElevation: 0,
-        size: widget.iconSize * iconButtonFactor,
-        icon: Icon(
-          widget.icon,
-          size: widget.iconSize,
-          color: iconColor,
-        ),
-        buttonsSpacing: widget.buttonsSpacing,
-        fillColor: fillColor,
-        borderRadius: widget.iconTheme?.borderRadius ?? 2,
-        onPressed: () {
-          final attrs = <AttributeM>{};
-          for (final style in widget.controller.getAllSelectionStyles()) {
-            for (final attr in style.attributes.values) {
-              attrs.add(attr);
-            }
-          }
-          for (final attr in attrs) {
-            widget.controller.formatSelection(
-              AttributeM.clone(attr, null),
-            );
-          }
-        });
+      highlightElevation: 0,
+      hoverElevation: 0,
+      size: widget.iconSize * iconButtonFactor,
+      icon: Icon(
+        widget.icon,
+        size: widget.iconSize,
+        color: iconColor,
+      ),
+      buttonsSpacing: widget.buttonsSpacing,
+      fillColor: fillColor,
+      borderRadius: widget.iconTheme?.borderRadius ?? 2,
+      onPressed: _clearFormatting,
+    );
+  }
+
+  void _clearFormatting() {
+    final attrs = <AttributeM>{};
+
+    for (final style in widget.controller.getAllSelectionStyles()) {
+      for (final attr in style.attributes.values) {
+        attrs.add(attr);
+      }
+    }
+
+    for (final attr in attrs) {
+      widget.controller.formatSelection(
+        AttributeUtils.clone(attr, null),
+      );
+    }
   }
 }

@@ -1,0 +1,22 @@
+[
+  {
+    "insert": "Lorem ",
+    "attributes": {
+      "markers": [
+        {
+          "type": "expert",
+          "data": "b53d8d53"
+        },
+        {
+          "type": "beginner",
+          "data": "f36335c4"
+        }
+      ]
+    }
+  },
+  {
+    "insert": "ipsum dolor sit amet, consectetur adipiscing elit\n"
+  }
+]
+
+

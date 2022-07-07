@@ -1,5 +1,6 @@
 import '../../../documents/controllers/delta.iterator.dart';
 import '../../../documents/models/attribute.model.dart';
+import '../../../documents/models/attributes/attributes.model.dart';
 import '../../../documents/models/delta/delta.model.dart';
 import '../../models/insert-rule.model.dart';
 
@@ -31,8 +32,8 @@ class ResetLineFormatOnNewLineRule extends InsertRuleM {
     Map<String, dynamic>? resetStyle;
 
     if (cur.attributes != null &&
-        cur.attributes!.containsKey(AttributeM.header.key)) {
-      resetStyle = AttributeM.header.toJson();
+        cur.attributes!.containsKey(AttributesM.header.key)) {
+      resetStyle = AttributesM.header.toJson();
     }
 
     return DeltaM()

@@ -184,17 +184,18 @@ class VisualEditorState extends State<VisualEditor>
     return _conditionalPreventKeyPropagationToParentIfWeb(
       child: _i18n(
         child: _textGestures(
-          child: _hotkeysActions(
-            child: _focusField(
-              child: _keyboardListener(
-                child: _constrainedBox(
-                  child: _conditionalScrollable(
-                    child: _overlayTargetForMobileToolbar(
-                      child: _editorRenderer(
-                        document: document,
-                        children: _documentService.documentBlocsAndLines(
-                          state: widget._state,
-                          document: document,
+	        child: _hotkeysActions(
+	          child: _focusField(
+	            child: _keyboardListener(
+	              child: _constrainedBox(
+	                child: _conditionalScrollable(
+	                  child: _overlayTargetForMobileToolbar(
+	                    child: _editorRenderer(
+	                      document: document,
+	                      // This is where the document elements are rendered
+	                      children: _documentService.documentBlocsAndLines(
+	                        state: widget._state,
+	                        document: document,
                         ),
                       ),
                     ),
@@ -600,7 +601,7 @@ class VisualEditorState extends State<VisualEditor>
     // In case this is called a second time because a new editor controller was provided.
     editorUpdatesListener?.cancel();
 
-    editorUpdatesListener = widget._state.refreshEditor.updateEditor$.listen(
+    editorUpdatesListener = widget._state.refreshEditor.refreshEditor$.listen(
       (_) {
         _textValueService.updateEditor(
           widget._state,

@@ -25,4 +25,7 @@ The Editor uses Flutter `TextField` to render the paragraphs in a column of cont
 ## Gestures
 The VisualEditor class implements `TextSelectionGesturesBuilderDelegate`. This base class is used to separate the features related to gesture detection and to give the opportunity to override them.
 
+## Custom Style Builder (WIP)
+Custom styles can be defined for custom attributes.
+
 Join on [discord](https://discord.gg/XpGygmXde4) to get advice and help or follow us on [YouTube Visual Coding](https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA) to learn more about the architecture of Visual Editor and other Flutter apps.

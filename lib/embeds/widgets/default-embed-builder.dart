@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:gallery_saver/gallery_saver.dart';
 
 import '../../controller/controllers/editor-controller.dart';
-import '../../documents/models/attribute.model.dart';
+import '../../documents/models/attributes/attributes.model.dart';
+import '../../documents/models/attributes/styling-attributes.dart';
 import '../../documents/models/nodes/block-embed.model.dart';
 import '../../documents/models/nodes/embed.model.dart';
-import '../../documents/models/styling-attributes.dart';
 import '../../shared/translations/toolbar.i18n.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../../shared/utils/string.utils.dart';
@@ -39,26 +39,26 @@ Widget defaultEmbedBuilder(
         final _attrs = parseKeyValuePairs(
           style.value.toString(),
           {
-            AttributeM.mobileWidth,
-            AttributeM.mobileHeight,
-            AttributeM.mobileMargin,
-            AttributeM.mobileAlignment
+            AttributesM.mobileWidth,
+            AttributesM.mobileHeight,
+            AttributesM.mobileMargin,
+            AttributesM.mobileAlignment
           },
         );
 
         if (_attrs.isNotEmpty) {
           assert(
-              _attrs[AttributeM.mobileWidth] != null &&
-                  _attrs[AttributeM.mobileHeight] != null,
+              _attrs[AttributesM.mobileWidth] != null &&
+                  _attrs[AttributesM.mobileHeight] != null,
               'mobileWidth and mobileHeight must be specified');
 
-          final w = double.parse(_attrs[AttributeM.mobileWidth]!);
-          final h = double.parse(_attrs[AttributeM.mobileHeight]!);
+          final w = double.parse(_attrs[AttributesM.mobileWidth]!);
+          final h = double.parse(_attrs[AttributesM.mobileHeight]!);
           _widthHeight = ContentSizeM(w, h);
-          final m = _attrs[AttributeM.mobileMargin] == null
+          final m = _attrs[AttributesM.mobileMargin] == null
               ? 0.0
-              : double.parse(_attrs[AttributeM.mobileMargin]!);
-          final a = getAlignment(_attrs[AttributeM.mobileAlignment]);
+              : double.parse(_attrs[AttributesM.mobileMargin]!);
+          final a = getAlignment(_attrs[AttributesM.mobileAlignment]);
 
           image = Padding(
             padding: EdgeInsets.all(m),

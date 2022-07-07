@@ -1,5 +1,6 @@
 import '../../../documents/controllers/delta.iterator.dart';
 import '../../../documents/models/attribute.model.dart';
+import '../../../documents/models/attributes/attributes-types.model.dart';
 import '../../../documents/models/delta/delta.model.dart';
 import '../../../documents/models/delta/operation.model.dart';
 import '../../../documents/models/style.model.dart';
@@ -74,7 +75,7 @@ class AutoExitBlockRule extends InsertRuleM {
     // therefore we can exit this block.
     final attributes = cur.attributes ?? <String, dynamic>{};
     final k = attributes.keys.firstWhere(
-      AttributeM.blockKeysExceptHeader.contains,
+      AttributesTypesM.blockKeysExceptHeader.contains,
     );
     attributes[k] = null;
 

@@ -1,5 +1,6 @@
 import '../../../documents/controllers/delta.iterator.dart';
 import '../../../documents/models/attribute.model.dart';
+import '../../../documents/models/attributes/attributes.model.dart';
 import '../../../documents/models/delta/delta.model.dart';
 import '../../../documents/models/style.model.dart';
 import '../../models/insert-rule.model.dart';
@@ -44,9 +45,9 @@ class PreserveBlockStyleOnInsertRule extends InsertRuleM {
 
     // If current line had heading style applied to it we'll need to move this style to
     // the newly inserted line before it and reset style of the original line.
-    if (lineStyle.containsKey(AttributeM.header.key)) {
+    if (lineStyle.containsKey(AttributesM.header.key)) {
       resetStyle.addAll(
-        AttributeM.header.toJson(),
+        AttributesM.header.toJson(),
       );
     }
 

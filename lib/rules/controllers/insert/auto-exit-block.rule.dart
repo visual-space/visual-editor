@@ -61,9 +61,10 @@ class AutoExitBlockRule extends InsertRuleM {
 
     // Keep looking for the next newline character to see if it shares the same block style as `cur`.
     final nextNewLine = getNextNewLine(itr);
-    if (nextNewLine.item1 != null &&
-        nextNewLine.item1!.attributes != null &&
-        StyleM.fromJson(nextNewLine.item1!.attributes).getBlockExceptHeader() ==
+    if (nextNewLine.operation != null &&
+        nextNewLine.operation!.attributes != null &&
+        StyleM.fromJson(nextNewLine.operation!.attributes)
+                .getBlockExceptHeader() ==
             blockStyle) {
       // We are not at the end of this block, ignore.
       return null;

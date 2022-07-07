@@ -47,7 +47,7 @@ class PreserveLineStyleOnSplitRule extends InsertRuleM {
     }
 
     final nextNewLine = getNextNewLine(itr);
-    final attributes = nextNewLine.item1?.attributes;
+    final attributes = nextNewLine.operation?.attributes;
 
     return delta..insert('\n', attributes);
   }

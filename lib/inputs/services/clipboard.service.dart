@@ -34,7 +34,8 @@ class ClipboardService {
       controller.getAllIndividualSelectionStyles(),
     );
 
-    final selection = state.refs.editorController.plainTextEditingValue.selection;
+    final selection =
+        state.refs.editorController.plainTextEditingValue.selection;
     final text = state.refs.editorController.plainTextEditingValue.text;
 
     if (selection.isCollapsed) {
@@ -58,7 +59,8 @@ class ClipboardService {
         TextEditingValue(
           text: state.refs.editorController.plainTextEditingValue.text,
           selection: TextSelection.collapsed(
-            offset: state.refs.editorController.plainTextEditingValue.selection.end,
+            offset:
+                state.refs.editorController.plainTextEditingValue.selection.end,
           ),
         ),
         SelectionChangedCause.toolbar,
@@ -83,7 +85,8 @@ class ClipboardService {
       return;
     }
 
-    final selection = state.refs.editorController.plainTextEditingValue.selection;
+    final selection =
+        state.refs.editorController.plainTextEditingValue.selection;
     final text = state.refs.editorController.plainTextEditingValue.text;
 
     if (selection.isCollapsed) {
@@ -121,23 +124,25 @@ class ClipboardService {
     final controller = state.refs.editorController;
 
     if (controller.copiedImageUrl != null) {
-      final index = state.refs.editorController.plainTextEditingValue.selection.baseOffset;
-      final length =
-          state.refs.editorController.plainTextEditingValue.selection.extentOffset - index;
+      final index = state
+          .refs.editorController.plainTextEditingValue.selection.baseOffset;
+      final length = state.refs.editorController.plainTextEditingValue.selection
+              .extentOffset -
+          index;
       final copied = controller.copiedImageUrl!;
 
       controller.replaceText(
         index,
         length,
-        BlockEmbedM.image(copied.item1),
+        BlockEmbedM.image(copied.imageUrl),
         null,
       );
 
-      if (copied.item2.isNotEmpty) {
+      if (copied.style.isNotEmpty) {
         controller.formatText(
-          getImageNode(controller, index + 1).item1,
+          getImageNode(controller, index + 1).offset,
           1,
-          StyleAttributeM(copied.item2),
+          StyleAttributeM(copied.style),
         );
       }
 
@@ -149,7 +154,8 @@ class ClipboardService {
       return;
     }
 
-    final selection = state.refs.editorController.plainTextEditingValue.selection;
+    final selection =
+        state.refs.editorController.plainTextEditingValue.selection;
 
     if (!selection.isValid) {
       return;
@@ -183,7 +189,8 @@ class ClipboardService {
       TextEditingValue(
         text: state.refs.editorController.plainTextEditingValue.text,
         selection: TextSelection.collapsed(
-          offset: state.refs.editorController.plainTextEditingValue.selection.end,
+          offset:
+              state.refs.editorController.plainTextEditingValue.selection.end,
         ),
       ),
       cause,

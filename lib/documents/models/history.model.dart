@@ -1,10 +1,10 @@
-import 'package:tuple/tuple.dart';
-
 import 'change-source.enum.dart';
+import 'delta/delta-changes.model.dart';
 import 'delta/delta.model.dart';
 import 'delta/operation.model.dart';
 import 'document.model.dart';
 import 'history-stack.model.dart';
+import 'nodes/revert-operations.model.dart';
 
 class HistoryM {
   HistoryM({
@@ -35,12 +35,12 @@ class HistoryM {
   ///record delay
   final int interval;
 
-  void handleDocChange(Tuple3<DeltaM, DeltaM, ChangeSource> change) {
+  void handleDocChange(DeltaChangeM change) {
     if (ignoreChange) return;
-    if (!userOnly || change.item3 == ChangeSource.LOCAL) {
-      record(change.item2, change.item1);
+    if (!userOnly || change.source == ChangeSource.LOCAL) {
+      record(change.changes, change.initialState);
     } else {
-      transform(change.item2);
+      transform(change.initialState);
     }
   }
 
@@ -88,19 +88,23 @@ class HistoryM {
     }
   }
 
-  Tuple2 _change(DocumentM doc, List<DeltaM> source, List<DeltaM> dest) {
+  RevertOperationM _change(
+    DocumentM doc,
+    List<DeltaM> source,
+    List<DeltaM> dest,
+  ) {
     if (source.isEmpty) {
-      return const Tuple2(false, 0);
+      return RevertOperationM(false, 0);
     }
     final delta = source.removeLast();
     // look for insert or delete
     int? len = 0;
-    final ops = delta.toList();
-    for (var i = 0; i < ops.length; i++) {
-      if (ops[i].key == OperationM.insertKey) {
-        len = ops[i].length;
-      } else if (ops[i].key == OperationM.deleteKey) {
-        len = ops[i].length! * -1;
+    final operations = delta.toList();
+    for (var i = 0; i < operations.length; i++) {
+      if (operations[i].key == OperationM.insertKey) {
+        len = operations[i].length;
+      } else if (operations[i].key == OperationM.deleteKey) {
+        len = operations[i].length! * -1;
       }
     }
     final base = DeltaM.from(doc.toDelta());
@@ -110,14 +114,14 @@ class HistoryM {
     ignoreChange = true;
     doc.compose(delta, ChangeSource.LOCAL);
     ignoreChange = false;
-    return Tuple2(true, len);
+    return RevertOperationM(true, len);
   }
 
-  Tuple2 undo(DocumentM doc) {
+  RevertOperationM undo(DocumentM doc) {
     return _change(doc, stack.undo, stack.redo);
   }
 
-  Tuple2 redo(DocumentM doc) {
+  RevertOperationM redo(DocumentM doc) {
     return _change(doc, stack.redo, stack.undo);
   }
 }

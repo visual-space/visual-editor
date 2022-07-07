@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../documents/models/nodes/line.model.dart';
 import '../../shared/state/editor.state.dart';
 import '../models/default-styles.model.dart';
+import '../models/vertical-spacing.model.dart';
 import 'editable-text-line-renderer.dart';
 import 'text-line-element-renderer.dart';
 
@@ -13,7 +13,7 @@ class EditableTextLine extends RenderObjectWidget {
   final Widget? leading;
   final Widget body;
   final double indentWidth;
-  final Tuple2 verticalSpacing;
+  final VerticalSpacing verticalSpacing;
   final TextDirection textDirection;
   final TextSelection textSelection;
   final bool hasFocus;
@@ -75,8 +75,8 @@ class EditableTextLine extends RenderObjectWidget {
   EdgeInsetsGeometry _getPadding() {
     return EdgeInsetsDirectional.only(
       start: indentWidth,
-      top: verticalSpacing.item1,
-      bottom: verticalSpacing.item2,
+      top: verticalSpacing.top,
+      bottom: verticalSpacing.bottom,
     );
   }
 }

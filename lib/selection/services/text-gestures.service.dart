@@ -348,13 +348,13 @@ class TextGesturesService {
       state,
     );
     final result = state.document.document.querySegmentLeafNode(pos.offset);
-    final line = result.item1;
+    final line = result.line;
 
     if (line == null) {
       return false;
     }
 
-    final segmentLeaf = result.item2;
+    final segmentLeaf = result.leaf;
 
     if (segmentLeaf == null && line.length == 1) {
       updateSelection(

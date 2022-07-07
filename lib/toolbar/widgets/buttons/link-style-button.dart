@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../../blocks/services/link.utils.dart';
 import '../../../controller/controllers/editor-controller.dart';
@@ -12,6 +11,7 @@ import '../../../shared/models/editor-icon-theme.model.dart';
 import '../../../shared/state/editor-state-receiver.dart';
 import '../../../shared/state/editor.state.dart';
 import '../../../shared/translations/toolbar.i18n.dart';
+import '../../models/link-button.model.dart';
 import '../dialogs/link-style-dialog.dart';
 import '../toolbar.dart';
 
@@ -127,7 +127,7 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
         if (link != null) {
           // text should be the link's corresponding text, not selection
           final leaf =
-              widget.controller.document.querySegmentLeafNode(index).item2;
+              widget.controller.document.querySegmentLeafNode(index).leaf;
           if (leaf != null) {
             text = leaf.toPlainText();
           }
@@ -162,14 +162,14 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
 
   void _linkSubmitted(dynamic value) {
     // text.isNotEmpty && link.isNotEmpty
-    final String text = (value as Tuple2).item1;
-    final String link = value.item2.trim();
+    final text = (value as LinkButtonM).text;
+    final link = value.link.trim();
     var index = widget.controller.selection.start;
     var length = widget.controller.selection.end - index;
 
     if (_getLinkAttributeValue() != null) {
       // text should be the link's corresponding text, not selection
-      final leaf = widget.controller.document.querySegmentLeafNode(index).item2;
+      final leaf = widget.controller.document.querySegmentLeafNode(index).leaf;
       if (leaf != null) {
         final range = getLinkRange(leaf);
         index = range.start;

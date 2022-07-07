@@ -19,7 +19,6 @@ dependencies:
   photo_view: ^0.13.0
   quiver: ^3.1.0
   string_validator: ^0.3.0
-  tuple: ^2.0.0
   url_launcher: ^6.1.0
   pedantic: ^1.11.1
   video_player: ^2.4.0

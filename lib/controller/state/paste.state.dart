@@ -1,16 +1,14 @@
-import 'package:tuple/tuple.dart';
-
-import '../../documents/models/style.model.dart';
+import '../models/paste-style.model.dart';
 
 class PasteState {
-  List<Tuple2<int, StyleM>> _pasteStyle = [];
+  List<PasteStyleM> _pasteStyle = [];
   String _pastePlainText = '';
 
-  List<Tuple2<int, StyleM>> get pasteStyle => _pasteStyle;
+  List<PasteStyleM> get pasteStyle => _pasteStyle;
 
   String get pastePlainText => _pastePlainText;
 
-  void setPasteStyle(List<Tuple2<int, StyleM>> pasteStyle) {
+  void setPasteStyle(List<PasteStyleM> pasteStyle) {
     _pasteStyle = pasteStyle;
   }
 

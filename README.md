@@ -8,6 +8,14 @@ Visual Editor is a Rich Text editor for [Flutter] originally forked from [Flutte
 
 While building the [Visual Space] platform we begun using [Flutter Quill] to render text content for nextgen interactive tutorials and projects. However, we had to deal with issues such as severe lack of documentation, lack of automatic testing and lack of technical support from the maintainers. Therefore, we decided to fork Quill and improve it with additional features and a focus on higher quality standards.
 
+## First contact
+
+1. Clone the repository using "https://github.com/visual-space/visual-editor.git"
+2. Run flutter pub get and enable dart editor 
+3. If you can't run the main.dart you have to change it with the one from example (example is used to run the demo app)
+   -> edit configurations -> set the dart entrypoint with: C:\*your path*\visual-editor\example\lib\main.dart   
+4. To push commits we have to ask the moderator to give you access
+
 ## How To Start
 
 **Beta Testing**

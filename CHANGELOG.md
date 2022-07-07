@@ -18,6 +18,7 @@
 * Migrated state architecture from singleton to one state per editor controller instance.
 * Exported the Toolbar buttons so that custom toolbars can be build from scratch
 * Delta documents sandbox page, preview the json (development aid)
+* Remove tuple dependency
 
 ## [0.0.2]
 * Custom highlights

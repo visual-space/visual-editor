@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../documents/models/attribute.model.dart';
 import '../../documents/models/nodes/block.model.dart';
@@ -9,6 +8,7 @@ import '../../editor/widgets/document-styles.dart';
 import '../../shared/state/editor.state.dart';
 import '../models/default-styles.model.dart';
 import '../models/link-action.picker.type.dart';
+import '../models/vertical-spacing.model.dart';
 import '../style-widgets.dart';
 import 'editable-block.dart';
 import 'editable-text-line.dart';
@@ -18,7 +18,7 @@ import 'text-line.dart';
 class EditableTextBlock extends StatelessWidget {
   final BlockM block;
   final TextDirection textDirection;
-  final Tuple2 verticalSpacing;
+  final VerticalSpacing verticalSpacing;
   final TextSelection textSelection;
   final DefaultStyles? styles;
   final bool hasFocus;
@@ -61,7 +61,7 @@ class EditableTextBlock extends StatelessWidget {
     return EditableBlock(
       block: block,
       textDirection: textDirection,
-      padding: verticalSpacing as Tuple2<double, double>,
+      padding: verticalSpacing,
       decoration: _getDecorationForBlock(
             block,
             defaultStyles,
@@ -242,7 +242,7 @@ class EditableTextBlock extends StatelessWidget {
     return baseIndent + extraIndent;
   }
 
-  Tuple2 _getSpacingForLine(
+  VerticalSpacing _getSpacingForLine(
     LineM node,
     int index,
     int count,
@@ -256,25 +256,25 @@ class EditableTextBlock extends StatelessWidget {
 
       switch (level) {
         case 1:
-          top = defaultStyles!.h1!.verticalSpacing.item1;
-          bottom = defaultStyles.h1!.verticalSpacing.item2;
+          top = defaultStyles!.h1!.verticalSpacing.top;
+          bottom = defaultStyles.h1!.verticalSpacing.bottom;
           break;
 
         case 2:
-          top = defaultStyles!.h2!.verticalSpacing.item1;
-          bottom = defaultStyles.h2!.verticalSpacing.item2;
+          top = defaultStyles!.h2!.verticalSpacing.top;
+          bottom = defaultStyles.h2!.verticalSpacing.bottom;
           break;
 
         case 3:
-          top = defaultStyles!.h3!.verticalSpacing.item1;
-          bottom = defaultStyles.h3!.verticalSpacing.item2;
+          top = defaultStyles!.h3!.verticalSpacing.top;
+          bottom = defaultStyles.h3!.verticalSpacing.bottom;
           break;
 
         default:
           throw 'Invalid level $level';
       }
     } else {
-      late Tuple2 lineSpacing;
+      late VerticalSpacing lineSpacing;
       if (attrs.containsKey(AttributeM.blockQuote.key)) {
         lineSpacing = defaultStyles!.quote!.lineSpacing;
       } else if (attrs.containsKey(AttributeM.indent.key)) {
@@ -287,8 +287,8 @@ class EditableTextBlock extends StatelessWidget {
         lineSpacing = defaultStyles!.align!.lineSpacing;
       }
 
-      top = lineSpacing.item1;
-      bottom = lineSpacing.item2;
+      top = lineSpacing.top;
+      bottom = lineSpacing.bottom;
     }
 
     if (index == 1) {
@@ -299,6 +299,6 @@ class EditableTextBlock extends StatelessWidget {
       bottom = 0.0;
     }
 
-    return Tuple2(top, bottom);
+    return VerticalSpacing(top: top, bottom: bottom);
   }
 }

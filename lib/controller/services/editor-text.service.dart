@@ -60,14 +60,14 @@ class EditorTextService {
       final pos = start;
 
       for (var i = 0; i < state.paste.pasteStyle.length; i++) {
-        final offset = state.paste.pasteStyle[i].item1;
-        final style = state.paste.pasteStyle[i].item2;
+        final offset = state.paste.pasteStyle[i].offset;
+        final style = state.paste.pasteStyle[i].style;
 
         state.refs.editorController.formatTextStyle(
           pos + offset,
           i == state.paste.pasteStyle.length - 1
               ? state.paste.pastePlainText.length - offset
-              : state.paste.pasteStyle[i + 1].item1,
+              : state.paste.pasteStyle[i + 1].offset,
           style,
         );
       }

@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
-import 'package:tuple/tuple.dart';
 
+import '../../../controller/models/paste-style.model.dart';
 import '../attribute-scope.enum.dart';
 import '../attribute.model.dart';
 import '../delta/delta.model.dart';
@@ -412,13 +412,13 @@ class LineM extends ContainerM<LeafM?> {
   }
 
   // Returns each node segment's offset in selection with its corresponding style as a list
-  List<Tuple2<int, StyleM>> collectAllIndividualStyles(
+  List<PasteStyleM> collectAllIndividualStyles(
     int offset,
     int len, {
     int beg = 0,
   }) {
     final local = math.min(length - offset, len);
-    final result = <Tuple2<int, StyleM>>[];
+    final result = <PasteStyleM>[];
     final data = queryChild(offset, true);
     var node = data.node as LeafM?;
 
@@ -427,13 +427,13 @@ class LineM extends ContainerM<LeafM?> {
 
       if (node is TextM) {
         pos = node.length - data.offset;
-        result.add(Tuple2(beg, node.style));
+        result.add(PasteStyleM(beg, node.style));
       }
 
       while (!node!.isLast && pos < local) {
         node = node.next as LeafM;
         if (node is TextM) {
-          result.add(Tuple2(pos + beg, node.style));
+          result.add(PasteStyleM(pos + beg, node.style));
           pos += node.length;
         }
       }

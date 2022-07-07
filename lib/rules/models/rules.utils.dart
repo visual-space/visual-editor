@@ -1,20 +1,20 @@
-import 'package:tuple/tuple.dart';
-
 import '../../documents/controllers/delta.iterator.dart';
 import '../../documents/models/delta/operation.model.dart';
+import 'new-operartion.model.dart';
 
-Tuple2<OperationM?, int?> getNextNewLine(DeltaIterator iterator) {
-  OperationM op;
+NewOperationM getNextNewLine(DeltaIterator iterator) {
+  OperationM operation;
 
-  for (var skipped = 0; iterator.hasNext; skipped += op.length!) {
-    op = iterator.next();
+  for (var skipped = 0; iterator.hasNext; skipped += operation.length!) {
+    operation = iterator.next();
     final lineBreak =
-        (op.data is String ? op.data as String? : '')!.indexOf('\n');
+        (operation.data is String ? operation.data as String? : '')!
+            .indexOf('\n');
 
     if (lineBreak >= 0) {
-      return Tuple2(op, skipped);
+      return NewOperationM(operation, skipped);
     }
   }
 
-  return const Tuple2(null, null);
+  return NewOperationM(null, null);
 }

@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gallery_saver/gallery_saver.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../controller/controllers/editor-controller.dart';
 import '../../documents/models/attribute.model.dart';
@@ -12,6 +11,8 @@ import '../../documents/models/styling-attributes.dart';
 import '../../shared/translations/toolbar.i18n.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../../shared/utils/string.utils.dart';
+import '../models/content-size.model.dart';
+import '../models/image.model.dart';
 import '../services/image.utils.dart';
 import 'image-resizer.dart';
 import 'image-tap-wrapper.dart';
@@ -26,7 +27,7 @@ Widget defaultEmbedBuilder(
   bool readOnly,
 ) {
   assert(!kIsWeb, 'Please provide EmbedBuilder for Web');
-  Tuple2<double?, double?>? _widthHeight;
+  ContentSizeM? _widthHeight;
 
   switch (node.value.type) {
     case BlockEmbedM.imageType:
@@ -53,7 +54,7 @@ Widget defaultEmbedBuilder(
 
           final w = double.parse(_attrs[AttributeM.mobileWidth]!);
           final h = double.parse(_attrs[AttributeM.mobileHeight]!);
-          _widthHeight = Tuple2(w, h);
+          _widthHeight = ContentSizeM(w, h);
           final m = _attrs[AttributeM.mobileMargin] == null
               ? 0.0
               : double.parse(_attrs[AttributeM.mobileMargin]!);
@@ -61,14 +62,19 @@ Widget defaultEmbedBuilder(
 
           image = Padding(
             padding: EdgeInsets.all(m),
-            child: imageByUrl(imageUrl, width: w, height: h, alignment: a),
+            child: imageByUrl(
+              imageUrl,
+              width: w,
+              height: h,
+              alignment: a,
+            ),
           );
         }
       }
 
       if (_widthHeight == null) {
         image = imageByUrl(imageUrl);
-        _widthHeight = Tuple2(
+        _widthHeight = ContentSizeM(
           (image as Image).width,
           image.height,
         );
@@ -102,13 +108,13 @@ Widget defaultEmbedBuilder(
                                 height,
                               );
                               controller.formatText(
-                                res.item1,
+                                res.offset,
                                 1,
                                 StyleAttributeM(attr),
                               );
                             },
-                            imageWidth: _widthHeight?.item1,
-                            imageHeight: _widthHeight?.item2,
+                            imageWidth: _widthHeight?.width,
+                            imageHeight: _widthHeight?.height,
                             maxWidth: _screenSize.width,
                             maxHeight: _screenSize.height,
                           );
@@ -125,9 +131,9 @@ Widget defaultEmbedBuilder(
                       final imageNode = getImageNode(
                         controller,
                         controller.selection.start,
-                      ).item2;
+                      ).imageNode;
                       final imageUrl = imageNode.value.data;
-                      controller.copiedImageUrl = Tuple2(
+                      controller.copiedImageUrl = ImageM(
                         imageUrl,
                         getImageStyleString(controller),
                       );
@@ -143,7 +149,7 @@ Widget defaultEmbedBuilder(
                       final offset = getImageNode(
                         controller,
                         controller.selection.start,
-                      ).item1;
+                      ).offset;
                       controller.replaceText(
                         offset,
                         1,

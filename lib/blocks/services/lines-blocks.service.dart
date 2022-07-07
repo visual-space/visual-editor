@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../documents/models/change-source.enum.dart';
 import '../../documents/models/nodes/block.model.dart';
@@ -11,6 +10,7 @@ import '../../shared/state/editor.state.dart';
 import '../../visual-editor.dart';
 import '../models/editable-box-renderer.model.dart';
 import '../models/link-action-menu.enum.dart';
+import '../models/vertical-spacing.model.dart';
 import '../widgets/editable-text-block-renderer.dart';
 import '../widgets/editable-text-line.dart';
 import '../widgets/text-line.dart';
@@ -192,7 +192,7 @@ class LinesBlocksService {
     );
   }
 
-  Tuple2<double, double> getVerticalSpacingForBlock(
+  VerticalSpacing getVerticalSpacingForBlock(
     BlockM node,
     DefaultStyles? defaultStyles,
   ) {
@@ -210,10 +210,10 @@ class LinesBlocksService {
       return defaultStyles!.align!.verticalSpacing;
     }
 
-    return const Tuple2(0, 0);
+    return VerticalSpacing(top: 0, bottom: 0);
   }
 
-  Tuple2<double, double> getVerticalSpacingForLine(
+  VerticalSpacing getVerticalSpacingForLine(
     LineM line,
     DefaultStyles? defaultStyles,
   ) {

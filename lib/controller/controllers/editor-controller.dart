@@ -1,19 +1,21 @@
 import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../documents/models/attribute.model.dart';
 import '../../documents/models/change-source.enum.dart';
+import '../../documents/models/delta/delta-changes.model.dart';
 import '../../documents/models/delta/delta.model.dart';
 import '../../documents/models/document.model.dart';
 import '../../documents/models/nodes/embeddable.model.dart';
 import '../../documents/models/nodes/leaf.model.dart';
 import '../../documents/models/style.model.dart';
 import '../../documents/services/delta.utils.dart';
+import '../../embeds/models/image.model.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../shared/state/editor-state-receiver.dart';
 import '../../shared/state/editor.state.dart';
+import '../models/paste-style.model.dart';
 
 // Return false to ignore the event.
 typedef ReplaceTextCallback = bool Function(int index, int len, Object? data);
@@ -75,17 +77,15 @@ class EditorController {
   // It gets reset after each format action within the document.
   StyleM toggledStyle = StyleM();
 
-  // DeltaM: Document state before change.
-  // DeltaM: Change delta applied to the document.
-  // ChangeSource: The source of this change.
-  Stream<Tuple3<DeltaM, DeltaM, ChangeSource>> get changes => document.changes;
+  // Stream the changes of every document
+  Stream<DeltaChangeM> get changes => document.changes;
 
   // Clipboard for image url and its corresponding style item1 is url and item2 is style string
-  Tuple2<String, String>? _copiedImageUrl;
+  ImageM? _copiedImageUrl;
 
-  Tuple2<String, String>? get copiedImageUrl => _copiedImageUrl;
+  ImageM? get copiedImageUrl => _copiedImageUrl;
 
-  set copiedImageUrl(Tuple2<String, String>? imgUrl) {
+  set copiedImageUrl(ImageM? imgUrl) {
     _copiedImageUrl = imgUrl;
     Clipboard.setData(const ClipboardData(text: ''));
   }
@@ -135,7 +135,7 @@ class EditorController {
       .mergeAll(toggledStyle);
 
   // Returns all styles for each node within selection
-  List<Tuple2<int, StyleM>> getAllIndividualSelectionStyles() {
+  List<PasteStyleM> getAllIndividualSelectionStyles() {
     final styles = document.collectAllIndividualStyles(
       selection.start,
       selection.end - selection.start,
@@ -167,16 +167,16 @@ class EditorController {
   void undo() {
     final tup = document.undo();
 
-    if (tup.item1) {
-      _handleHistoryChange(tup.item2);
+    if (tup.applyChanges) {
+      _handleHistoryChange(tup.offset);
     }
   }
 
   void redo() {
     final tup = document.redo();
 
-    if (tup.item1) {
-      _handleHistoryChange(tup.item2);
+    if (tup.applyChanges) {
+      _handleHistoryChange(tup.offset);
     }
   }
 
@@ -399,7 +399,7 @@ class EditorController {
 
   // Given offset, find its leaf node in document
   LeafM? queryNode(int offset) {
-    return document.querySegmentLeafNode(offset).item2;
+    return document.querySegmentLeafNode(offset).leaf;
   }
 
   // === PRIVATE ===

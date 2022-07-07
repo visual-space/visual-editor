@@ -415,7 +415,7 @@ class VisualEditorState extends State<VisualEditor>
           ? BaselineProxy(
               textStyle: styles!.paragraph!.style,
               padding: EdgeInsets.only(
-                top: styles!.paragraph!.verticalSpacing.item1,
+                top: styles!.paragraph!.verticalSpacing.top,
               ),
               child: EditorSingleChildScrollView(
                 state: widget._state,

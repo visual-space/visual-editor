@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../documents/models/nodes/block.model.dart';
 import '../../shared/state/editor.state.dart';
+import '../models/vertical-spacing.model.dart';
 import 'editable-text-block-renderer.dart';
 
 // ignore: must_be_immutable
 class EditableBlock extends MultiChildRenderObjectWidget {
   final BlockM block;
   final TextDirection textDirection;
-  final Tuple2<double, double> padding;
+  final VerticalSpacing padding;
   final Decoration decoration;
   final bool isCodeBlock;
 
@@ -38,8 +38,8 @@ class EditableBlock extends MultiChildRenderObjectWidget {
   }
 
   EdgeInsets get _padding => EdgeInsets.only(
-        top: padding.item1,
-        bottom: padding.item2,
+        top: padding.top,
+        bottom: padding.bottom,
       );
 
   @override

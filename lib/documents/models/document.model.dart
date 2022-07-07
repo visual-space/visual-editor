@@ -1,12 +1,12 @@
 import 'dart:async';
 
-import 'package:tuple/tuple.dart';
-
+import '../../controller/models/paste-style.model.dart';
 import '../../rules/controllers/rules.controller.dart';
 import '../../rules/models/rule-type.enum.dart';
 import '../../rules/models/rule.model.dart';
 import 'attribute.model.dart';
 import 'change-source.enum.dart';
+import 'delta/delta-changes.model.dart';
 import 'delta/delta.model.dart';
 import 'delta/operation.model.dart';
 import 'history.model.dart';
@@ -16,7 +16,9 @@ import 'nodes/child-query.model.dart';
 import 'nodes/embeddable.model.dart';
 import 'nodes/leaf.model.dart';
 import 'nodes/line.model.dart';
+import 'nodes/revert-operations.model.dart';
 import 'nodes/root.model.dart';
+import 'nodes/segment-leaf-node.model.dart';
 import 'style.model.dart';
 
 // The rich text document
@@ -56,8 +58,7 @@ class DocumentM {
     _rules.setCustomRules(customRules);
   }
 
-  final StreamController<Tuple3<DeltaM, DeltaM, ChangeSource>> _observer =
-      StreamController.broadcast();
+  final StreamController<DeltaChangeM> _observer = StreamController.broadcast();
 
   final HistoryM _history = HistoryM();
 
@@ -66,7 +67,7 @@ class DocumentM {
   bool get hasRedo => _history.hasRedo;
 
   // Stream of Changes applied to this document.
-  Stream<Tuple3<DeltaM, DeltaM, ChangeSource>> get changes => _observer.stream;
+  Stream<DeltaChangeM> get changes => _observer.stream;
 
   // Inserts data in this document at specified index.
   // The `data` parameter can be either a String or an instance of Embeddable.
@@ -178,7 +179,7 @@ class DocumentM {
   }
 
   // Returns all styles for each node within selection
-  List<Tuple2<int, StyleM>> collectAllIndividualStyles(int index, int len) {
+  List<PasteStyleM> collectAllIndividualStyles(int index, int len) {
     final res = queryChild(index);
     return (res.node as LineM).collectAllIndividualStyles(res.offset, len);
   }
@@ -210,23 +211,23 @@ class DocumentM {
   }
 
   // Given offset, find its leaf node in document
-  Tuple2<LineM?, LeafM?> querySegmentLeafNode(int offset) {
+  SegmentLeafNodeM querySegmentLeafNode(int offset) {
     final result = queryChild(offset);
 
     if (result.node == null) {
-      return const Tuple2(null, null);
+      return SegmentLeafNodeM(null, null);
     }
 
     final line = result.node as LineM;
     final segmentResult = line.queryChild(result.offset, false);
 
     if (segmentResult.node == null) {
-      return Tuple2(line, null);
+      return SegmentLeafNodeM(line, null);
     }
 
     final segment = segmentResult.node as LeafM;
 
-    return Tuple2(line, segment);
+    return SegmentLeafNodeM(line, segment);
   }
 
   // Composes change Delta into this document.
@@ -272,16 +273,16 @@ class DocumentM {
       throw 'Compose failed';
     }
 
-    final change = Tuple3(originalDelta, delta, changeSource);
+    final change = DeltaChangeM(originalDelta, delta, changeSource);
     _observer.add(change);
     _history.handleDocChange(change);
   }
 
-  Tuple2 undo() {
+  RevertOperationM undo() {
     return _history.undo(this);
   }
 
-  Tuple2 redo() {
+  RevertOperationM redo() {
     return _history.redo(this);
   }
 

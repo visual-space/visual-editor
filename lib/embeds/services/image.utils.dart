@@ -4,19 +4,19 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:string_validator/string_validator.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../controller/controllers/editor-controller.dart';
 import '../../documents/models/attribute.model.dart';
 import '../../documents/models/nodes/embed.model.dart';
 import '../../documents/models/style.model.dart';
 import '../const/image-file-extensions.const.dart';
+import '../models/image-node.model.dart';
 
 bool isImageBase64(String imageUrl) {
   return !imageUrl.startsWith('http') && isBase64(imageUrl);
 }
 
-Tuple2<int, EmbedM> getImageNode(EditorController controller, int offset) {
+ImageNodeM getImageNode(EditorController controller, int offset) {
   var offset = controller.selection.start;
   var imageNode = controller.queryNode(offset);
   if (imageNode == null || !(imageNode is EmbedM)) {
@@ -24,7 +24,7 @@ Tuple2<int, EmbedM> getImageNode(EditorController controller, int offset) {
     imageNode = controller.queryNode(offset);
   }
   if (imageNode != null && imageNode is EmbedM) {
-    return Tuple2(offset, imageNode);
+    return ImageNodeM(offset, imageNode);
   }
 
   return throw 'Image node not found by offset $offset';

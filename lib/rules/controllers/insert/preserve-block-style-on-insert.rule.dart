@@ -31,7 +31,7 @@ class PreserveBlockStyleOnInsertRule extends InsertRuleM {
     // Look for the next newline.
     final nextNewLine = getNextNewLine(itr);
     final lineStyle = StyleM.fromJson(
-      nextNewLine.item1?.attributes ?? <String, dynamic>{},
+      nextNewLine.operation?.attributes ?? <String, dynamic>{},
     );
     final blockStyle = lineStyle.getBlocksExceptHeader();
 
@@ -79,8 +79,8 @@ class PreserveBlockStyleOnInsertRule extends InsertRuleM {
     // Reset style of the original newline character if needed.
     if (resetStyle.isNotEmpty) {
       delta
-        ..retain(nextNewLine.item2!)
-        ..retain((nextNewLine.item1!.data as String).indexOf('\n'))
+        ..retain(nextNewLine.offset!)
+        ..retain((nextNewLine.operation!.data as String).indexOf('\n'))
         ..retain(1, resetStyle);
     }
 

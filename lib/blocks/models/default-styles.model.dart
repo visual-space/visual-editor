@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../shared/utils/platform.utils.dart';
 import 'default-block-style.model.dart';
 import 'default-text-block-style.model.dart';
 import 'inline-code-style.model.dart';
+import 'vertical-spacing.model.dart';
 
 // Default document styles
 class DefaultStyles {
@@ -65,7 +65,7 @@ class DefaultStyles {
       fontSize: 16,
       height: 1.3,
     );
-    const baseSpacing = Tuple2<double, double>(6, 0);
+    final baseSpacing = VerticalSpacing(top: 6, bottom: 0);
     String fontFamily;
 
     if (isAppleOS(themeData.platform)) {
@@ -82,25 +82,27 @@ class DefaultStyles {
 
     return DefaultStyles(
       h1: DefaultTextBlockStyle(
-          defaultTextStyle.style.copyWith(
-            fontSize: 34,
-            color: defaultTextStyle.style.color!.withOpacity(0.70),
-            height: 1.15,
-            fontWeight: FontWeight.w300,
-          ),
-          const Tuple2(16, 0),
-          const Tuple2(0, 0),
-          null),
+        defaultTextStyle.style.copyWith(
+          fontSize: 34,
+          color: defaultTextStyle.style.color!.withOpacity(0.70),
+          height: 1.15,
+          fontWeight: FontWeight.w300,
+        ),
+        VerticalSpacing(top: 16, bottom: 0),
+        VerticalSpacing(top: 0, bottom: 0),
+        null,
+      ),
       h2: DefaultTextBlockStyle(
-          defaultTextStyle.style.copyWith(
-            fontSize: 24,
-            color: defaultTextStyle.style.color!.withOpacity(0.70),
-            height: 1.15,
-            fontWeight: FontWeight.normal,
-          ),
-          const Tuple2(8, 0),
-          const Tuple2(0, 0),
-          null),
+        defaultTextStyle.style.copyWith(
+          fontSize: 24,
+          color: defaultTextStyle.style.color!.withOpacity(0.70),
+          height: 1.15,
+          fontWeight: FontWeight.normal,
+        ),
+        VerticalSpacing(top: 8, bottom: 0),
+        VerticalSpacing(top: 0, bottom: 0),
+        null,
+      ),
       h3: DefaultTextBlockStyle(
         defaultTextStyle.style.copyWith(
           fontSize: 20,
@@ -108,14 +110,14 @@ class DefaultStyles {
           height: 1.25,
           fontWeight: FontWeight.w500,
         ),
-        const Tuple2(8, 0),
-        const Tuple2(0, 0),
+        VerticalSpacing(top: 8, bottom: 0),
+        VerticalSpacing(top: 0, bottom: 0),
         null,
       ),
       paragraph: DefaultTextBlockStyle(
         baseStyle,
-        const Tuple2(0, 0),
-        const Tuple2(0, 0),
+        VerticalSpacing(top: 0, bottom: 0),
+        VerticalSpacing(top: 0, bottom: 0),
         null,
       ),
       bold: const TextStyle(
@@ -160,14 +162,14 @@ class DefaultStyles {
           height: 1.5,
           color: Colors.grey.withOpacity(0.6),
         ),
-        const Tuple2(0, 0),
-        const Tuple2(0, 0),
+        VerticalSpacing(top: 0, bottom: 0),
+        VerticalSpacing(top: 0, bottom: 0),
         null,
       ),
       lists: DefaultListBlockStyle(
         baseStyle,
         baseSpacing,
-        const Tuple2(0, 6),
+        VerticalSpacing(top: 0, bottom: 6),
         null,
         null,
       ),
@@ -176,7 +178,7 @@ class DefaultStyles {
           color: baseStyle.color!.withOpacity(0.6),
         ),
         baseSpacing,
-        const Tuple2(6, 2),
+        VerticalSpacing(top: 6, bottom: 2),
         BoxDecoration(
           border: Border(
             left: BorderSide(
@@ -194,7 +196,7 @@ class DefaultStyles {
           height: 1.15,
         ),
         baseSpacing,
-        const Tuple2(0, 0),
+        VerticalSpacing(top: 0, bottom: 0),
         BoxDecoration(
           color: Colors.grey.shade50,
           borderRadius: BorderRadius.circular(2),
@@ -203,19 +205,19 @@ class DefaultStyles {
       indent: DefaultTextBlockStyle(
         baseStyle,
         baseSpacing,
-        const Tuple2(0, 6),
+        VerticalSpacing(top: 0, bottom: 6),
         null,
       ),
       align: DefaultTextBlockStyle(
         baseStyle,
-        const Tuple2(0, 0),
-        const Tuple2(0, 0),
+        VerticalSpacing(top: 0, bottom: 0),
+        VerticalSpacing(top: 0, bottom: 0),
         null,
       ),
       leading: DefaultTextBlockStyle(
         baseStyle,
-        const Tuple2(0, 0),
-        const Tuple2(0, 0),
+        VerticalSpacing(top: 0, bottom: 0),
+        VerticalSpacing(top: 0, bottom: 0),
         null,
       ),
       sizeSmall: const TextStyle(

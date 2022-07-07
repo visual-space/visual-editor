@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../../rules/controllers/insert/auto-format-multiple-links.rule.dart';
 import '../../../shared/models/editor-dialog-theme.model.dart';
 import '../../../shared/translations/toolbar.i18n.dart';
+import '../../models/link-button.model.dart';
 
 class LinkStyleDialog extends StatefulWidget {
   final EditorDialogThemeM? dialogTheme;
@@ -106,6 +106,12 @@ class _LinkStyleDialogState extends State<LinkStyleDialog> {
   }
 
   void _applyLink() {
-    Navigator.pop(context, Tuple2(_text.trim(), _link.trim()));
+    Navigator.pop(
+      context,
+      LinkButtonM(
+        _text.trim(),
+        _link.trim(),
+      ),
+    );
   }
 }

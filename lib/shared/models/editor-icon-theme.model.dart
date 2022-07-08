@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-// TODO Review if this needs to be focused on theming only or can be merged with other concerns.
+// TODO Review if this needs to be focused on theming only or can be merged with other concerns. 
 class EditorIconThemeM {
   final Color? iconSelectedColor;
   final Color? iconUnselectedColor;

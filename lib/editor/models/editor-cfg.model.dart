@@ -33,9 +33,6 @@ class EditorConfigM {
   // Otherwise, the keyboard is only shown after the user taps the editor.
   final bool autoFocus;
 
-  // The cursor refers to the blinking caret when the editor is focused.
-  final bool showCursor;
-
   // TODO DOC (currently not sure why this is defined)
   final bool? paintCursorAboveText;
 
@@ -155,7 +152,6 @@ class EditorConfigM {
     this.autoFocus = false,
     this.readOnly = false,
     this.expands = false,
-    this.showCursor = true,
     this.paintCursorAboveText,
     this.placeholder,
     this.enableInteractiveSelection = true,

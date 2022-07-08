@@ -2,7 +2,6 @@ import 'package:flutter/gestures.dart';
 
 // A TapGestureRecognizer which allows other GestureRecognizers to win in the GestureArena.
 // This means both TransparentTapGestureRecognizer and other GestureRecognizers can handle the same event.
-//
 // This enables proper handling of events on both the selection handle and the underlying input,
 // since there is significant overlap between the two given the handle's padded hit area.
 // For example, the selection handle needs to handle single taps on itself,

@@ -109,6 +109,11 @@ _controller.document.toPlainText(); // Extract plain text
     </tr>
 </table>
 
+## Tips
+
+* To have a more efficient search (CTRL + SHIFT + F) is recommended to exclude `/ios` and `/android` files from the search
+   - rightClick on folder -> Mark as -> Excluded
+
 ## Documentation
 Learn more about Visual Editor architecture and how to use the features.
 

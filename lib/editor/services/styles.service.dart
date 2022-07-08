@@ -10,7 +10,6 @@ import '../models/platform-dependent-styles.model.dart';
 
 // Utils used to generate the styles that will be used to render the editor.
 class StylesService {
-
   static final _instance = StylesService._privateConstructor();
 
   factory StylesService() => _instance;
@@ -31,7 +30,8 @@ class StylesService {
   // This method needs access to the build context.
   // It also needs to be executed before the rest of the widgets are built.
   // Therefore we built a condition to execute it only once.
-  void getPlatformStylesAndSetCursorControllerOnce(BuildContext context, EditorState state) {
+  void getPlatformStylesAndSetCursorControllerOnce(
+      BuildContext context, EditorState state) {
     if (state.platformStyles.isInitialised) {
       return;
     }
@@ -42,10 +42,10 @@ class StylesService {
 
     state.refs.setCursorController(
       CursorController(
-        show: ValueNotifier<bool>(state.editorConfig.config.showCursor),
+        show: ValueNotifier<bool>(!state.editorConfig.config.readOnly),
         style: cursorStyle(state),
         tickerProvider: state.refs.editorState,
-        state: state
+        state: state,
       ),
     );
   }
@@ -91,17 +91,17 @@ class StylesService {
   }
 
   CursorStyle cursorStyle(EditorState state) {
-    final style = state.platformStyles.styles.cursorStyle;
+    final defaultStyle = state.platformStyles.styles.cursorStyle;
+    final paintCursorAboveText = state.editorConfig.config.paintCursorAboveText;
 
     return CursorStyle(
-      color: style.cursorColor,
+      color: defaultStyle.cursorColor,
       backgroundColor: Colors.grey,
       width: 2,
-      radius: style.cursorRadius,
-      offset: style.cursorOffset,
-      paintAboveText: state.editorConfig.config.paintCursorAboveText ??
-          style.paintCursorAboveText,
-      opacityAnimates: style.cursorOpacityAnimates,
+      radius: defaultStyle.cursorRadius,
+      offset: defaultStyle.cursorOffset,
+      paintAboveText: paintCursorAboveText ?? defaultStyle.paintCursorAboveText,
+      opacityAnimates: defaultStyle.cursorOpacityAnimates,
     );
   }
 }

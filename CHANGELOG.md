@@ -20,6 +20,7 @@
 * Delta documents sandbox page, preview the json (development aid)
 * Remove tuple dependency
 * Fix the placeholder is not displayed bug
+* The caret is no longer displayed in readonly mode. The `showCursor` configuration option for `VisualEditor` was removed. It makes no sense to have the cared showing up in readonly mode. Or the caret missing in editable mode.
 
 ## [0.0.2]
 * Custom highlights

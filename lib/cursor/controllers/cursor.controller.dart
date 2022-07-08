@@ -8,7 +8,6 @@ import '../models/cursor-style.model.dart';
 // Controls the cursor of an editable widget.
 // This class is a [ChangeNotifier] and allows to listen for updates on the cursor [style].
 class CursorController {
-
   // The time it takes for the cursor to fade from fully opaque to fully transparent and vice versa.
   // A full cursor blink, from transparent to opaque to transparent, is twice this duration.
   static const Duration _blinkHalfPeriod = Duration(milliseconds: 500);

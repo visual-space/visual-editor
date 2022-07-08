@@ -7,7 +7,7 @@ import '../../highlights/services/highlights.service.dart';
 import '../../shared/state/editor.state.dart';
 import '../services/text-gestures.service.dart';
 import '../services/text-selection.service.dart';
-import '../services/transparen-tap-gesture-recognizer.dart';
+import '../services/transparent-tap-gesture-recognizer.dart';
 
 // Multiple callbacks can be called for one sequence of input gestures.
 // An ordinary GestureDetector configured to handle events like tap and double tap will only recognize one or the other.
@@ -150,14 +150,15 @@ class _TextGesturesState extends State<TextGestures> {
     TapDownDetails details,
     EditorState state,
   ) {
+    final hasDoubleTapTolerance =
+        _hasDoubleTapTolerance(details.globalPosition);
     _textGesturesService.onTapDown(details, state);
 
     // This isn't detected as a double tap gesture in the gesture recognizer
     // because it's 2 single taps, each of which may do different things
     // depending on whether it's a single tap, the first tap of a double tap,
     // the second tap held down, a clean double tap etc.
-    if (_doubleTapTimer != null &&
-        _isWithinDoubleTapTolerance(details.globalPosition)) {
+    if (_doubleTapTimer != null && hasDoubleTapTolerance) {
       // If there was already a previous tap, the second down hold/tap is a double tap down.
       _textGesturesService.onDoubleTapDown(details, state);
       _doubleTapTimer!.cancel();
@@ -281,7 +282,7 @@ class _TextGesturesState extends State<TextGestures> {
     _lastTapOffset = null;
   }
 
-  bool _isWithinDoubleTapTolerance(Offset secondTapOffset) {
+  bool _hasDoubleTapTolerance(Offset secondTapOffset) {
     if (_lastTapOffset == null) {
       return false;
     }

@@ -5,6 +5,7 @@ import '../../shared/utils/platform.utils.dart';
 import '../models/cursor-style.model.dart';
 
 // Paints the editing cursor.
+// Cursor is disabled in readonly mode
 class CursorPainter {
   final RenderContentProxyBox? editable;
   final CursorStyle style;

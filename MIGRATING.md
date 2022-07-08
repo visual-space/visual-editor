@@ -111,6 +111,10 @@ Now becomes:
   );
 ```
 
+**showCursor was removed**
+
+The caret is no longer displayed in readonly mode. The `showCursor` configuration option for `VisualEditor` was removed. It makes no sense to have the cared showing up in readonly mode. Or the caret missing in editable mode.
+
 ## Toolbar Configuration
 
 - `customIcons` becomes `customButtons` - We've renamed the property to better express it's purpose.
@@ -121,9 +125,7 @@ Now becomes:
   give better control on button and section spacings by adding a new property `sectionSpacing`.
 - `EditorCustomIcon` becomes `EditorCustomButton` - Icons mean static images. Buttons indicate also
   a reaction when tapping.
-
-## Expected Changes
-
+  
 Join on [discord](https://discord.gg/XpGygmXde4) to get advice and help or follow us
 on [YouTube Visual Coding](https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA) to learn more
 about the architecture of Visual Editor and other Flutter apps.

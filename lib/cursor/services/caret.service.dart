@@ -22,14 +22,17 @@ class CaretService {
   CaretService._privateConstructor();
 
   void showCaretOnScreen(EditorState state) {
-    if (!state.editorConfig.config.showCursor || _showCaretOnScreenScheduled) {
+    final readOnly = state.editorConfig.config.readOnly;
+    final isScrollable = state.editorConfig.config.scrollable;
+    final hasClients = state.refs.scrollController.hasClients;
+
+    if (readOnly || _showCaretOnScreenScheduled) {
       return;
     }
 
     _showCaretOnScreenScheduled = true;
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      if (state.editorConfig.config.scrollable ||
-          state.refs.scrollController.hasClients) {
+      if (isScrollable || hasClients) {
         _showCaretOnScreenScheduled = false;
         final renderer = state.refs.renderer;
 

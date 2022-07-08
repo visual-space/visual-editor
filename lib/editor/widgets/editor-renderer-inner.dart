@@ -14,11 +14,12 @@ import '../../selection/services/selection-actions.service.dart';
 import '../../selection/services/text-selection.utils.dart';
 import '../../shared/state/editor.state.dart';
 import '../controllers/vertical-caret-movement-run.controller.dart';
-import 'editable-container-box-renderer.dart';
+import 'multiline-text-area-renderer.dart';
 
 // Displays a document as a vertical list of document segments (lines and blocks).
 // Children of RenderEditor must be instances of RenderEditableBox.
-class EditorRendererInner extends EditableContainerBoxRenderer
+// Also renders the floating cursor (cursor displayed when long tapping on mobile and dragging the cursor).
+class EditorRendererInner extends MultilineTextAreaRenderer
     with RelayoutWhenSystemFontsChangeMixin
     implements TextLayoutMetrics {
   final _textSelectionUtils = TextSelectionUtils();

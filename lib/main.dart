@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -182,6 +181,9 @@ class VisualEditorState extends State<VisualEditor>
       widget._state,
     );
 
+    // If doc is empty override with a placeholder
+    final document = _documentService.getDocOrPlaceholder(widget._state);
+
     return _conditionalPreventKeyPropagationToParentIfWeb(
       child: _i18n(
         child: _textGestures(
@@ -193,8 +195,10 @@ class VisualEditorState extends State<VisualEditor>
                     child: _conditionalScrollable(
                       child: _overlayTargetForMobileToolbar(
                         child: _editorRenderer(
-                          children: _documentService.docBlocsAndLines(
+                          document: document,
+                          children: _documentService.documentBlocsAndLines(
                             state: widget._state,
+                            document: document,
                           ),
                         ),
                       ),
@@ -446,29 +450,23 @@ class VisualEditorState extends State<VisualEditor>
         child: child,
       );
 
-  Widget _editorRenderer({required List<Widget> children}) => Semantics(
+  // Computes the boundaries of the editor (performLayout).
+  // We don't use a widget as the parent for the list of document elements because we need custom virtual scroll behaviour.
+  // Also renders the floating cursor (cursor displayed when long tapping on mobile and dragging the cursor).
+  Widget _editorRenderer({
+    required DocumentM document,
+    required List<Widget> children,
+  }) =>
+      Semantics(
         child: EditorRenderer(
           key: _editorRendererKey,
           offset: _offset,
-          document: _getDocOrPlaceholder(),
+          document: document,
           textDirection: textDirection,
           state: widget._state,
           children: children,
         ),
       );
-
-  DocumentM _getDocOrPlaceholder() =>
-      widget._state.document.document.isEmpty() &&
-              widget._state.editorConfig.config.placeholder != null
-          ? DocumentM.fromJson(
-              jsonDecode(
-                '[{'
-                '"attributes":{"placeholder":true},'
-                '"insert":"${widget._state.editorConfig.config.placeholder}\\n"'
-                '}]',
-              ),
-            )
-          : widget._state.document.document;
 
   void _listenToFocusAndUpdateCaretAndOverlayMenu() {
     widget._state.refs.focusNode.addListener(

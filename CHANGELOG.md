@@ -19,6 +19,7 @@
 * Exported the Toolbar buttons so that custom toolbars can be build from scratch
 * Delta documents sandbox page, preview the json (development aid)
 * Remove tuple dependency
+* Fix the placeholder is not displayed bug
 
 ## [0.0.2]
 * Custom highlights

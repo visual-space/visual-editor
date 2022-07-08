@@ -1,13 +1,13 @@
 import 'package:flutter/rendering.dart';
 
 import '../../documents/models/nodes/block.model.dart';
-import '../../editor/widgets/editable-container-box-renderer.dart';
+import '../../editor/widgets/multiline-text-area-renderer.dart';
 import '../../selection/services/text-selection.utils.dart';
 import '../../shared/state/editor.state.dart';
 import '../models/editable-box-renderer.model.dart';
 import '../services/lines-blocks.service.dart';
 
-class EditableTextBlockRenderer extends EditableContainerBoxRenderer
+class EditableTextBlockRenderer extends MultilineTextAreaRenderer
     implements EditableBoxRenderer {
   final _linesBlocksService = LinesBlocksService();
   final _textSelectionUtils = TextSelectionUtils();
@@ -75,52 +75,68 @@ class EditableTextBlockRenderer extends EditableContainerBoxRenderer
 
   @override
   TextRange getLineBoundary(TextPosition position) {
-    final child = _linesBlocksService.childAtPosition(position, _state, this);
-    final rangeInChild = child.getLineBoundary(
+    final childAtPosition = _linesBlocksService.childAtPosition(
+      position,
+      _state,
+      this,
+    );
+    final rangeInChild = childAtPosition.getLineBoundary(
       TextPosition(
-        offset: position.offset - child.container.offset,
+        offset: position.offset - childAtPosition.container.offset,
         affinity: position.affinity,
       ),
     );
 
     return TextRange(
-      start: rangeInChild.start + child.container.offset,
-      end: rangeInChild.end + child.container.offset,
+      start: rangeInChild.start + childAtPosition.container.offset,
+      end: rangeInChild.end + childAtPosition.container.offset,
     );
   }
 
   @override
   Offset getOffsetForCaret(TextPosition position) {
-    final child = _linesBlocksService.childAtPosition(position, _state, this);
+    final childAtPosition = _linesBlocksService.childAtPosition(
+      position,
+      _state,
+      this,
+    );
 
-    return child.getOffsetForCaret(
+    return childAtPosition.getOffsetForCaret(
           TextPosition(
-            offset: position.offset - child.container.offset,
+            offset: position.offset - childAtPosition.container.offset,
             affinity: position.affinity,
           ),
         ) +
-        (child.parentData as BoxParentData).offset;
+        (childAtPosition.parentData as BoxParentData).offset;
   }
 
   @override
   TextPosition getPositionForOffset(Offset offset) {
-    final child = _linesBlocksService.childAtOffset(offset, _state, this);
-    final parentData = child.parentData as BoxParentData;
-    final localPosition = child.getPositionForOffset(
+    final childAtOffset = _linesBlocksService.childAtOffset(
+      offset,
+      _state,
+      this,
+    );
+    final parentData = childAtOffset.parentData as BoxParentData;
+    final localPosition = childAtOffset.getPositionForOffset(
       offset - parentData.offset,
     );
 
     return TextPosition(
-      offset: localPosition.offset + child.container.offset,
+      offset: localPosition.offset + childAtOffset.container.offset,
       affinity: localPosition.affinity,
     );
   }
 
   @override
   TextRange getWordBoundary(TextPosition position) {
-    final child = _linesBlocksService.childAtPosition(position, _state, this);
-    final nodeOffset = child.container.offset;
-    final childWord = child.getWordBoundary(
+    final childAtPosition = _linesBlocksService.childAtPosition(
+      position,
+      _state,
+      this,
+    );
+    final nodeOffset = childAtPosition.container.offset;
+    final childWord = childAtPosition.getWordBoundary(
       TextPosition(offset: position.offset - nodeOffset),
     );
 
@@ -134,25 +150,29 @@ class EditableTextBlockRenderer extends EditableContainerBoxRenderer
   TextPosition? getPositionAbove(TextPosition position) {
     assert(position.offset < container.length);
 
-    final child = _linesBlocksService.childAtPosition(position, _state, this);
-    final childLocalPosition = TextPosition(
-      offset: position.offset - child.container.offset,
+    final childAtPosition = _linesBlocksService.childAtPosition(
+      position,
+      _state,
+      this,
     );
-    final result = child.getPositionAbove(childLocalPosition);
+    final childLocalPosition = TextPosition(
+      offset: position.offset - childAtPosition.container.offset,
+    );
+    final result = childAtPosition.getPositionAbove(childLocalPosition);
 
     if (result != null) {
       return TextPosition(
-        offset: result.offset + child.container.offset,
+        offset: result.offset + childAtPosition.container.offset,
       );
     }
 
-    final sibling = childBefore(child);
+    final sibling = childBefore(childAtPosition);
 
     if (sibling == null) {
       return null;
     }
 
-    final caretOffset = child.getOffsetForCaret(childLocalPosition);
+    final caretOffset = childAtPosition.getOffsetForCaret(childLocalPosition);
     final testPosition = TextPosition(offset: sibling.container.length - 1);
     final testOffset = sibling.getOffsetForCaret(testPosition);
     final finalOffset = Offset(caretOffset.dx, testOffset.dy);
@@ -167,25 +187,29 @@ class EditableTextBlockRenderer extends EditableContainerBoxRenderer
   TextPosition? getPositionBelow(TextPosition position) {
     assert(position.offset < container.length);
 
-    final child = _linesBlocksService.childAtPosition(position, _state, this);
-    final childLocalPosition = TextPosition(
-      offset: position.offset - child.container.offset,
+    final childAtPosition = _linesBlocksService.childAtPosition(
+      position,
+      _state,
+      this,
     );
-    final result = child.getPositionBelow(childLocalPosition);
+    final childLocalPosition = TextPosition(
+      offset: position.offset - childAtPosition.container.offset,
+    );
+    final result = childAtPosition.getPositionBelow(childLocalPosition);
 
     if (result != null) {
       return TextPosition(
-        offset: result.offset + child.container.offset,
+        offset: result.offset + childAtPosition.container.offset,
       );
     }
 
-    final sibling = childAfter(child);
+    final sibling = childAfter(childAtPosition);
 
     if (sibling == null) {
       return null;
     }
 
-    final caretOffset = child.getOffsetForCaret(childLocalPosition);
+    final caretOffset = childAtPosition.getOffsetForCaret(childLocalPosition);
     final testOffset = sibling.getOffsetForCaret(
       const TextPosition(offset: 0),
     );
@@ -199,11 +223,15 @@ class EditableTextBlockRenderer extends EditableContainerBoxRenderer
 
   @override
   double preferredLineHeight(TextPosition position) {
-    final child = _linesBlocksService.childAtPosition(position, _state, this);
+    final childAtPosition = _linesBlocksService.childAtPosition(
+      position,
+      _state,
+      this,
+    );
 
-    return child.preferredLineHeight(
+    return childAtPosition.preferredLineHeight(
       TextPosition(
-        offset: position.offset - child.container.offset,
+        offset: position.offset - childAtPosition.container.offset,
       ),
     );
   }
@@ -329,14 +357,20 @@ class EditableTextBlockRenderer extends EditableContainerBoxRenderer
 
   @override
   Rect getLocalRectForCaret(TextPosition position) {
-    final child = _linesBlocksService.childAtPosition(position, _state, this);
+    final childAtPosition = _linesBlocksService.childAtPosition(
+      position,
+      _state,
+      this,
+    );
     final localPosition = TextPosition(
-      offset: position.offset - child.container.offset,
+      offset: position.offset - childAtPosition.container.offset,
       affinity: position.affinity,
     );
-    final parentData = child.parentData as BoxParentData;
+    final parentData = childAtPosition.parentData as BoxParentData;
 
-    return child.getLocalRectForCaret(localPosition).shift(parentData.offset);
+    return childAtPosition
+        .getLocalRectForCaret(localPosition)
+        .shift(parentData.offset);
   }
 
   @override
@@ -354,12 +388,16 @@ class EditableTextBlockRenderer extends EditableContainerBoxRenderer
 
   @override
   Rect getCaretPrototype(TextPosition position) {
-    final child = _linesBlocksService.childAtPosition(position, _state, this);
+    final childAtPosition = _linesBlocksService.childAtPosition(
+      position,
+      _state,
+      this,
+    );
     final localPosition = TextPosition(
-      offset: position.offset - child.container.offset,
+      offset: position.offset - childAtPosition.container.offset,
       affinity: position.affinity,
     );
 
-    return child.getCaretPrototype(localPosition);
+    return childAtPosition.getCaretPrototype(localPosition);
   }
 }

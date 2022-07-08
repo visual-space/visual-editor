@@ -14,6 +14,7 @@ export 'documents/models/style.model.dart';
 export 'editor/models/editor-cfg.model.dart';
 export 'highlights/models/highlight.model.dart';
 export 'main.dart';
+export 'shared/const/empty-delta-doc-json.const.dart';
 export 'shared/models/editor-dialog-theme.model.dart';
 export 'shared/models/editor-icon-theme.model.dart';
 export 'toolbar/models/editor-custom-icon.dart';

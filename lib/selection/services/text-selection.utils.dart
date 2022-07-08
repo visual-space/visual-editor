@@ -5,7 +5,7 @@ import 'package:flutter/rendering.dart';
 
 import '../../blocks/services/lines-blocks.service.dart';
 import '../../documents/models/nodes/node.model.dart';
-import '../../editor/widgets/editable-container-box-renderer.dart';
+import '../../editor/widgets/multiline-text-area-renderer.dart';
 import '../../shared/state/editor.state.dart';
 
 class TextSelectionUtils {
@@ -57,7 +57,7 @@ class TextSelectionUtils {
 
   TextSelection getLineAtPosition(
     TextPosition position,
-    EditableContainerBoxRenderer renderer,
+    MultilineTextAreaRenderer renderer,
     EditorState state,
   ) {
     final line = getLineAtOffset(position, renderer, state);
@@ -75,7 +75,7 @@ class TextSelectionUtils {
 
   TextSelection getLineAtOffset(
     TextPosition position,
-    EditableContainerBoxRenderer renderer,
+    MultilineTextAreaRenderer renderer,
     EditorState state,
   ) {
     final child = _linesBlocksService.childAtPosition(position, state);
@@ -98,7 +98,7 @@ class TextSelectionUtils {
 
   TextRange getWordBoundary(
     TextPosition position,
-    EditableContainerBoxRenderer renderer,
+    MultilineTextAreaRenderer renderer,
     EditorState state,
   ) {
     final child = _linesBlocksService.childAtPosition(position, state);
@@ -119,7 +119,7 @@ class TextSelectionUtils {
   // If the offset is already on the first line, the offset of the first character will be returned.
   TextPosition getTextPositionAbove(
     TextPosition position,
-    EditableContainerBoxRenderer renderer,
+    MultilineTextAreaRenderer renderer,
     EditorState state,
   ) {
     final child = _linesBlocksService.childAtPosition(position, state);
@@ -158,7 +158,7 @@ class TextSelectionUtils {
   // If the offset is already on the last line, the offset of the last character will be returned.
   TextPosition getTextPositionBelow(
     TextPosition position,
-    EditableContainerBoxRenderer renderer,
+    MultilineTextAreaRenderer renderer,
     EditorState state,
   ) {
     final child = _linesBlocksService.childAtPosition(position, state);

@@ -8,14 +8,17 @@ import '../../documents/models/nodes/container.model.dart';
 class EditableContainerParentData
     extends ContainerBoxParentData<EditableBoxRenderer> {}
 
-// Multi-child render box of editable blocks.
-class EditableContainerBoxRenderer extends RenderBox
+// Used by widgets that render multiline text in Visual Editor (the big editor and blocks of text).
+// Provides methods for computing the widget layout based on constraints from the parent.
+// Used/Extended by both the EditorRendererInner and the EditableTextBlockRenderer.
+// Same layout computing logic needed by both text renderers.
+class MultilineTextAreaRenderer extends RenderBox
     with
         ContainerRenderObjectMixin<EditableBoxRenderer,
             EditableContainerParentData>,
         RenderBoxContainerDefaultsMixin<EditableBoxRenderer,
             EditableContainerParentData> {
-  EditableContainerBoxRenderer({
+  MultilineTextAreaRenderer({
     required ContainerM container,
     required this.textDirection,
     this.padding = EdgeInsets.zero,
@@ -32,12 +35,12 @@ class EditableContainerBoxRenderer extends RenderBox
 
   ContainerM get container => containerRef;
 
-  void setContainer(ContainerM c) {
-    if (containerRef == c) {
+  void setContainer(ContainerM _container) {
+    if (containerRef == _container) {
       return;
     }
 
-    containerRef = c;
+    containerRef = _container;
     markNeedsLayout();
   }
 

@@ -148,7 +148,7 @@ class EditorConfigM {
   // Custom GUI for text selection controls
   final TextSelectionControls? textSelectionControls;
 
-  // Customize any of the settings available in VisualEditor
+  // Customize any of the settings available  in VisualEditor
   const EditorConfigM({
     this.scrollable = true,
     this.padding = EdgeInsets.zero,

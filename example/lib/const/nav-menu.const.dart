@@ -17,4 +17,8 @@ const List<NavMenuLinkM> NAV_MENU = [
     title: 'Custom Toolbar',
     route: '/custom-toolbar',
   ),
+  NavMenuLinkM(
+    title: 'Placeholder',
+    route: '/placeholder',
+  ),
 ];

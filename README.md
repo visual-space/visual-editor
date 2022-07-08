@@ -68,6 +68,19 @@ final _controller = EditorController(
 );
 ```
 
+**Empty document**
+
+When a document is empty a custom placeholder should be insert. An empty document looks like:
+```json
+[
+  {
+    "insert":"\n"
+  }
+] 
+```
+ 
+For convenience you can use a constant: `const EMPTY_DELTA_DOC_JSON = '[{"insert":"\\n"}]'`
+
 **Delta or plain text**
 
 Visual Editor uses [Delta] objects as an internal data format to describe the attributes of each fragment of text.

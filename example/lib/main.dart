@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'pages/all-styles.page.dart';
 import 'pages/custom-toolbar.page.dart';
 import 'pages/multiple-editors.page.dart';
+import 'pages/placeholder.page.dart';
 import 'pages/read-only.page.dart';
 
 void main() {
@@ -29,6 +30,7 @@ class DemoApp extends StatelessWidget {
         '/read-only': (context) => ReadOnlyPage(),
         '/multiple-editors': (context) => MultipleEditorsPage(),
         '/custom-toolbar': (context) => CustomToolbarPage(),
+        '/placeholder': (context) => PlaceholderPage(),
       },
     );
   }

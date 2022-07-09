@@ -66,24 +66,18 @@ class _AllStylesPageState extends State<AllStylesPage> {
         ),
       );
 
-  Widget _toolbar() => Container(
-        padding: const EdgeInsets.symmetric(
-          vertical: 16,
-          horizontal: 8,
-        ),
-        child: EditorToolbar.basic(
-          controller: _controller!,
-          onImagePickCallback: _editorService.onImagePickCallback,
-          onVideoPickCallback:
-              kIsWeb ? _editorService.onVideoPickCallback : null,
-          filePickImpl: _editorService.isDesktop()
-              ? _editorService.openFileSystemPickerForDesktop
-              : null,
-          webImagePickImpl: _editorService.webImagePickImpl,
-          // Uncomment to provide a custom "pick from" dialog.
-          // mediaPickSettingSelector: _editorService.selectMediaPickSettingE,
-          showAlignmentButtons: true,
-        ),
+  Widget _toolbar() => EditorToolbar.basic(
+        controller: _controller!,
+        onImagePickCallback: _editorService.onImagePickCallback,
+        onVideoPickCallback: kIsWeb ? _editorService.onVideoPickCallback : null,
+        filePickImpl: _editorService.isDesktop()
+            ? _editorService.openFileSystemPickerForDesktop
+            : null,
+        webImagePickImpl: _editorService.webImagePickImpl,
+        // Uncomment to provide a custom "pick from" dialog.
+        // mediaPickSettingSelector: _editorService.selectMediaPickSettingE,
+        showAlignmentButtons: true,
+        multiRowsDisplay: false,
       );
 
   Future<void> _loadDocument() async {

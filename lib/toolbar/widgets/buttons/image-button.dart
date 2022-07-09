@@ -21,10 +21,12 @@ class ImageButton extends StatelessWidget {
   final MediaPickSettingSelector? mediaPickSettingSelector;
   final EditorIconThemeM? iconTheme;
   final EditorDialogThemeM? dialogTheme;
+  final double buttonsSpacing;
 
   const ImageButton({
     required this.icon,
     required this.controller,
+    required this.buttonsSpacing,
     this.iconSize = defaultIconSize,
     this.onImagePickCallback,
     this.fillColor,
@@ -45,7 +47,12 @@ class ImageButton extends StatelessWidget {
         iconTheme?.iconUnselectedFillColor ?? (fillColor ?? theme.canvasColor);
 
     return IconBtn(
-      icon: Icon(icon, size: iconSize, color: iconColor),
+      icon: Icon(
+        icon,
+        size: iconSize,
+        color: iconColor,
+      ),
+      buttonsSpacing: buttonsSpacing,
       highlightElevation: 0,
       hoverElevation: 0,
       size: iconSize * 1.77,

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 /// Scrollable list with arrow indicators.
@@ -42,9 +43,9 @@ class _ArrowScrollableButtonListState extends State<ArrowScrollableButtonList>
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
-        _buildLeftArrow(),
-        _buildScrollableList(),
-        _buildRightColor(),
+        _leftArrow(),
+        _scrollableList(),
+        _rightArrow(),
       ],
     );
   }
@@ -70,12 +71,12 @@ class _ArrowScrollableButtonListState extends State<ArrowScrollableButtonList>
     });
   }
 
-  Widget _buildLeftArrow() {
+  Widget _leftArrow() {
     return SizedBox(
       width: 8,
       child: Transform.translate(
         // Move the icon a few pixels to center it
-        offset: const Offset(-5, 0),
+        offset: Offset(-5, -3),
         child: _showLeftArrow
             ? const Icon(
                 Icons.arrow_left,
@@ -86,38 +87,45 @@ class _ArrowScrollableButtonListState extends State<ArrowScrollableButtonList>
     );
   }
 
-  Widget _buildScrollableList() {
+  Widget _scrollableList() {
     return Expanded(
-      child: ScrollConfiguration(
-        // Remove the glowing effect, as we already have the arrow indicators
-        behavior: _NoGlowBehavior(),
+      child: Listener(
+        onPointerSignal: (pointerSignal) {
+          if (pointerSignal is PointerScrollEvent) {
+            _computeScroll(pointerSignal);
+          }
+        },
+        child: ScrollConfiguration(
+          // Remove the glowing effect, as we already have the arrow indicators
+          behavior: _ScrollBehavior(),
 
-        // The CustomScrollView is necessary so that the children are not stretched to the height of the buttons,
-        // https://bit.ly/3uC3bjI
-        child: CustomScrollView(
-          scrollDirection: Axis.horizontal,
-          controller: _controller,
-          physics: const ClampingScrollPhysics(),
-          slivers: [
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: widget.buttons,
-              ),
-            )
-          ],
+          // The CustomScrollView is necessary so that the children are not stretched to the height of the buttons,
+          // https://bit.ly/3uC3bjI
+          child: CustomScrollView(
+            scrollDirection: Axis.horizontal,
+            controller: _controller,
+            physics: const ClampingScrollPhysics(),
+            slivers: [
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: widget.buttons,
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildRightColor() {
+  Widget _rightArrow() {
     return SizedBox(
       width: 8,
       child: Transform.translate(
         // Move the icon a few pixels to center it
-        offset: const Offset(-5, 0),
+        offset: Offset(-5, -3),
         child: _showRightArrow
             ? const Icon(
                 Icons.arrow_right,
@@ -127,10 +135,29 @@ class _ArrowScrollableButtonListState extends State<ArrowScrollableButtonList>
       ),
     );
   }
+
+  // Horizontal scroll does not respond to the mouse wheel since the last flutter update
+  // see https://github.com/flutter/flutter/issues/84842
+  // We need to move the scroll based on the pointer signal
+  // To the current scroll offset we add the scroll delta component received from the pointer signal
+  void _computeScroll(PointerScrollEvent pointerSignal) {
+    final offsetBelowMaxScrollLimit =
+        _controller.offset <= _controller.position.maxScrollExtent;
+    final offsetAboveMinScrollLimit =
+        _controller.offset >= _controller.position.minScrollExtent;
+    final canBeScrolled =
+        offsetBelowMaxScrollLimit && offsetAboveMinScrollLimit;
+
+    if (canBeScrolled) {
+      final newScrollPosition =
+          _controller.offset + pointerSignal.scrollDelta.dy;
+      _controller.jumpTo(newScrollPosition);
+    }
+  }
 }
 
-// ScrollBehavior without the Material glow effect.
-class _NoGlowBehavior extends ScrollBehavior {
+class _ScrollBehavior extends ScrollBehavior {
+  // Delete the Material glow effect.
   @override
   Widget buildViewportChrome(
     context,
@@ -138,4 +165,14 @@ class _NoGlowBehavior extends ScrollBehavior {
     axisDirection,
   ) =>
       child;
+
+  // Draggable scroll for mobile and laptop touchpad
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.unknown,
+        PointerDeviceKind.invertedStylus,
+        PointerDeviceKind.trackpad,
+      };
 }

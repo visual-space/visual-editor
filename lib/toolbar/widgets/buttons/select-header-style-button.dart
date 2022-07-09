@@ -15,6 +15,7 @@ import '../toolbar.dart';
 class SelectHeaderStyleButton extends StatefulWidget with EditorStateReceiver {
   final EditorController controller;
   final double iconSize;
+  final double buttonsSpacing;
   final EditorIconThemeM? iconTheme;
 
   // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
@@ -28,6 +29,7 @@ class SelectHeaderStyleButton extends StatefulWidget with EditorStateReceiver {
 
   SelectHeaderStyleButton({
     required this.controller,
+    required this.buttonsSpacing,
     this.iconSize = defaultIconSize,
     this.iconTheme,
     Key? key,
@@ -81,10 +83,10 @@ class _SelectHeaderStyleButtonState extends State<SelectHeaderStyleButton> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: List.generate(4, (index) {
-        return Padding(
+        return Container(
           // ignore: prefer_const_constructors
-          padding: EdgeInsets.symmetric(
-            horizontal: !kIsWeb ? 1.0 : 5.0,
+          margin: EdgeInsets.symmetric(
+            horizontal: !kIsWeb ? 1.0 : widget.buttonsSpacing,
           ),
           child: ConstrainedBox(
             constraints: BoxConstraints.tightFor(
@@ -150,7 +152,7 @@ class _SelectHeaderStyleButtonState extends State<SelectHeaderStyleButton> {
 
   void _subscribeToUpdateListener() {
     _updateListener = widget._state.refreshEditor.updateEditor$.listen(
-          (_) => _didChangeEditingValue(),
+      (_) => _didChangeEditingValue(),
     );
   }
 

@@ -10,10 +10,12 @@ class HistoryButton extends StatefulWidget {
   final bool undo;
   final EditorController controller;
   final EditorIconThemeM? iconTheme;
+  final double buttonsSpacing;
 
   const HistoryButton({
     required this.icon,
     required this.controller,
+    required this.buttonsSpacing,
     required this.undo,
     this.iconSize = defaultIconSize,
     this.iconTheme,
@@ -41,8 +43,9 @@ class _HistoryButtonState extends State<HistoryButton> {
     return IconBtn(
       highlightElevation: 0,
       hoverElevation: 0,
+      buttonsSpacing: widget.buttonsSpacing,
       size: widget.iconSize * 1.77,
-      icon: Icon(widget.icon, size: widget.iconSize, color: _iconColor),
+      icon: _icon(),
       fillColor: fillColor,
       borderRadius: widget.iconTheme?.borderRadius ?? 2,
       onPressed: _changeHistory,
@@ -50,6 +53,12 @@ class _HistoryButtonState extends State<HistoryButton> {
   }
 
   // === PRIVATE ===
+
+  Widget _icon() => Icon(
+        widget.icon,
+        size: widget.iconSize,
+        color: _iconColor,
+      );
 
   void _setIconColor() {
     if (!mounted) return;

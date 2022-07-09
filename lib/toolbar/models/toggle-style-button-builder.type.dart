@@ -7,6 +7,7 @@ typedef ToggleStyleButtonBuilder = Widget Function(
   BuildContext context,
   AttributeM attribute,
   IconData icon,
+  double buttonsSpacing,
   Color? fillColor,
   bool? isToggled,
   VoidCallback? onPressed, [

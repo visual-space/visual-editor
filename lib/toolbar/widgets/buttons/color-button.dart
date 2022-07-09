@@ -23,6 +23,7 @@ class ColorButton extends StatefulWidget with EditorStateReceiver {
   final bool background;
   final EditorController controller;
   final EditorIconThemeM? iconTheme;
+  final double buttonsSpacing;
 
   // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
   // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
@@ -36,7 +37,8 @@ class ColorButton extends StatefulWidget with EditorStateReceiver {
   ColorButton({
     required this.icon,
     required this.controller,
-    required this.background,
+    required this.background,    required this.buttonsSpacing,
+
     this.iconSize = defaultIconSize,
     this.iconTheme,
     Key? key,
@@ -106,6 +108,7 @@ class _ColorButtonState extends State<ColorButton> {
     return IconBtn(
       highlightElevation: 0,
       hoverElevation: 0,
+      buttonsSpacing: widget.buttonsSpacing,
       size: widget.iconSize * iconButtonFactor,
       icon: Icon(
         widget.icon,

@@ -20,6 +20,7 @@ class ToggleCheckListButton extends StatefulWidget with EditorStateReceiver {
   final ToggleStyleButtonBuilder childBuilder;
   final AttributeM attribute;
   final EditorIconThemeM? iconTheme;
+  final double buttonsSpacing;
 
   // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
   // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
@@ -34,6 +35,7 @@ class ToggleCheckListButton extends StatefulWidget with EditorStateReceiver {
     required this.icon,
     required this.controller,
     required this.attribute,
+    required this.buttonsSpacing,
     this.iconSize = defaultIconSize,
     this.fillColor,
     this.childBuilder = defaultToggleStyleButtonBuilder,
@@ -72,6 +74,7 @@ class _ToggleCheckListButtonState extends State<ToggleCheckListButton> {
       context,
       AttributeM.unchecked,
       widget.icon,
+      widget.buttonsSpacing,
       widget.fillColor,
       _isToggled,
       _toggleAttribute,

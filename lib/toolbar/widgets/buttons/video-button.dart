@@ -21,10 +21,12 @@ class VideoButton extends StatelessWidget {
   final MediaPickSettingSelector? mediaPickSettingSelector;
   final EditorIconThemeM? iconTheme;
   final EditorDialogThemeM? dialogTheme;
+  final double buttonsSpacing;
 
   const VideoButton({
     required this.icon,
     required this.controller,
+    required this.buttonsSpacing,
     this.iconSize = defaultIconSize,
     this.onVideoPickCallback,
     this.fillColor,
@@ -45,8 +47,13 @@ class VideoButton extends StatelessWidget {
         iconTheme?.iconUnselectedFillColor ?? (fillColor ?? theme.canvasColor);
 
     return IconBtn(
-      icon: Icon(icon, size: iconSize, color: iconColor),
+      icon: Icon(
+        icon,
+        size: iconSize,
+        color: iconColor,
+      ),
       highlightElevation: 0,
+      buttonsSpacing: buttonsSpacing,
       hoverElevation: 0,
       size: iconSize * 1.77,
       fillColor: iconFillColor,

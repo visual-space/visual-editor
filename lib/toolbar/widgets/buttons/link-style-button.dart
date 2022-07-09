@@ -22,6 +22,7 @@ class LinkStyleButton extends StatefulWidget with EditorStateReceiver {
   final double iconSize;
   final EditorIconThemeM? iconTheme;
   final EditorDialogThemeM? dialogTheme;
+  final double buttonsSpacing;
 
   // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
   // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
@@ -34,6 +35,7 @@ class LinkStyleButton extends StatefulWidget with EditorStateReceiver {
 
   LinkStyleButton({
     required this.controller,
+    required this.buttonsSpacing,
     this.iconSize = defaultIconSize,
     this.icon,
     this.iconTheme,
@@ -86,6 +88,7 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
         child: IconBtn(
           highlightElevation: 0,
           hoverElevation: 0,
+          buttonsSpacing: widget.buttonsSpacing,
           size: widget.iconSize * iconButtonFactor,
           icon: Icon(
             widget.icon ?? Icons.link,
@@ -125,7 +128,7 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
 
   void _subscribeToUpdateListener() {
     _updateListener = widget._state.refreshEditor.updateEditor$.listen(
-          (_) => _didChangeSelection(),
+      (_) => _didChangeSelection(),
     );
   }
 

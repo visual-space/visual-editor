@@ -17,10 +17,12 @@ class CameraButton extends StatelessWidget {
   final WebVideoPickImpl? webVideoPickImpl;
   final FilePickImpl? filePickImpl;
   final EditorIconThemeM? iconTheme;
+  final double buttonsSpacing;
 
   const CameraButton({
     required this.icon,
     required this.controller,
+    required this.buttonsSpacing,
     this.iconSize = defaultIconSize,
     this.fillColor,
     this.onImagePickCallback,
@@ -46,6 +48,7 @@ class CameraButton extends StatelessWidget {
         size: iconSize,
         color: iconColor,
       ),
+      buttonsSpacing: buttonsSpacing,
       highlightElevation: 0,
       hoverElevation: 0,
       size: iconSize * 1.77,

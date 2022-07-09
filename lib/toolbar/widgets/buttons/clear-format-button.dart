@@ -10,9 +10,11 @@ class ClearFormatButton extends StatefulWidget {
   final double iconSize;
   final EditorController controller;
   final EditorIconThemeM? iconTheme;
+  final double buttonsSpacing;
 
   const ClearFormatButton({
     required this.icon,
+    required this.buttonsSpacing,
     required this.controller,
     this.iconSize = defaultIconSize,
     this.iconTheme,
@@ -40,6 +42,7 @@ class _ClearFormatButtonState extends State<ClearFormatButton> {
           size: widget.iconSize,
           color: iconColor,
         ),
+        buttonsSpacing: widget.buttonsSpacing,
         fillColor: fillColor,
         borderRadius: widget.iconTheme?.borderRadius ?? 2,
         onPressed: () {

@@ -17,6 +17,8 @@ class ToggleStyleButton extends StatefulWidget with EditorStateReceiver {
   final IconData icon;
   final double iconSize;
   final Color? fillColor;
+  final double buttonsSpacing;
+
   final EditorController controller;
   final ToggleStyleButtonBuilder childBuilder;
   final EditorIconThemeM? iconTheme;
@@ -33,6 +35,7 @@ class ToggleStyleButton extends StatefulWidget with EditorStateReceiver {
   ToggleStyleButton({
     required this.attribute,
     required this.icon,
+    required this.buttonsSpacing,
     required this.controller,
     this.iconSize = defaultIconSize,
     this.fillColor,
@@ -66,6 +69,7 @@ class _ToggleStyleButtonState extends State<ToggleStyleButton> {
       context,
       widget.attribute,
       widget.icon,
+      widget.buttonsSpacing,
       widget.fillColor,
       _isToggled,
       _toggleAttribute,
@@ -98,7 +102,7 @@ class _ToggleStyleButtonState extends State<ToggleStyleButton> {
 
   void _subscribeToUpdateListener() {
     _updateListener = widget._state.refreshEditor.updateEditor$.listen(
-          (_) => _didChangeEditingValue(),
+      (_) => _didChangeEditingValue(),
     );
   }
 
@@ -131,6 +135,7 @@ Widget defaultToggleStyleButtonBuilder(
   BuildContext context,
   AttributeM attribute,
   IconData icon,
+  double buttonsSpacing,
   Color? fillColor,
   bool? isToggled,
   VoidCallback? onPressed, [
@@ -161,6 +166,7 @@ Widget defaultToggleStyleButtonBuilder(
   return IconBtn(
     highlightElevation: 0,
     hoverElevation: 0,
+    buttonsSpacing: buttonsSpacing,
     size: iconSize * iconButtonFactor,
     icon: Icon(
       icon,

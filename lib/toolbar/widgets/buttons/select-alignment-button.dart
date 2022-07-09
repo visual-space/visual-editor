@@ -20,6 +20,7 @@ class SelectAlignmentButton extends StatefulWidget with EditorStateReceiver {
   final bool? showCenterAlignment;
   final bool? showRightAlignment;
   final bool? showJustifyAlignment;
+  final double buttonsSpacing;
 
   // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
   // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
@@ -32,6 +33,7 @@ class SelectAlignmentButton extends StatefulWidget with EditorStateReceiver {
 
   SelectAlignmentButton({
     required this.controller,
+    required this.buttonsSpacing,
     this.iconSize = defaultIconSize,
     this.iconTheme,
     this.showLeftAlignment,
@@ -99,9 +101,11 @@ class _SelectAlignmentButtonState extends State<SelectAlignmentButton> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: List.generate(buttonCount, (index) {
-        return Padding(
+        return Container(
           // ignore: prefer_const_constructors
-          padding: EdgeInsets.symmetric(horizontal: !kIsWeb ? 1.0 : 5.0),
+          margin: EdgeInsets.symmetric(
+            horizontal: !kIsWeb ? 1.0 : widget.buttonsSpacing,
+          ),
           child: ConstrainedBox(
             constraints: BoxConstraints.tightFor(
               width: widget.iconSize * iconButtonFactor,
@@ -113,8 +117,9 @@ class _SelectAlignmentButtonState extends State<SelectAlignmentButton> {
               elevation: 0,
               visualDensity: VisualDensity.compact,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                      widget.iconTheme?.borderRadius ?? 2)),
+                borderRadius:
+                    BorderRadius.circular(widget.iconTheme?.borderRadius ?? 2),
+              ),
               fillColor: _valueToText[_value] == _valueString[index]
                   ? (widget.iconTheme?.iconSelectedFillColor ??
                       theme.toggleableActiveColor)
@@ -172,7 +177,7 @@ class _SelectAlignmentButtonState extends State<SelectAlignmentButton> {
 
   void _subscribeToUpdateListener() {
     _updateListener = widget._state.refreshEditor.updateEditor$.listen(
-          (_) => _didChangeEditingValue(),
+      (_) => _didChangeEditingValue(),
     );
   }
 

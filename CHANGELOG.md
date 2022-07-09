@@ -9,6 +9,10 @@ If you want to leanr more about the specs, all tickets are available by followin
     * Dual editors - Text is inserted in the wrong editor instance (Post Refactoring) - Added unique focusNodes. [#85](https://github.com/visual-space/visual-editor/issues/85)
     * After setState() in parent the selection no longer works + selecting text before setState() yields missing doc after setState() (Post Refactoring) [#86](https://github.com/visual-space/visual-editor/issues/86)
     * After controller reset, indenting, the bullet and number lists don't work (fails) (Post Refactor) [#87](https://github.com/visual-space/visual-editor/issues/87)
+* Improved the toolbar documentation. [#86](https://github.com/visual-space/visual-editor/issues/86)
+  * Added horizontal mouse scroll for toolbar.
+  * Fixed the scroll controller which overlays over the toolbar buttons.
+  * Fixed the toolbar stretching and irregular distance between buttons.
 
 ## [0.3.0] Architecture refactoring [#1](https://github.com/visual-space/visual-editor/issues/1)
 * Cleaning up editor.dart

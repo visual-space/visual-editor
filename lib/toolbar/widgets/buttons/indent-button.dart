@@ -11,10 +11,12 @@ class IndentButton extends StatefulWidget {
   final EditorController controller;
   final bool isIncrease;
   final EditorIconThemeM? iconTheme;
+  final double buttonsSpacing;
 
   const IndentButton({
     required this.icon,
     required this.controller,
+    required this.buttonsSpacing,
     required this.isIncrease,
     this.iconSize = defaultIconSize,
     this.iconTheme,
@@ -43,6 +45,7 @@ class _IndentButtonState extends State<IndentButton> {
         size: widget.iconSize,
         color: iconColor,
       ),
+      buttonsSpacing: widget.buttonsSpacing,
       fillColor: iconFillColor,
       borderRadius: widget.iconTheme?.borderRadius ?? 2,
       onPressed: () {

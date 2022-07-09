@@ -67,7 +67,7 @@ class _AllStylesPageState extends State<AllStylesPage> {
       );
 
   Widget _toolbar() => Container(
-        padding: const EdgeInsets.symmetric(
+        padding: EdgeInsets.symmetric(
           vertical: 16,
           horizontal: 8,
         ),
@@ -83,6 +83,7 @@ class _AllStylesPageState extends State<AllStylesPage> {
           // Uncomment to provide a custom "pick from" dialog.
           // mediaPickSettingSelector: _editorService.selectMediaPickSettingE,
           showAlignmentButtons: true,
+          multiRowsDisplay: false,
         ),
       );
 

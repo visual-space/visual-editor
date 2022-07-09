@@ -42,7 +42,7 @@ class _HistoryButtonState extends State<HistoryButton> {
       highlightElevation: 0,
       hoverElevation: 0,
       size: widget.iconSize * 1.77,
-      icon: Icon(widget.icon, size: widget.iconSize, color: _iconColor),
+      icon: _icon(),
       fillColor: fillColor,
       borderRadius: widget.iconTheme?.borderRadius ?? 2,
       onPressed: _changeHistory,
@@ -50,6 +50,12 @@ class _HistoryButtonState extends State<HistoryButton> {
   }
 
   // === PRIVATE ===
+
+  Widget _icon() => Icon(
+        widget.icon,
+        size: widget.iconSize,
+        color: _iconColor,
+      );
 
   void _setIconColor() {
     if (!mounted) return;

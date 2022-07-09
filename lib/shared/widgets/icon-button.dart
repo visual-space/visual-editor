@@ -23,22 +23,25 @@ class IconBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: BoxConstraints.tightFor(
-        width: size,
-        height: size,
-      ),
-      child: RawMaterialButton(
-        visualDensity: VisualDensity.compact,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(borderRadius),
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 2),
+      child: ConstrainedBox(
+        constraints: BoxConstraints.tightFor(
+          width: size,
+          height: size,
         ),
-        fillColor: fillColor,
-        elevation: 0,
-        hoverElevation: hoverElevation,
-        highlightElevation: hoverElevation,
-        onPressed: onPressed,
-        child: icon,
+        child: RawMaterialButton(
+          visualDensity: VisualDensity.compact,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(borderRadius),
+          ),
+          fillColor: fillColor,
+          elevation: 0,
+          hoverElevation: hoverElevation,
+          highlightElevation: hoverElevation,
+          onPressed: onPressed,
+          child: icon,
+        ),
       ),
     );
   }

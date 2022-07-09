@@ -84,7 +84,7 @@ class _SelectHeaderStyleButtonState extends State<SelectHeaderStyleButton> {
         return Padding(
           // ignore: prefer_const_constructors
           padding: EdgeInsets.symmetric(
-            horizontal: !kIsWeb ? 1.0 : 5.0,
+            horizontal: !kIsWeb ? 1.0 : 2.0,
           ),
           child: ConstrainedBox(
             constraints: BoxConstraints.tightFor(

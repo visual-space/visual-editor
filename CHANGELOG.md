@@ -2,6 +2,10 @@
 If you want to leanr more about the specs, all tickets are available by following the hashtag links.
 
 ## [0.4.0] Bug Fixing
+* Improved the toolbar documentation.
+* Added horizontal mouse scroll for toolbar.
+* Fixed the scroll controller which overlays over the toolbar buttons.
+* Fixed the toolbar stretching and irregular distance between buttons.
 * Fixed issue with `EditorController` being reinitialised on setState(). Usually setState() should not be used. However there are scenarios when the host code might request the entire editor to update (for example when changing styles). Prior to this fix the editor was crashing completely. When a client app triggers `setState()` it also rebuilds the `EditorController` if the first controller instance is not cached by the developer. When a new controller is created a new internal state store object is created as well. In this state store we also keep references towards several important classes: ScrollController, FocusNode, EditorRenderer. The issue came from the fact that these references were not properly renewed. In many places of the code base we have code snippets that depend on the latest refs being available. The fix was to patch the newly created state store with the proper refs. In the old Quill Repo this was present but due to the lack of documentation this code got discarded. Now this fix restores this functionality but with the necessary changes to make it work within the refactored codebase of Visual editor. [#77](https://github.com/visual-space/visual-editor/issues/77)
 * Added delta json preview page. In this page you can see the json output as you type in the editor. Very helpful for learning quickly how the delta format works. [#66](https://github.com/visual-space/visual-editor/issues/66)
 * Fixes related to the architecture cleanup refactoring. During the refactoring, despite our best efforts, some bugs showed up:

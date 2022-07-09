@@ -101,7 +101,7 @@ class _SelectAlignmentButtonState extends State<SelectAlignmentButton> {
       children: List.generate(buttonCount, (index) {
         return Padding(
           // ignore: prefer_const_constructors
-          padding: EdgeInsets.symmetric(horizontal: !kIsWeb ? 1.0 : 5.0),
+          padding: EdgeInsets.symmetric(horizontal: !kIsWeb ? 1.0 : 2.0),
           child: ConstrainedBox(
             constraints: BoxConstraints.tightFor(
               width: widget.iconSize * iconButtonFactor,
@@ -113,8 +113,9 @@ class _SelectAlignmentButtonState extends State<SelectAlignmentButton> {
               elevation: 0,
               visualDensity: VisualDensity.compact,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                      widget.iconTheme?.borderRadius ?? 2)),
+                borderRadius:
+                    BorderRadius.circular(widget.iconTheme?.borderRadius ?? 2),
+              ),
               fillColor: _valueToText[_value] == _valueString[index]
                   ? (widget.iconTheme?.iconSelectedFillColor ??
                       theme.toggleableActiveColor)

@@ -6,7 +6,7 @@ import '../../documents/models/attribute.model.dart';
 import '../../shared/models/editor-dialog-theme.model.dart';
 import '../../shared/models/editor-icon-theme.model.dart';
 import '../../shared/widgets/arrow-scrollable-button-list.dart';
-import '../../shared/widgets/quill-icon-button.dart';
+import '../../shared/widgets/icon-button.dart';
 import '../models/editor-custom-icon.dart';
 import '../models/media-picker.type.dart';
 import 'buttons/camera-button.dart';
@@ -24,7 +24,7 @@ import 'buttons/toggle-style-button.dart';
 import 'buttons/video-button.dart';
 
 export '../../embeds/services/image-video.utils.dart';
-export '../../shared/widgets/quill-icon-button.dart';
+export '../../shared/widgets/icon-button.dart';
 export 'buttons/clear-format-button.dart';
 export 'buttons/color-button.dart';
 export 'buttons/history-button.dart';
@@ -187,6 +187,15 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
           '32': 32,
           '48': 48
         };
+
+    Widget _divider() => Container(
+          margin: EdgeInsets.only(
+            top: multiRowsDisplay ? 7 : 4,
+          ),
+          height: toolbarIconSize,
+          width: 1,
+          color: Colors.grey.shade400,
+        );
 
     return EditorToolbar(
       key: key,
@@ -358,11 +367,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
                 isButtonGroupShown[3] ||
                 isButtonGroupShown[4] ||
                 isButtonGroupShown[5]))
-          VerticalDivider(
-            indent: 12,
-            endIndent: 12,
-            color: Colors.grey.shade400,
-          ),
+          _divider(),
         if (showAlignmentButtons)
           SelectAlignmentButton(
             controller: controller,
@@ -387,11 +392,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
                 isButtonGroupShown[3] ||
                 isButtonGroupShown[4] ||
                 isButtonGroupShown[5]))
-          VerticalDivider(
-            indent: 12,
-            endIndent: 12,
-            color: Colors.grey.shade400,
-          ),
+          _divider(),
         if (showHeaderStyle)
           SelectHeaderStyleButton(
             controller: controller,
@@ -404,11 +405,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
             (isButtonGroupShown[3] ||
                 isButtonGroupShown[4] ||
                 isButtonGroupShown[5]))
-          VerticalDivider(
-            indent: 12,
-            endIndent: 12,
-            color: Colors.grey.shade400,
-          ),
+          _divider(),
         if (showListNumbers)
           ToggleStyleButton(
             attribute: AttributeM.ol,
@@ -444,11 +441,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
         if (showDividers &&
             isButtonGroupShown[3] &&
             (isButtonGroupShown[4] || isButtonGroupShown[5]))
-          VerticalDivider(
-            indent: 12,
-            endIndent: 12,
-            color: Colors.grey.shade400,
-          ),
+          _divider(),
         if (showQuote)
           ToggleStyleButton(
             attribute: AttributeM.blockQuote,
@@ -474,11 +467,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
             iconTheme: iconTheme,
           ),
         if (showDividers && isButtonGroupShown[4] && isButtonGroupShown[5])
-          VerticalDivider(
-            indent: 12,
-            endIndent: 12,
-            color: Colors.grey.shade400,
-          ),
+          _divider(),
         if (showLink)
           LinkStyleButton(
             controller: controller,
@@ -487,20 +476,19 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
             dialogTheme: dialogTheme,
           ),
         if (customIcons.isNotEmpty)
-          if (showDividers)
-            VerticalDivider(
-              indent: 12,
-              endIndent: 12,
-              color: Colors.grey.shade400,
-            ),
+          if (showDividers) _divider(),
         for (var customIcon in customIcons)
           IconBtn(
-              highlightElevation: 0,
-              hoverElevation: 0,
-              size: toolbarIconSize * iconButtonFactor,
-              icon: Icon(customIcon.icon, size: toolbarIconSize),
-              borderRadius: iconTheme?.borderRadius ?? 2,
-              onPressed: customIcon.onTap),
+            highlightElevation: 0,
+            hoverElevation: 0,
+            size: toolbarIconSize * iconButtonFactor,
+            icon: Icon(
+              customIcon.icon,
+              size: toolbarIconSize,
+            ),
+            borderRadius: iconTheme?.borderRadius ?? 2,
+            onPressed: customIcon.onTap,
+          ),
       ],
     );
   }

@@ -148,7 +148,7 @@ class VisualEditorState extends State<VisualEditor>
   final _editorKey = GlobalKey<State<VisualEditor>>();
   final _editorRendererKey = GlobalKey<State<VisualEditor>>();
   KeyboardVisibilityController? keyboardVisibilityCtrl;
-  late final StreamSubscription<bool>? keyboardVisibilitySub;
+  StreamSubscription<bool>? keyboardVisibilitySub;
   bool _didAutoFocus = false;
   DefaultStyles? styles;
   final ClipboardStatusNotifier clipboardStatus = ClipboardStatusNotifier();

@@ -16,6 +16,37 @@ class StylesService {
 
   StylesService._privateConstructor();
 
+  // This method needs access to the build context.
+  // It also needs to be executed before the rest of the widgets are built.
+  // Therefore we built a condition to execute it only once.
+  PlatformDependentStylesM initAndCachePlatformStyles(
+    BuildContext context,
+    EditorState state,
+  ) {
+    final styles = _getPlatformStyles(context);
+    state.platformStyles.setPlatformStyles(styles);
+    return styles;
+  }
+
+  CursorController initAndCacheCursorController(EditorState state) {
+    final readOnly = !state.editorConfig.config.readOnly;
+
+    final controller = CursorController(
+      show: ValueNotifier<bool>(readOnly),
+      style: cursorStyle(state),
+      tickerProvider: state.refs.editorState,
+      state: state,
+    );
+
+    state.refs.setCursorController(
+      controller,
+    );
+
+    return controller;
+  }
+
+  // === PRIVATE ===
+
   PlatformDependentStylesM _getPlatformStyles(BuildContext context) {
     final theme = Theme.of(context);
     final selectionTheme = TextSelectionTheme.of(context);
@@ -26,31 +57,6 @@ class StylesService {
 
     return platformStyles;
   }
-
-  // This method needs access to the build context.
-  // It also needs to be executed before the rest of the widgets are built.
-  // Therefore we built a condition to execute it only once.
-  void getPlatformStylesAndSetCursorControllerOnce(
-      BuildContext context, EditorState state) {
-    if (state.platformStyles.isInitialised) {
-      return;
-    }
-
-    state.platformStyles.setPlatformStyles(
-      _getPlatformStyles(context),
-    );
-
-    state.refs.setCursorController(
-      CursorController(
-        show: ValueNotifier<bool>(!state.editorConfig.config.readOnly),
-        style: cursorStyle(state),
-        tickerProvider: state.refs.editorState,
-        state: state,
-      ),
-    );
-  }
-
-  // === PRIVATE ===
 
   PlatformDependentStylesM _getOtherOsStyles(
     TextSelectionThemeData selectionTheme,

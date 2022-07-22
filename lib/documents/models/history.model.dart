@@ -21,18 +21,18 @@ class HistoryM {
 
   bool get hasRedo => stack.redo.isNotEmpty;
 
-  /// used for disable redo or undo function
+  // Used for disabling redo or undo function
   bool ignoreChange;
 
   int lastRecorded;
 
-  /// Collaborative editing's conditions should be true
+  // Collaborative editing's conditions should be true
   final bool userOnly;
 
-  ///max operation count for undo
+  // Max operation count for undo
   final int maxStack;
 
-  ///record delay
+  // Record delay
   final int interval;
 
   void handleDocChange(DeltaChangeM change) {
@@ -69,9 +69,9 @@ class HistoryM {
     }
   }
 
-  ///
-  ///It will override pre local undo delta,replaced by remote change
-  ///
+  //
+  //It will override pre local undo delta,replaced by remote change
+  //
   void transform(DeltaM delta) {
     transformStack(stack.undo, delta);
     transformStack(stack.redo, delta);
@@ -82,6 +82,7 @@ class HistoryM {
       final oldDelta = stack[i];
       stack[i] = delta.transform(oldDelta, true);
       delta = oldDelta.transform(delta, false);
+
       if (stack[i].length == 0) {
         stack.removeAt(i);
       }
@@ -96,10 +97,12 @@ class HistoryM {
     if (source.isEmpty) {
       return RevertOperationM(false, 0);
     }
+
     final delta = source.removeLast();
     // look for insert or delete
     int? len = 0;
     final operations = delta.toList();
+
     for (var i = 0; i < operations.length; i++) {
       if (operations[i].key == OperationM.insertKey) {
         len = operations[i].length;
@@ -114,6 +117,7 @@ class HistoryM {
     ignoreChange = true;
     doc.compose(delta, ChangeSource.LOCAL);
     ignoreChange = false;
+
     return RevertOperationM(true, len);
   }
 

@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../blocks/models/custom-builders.type.dart';
-import '../../blocks/models/default-styles.model.dart';
+import '../../blocks/models/editor-styles.model.dart';
 import '../../blocks/models/link-action.picker.type.dart';
 import '../../blocks/services/default-link-action-picker-delegate.utils.dart';
 import '../../embeds/widgets/default-embed-builder.dart';
@@ -63,7 +63,7 @@ class EditorConfigM {
   // This is mostly useful on devices with wide screens.
   final double? maxContentWidth;
 
-  final DefaultStyles? customStyles;
+  final EditorStylesM? customStyles;
 
   // Whether this editor's height will be sized to fill its parent.
   // This only has effect if scrollable is set to `true`.

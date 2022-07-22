@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-import 'default-text-block-style.model.dart';
 import 'editor-checkbox-builder.model.dart';
+import 'text-block-style.model.dart';
 import 'vertical-spacing.model.dart';
 
-class DefaultListBlockStyle extends DefaultTextBlockStyle {
+class ListBlockStyle extends TextBlockStyleM {
   final EditorCheckboxBuilder? checkboxUIBuilder;
 
-  DefaultListBlockStyle(
+  ListBlockStyle(
     TextStyle style,
     VerticalSpacing blockSpacing,
     VerticalSpacing lineSpacing,

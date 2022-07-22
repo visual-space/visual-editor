@@ -34,6 +34,8 @@ class KeyboardService {
             editor.keyboardVisibilityCtrl!.isVisible,
           );
 
+          // In case the keyboard is initialised a second time because a new editor controller was provided.
+          editor.keyboardVisibilitySub?.cancel();
           editor.keyboardVisibilitySub =
               editor.keyboardVisibilityCtrl?.onChange.listen((visible) {
             state.keyboardVisible.setKeyboardVisible(visible);

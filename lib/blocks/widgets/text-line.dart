@@ -21,7 +21,7 @@ import '../../shared/utils/color.utils.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../const/link-prefixes.const.dart';
 import '../models/custom-builders.type.dart';
-import '../models/default-styles.model.dart';
+import '../models/editor-styles.model.dart';
 import '../models/link-action-menu.enum.dart';
 import '../models/link-action.picker.type.dart';
 import '../services/link.utils.dart';
@@ -30,7 +30,7 @@ import '../services/link.utils.dart';
 class TextLine extends StatefulWidget {
   final LineM line;
   final TextDirection? textDirection;
-  final DefaultStyles styles;
+  final EditorStylesM styles;
   final LinkActionPicker linkActionPicker;
 
   // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
@@ -220,7 +220,7 @@ class _TextLineState extends State<TextLine> {
   }
 
   TextSpan _buildTextSpan(
-    DefaultStyles defaultStyles,
+    EditorStylesM defaultStyles,
     LinkedList<NodeM> nodes,
     TextStyle lineStyle,
   ) {
@@ -244,7 +244,7 @@ class _TextLineState extends State<TextLine> {
     );
   }
 
-  TextStyle _getLineStyle(DefaultStyles defaultStyles) {
+  TextStyle _getLineStyle(EditorStylesM defaultStyles) {
     var textStyle = const TextStyle();
 
     if (widget.line.style.containsKey(AttributeM.placeholder.key)) {
@@ -307,7 +307,7 @@ class _TextLineState extends State<TextLine> {
   }
 
   TextSpan _getTextSpanFromNode(
-    DefaultStyles defaultStyles,
+    EditorStylesM defaultStyles,
     NodeM node,
     StyleM lineStyle,
   ) {
@@ -332,7 +332,7 @@ class _TextLineState extends State<TextLine> {
 
   TextStyle _getInlineTextStyle(
     TextM textNode,
-    DefaultStyles defaultStyles,
+    EditorStylesM defaultStyles,
     StyleM nodeStyle,
     StyleM lineStyle,
     bool isLink,

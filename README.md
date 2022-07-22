@@ -63,8 +63,7 @@ final json = jsonEncode(_controller.document.toDelta().toJson());
 const blogPost = jsonDecode(response);
 
 final _controller = EditorController(
-  document: DocumentM.fromJson(blogPost),
-  selection: TextSelection.collapsed(offset: 0)
+  document: DocumentM.fromJson(blogPost)
 );
 ```
 

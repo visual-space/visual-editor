@@ -66,7 +66,6 @@ Create a new controller and provide the highlights you desire.
 ```dart
 final _controller = EditorController(
   document: doc,
-  selection: const TextSelection.collapsed(offset: 0),
   highlights: SAMPLE_HIGHLIGHTS,
 );
 ```

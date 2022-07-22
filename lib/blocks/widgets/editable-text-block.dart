@@ -4,9 +4,8 @@ import '../../documents/models/attribute.model.dart';
 import '../../documents/models/nodes/block.model.dart';
 import '../../documents/models/nodes/line.model.dart';
 import '../../documents/services/delta.utils.dart';
-import '../../editor/widgets/document-styles.dart';
 import '../../shared/state/editor.state.dart';
-import '../models/default-styles.model.dart';
+import '../models/editor-styles.model.dart';
 import '../models/link-action.picker.type.dart';
 import '../models/vertical-spacing.model.dart';
 import '../style-widgets.dart';
@@ -20,7 +19,7 @@ class EditableTextBlock extends StatelessWidget {
   final TextDirection textDirection;
   final VerticalSpacing verticalSpacing;
   final TextSelection textSelection;
-  final DefaultStyles? styles;
+  final EditorStylesM? styles;
   final bool hasFocus;
   bool isCodeBlock = false;
   final LinkActionPicker linkActionPicker;
@@ -56,7 +55,7 @@ class EditableTextBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     assert(debugCheckHasMediaQuery(context));
 
-    final defaultStyles = DocumentStyles.getStyles(context, false);
+    final styles = _state.styles.styles;
 
     return EditableBlock(
       block: block,
@@ -64,7 +63,7 @@ class EditableTextBlock extends StatelessWidget {
       padding: verticalSpacing,
       decoration: _getDecorationForBlock(
             block,
-            defaultStyles,
+            styles,
           ) ??
           const BoxDecoration(),
       isCodeBlock: isCodeBlock,
@@ -78,7 +77,7 @@ class EditableTextBlock extends StatelessWidget {
 
   BoxDecoration? _getDecorationForBlock(
     BlockM node,
-    DefaultStyles? defaultStyles,
+    EditorStylesM? defaultStyles,
   ) {
     final attrs = block.style.attributes;
 
@@ -97,7 +96,7 @@ class EditableTextBlock extends StatelessWidget {
     BuildContext context,
     Map<int, int> indentLevelCounts,
   ) {
-    final defaultStyles = DocumentStyles.getStyles(context, false);
+    final styles = _state.styles.styles;
     final count = block.children.length;
     final children = <Widget>[];
     var index = 0;
@@ -117,7 +116,7 @@ class EditableTextBlock extends StatelessWidget {
         body: TextLine(
           line: line,
           textDirection: textDirection,
-          styles: styles!,
+          styles: styles,
           linkActionPicker: linkActionPicker,
           state: _state,
         ),
@@ -126,7 +125,7 @@ class EditableTextBlock extends StatelessWidget {
           line,
           index,
           count,
-          defaultStyles,
+          styles,
         ),
         textDirection: textDirection,
         textSelection: textSelection,
@@ -157,7 +156,7 @@ class EditableTextBlock extends StatelessWidget {
     Map<int, int> indentLevelCounts,
     int count,
   ) {
-    final defaultStyles = DocumentStyles.getStyles(context, false);
+    final styles = _state.styles.styles;
     final attrs = line.style.attributes;
 
     if (attrs[AttributeM.list.key] == AttributeM.ol) {
@@ -165,7 +164,7 @@ class EditableTextBlock extends StatelessWidget {
         index: index,
         indentLevelCounts: indentLevelCounts,
         count: count,
-        style: defaultStyles!.leading!.style,
+        style: styles.leading!.style,
         attrs: attrs,
         width: 32,
         padding: 8,
@@ -174,7 +173,7 @@ class EditableTextBlock extends StatelessWidget {
 
     if (attrs[AttributeM.list.key] == AttributeM.ul) {
       return BulletPoint(
-        style: defaultStyles!.leading!.style.copyWith(
+        style: styles.leading!.style.copyWith(
           fontWeight: FontWeight.bold,
         ),
         width: 32,
@@ -187,7 +186,7 @@ class EditableTextBlock extends StatelessWidget {
         value: true,
         enabled: !_state.editorConfig.config.readOnly,
         onChanged: (checked) => onCheckboxTap(line.documentOffset, checked),
-        uiBuilder: defaultStyles?.lists?.checkboxUIBuilder,
+        uiBuilder: styles.lists?.checkboxUIBuilder,
       );
     }
 
@@ -197,7 +196,7 @@ class EditableTextBlock extends StatelessWidget {
         value: false,
         enabled: !_state.editorConfig.config.readOnly,
         onChanged: (checked) => onCheckboxTap(line.documentOffset, checked),
-        uiBuilder: defaultStyles?.lists?.checkboxUIBuilder,
+        uiBuilder: styles.lists?.checkboxUIBuilder,
       );
     }
 
@@ -206,8 +205,8 @@ class EditableTextBlock extends StatelessWidget {
         index: index,
         indentLevelCounts: indentLevelCounts,
         count: count,
-        style: defaultStyles!.code!.style.copyWith(
-          color: defaultStyles.code!.style.color!.withOpacity(0.4),
+        style: styles.code!.style.copyWith(
+          color: styles.code!.style.color!.withOpacity(0.4),
         ),
         width: 32,
         attrs: attrs,
@@ -246,7 +245,7 @@ class EditableTextBlock extends StatelessWidget {
     LineM node,
     int index,
     int count,
-    DefaultStyles? defaultStyles,
+    EditorStylesM? defaultStyles,
   ) {
     var top = 0.0, bottom = 0.0;
     final attrs = block.style.attributes;
@@ -299,6 +298,9 @@ class EditableTextBlock extends StatelessWidget {
       bottom = 0.0;
     }
 
-    return VerticalSpacing(top: top, bottom: bottom);
+    return VerticalSpacing(
+      top: top,
+      bottom: bottom,
+    );
   }
 }

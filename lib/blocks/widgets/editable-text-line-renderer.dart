@@ -32,7 +32,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
   EdgeInsets? _resolvedPadding;
   bool? _containsCursor;
   List<TextBox>? _selectedRects;
-  late Rect _caretPrototype;
+  Rect _caretPrototype = Rect.zero;
   InlineCodeStyle inlineCodeStyle;
   final Map<TextLineSlot, RenderBox> children = <TextLineSlot, RenderBox>{};
   late StreamSubscription _cursorStateListener;
@@ -74,6 +74,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     }
 
     final containsSelection = _lineContainsSelection(textSelection);
+
     if (_attachedToCursorController) {
       _cursorStateListener.cancel();
       cursorController.color.removeListener(safeMarkNeedsPaint);
@@ -83,6 +84,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     textSelection = selection;
     _selectedRects = null;
     _containsCursor = null;
+
     if (attached && containsCursor()) {
       _cursorStateListener = _state.cursor.updateCursor$.listen((_) {
         markNeedsLayout();

@@ -61,6 +61,8 @@ typedef DeleteCallback = void Function(int cursorPosition, bool forward);
 
 class EditorController {
   // Stores the entire state of an editor instance.
+  // We create this in the controller to be able to pass the same
+  // state instance to both the editor and the toolbar.
   final _state = EditorState();
 
   final DocumentM document;
@@ -104,7 +106,7 @@ class EditorController {
 
   EditorController({
     required this.document,
-    required this.selection,
+    this.selection = const TextSelection.collapsed(offset: 0),
     this.highlights = const [],
     this.keepStyleOnNewLine = false,
     this.onReplaceText,
@@ -115,11 +117,9 @@ class EditorController {
     _state.document.setDocument(document);
   }
 
+  // Todo Deprecate (no longer needed)
   factory EditorController.basic() => EditorController(
         document: DocumentM(),
-        selection: const TextSelection.collapsed(
-          offset: 0,
-        ),
       );
 
   void setStateInEditorStateReceiver(EditorStateReceiver receiver) {

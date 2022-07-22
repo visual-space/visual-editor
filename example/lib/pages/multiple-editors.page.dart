@@ -84,11 +84,9 @@ class _MultipleEditorsPageState extends State<MultipleEditorsPage> {
     setState(() {
       _controller1 = EditorController(
         document: document1,
-        selection: const TextSelection.collapsed(offset: 0),
       );
       _controller2 = EditorController(
         document: document2,
-        selection: const TextSelection.collapsed(offset: 0),
       );
     });
   }

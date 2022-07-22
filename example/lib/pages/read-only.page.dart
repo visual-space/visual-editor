@@ -68,7 +68,6 @@ class _ReadOnlyPageState extends State<ReadOnlyPage> {
     setState(() {
       _controller = EditorController(
         document: document,
-        selection: const TextSelection.collapsed(offset: 0),
       );
     });
   }

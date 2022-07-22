@@ -51,7 +51,7 @@ class EditorService {
 
     editor.selectionActionsController?.dispose();
     editor.selectionActionsController = null;
-    editor.editorUpdatesListener.cancel();
+    editor.editorUpdatesListener?.cancel();
     state.refs.focusNode.removeListener(
       state.refs.editorState.handleFocusChanged,
     );

@@ -5,13 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../blocks/models/default-styles.model.dart';
+import '../../blocks/services/styles.utils.dart';
 
-/// Widget for playing back video
-/// Refer to https://github.com/flutter/plugins/tree/master/packages/video_player/video_player
+// Widget for playing back video
+// Refer to https://github.com/flutter/plugins/tree/master/packages/video_player/video_player
 class VideoApp extends StatefulWidget {
-  const VideoApp(
-      {required this.videoUrl, required this.context, required this.readOnly});
+  const VideoApp({
+    required this.videoUrl,
+    required this.context,
+    required this.readOnly,
+  });
 
   final String videoUrl;
   final BuildContext context;
@@ -42,25 +45,30 @@ class _VideoAppState extends State<VideoApp> {
 
   @override
   Widget build(BuildContext context) {
-    final defaultStyles = DefaultStyles.getInstance(context);
+    final defaultStyles = getDefaultStyles(context); // TODO Use from state
+
     if (_controller.value.hasError) {
       if (widget.readOnly) {
         return RichText(
           text: TextSpan(
-              text: widget.videoUrl,
-              style: defaultStyles.link,
-              recognizer: TapGestureRecognizer()
-                ..onTap = () => launchUrl(Uri.parse(widget.videoUrl))),
+            text: widget.videoUrl,
+            style: defaultStyles.link,
+            recognizer: TapGestureRecognizer()
+              ..onTap = () => launchUrl(Uri.parse(widget.videoUrl)),
+          ),
         );
       }
 
       return RichText(
-          text: TextSpan(text: widget.videoUrl, style: defaultStyles.link));
+        text: TextSpan(text: widget.videoUrl, style: defaultStyles.link),
+      );
     } else if (!_controller.value.isInitialized) {
       return VideoProgressIndicator(
         _controller,
         allowScrubbing: true,
-        colors: const VideoProgressColors(playedColor: Colors.blue),
+        colors: const VideoProgressColors(
+          playedColor: Colors.blue,
+        ),
       );
     }
 
@@ -74,22 +82,27 @@ class _VideoAppState extends State<VideoApp> {
                 : _controller.play();
           });
         },
-        child: Stack(alignment: Alignment.center, children: [
-          Center(
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Center(
               child: AspectRatio(
-            aspectRatio: _controller.value.aspectRatio,
-            child: VideoPlayer(_controller),
-          )),
-          _controller.value.isPlaying
-              ? const SizedBox.shrink()
-              : Container(
-                  color: const Color(0xfff5f5f5),
-                  child: const Icon(
-                    Icons.play_arrow,
-                    size: 60,
-                    color: Colors.blueGrey,
-                  ))
-        ]),
+                aspectRatio: _controller.value.aspectRatio,
+                child: VideoPlayer(_controller),
+              ),
+            ),
+            _controller.value.isPlaying
+                ? const SizedBox.shrink()
+                : Container(
+                    color: const Color(0xfff5f5f5),
+                    child: const Icon(
+                      Icons.play_arrow,
+                      size: 60,
+                      color: Colors.blueGrey,
+                    ),
+                  )
+          ],
+        ),
       ),
     );
   }

@@ -79,7 +79,6 @@ class _CustomToolbarPageState extends State<CustomToolbarPage> {
     setState(() {
       _controller = EditorController(
         document: document,
-        selection: const TextSelection.collapsed(offset: 0),
       );
     });
   }

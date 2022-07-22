@@ -5,6 +5,7 @@ import '../../editor/state/editor-config.state.dart';
 import '../../editor/state/platform-styles.state.dart';
 import '../../editor/state/refresh-editor.state.dart';
 import '../../editor/state/scroll-animation.state.dart';
+import '../../editor/state/styles.state.dart';
 import '../../highlights/state/highlights.state.dart';
 import '../../inputs/state/keyboard-visible.state.dart';
 import '../../inputs/state/pressed-keys.state.dart';
@@ -35,6 +36,7 @@ class EditorState {
   // Editor
   final editorConfig = EditorConfigState();
   final refreshEditor = RefreshEditorState();
+  final styles = StylesState();
   final platformStyles = PlatformStylesState();
   final scrollAnimation = ScrollAnimationState();
 

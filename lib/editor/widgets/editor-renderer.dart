@@ -20,11 +20,11 @@ class EditorRenderer extends MultiChildRenderObjectWidget {
   }
 
   EditorRenderer({
-    required Key key,
     required List<Widget> children,
     required this.document,
     required this.textDirection,
     required EditorState state,
+    Key? key,
     this.offset,
   }) : super(key: key, children: children) {
     setState(state);

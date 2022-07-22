@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:visual_editor/visual-editor.dart';
 
 import '../widgets/demo-scaffold.dart';
@@ -61,7 +60,6 @@ class _PlaceholderPageState extends State<PlaceholderPage> {
       document: DocumentM.fromJson(
         jsonDecode(EMPTY_DELTA_DOC_JSON),
       ),
-      selection: const TextSelection.collapsed(offset: 0),
     );
   }
 }

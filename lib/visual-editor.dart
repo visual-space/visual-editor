@@ -1,7 +1,7 @@
 library visual_editor;
 
-export 'blocks/models/default-styles.model.dart';
-export 'blocks/models/default-text-block-style.model.dart';
+export 'blocks/models/editor-styles.model.dart';
+export 'blocks/models/text-block-style.model.dart';
 export 'blocks/services/default-link-action-picker-delegate.utils.dart';
 export 'blocks/style-widgets.dart';
 export 'controller/controllers/editor-controller.dart';

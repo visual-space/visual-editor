@@ -93,7 +93,6 @@ class _AllStylesPageState extends State<AllStylesPage> {
     setState(() {
       _controller = EditorController(
         document: document,
-        selection: const TextSelection.collapsed(offset: 0),
         highlights: SAMPLE_HIGHLIGHTS,
       );
     });

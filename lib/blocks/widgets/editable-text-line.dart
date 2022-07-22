@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../documents/models/nodes/line.model.dart';
 import '../../shared/state/editor.state.dart';
-import '../models/default-styles.model.dart';
 import '../models/vertical-spacing.model.dart';
+import '../services/styles.utils.dart';
 import 'editable-text-line-renderer.dart';
 import 'text-line-element-renderer.dart';
 
@@ -49,7 +49,7 @@ class EditableTextLine extends RenderObjectWidget {
 
   @override
   RenderObject createRenderObject(BuildContext context) {
-    final defaultStyles = DefaultStyles.getInstance(context);
+    final defaultStyles = getDefaultStyles(context); // TODO Use from state
 
     return EditableTextLineRenderer(
       line: line,
@@ -68,6 +68,7 @@ class EditableTextLine extends RenderObjectWidget {
     covariant EditableTextLineRenderer renderObject,
   ) {
     renderObject
+      ..setState(_state)
       ..setLine(line)
       ..setTextSelection(textSelection);
   }

@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
-import '../../blocks/models/default-styles.model.dart';
+import '../../blocks/services/styles.utils.dart';
 
 class YoutubeVideoApp extends StatefulWidget {
-  const YoutubeVideoApp(
-      {required this.videoUrl, required this.context, required this.readOnly});
+  const YoutubeVideoApp({
+    required this.videoUrl,
+    required this.context,
+    required this.readOnly,
+  });
 
   final String videoUrl;
   final BuildContext context;
@@ -24,6 +27,7 @@ class _YoutubeVideoAppState extends State<YoutubeVideoApp> {
   void initState() {
     super.initState();
     final videoId = YoutubePlayer.convertUrlToId(widget.videoUrl);
+
     if (videoId != null) {
       _youtubeController = YoutubePlayerController(
         initialVideoId: videoId,
@@ -36,20 +40,26 @@ class _YoutubeVideoAppState extends State<YoutubeVideoApp> {
 
   @override
   Widget build(BuildContext context) {
-    final defaultStyles = DefaultStyles.getInstance(context);
+    final defaultStyles = getDefaultStyles(context); // TODO Use from state
+
     if (_youtubeController == null) {
       if (widget.readOnly) {
         return RichText(
           text: TextSpan(
-              text: widget.videoUrl,
-              style: defaultStyles.link,
-              recognizer: TapGestureRecognizer()
-                ..onTap = () => launchUrl(Uri.parse(widget.videoUrl))),
+            text: widget.videoUrl,
+            style: defaultStyles.link,
+            recognizer: TapGestureRecognizer()
+              ..onTap = () => launchUrl(Uri.parse(widget.videoUrl)),
+          ),
         );
       }
 
       return RichText(
-          text: TextSpan(text: widget.videoUrl, style: defaultStyles.link));
+        text: TextSpan(
+          text: widget.videoUrl,
+          style: defaultStyles.link,
+        ),
+      );
     }
 
     return Container(

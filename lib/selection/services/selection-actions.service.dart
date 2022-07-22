@@ -182,6 +182,7 @@ class SelectionActionsService {
         state: state,
       );
 
+      // TODO This code's null safety makes no sense. Review and refactor.
       selectionActions!.handlesVisible = shouldShowSelectionHandles(state);
       selectionActions.showHandles();
     }

@@ -28,7 +28,7 @@ class LinesBlocksService {
     final textLine = TextLine(
       line: node,
       textDirection: editor.textDirection,
-      styles: editor.styles!,
+      styles: editor.styles,
       linkActionPicker: linkActionPicker,
       state: state,
     );
@@ -194,7 +194,7 @@ class LinesBlocksService {
 
   VerticalSpacing getVerticalSpacingForBlock(
     BlockM node,
-    DefaultStyles? defaultStyles,
+    EditorStylesM? defaultStyles,
   ) {
     final attrs = node.style.attributes;
 
@@ -215,7 +215,7 @@ class LinesBlocksService {
 
   VerticalSpacing getVerticalSpacingForLine(
     LineM line,
-    DefaultStyles? defaultStyles,
+    EditorStylesM? defaultStyles,
   ) {
     final attrs = line.style.attributes;
 

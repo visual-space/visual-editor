@@ -136,7 +136,8 @@ class TextSelectionService {
       state.refs.editorController.plainTextEditingValue.copyWith(
         selection: TextSelection(
           baseOffset: 0,
-          extentOffset: state.refs.editorController.plainTextEditingValue.text.length,
+          extentOffset:
+              state.refs.editorController.plainTextEditingValue.text.length,
         ),
       ),
       cause,
@@ -161,12 +162,14 @@ class TextSelectionService {
 
     // The below logic does not exactly match the native version because
     // we do not allow swapping of base and extent positions.
-    assert(selOrigin != null);
+    if (selOrigin == null) {
+      return;
+    }
 
     final selection = state.refs.editorController.selection;
     final toPosition = _linesBlocksService.getPositionForOffset(to, state);
 
-    if (toPosition.offset < selOrigin!.baseOffset) {
+    if (toPosition.offset < selOrigin.baseOffset) {
       handleSelectionChange(
         TextSelection(
           baseOffset: toPosition.offset,

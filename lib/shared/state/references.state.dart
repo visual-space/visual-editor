@@ -7,9 +7,10 @@ import '../../main.dart';
 
 // References to the various widgets that compose the editor.
 // We are forced to operate in this fashion due to the Flutter API.
-// Many of these classes have overrides over base class methods.
+// The VisualEditor and the EditorRenderer have overrides imposed by Flutter.
 // Often times we need these overrides to be invoked from other classes.
 // To avoid excess prop drilling we cached these references in a dedicated state object.
+// Also we need convenient access to the ScrollController and FocusNode.
 class ReferencesState {
   // === EDITOR CONTROLLER ===
 

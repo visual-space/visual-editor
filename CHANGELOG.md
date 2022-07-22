@@ -1,4 +1,8 @@
-## [0.0.3]
+## [0.4.0]
+* Added delta json preview page. In this page you can see the json output as you type in the editor. Very helpful for learning quickly how the delta format works.
+* Fixed issue with `EditorController` being reinitialised on setState(). Usually setState() should not be used. However there are valid scenarios when the host code might request the entire editor to update (for example when changing styles). Prior to this fix the editor was crashing completely. When a client app triggers `setState()` it also rebuilds the `EditorController` if the first controller instance is not cached by the developer. When a new controller is created a new internal state store object is created as well. In this state store we also keep references towards several important classes: ScrollController, FocusNode, EditorRenderer. The issue came from the fact that these references were not properly renewed. In many places of the code base we have code snippets that depend on the latest refs being available. The fix was to patch the newly created state store with the proper refs. In the old Quill Repo this was present but due to the lack of documentation this code got discarded. Now this fix restores this functionality but with the necessary changes to make it work within the refactored codebase of Visual editor.
+
+## [0.3.0]
 * Cleaning up editor.dart
 * Improved docs
 * Break editor.dart in multiple files
@@ -22,10 +26,10 @@
 * Fix the placeholder is not displayed bug
 * The caret is no longer displayed in readonly mode. The `showCursor` configuration option for `VisualEditor` was removed. It makes no sense to have the cared showing up in readonly mode. Or the caret missing in editable mode.
 
-## [0.0.2]
+## [0.2.0]
 * Custom highlights
 
-## [0.0.1]
+## [0.1.0]
 * Rich text editor based on Flutter Quill Delta.
 
 Join on [discord](https://discord.gg/XpGygmXde4) to get advice and help or follow us on [YouTube Visual Coding](https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA) to learn more about the architecture of Visual Editor and other Flutter apps.

@@ -78,25 +78,23 @@ class _DropdownBtnState<T> extends State<DropdownBtn<T>> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: BoxConstraints.tightFor(height: widget.iconSize * 1.81),
-      child: RawMaterialButton(
-        visualDensity: VisualDensity.compact,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(
-            widget.iconTheme?.borderRadius ?? 2,
+  Widget build(BuildContext context) => ConstrainedBox(
+        constraints: BoxConstraints.tightFor(height: widget.iconSize * 1.81),
+        child: RawMaterialButton(
+          visualDensity: VisualDensity.compact,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              widget.iconTheme?.borderRadius ?? 2,
+            ),
           ),
+          fillColor: widget.fillColor,
+          elevation: 0,
+          hoverElevation: widget.hoverElevation,
+          highlightElevation: widget.hoverElevation,
+          onPressed: _showMenu,
+          child: _buildContent(context),
         ),
-        fillColor: widget.fillColor,
-        elevation: 0,
-        hoverElevation: widget.hoverElevation,
-        highlightElevation: widget.hoverElevation,
-        onPressed: _showMenu,
-        child: _buildContent(context),
-      ),
-    );
-  }
+      );
 
   // === PRIVATE ===
 
@@ -119,6 +117,7 @@ class _DropdownBtnState<T> extends State<DropdownBtn<T>> {
             .key;
       }
     }
+
     return widget.rawitemsmap.keys
         .elementAt(widget.initialValue as int)
         .toString();
@@ -131,12 +130,18 @@ class _DropdownBtnState<T> extends State<DropdownBtn<T>> {
         Overlay.of(context)!.context.findRenderObject() as RenderBox;
     final position = RelativeRect.fromRect(
       Rect.fromPoints(
-        button.localToGlobal(Offset.zero, ancestor: overlay),
-        button.localToGlobal(button.size.bottomLeft(Offset.zero),
-            ancestor: overlay),
+        button.localToGlobal(
+          Offset.zero,
+          ancestor: overlay,
+        ),
+        button.localToGlobal(
+          button.size.bottomLeft(Offset.zero),
+          ancestor: overlay,
+        ),
       ),
       Offset.zero & overlay.size,
     );
+
     showMenu<T>(
       context: context,
       elevation: 4,
@@ -149,7 +154,10 @@ class _DropdownBtnState<T> extends State<DropdownBtn<T>> {
       color: popupMenuTheme.color, // widget.color ?? popupMenuTheme.color,
       // captureInheritedThemes: widget.captureInheritedThemes,
     ).then((newValue) {
-      if (!mounted) return null;
+      if (!mounted) {
+        return null;
+      }
+
       if (newValue == null) {
         // if (widget.onCanceled != null) widget.onCanceled();
         return null;
@@ -166,6 +174,7 @@ class _DropdownBtnState<T> extends State<DropdownBtn<T>> {
 
   Widget _buildContent(BuildContext context) {
     final theme = Theme.of(context);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
       child: Row(
@@ -179,7 +188,9 @@ class _DropdownBtnState<T> extends State<DropdownBtn<T>> {
                   theme.iconTheme.color,
             ),
           ),
-          const SizedBox(width: 3),
+          const SizedBox(
+            width: 3,
+          ),
           Icon(
             Icons.arrow_drop_down,
             size: widget.iconSize / 1.15,

@@ -4,3 +4,12 @@
 // Notice that Visual Editor requires an end of line character at the end of documents.
 // And at least one insert operation.
 const EMPTY_DELTA_DOC_JSON = '[{"insert":"\\n"}]';
+const LOREM_LIPSUM_DOC_JSON = '[{"insert":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, '
+    'sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\\n"}]';
+const SIMPLE_DOC_JSON = '''
+[  
+  {
+    "insert": "This document will demonstrate the features available in Visual Editor. To see a live demo, visit Visual Space\\n"
+  }
+]
+''';

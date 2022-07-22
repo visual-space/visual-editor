@@ -6,7 +6,7 @@ import '../../shared/state/editor.state.dart';
 import '../models/cursor-style.model.dart';
 
 // Controls the cursor of an editable widget.
-// This class is a [ChangeNotifier] and allows to listen for updates on the cursor [style].
+// This class is a ChangeNotifier and allows to listen for updates on the cursor style.
 class CursorController {
   // The time it takes for the cursor to fade from fully opaque to fully transparent and vice versa.
   // A full cursor blink, from transparent to opaque to transparent, is twice this duration.
@@ -44,7 +44,7 @@ class CursorController {
     _state.cursor.updateCursor();
   }
 
-  // True when this [CursorCont] instance has been disposed.
+  // True when this CursorCont instance has been disposed.
   // A safety mechanism to prevent the value of a disposed controller from getting set.
   bool _isDisposed = false;
 
@@ -74,7 +74,8 @@ class CursorController {
 
   // TODO this should be called to avoid memory leaks.
   // Though its unclear what's the perfect moment to do so.
-  // I plan to udpdate as soon as I figure out the right place.
+  // I plan to update as soon as I figure out the right place.
+  // TODO Apparently this keeps adding up, none are removed so they all run in parallel. +++
   void dispose() {
     _blinkOpacityController.removeListener(_onColorTick);
     stopCursorTimer();
@@ -129,6 +130,11 @@ class CursorController {
 
   // === PRIVATE ===
 
+  void _waitForStart(Timer timer) {
+    _cursorTimer?.cancel();
+    _cursorTimer = Timer.periodic(_blinkHalfPeriod, _cursorTick);
+  }
+
   void _cursorTick(Timer timer) {
     _targetCursorVisibility = !_targetCursorVisibility;
     final targetOpacity = _targetCursorVisibility ? 1.0 : 0.0;
@@ -143,11 +149,6 @@ class CursorController {
     } else {
       _blinkOpacityController.value = targetOpacity;
     }
-  }
-
-  void _waitForStart(Timer timer) {
-    _cursorTimer?.cancel();
-    _cursorTimer = Timer.periodic(_blinkHalfPeriod, _cursorTick);
   }
 
   void _onColorTick() {

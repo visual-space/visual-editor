@@ -15,7 +15,6 @@ import '../services/transparent-tap-gesture-recognizer.dart';
 // ignore: must_be_immutable
 class TextGestures extends StatefulWidget {
   final HitTestBehavior? behavior;
-  final GlobalKey editorRendererKey;
   final Widget child;
 
   // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
@@ -28,7 +27,6 @@ class TextGestures extends StatefulWidget {
 
   TextGestures({
     required this.behavior,
-    required this.editorRendererKey,
     required this.child,
     required EditorState state,
     Key? key,
@@ -190,7 +188,6 @@ class _TextGesturesState extends State<TextGestures> {
   Timer? _dragUpdateThrottleTimer;
 
   void _handleDragStart(DragStartDetails details) {
-    print('\n');
     assert(_lastDragStartDetails == null);
     _lastDragStartDetails = details;
     _textGesturesService.onDragSelectionStart(details, widget._state);

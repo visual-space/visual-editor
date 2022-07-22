@@ -16,7 +16,8 @@ import 'references.state.dart';
 
 // Global state store.
 // Stores the entire state of an editor instance.
-// Uses the same principles of operation as any redux/ngrx state store (pure data, unidirectional, reactive).
+// Attempts to use the same principles of operation as any redux/ngrx state store.
+// (pure data, unidirectional, reactive)
 // We use one class to hold all the state needed by one editor instance.
 // Prior to this design we had all the states as singletons.
 // The advantage of the previous solution was the reduction of properties drill down.

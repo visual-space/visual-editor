@@ -1,0 +1,38 @@
+[
+  {
+    "insert": "Delta Sandbox"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "header": 1
+    }
+  },
+  {
+    "insert": "This is a sample link: "
+  },
+  {
+    "insert": "Visual Space",
+    "attributes": {
+      "link": "https://visualspace.app/"
+    }
+  },
+  {
+    "insert": "\nUpdating the text in the editor will update the json preview."
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "bullet"
+    }
+  },
+  {
+    "insert": "Updating the json preview will update the editor."
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "list": "bullet"
+    }
+  }
+]

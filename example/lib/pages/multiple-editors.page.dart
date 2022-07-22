@@ -18,7 +18,7 @@ class MultipleEditorsPage extends StatefulWidget {
 class _MultipleEditorsPageState extends State<MultipleEditorsPage> {
   EditorController? _controller1;
   EditorController? _controller2;
-  final FocusNode _focusNode = FocusNode();
+  final _focusNode = FocusNode();
 
   @override
   void initState() {

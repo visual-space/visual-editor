@@ -8,7 +8,7 @@ import '../../shared/utils/platform.utils.dart';
 import 'input-connection.service.dart';
 
 class KeyboardService {
-  final _textConnectionService = TextConnectionService();
+  final _textConnectionService = InputConnectionService();
   final _caretService = CaretService();
 
   factory KeyboardService() => _instance;

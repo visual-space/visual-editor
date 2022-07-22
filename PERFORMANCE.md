@@ -1,0 +1,8 @@
+# Performance
+
+## Avoid setState()
+Triggering `setState()` in the parent widget of the `VisualEditor` widget should be avoided as much as possible. Once you built the page, you don't want to trigger a rebuild of the entire editor. Even if Flutter is clever enough to avoid any major work in the rendering layer it still has to run change detection. And for a large document this adds up. Especially on low power devices such as smartphones. To avoid such scenarios it is recommended that you use the controller API to update the document instead of `setState()` on the editor parent widget.
+
+**Avoid setState() on text select**
+
+One common mistake is to react to the selection change in the editor by setting state in the parent. This will induce a needless build cycle in the editor. For example, in the Markers demo page you can see an editor and bellow it a stats panel with numbers indicating the selection extent. Notice that in the demo page implementation we have made special effort to avoid triggering `setState()` on the entire page when the selection changes. Our solution (one of many possible solutions) was to send the selection extend numbers via a stream to the sibling component that renders them.

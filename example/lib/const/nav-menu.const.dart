@@ -21,4 +21,12 @@ const List<NavMenuLinkM> NAV_MENU = [
     title: 'Placeholder',
     route: '/placeholder',
   ),
+  NavMenuLinkM(
+    title: 'Delta sandbox',
+    route: '/delta-sandbox',
+  ),
+  NavMenuLinkM(
+    title: 'Overwrite Controller',
+    route: '/overwrite-controller',
+  ),
 ];

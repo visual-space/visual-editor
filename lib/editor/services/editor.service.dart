@@ -7,7 +7,7 @@ import '../../selection/services/selection-actions.service.dart';
 import '../../shared/state/editor.state.dart';
 
 class EditorService {
-  final _textConnectionService = TextConnectionService();
+  final _textConnectionService = InputConnectionService();
   final _selectionActionsService = SelectionActionsService();
   final _caretService = CaretService();
 

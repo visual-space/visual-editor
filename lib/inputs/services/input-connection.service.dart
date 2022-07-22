@@ -6,7 +6,8 @@ import '../../documents/models/change-source.enum.dart';
 import '../../documents/services/delta.utils.dart';
 import '../../shared/state/editor.state.dart';
 
-class TextConnectionService {
+// Manages the connection to the input used by the platform (android, ios, or web html)
+class InputConnectionService {
   TextInputConnection? _textInputConnection;
   TextEditingValue? _lastKnownRemoteTextEditingValue;
 
@@ -33,14 +34,13 @@ class TextConnectionService {
   // Autofill is not needed
   AutofillScope? get currentAutofillScope => null;
 
-  static final _instance = TextConnectionService._privateConstructor();
+  static final _instance = InputConnectionService._privateConstructor();
 
-  factory TextConnectionService() => _instance;
+  factory InputConnectionService() => _instance;
 
-  TextConnectionService._privateConstructor();
+  InputConnectionService._privateConstructor();
 
-  // Opens or closes input connection based on the current state of
-  // [focusNode] and [value].
+  // Opens or closes input connection based on the current state of focusNode and value.
   void openOrCloseConnection(EditorState state) {
     final focusNode = state.refs.focusNode;
 
@@ -51,6 +51,7 @@ class TextConnectionService {
     }
   }
 
+  // Establishes a connection to the input used by the platform (android, ios)
   void openConnectionIfNeeded(EditorState state) {
     if (!shouldCreateInputConnection(state)) {
       return;
@@ -78,7 +79,8 @@ class TextConnectionService {
     _textInputConnection!.show();
   }
 
-  // Closes input connection if it's currently open. Otherwise does nothing.
+  // Closes input connection if it's currently open.
+  // Otherwise does nothing.
   void closeConnectionIfNeeded() {
     if (!hasConnection) {
       return;
@@ -89,7 +91,7 @@ class TextConnectionService {
     _lastKnownRemoteTextEditingValue = null;
   }
 
-  // Updates remote value based on current state of [document] and [selection].
+  // Updates remote value based on current state of document and selection.
   // This method may not actually send an update to native side if it thinks remote value is up to date or identical.
   void updateRemoteValueIfNeeded(EditorState state) {
     if (!hasConnection) {
@@ -110,6 +112,7 @@ class TextConnectionService {
     }
 
     _lastKnownRemoteTextEditingValue = actualValue;
+
     _textInputConnection!.setEditingState(
       // Set composing to (-1, -1).
       // Otherwise an exception will be thrown if the values are different.
@@ -152,7 +155,10 @@ class TextConnectionService {
     final controller = state.refs.editorController;
 
     if (diff.deleted.isEmpty && diff.inserted.isEmpty) {
-      controller.updateSelection(value.selection, ChangeSource.LOCAL);
+      controller.updateSelection(
+        value.selection,
+        ChangeSource.LOCAL,
+      );
     } else {
       controller.replaceText(
         diff.start,

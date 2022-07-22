@@ -138,7 +138,7 @@ class VisualEditorState extends State<VisualEditor>
   final _editorTextService = EditorTextService();
   final _cursorService = CursorService();
   final _clipboardService = ClipboardService();
-  final _textConnectionService = TextConnectionService();
+  final _textConnectionService = InputConnectionService();
   final _keyboardService = KeyboardService();
   final _keyboardActionsService = KeyboardActionsService();
   final _editorService = EditorService();
@@ -446,11 +446,12 @@ class VisualEditorState extends State<VisualEditor>
         child: child,
       );
 
-  // Intercept RawKeyEvent on Web to prevent it from propagating to parents that
-  // might interfere with the editor key behavior, such as SingleChildScrollView.
+  // Intercept RawKeyEvent on Web to prevent it from propagating to parents that might
+  // interfere with the editor key behavior, such as SingleChildScrollView.
   // SingleChildScrollView reacts to keys.
-  Widget _conditionalPreventKeyPropagationToParentIfWeb(
-          {required Widget child}) =>
+  Widget _conditionalPreventKeyPropagationToParentIfWeb({
+    required Widget child,
+  }) =>
       kIsWeb
           ? RawKeyboardListener(
               focusNode: FocusNode(
@@ -576,6 +577,7 @@ class VisualEditorState extends State<VisualEditor>
   // On widget update
   void _resubscribeToScrollController() {
     final _scrollController = widget._state.refs.scrollController;
+
     if (widget.scrollController != _scrollController) {
       _scrollController.removeListener(_updateSelectionOverlayOnScroll);
       widget._state.refs.setScrollController(widget.scrollController);
@@ -583,23 +585,23 @@ class VisualEditorState extends State<VisualEditor>
     }
   }
 
+  // Several method hosted in the editor controller can trigger the update of the entire editor widget.
+  // This listener awaits a signal from one of these methods and executed the code to render such an update.
   void _subscribeToEditorUpdates() {
     // In case this is called a second time because a new editor controller was provided.
     editorUpdatesListener?.cancel();
 
     editorUpdatesListener = widget._state.refreshEditor.updateEditor$.listen(
-      (_) => _textValueService.updateEditor(
-        widget._state,
-      ),
+      (_) {
+        _textValueService.updateEditor(
+          widget._state,
+        );
+      },
     );
   }
 
   void _listedToClipboardAndUpdateEditor() {
     clipboardStatus.addListener(onChangedClipboardStatus);
-  }
-
-  void _cacheFocusNode() {
-    widget._state.refs.setFocusNode(widget.focusNode);
   }
 
   void _cacheStateWidget() {

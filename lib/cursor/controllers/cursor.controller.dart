@@ -75,7 +75,6 @@ class CursorController {
   // TODO this should be called to avoid memory leaks.
   // Though its unclear what's the perfect moment to do so.
   // I plan to update as soon as I figure out the right place.
-  // TODO Apparently this keeps adding up, none are removed so they all run in parallel. +++
   void dispose() {
     _blinkOpacityController.removeListener(_onColorTick);
     stopCursorTimer();

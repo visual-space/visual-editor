@@ -1,5 +1,8 @@
-# Guidelines
+# Contributing Guidelines
 All the Pull Requests raised on the Visual Editor repository will have to comply with the following list of rules. The list is made of common sense clean code practices adapted to Flutter projects.
+
+## SETTING UP THE ENVIRONMENT
+* To reduce the number of files when you search in your IDE (CTRL + SHIFT + F) is recommended to exclude `/ios` and `/android` files from the search. In Android Studio, in the project panel, rightClick on folder / Mark as / Excluded.
 
 ## CODE DIAGRAM
 **Keep the build(), initState(), subscribe() methods as skinny as possible - They are the "diagram" of the entire class**

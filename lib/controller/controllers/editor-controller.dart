@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
@@ -180,9 +181,15 @@ class EditorController {
     }
   }
 
-  // Update editor with a new document
-  void update(DeltaM delta) {
-    clear();
+  // Update editor with a new document.
+  // Use ignoreFocus if you want to avoid the caret to be position and activated when changing the doc.
+  void update(
+    DeltaM delta, {
+    bool ignoreFocus = false,
+  }) {
+    clear(
+      ignoreFocus: ignoreFocus,
+    );
     compose(
       delta,
       const TextSelection.collapsed(offset: 0),
@@ -191,7 +198,10 @@ class EditorController {
   }
 
   // Clear editor
-  void clear() {
+  // Use ignoreFocus if you want to avoid the caret to be position and activated when changing the doc.
+  void clear({
+    bool ignoreFocus = false,
+  }) {
     replaceText(
       0,
       plainTextEditingValue.text.length - 1,
@@ -199,9 +209,11 @@ class EditorController {
       const TextSelection.collapsed(
         offset: 0,
       ),
+      ignoreFocus: ignoreFocus,
     );
   }
 
+  // Use ignoreFocus if you want to avoid the caret to be position and activated when changing the doc.
   void replaceText(
     int index,
     int len,
@@ -278,11 +290,19 @@ class EditorController {
     }
 
     if (ignoreFocus) {
+      // Temporary disable the placement of the caret when changing text
       ignoreFocusOnTextChange = true;
     }
 
+    // Ask the editor to refresh it's layout
     _state.refreshEditor.refreshEditor();
-    ignoreFocusOnTextChange = false;
+
+    // We have to wait for the above async task to complete.
+    // The easiest way is to place a Timer with Duration 0 such that the immediate
+    // next task after the async code is to reset the temporary override.
+    Timer(Duration.zero, () {
+      ignoreFocusOnTextChange = false;
+    });
   }
 
   // Called in two cases:

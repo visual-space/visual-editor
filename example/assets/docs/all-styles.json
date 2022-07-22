@@ -463,15 +463,6 @@
     }
   },
   {
-    "insert": "  selection: TextSelection.collapsed(offset: 0)"
-  },
-  {
-    "insert": "\n",
-    "attributes": {
-      "code-block": true
-    }
-  },
-  {
     "insert": ");"
   },
   {

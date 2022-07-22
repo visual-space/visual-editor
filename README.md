@@ -8,17 +8,10 @@ Visual Editor is a Rich Text editor for [Flutter] originally forked from [Flutte
 
 While building the [Visual Space] platform we begun using [Flutter Quill] to render text content for nextgen interactive tutorials and projects. However, we had to deal with issues such as severe lack of documentation, lack of automatic testing and lack of technical support from the maintainers. Therefore, we decided to fork Quill and improve it with additional features and a focus on higher quality standards.
 
-## First contact
-
-1. Clone the repository using "https://github.com/visual-space/visual-editor.git"
-2. Run flutter pub get and enable dart editor 
-3. If you can't run the main.dart you have to change it with the one from example (example is used to run the demo app)
-   -> edit configurations -> set the dart entrypoint with: C:\*your path*\visual-editor\example\lib\main.dart   
-4. To push commits we have to ask the moderator to give you access
-
 ## How To Start
 
-**Beta Testing**
+**Unstable Code, Under Refactoring**
+
 The current version is not stable enough to be reliable and to be published in pub.dev. Until then you can try it out by linking directly from Github:
 
 **pubspec.yaml**
@@ -31,7 +24,8 @@ dependencies:
 
 **Minimal example**
 
-Make sure you don't overwrite the controller on `build()` or other updates, otherwise you will lose the contents of the history. Which means no more undo, redo with the previous states.
+Make sure you don't overwrite the `EditorController` via `setState()`, otherwise you will lose the contents of the history. Which means no more undo, redo with the previous states. In general avoid using `setState()` to update the document. There are methods available in the `EditorController` for such tasks.
+
 ```dart
 final _controller = EditorController.basic();
 ```
@@ -108,10 +102,11 @@ _controller.document.toPlainText(); // Extract plain text
     </tr>
 </table>
 
-## Tips
+## Demos & Code Samples
+In this repository you can also find a demo app with various pages that showcase all sorts of configurations for the editor. One particularly useful page is the "Delta Sandbox" page. In this page you can see side by side a live editor and a json preview panel. This demo will help you to quickly learn how the Delta format works. 
 
-* To have a more efficient search (CTRL + SHIFT + F) is recommended to exclude `/ios` and `/android` files from the search
-   - rightClick on folder -> Mark as -> Excluded
+- You can start the demo app by running main.dart in Android Studio.
+- Soon we will have a website with the same demo pages so you don't have to run the samples locally.
 
 ## Documentation
 Learn more about Visual Editor architecture and how to use the features.
@@ -127,6 +122,7 @@ Learn more about Visual Editor architecture and how to use the features.
 - **[Rules (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/rules/rules.md)** - Rules execute behavior when certain condition are met.
 - **[Selection (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/selection/selection.md)** - Rules execute behavior when certain condition are met.
 - **[Highlights](https://github.com/visual-space/visual-editor/blob/develop/lib/highlights/highlights.md)** - Renders temporary text markers sensitive to taps.
+- **[Performance](https://github.com/visual-space/visual-editor/blob/develop/PERFORMANCE.md)** - Basic tips to follow in order to maintain the editor's performance.
 - **[Migration](https://github.com/visual-space/visual-editor/blob/develop/MIGRATING.md)** - A simple guide with instructions to migrate from Flutter Quill.
   
 **For Contributors:**
@@ -154,7 +150,7 @@ These features are currently under developed for [Visual Space]. As soon as they
 - **[Emoji Picker](https://github.com/visual-space/visual-editor/issues/39)** 
 - **Custom emoji**
 - **Selection menu styling** - Displays a popup menu above selected text for quick common styling actions.
-- **Custom selection menu** - Enables developers to add extra buttons in teh quick actions menu.
+- **Custom selection menu** - Enables developers to add extra buttons in the quick actions menu.
 
 ## Who is using Visual Editor?
 
@@ -162,11 +158,13 @@ These features are currently under developed for [Visual Space]. As soon as they
 
 Send us a message on [Visual Editor Discord] if you want your app to be listed here.
 
-## Additional Resources
+## Useful Resources
 [Word Processing Terminology 1](http://w.sunybroome.edu/basic-computer-skills/functions/word_processing/2wp_terminology.html) • 
 [Word Processing Terminology 2](https://www.computerhope.com/jargon/word-processor.htm) •
 [QuillJs Delta](https://github.com/quilljs/delta) •
-[Designing The Delta Format](https://quilljs.com/guides/designing-the-delta-format)
+[Designing The Delta Format](https://quilljs.com/guides/designing-the-delta-format) •
+[Language Tool](https://languagetool.org) •
+[Language Server Protocol](https://microsoft.github.io/language-server-protocol)
 
 [Quill]: https://quilljs.com/docs/formats
 [Quilljs Delta]: https://github.com/quilljs/delta

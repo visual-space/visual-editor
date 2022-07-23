@@ -143,6 +143,8 @@ class EditorRendererInner extends MultilineTextAreaRenderer
       );
     }());
 
+    _state.refs.editorController.onPreLayout?.call();
+
     resolvePadding();
     assert(resolvedPadding != null);
 

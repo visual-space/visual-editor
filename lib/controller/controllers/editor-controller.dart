@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
 import '../../documents/models/attribute.model.dart';
@@ -9,6 +10,7 @@ import '../../documents/models/delta/delta.model.dart';
 import '../../documents/models/document.model.dart';
 import '../../documents/models/nodes/embeddable.model.dart';
 import '../../documents/models/nodes/leaf.model.dart';
+import '../../documents/models/nodes/node.model.dart';
 import '../../documents/models/style.model.dart';
 import '../../documents/services/delta.utils.dart';
 import '../../embeds/models/image.model.dart';
@@ -73,6 +75,8 @@ class EditorController {
   DeleteCallback? onDelete;
   void Function()? onSelectionCompleted;
   void Function(TextSelection textSelection)? onSelectionChanged;
+  void Function()? onPreLayout;
+  void Function(RenderBox renderer, NodeM block)? onLayoutParagraph;
   bool ignoreFocusOnTextChange = false;
 
   // Store any styles attribute that got toggled by the tap of a button and that has not been applied yet.
@@ -113,6 +117,8 @@ class EditorController {
     this.onDelete,
     this.onSelectionCompleted,
     this.onSelectionChanged,
+    this.onPreLayout,
+    this.onLayoutParagraph,
   }) {
     _state.document.setDocument(document);
   }

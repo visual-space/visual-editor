@@ -451,6 +451,12 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
   }
 
   @override
+  void layout(Constraints constraints, {bool parentUsesSize = false}) {
+    _state.refs.editorController.onLayoutParagraph?.call(this, container);
+    super.layout(constraints, parentUsesSize: parentUsesSize);
+  }
+
+  @override
   void performLayout() {
     final constraints = this.constraints;
     _selectedRects = null;

@@ -69,7 +69,9 @@ class _MultipleEditorsPageState extends State<MultipleEditorsPage> {
           vertical: 16,
           horizontal: 8,
         ),
-        child: EditorToolbar.basic(controller: controller!),
+        child: EditorToolbar.basic(
+          controller: controller!,
+        ),
       );
 
   Widget _editor({

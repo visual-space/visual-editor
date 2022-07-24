@@ -39,11 +39,21 @@ class EditorRenderer extends MultiChildRenderObjectWidget {
         state: _state,
       );
 
+  // Called after the parent setState() was called, thus the editor layout gets built again.
+  // We need to pass the latest document.
+  // This is because the document is passed via params instead via reference (as in the original Quill code base).
+  // This setup is still here because initially it was very confusing to refactor away .
+  // the params and to replace them with the references.
+  // TODO Review and check if the params can be replaced with refs
+  //  such that we have an uniform architecture in the entire codebase.
   @override
   void updateRenderObject(
     BuildContext context,
     EditorRendererInner render,
   ) {
-    render.offset = offset;
+    render
+      ..offset = offset
+      ..document = document
+      ..setContainer(document.root);
   }
 }

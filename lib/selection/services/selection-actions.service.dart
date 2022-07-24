@@ -182,7 +182,8 @@ class SelectionActionsService {
         state: state,
       );
 
-      // TODO This code's null safety makes no sense. Review and refactor.
+      final selectionActions =
+          state.refs.editorState.selectionActionsController;
       selectionActions!.handlesVisible = shouldShowSelectionHandles(state);
       selectionActions.showHandles();
     }

@@ -9,7 +9,6 @@ import '../widgets/demo-scaffold.dart';
 import '../widgets/loading.dart';
 
 // In case setState() is used by mistake the editor should be able to continue working.
-//
 class OverwriteControllerPage extends StatefulWidget {
   @override
   _OverwriteControllerPageState createState() =>

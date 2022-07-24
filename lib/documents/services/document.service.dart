@@ -95,10 +95,10 @@ class DocumentService {
       textDirection: editor.textDirection,
       verticalSpacing: _linesBlocksService.getVerticalSpacingForBlock(
         node,
-        editor.styles,
+        state.styles.styles,
       ),
       textSelection: state.refs.editorController.selection,
-      styles: editor.styles,
+      styles: state.styles.styles,
       hasFocus: state.refs.focusNode.hasFocus,
       isCodeBlock: attrs.containsKey(AttributeM.codeBlock.key),
       linkActionPicker: _linesBlocksService.linkActionPicker,

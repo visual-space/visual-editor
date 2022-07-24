@@ -28,7 +28,7 @@ class LinesBlocksService {
     final textLine = TextLine(
       line: node,
       textDirection: editor.textDirection,
-      styles: editor.styles,
+      styles: state.styles.styles,
       linkActionPicker: linkActionPicker,
       state: state,
     );
@@ -40,7 +40,7 @@ class LinesBlocksService {
       indentWidth: 0,
       verticalSpacing: getVerticalSpacingForLine(
         node,
-        editor.styles,
+        state.styles.styles,
       ),
       textDirection: editor.textDirection,
       textSelection: state.refs.editorController.selection,

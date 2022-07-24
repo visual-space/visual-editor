@@ -4,9 +4,19 @@ Visual Editor is a Rich Text editor for [Flutter] originally forked from [Flutte
 
 <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/visual-editor-demo.gif"/>
 
-**Why fork Flutter Quill?**
+## Why Fork Flutter Quill?
+While building the [Visual Space] platform we begun using [Flutter Quill] to render text content for nextgen interactive tutorials and projects. Initially we attempted to extended Quill with additional features such as custom highlights. However, we had to deal with major issues such as opaque architecture, severe lack of documentation, lack of automatic testing and a complete lack of technical support from the maintainers. Therefore, we decided to fork Quill and improve it with additional features and a focus on higher quality standards. This [reddit post](https://www.reddit.com/r/FlutterDev/comments/uq340b/ive_decided_to_fork_flutter_quill_rich_text/) contains a detailed explanation. 
 
-While building the [Visual Space] platform we begun using [Flutter Quill] to render text content for nextgen interactive tutorials and projects. However, we had to deal with issues such as severe lack of documentation, lack of automatic testing and lack of technical support from the maintainers. Therefore, we decided to fork Quill and improve it with additional features and a focus on higher quality standards.
+## Major Improvements Compared To Quill
+Check out the [changelog](https://github.com/visual-space/visual-editor/blob/develop/CHANGELOG.md) for a detailed review of what was changed. Also there's a [migration](https://github.com/visual-space/visual-editor/blob/develop/MIGRATING.md) guide for users migrating from Quill.
+
+- **[Maintainable Architecture](https://github.com/visual-space/visual-editor/issues/1)** - Source code was split in modules. Files were split in smaller files. A distinct state management layer was introduced. Class names have been simplified. We replaced the `ChangedNotifiers` with standalone streams. We simplified the `build()` methods. We merged the `Editor` and `RawEditor` in one file.
+- **[Extended Documentation](https://github.com/visual-space/visual-editor/issues/2)** - We are continuously adding in depth documentation to make it easier for new contributors to extend the source code. Quill has very little documentation and it lacks in depth explanation over the architecture. Our goal is to cover both new features and the legacy ones in detailed documentation.
+- **[Demo Pages](https://github.com/visual-space/visual-editor/issues/63)** - We've provided simple, concise demo pages to exemplify how to use Visual Editor for the various tasks you have.
+- **[Automatic Testing](https://github.com/visual-space/visual-editor/issues/3)** - In Quill there's no automatic testing available. New contributions constantly break the legacy code. The PR's are not policed enough. We started by adding tests and we are slowly increasing the coverage of the tests.
+- **[Custom Highlights](https://github.com/visual-space/visual-editor/issues/4)** - Highlights custom regions of text that are sensitive to taps and hovering.
+- **[Custom Markers](https://github.com/visual-space/visual-editor/issues/69)** - Same as highlgihts but instead of being temporary in the controller they are permanent in the document.
+- **[Active Discord Support Community](https://discord.gg/XpGygmXde4)** - You'll be able to get quick answers from the maintainers of the repo. We are available almost at all times to answer your questions. Including general Flutter and Dart questions.
 
 ## How To Start
 
@@ -130,27 +140,6 @@ Learn more about Visual Editor architecture and how to use the features.
 - **[State Store](https://github.com/visual-space/visual-editor/blob/develop/lib/shared/state-store.md)** - Explains the state store architecture and how to extend it.
 - **[Project Structure (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/shared/project-structure.md)** - How the codebase is structured and split in modules.
 - **[Guidelines](https://github.com/visual-space/visual-editor/blob/develop/GUIDELINES.md)** - Coding guidelines for improving code quality and architecture clarity.
-
-## Roadmap & Known Issues
-These features are currently under developed for [Visual Space]. As soon as they are stable we will release them in the open source repository. We've made an effort to document all the known issues and provide priority and status labels to give you a better understanding when the improvements will be delivered.
-
-- **[Maintainable architecture](https://github.com/visual-space/visual-editor/issues/1)** - Beginner friendly source code. [COMPLETED]
-- **[Full documentation](https://github.com/visual-space/visual-editor/issues/2)** - Improved learning materials. [WIP]
-- **[Full test coverage](https://github.com/visual-space/visual-editor/issues/3)** - Add test cases from the ground up. [WIP]
-- **[Custom Highlights](https://github.com/visual-space/visual-editor/issues/4)** - Highlights custom regions of text that are sensitive to taps [WIP]
-- **[Code Color Coding](https://github.com/visual-space/visual-editor/issues/18)**
-- **[Tables](https://github.com/visual-space/visual-editor/issues/28)**
-- **[Nested bullets on Tab](https://github.com/visual-space/visual-editor/issues/31)** - Pressing tab on the web wont push the bullets into nesting mode.
-- **[Layouts](https://github.com/visual-space/visual-editor/issues/41)** - Two columns layouts or other such options.
-- **[Styled blocks](https://github.com/visual-space/visual-editor/issues/40)** - Change the styling of a block to make it standout (info, warning, etc).
-- **[Search](https://github.com/visual-space/visual-editor/issues/37)**
-- **[Plugins Architecture](https://github.com/visual-space/visual-editor/issues/36)** - Enables developers to easily attach middleware to Visual Editor.
-- **[Spellchecker](https://github.com/visual-space/visual-editor/issues/35)** 
-- **Text to speech** 
-- **[Emoji Picker](https://github.com/visual-space/visual-editor/issues/39)** 
-- **Custom emoji**
-- **Selection menu styling** - Displays a popup menu above selected text for quick common styling actions.
-- **Custom selection menu** - Enables developers to add extra buttons in the quick actions menu.
 
 ## Who is using Visual Editor?
 

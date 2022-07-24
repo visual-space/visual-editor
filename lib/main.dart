@@ -6,8 +6,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:i18n_extension/i18n_widget.dart';
-
-import 'blocks/models/editor-styles.model.dart';
 import 'blocks/services/styles.utils.dart';
 import 'controller/controllers/editor-controller.dart';
 import 'controller/services/editor-text.service.dart';
@@ -153,12 +151,11 @@ class VisualEditorState extends State<VisualEditor>
   KeyboardVisibilityController? keyboardVisibilityCtrl;
   StreamSubscription<bool>? keyboardVisibilitySub;
   bool _didAutoFocus = false;
-  late EditorStylesM styles;
   final ClipboardStatusNotifier clipboardStatus = ClipboardStatusNotifier();
   ViewportOffset? _offset;
   StreamSubscription? editorUpdatesListener;
   bool _stylesInitialised = false;
-  late PlatformDependentStylesM _styles;
+  late PlatformDependentStylesM _platformStyles;
   late CursorController _cursorController;
 
   TextDirection get textDirection => Directionality.of(context);
@@ -234,6 +231,7 @@ class VisualEditorState extends State<VisualEditor>
     _updateStateOnCursorController();
     cacheEditorRendererRef();
     _subscribeToEditorUpdates();
+    _initStyles();
     _initKeyboard();
   }
 
@@ -404,7 +402,8 @@ class VisualEditorState extends State<VisualEditor>
   // The solution would be to improve the condition from onlyOnce to onlyOnStyleChange.
   void _initStylesAndCursorOnlyOnce(BuildContext context) {
     if (!_stylesInitialised) {
-      _styles = _stylesService.initAndCachePlatformStyles(
+      _initStyles();
+      _platformStyles = _stylesService.initAndCachePlatformStyles(
         context,
         widget._state,
       );
@@ -417,17 +416,19 @@ class VisualEditorState extends State<VisualEditor>
 
   // When a new controller/state store is created we need to cached these references again.
   void _reCacheStylesAndCursorOnlyOnce() {
-    widget._state.platformStyles.setPlatformStyles(_styles);
+    widget._state.platformStyles.setPlatformStyles(_platformStyles);
     widget._state.refs.setCursorController(
       _cursorController,
     );
   }
 
   void _initStyles() {
-    styles = getDefaultStyles(context);
+    var styles = getDefaultStyles(context);
+
     if (widget._state.editorConfig.config.customStyles != null) {
       styles = styles.merge(widget._state.editorConfig.config.customStyles!);
     }
+
     widget._state.styles.setStyles(styles);
   }
 
@@ -489,23 +490,26 @@ class VisualEditorState extends State<VisualEditor>
   // the editor from providing its baseline metrics.
   // To address this issue we wrap the scroll view with BaselineProxy which mimics the editor's baseline.
   // This implies that the first line has no styles applied to it.
-  Widget _conditionalScrollable({required Widget child}) =>
-      widget._state.editorConfig.config.scrollable
-          ? BaselineProxy(
-              textStyle: styles.paragraph!.style,
-              padding: EdgeInsets.only(
-                top: styles.paragraph!.verticalSpacing.top,
-              ),
-              child: EditorSingleChildScrollView(
-                state: widget._state,
-                viewportBuilder: (_, offset) {
-                  _offset = offset;
+  Widget _conditionalScrollable({required Widget child}) {
+    final styles = widget._state.styles.styles;
 
-                  return child;
-                },
-              ),
-            )
-          : child;
+    return widget._state.editorConfig.config.scrollable
+        ? BaselineProxy(
+            textStyle: styles.paragraph!.style,
+            padding: EdgeInsets.only(
+              top: styles.paragraph!.verticalSpacing.top,
+            ),
+            child: EditorSingleChildScrollView(
+              state: widget._state,
+              viewportBuilder: (_, offset) {
+                _offset = offset;
+
+                return child;
+              },
+            ),
+          )
+        : child;
+  }
 
   Widget _constrainedBox({required Widget child}) => Container(
         constraints: widget._state.editorConfig.config.expands

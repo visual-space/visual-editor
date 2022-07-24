@@ -12,7 +12,8 @@ import '../widgets/loading.dart';
 //
 class OverwriteControllerPage extends StatefulWidget {
   @override
-  _OverwriteControllerPageState createState() => _OverwriteControllerPageState();
+  _OverwriteControllerPageState createState() =>
+      _OverwriteControllerPageState();
 }
 
 class _OverwriteControllerPageState extends State<OverwriteControllerPage> {
@@ -38,6 +39,7 @@ class _OverwriteControllerPageState extends State<OverwriteControllerPage> {
         children: _controller != null
             ? [
                 _editor(),
+                _toolbar(),
               ]
             : [
                 Loading(),
@@ -68,6 +70,16 @@ class _OverwriteControllerPageState extends State<OverwriteControllerPage> {
           ),
         ),
       );
+
+  Widget _toolbar() => Container(
+    padding: const EdgeInsets.symmetric(
+      vertical: 16,
+      horizontal: 8,
+    ),
+    child: EditorToolbar.basic(
+      controller: _controller!,
+    ),
+  );
 
   Future<void> _loadDocument() async {
     final result = await rootBundle.loadString(

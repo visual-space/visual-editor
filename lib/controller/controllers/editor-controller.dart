@@ -118,11 +118,13 @@ class EditorController {
     _state.document.setDocument(document);
   }
 
-  // Todo Deprecate (no longer needed)
+  // TODO Deprecate (no longer needed)
   factory EditorController.basic() => EditorController(
         document: DocumentM(),
       );
 
+  // Safely pass the state from the controller to the buttons without the public having access to the state.
+  // Read more in EditorStateReceiver doc comment.
   void setStateInEditorStateReceiver(EditorStateReceiver receiver) {
     receiver.setState(_state);
   }
@@ -199,9 +201,7 @@ class EditorController {
 
   // Clear editor
   // Use ignoreFocus if you want to avoid the caret to be position and activated when changing the doc.
-  void clear({
-    bool ignoreFocus = false,
-  }) {
+  void clear({bool ignoreFocus = false}) {
     replaceText(
       0,
       plainTextEditingValue.text.length - 1,

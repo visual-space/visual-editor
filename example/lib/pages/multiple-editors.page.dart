@@ -18,7 +18,11 @@ class MultipleEditorsPage extends StatefulWidget {
 class _MultipleEditorsPageState extends State<MultipleEditorsPage> {
   EditorController? _controller1;
   EditorController? _controller2;
-  final _focusNode = FocusNode();
+
+  // (!) Beware! Each instance needs a unique focus node.
+  // Otherwise
+  final _focusNode1 = FocusNode();
+  final _focusNode2 = FocusNode();
 
   @override
   void initState() {
@@ -30,10 +34,20 @@ class _MultipleEditorsPageState extends State<MultipleEditorsPage> {
   Widget build(BuildContext context) => _scaffold(
         children: _controller1 != null
             ? [
-                _toolbar(_controller1),
-                _editor(_controller1),
-                _toolbar(_controller2),
-                _editor(_controller2),
+                _toolbar(
+                  controller: _controller1,
+                ),
+                _editor(
+                  controller: _controller1,
+                  focusNode: _focusNode1,
+                ),
+                _toolbar(
+                  controller: _controller2,
+                ),
+                _editor(
+                  controller: _controller2,
+                  focusNode: _focusNode2,
+                ),
               ]
             : [
                 Loading(),
@@ -50,7 +64,7 @@ class _MultipleEditorsPageState extends State<MultipleEditorsPage> {
         ),
       );
 
-  Widget _toolbar(EditorController? controller) => Container(
+  Widget _toolbar({required EditorController? controller}) => Container(
         padding: const EdgeInsets.symmetric(
           vertical: 16,
           horizontal: 8,
@@ -58,7 +72,11 @@ class _MultipleEditorsPageState extends State<MultipleEditorsPage> {
         child: EditorToolbar.basic(controller: controller!),
       );
 
-  Widget _editor(EditorController? controller) => Container(
+  Widget _editor({
+    required EditorController? controller,
+    required FocusNode focusNode,
+  }) =>
+      Container(
         color: Colors.white,
         padding: const EdgeInsets.only(
           left: 16,
@@ -67,7 +85,7 @@ class _MultipleEditorsPageState extends State<MultipleEditorsPage> {
         child: VisualEditor(
           controller: controller!,
           scrollController: ScrollController(),
-          focusNode: _focusNode,
+          focusNode: focusNode,
           config: EditorConfigM(
             placeholder: 'Enter text',
           ),

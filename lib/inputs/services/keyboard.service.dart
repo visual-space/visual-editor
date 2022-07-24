@@ -18,7 +18,10 @@ class KeyboardService {
   KeyboardService._privateConstructor();
 
   // TextValueService is provided via input to avoid circular reference issues.
-  void initKeyboard(TextValueService _textValueService, EditorState state) {
+  void initKeyboard(
+    TextValueService textValueService,
+    EditorState state,
+  ) {
     if (isKeyboardOS()) {
       state.keyboardVisible.setKeyboardVisible(true);
     } else {
@@ -41,7 +44,7 @@ class KeyboardService {
             state.keyboardVisible.setKeyboardVisible(visible);
 
             if (visible) {
-              _textValueService.onChangeTextEditingValue(
+              textValueService.onChangeTextEditingValue(
                 !state.refs.focusNode.hasFocus,
                 state,
               );
@@ -74,7 +77,10 @@ class KeyboardService {
   // Also watch for hardware keyboards that don't alter the screen (i.e. Chromebook, Android tablet
   // and any hardware keyboards from an OS not listed in isKeyboardOS()).
   // TextValueService is provided via input to avoid circular reference issues.
-  bool hardwareKeyboardEvent(TextValueService _textValueService, EditorState state) {
+  bool hardwareKeyboardEvent(
+    TextValueService _textValueService,
+    EditorState state,
+  ) {
     if (!state.keyboardVisible.isVisible) {
       // Hardware keyboard key pressed. Set visibility to true
       state.keyboardVisible.setKeyboardVisible(true);

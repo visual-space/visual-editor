@@ -57,7 +57,6 @@ class TextLine extends StatefulWidget {
 }
 
 class _TextLineState extends State<TextLine> {
-
   bool _metaOrControlPressed = false;
   UniqueKey _richTextKey = UniqueKey();
   final _linkRecognizers = <NodeM, GestureRecognizer>{};
@@ -123,14 +122,17 @@ class _TextLineState extends State<TextLine> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _pressedKeysListener?.cancel();
-    _pressedKeysListener = widget._state.pressedKeys.pressedKeys$
-        .listen((pressedKeys) => _pressedKeysChanged);
+    _pressedKeysListener = widget._state.pressedKeys.pressedKeys$.listen(
+      (pressedKeys) => _pressedKeysChanged(),
+    );
   }
 
   bool get canLaunchLinks {
     // In readOnly mode users can launch links
     // by simply tapping (clicking) on them
-    if (widget._state.editorConfig.config.readOnly) return true;
+    if (widget._state.editorConfig.config.readOnly) {
+      return true;
+    }
 
     // In editing mode it depends on the platform:
     // Desktop platforms (macos, linux, windows):
@@ -138,6 +140,7 @@ class _TextLineState extends State<TextLine> {
     if (isDesktop()) {
       return _metaOrControlPressed;
     }
+
     // Mobile platforms (ios, android): always allow but we install a
     // long-press handler instead of a tap one. LongPress is followed by a
     // context menu with actions.
@@ -171,8 +174,9 @@ class _TextLineState extends State<TextLine> {
     for (final child in widget.line.children) {
       if (child is EmbedM) {
         if (textNodes.isNotEmpty) {
-          textSpanChildren
-              .add(_buildTextSpan(widget.styles, textNodes, lineStyle));
+          textSpanChildren.add(
+            _buildTextSpan(widget.styles, textNodes, lineStyle),
+          );
           textNodes = LinkedList<NodeM>();
         }
 
@@ -197,7 +201,9 @@ class _TextLineState extends State<TextLine> {
     }
 
     if (textNodes.isNotEmpty) {
-      textSpanChildren.add(_buildTextSpan(widget.styles, textNodes, lineStyle));
+      textSpanChildren.add(
+        _buildTextSpan(widget.styles, textNodes, lineStyle),
+      );
     }
 
     return TextSpan(style: lineStyle, children: textSpanChildren);
@@ -225,7 +231,10 @@ class _TextLineState extends State<TextLine> {
     TextStyle lineStyle,
   ) {
     if (nodes.isEmpty && kIsWeb) {
-      nodes = LinkedList<NodeM>()..add(TextM('\u{200B}'));
+      nodes = LinkedList<NodeM>()
+        ..add(
+          TextM('\u{200B}'),
+        );
     }
 
     final children = nodes
@@ -236,7 +245,9 @@ class _TextLineState extends State<TextLine> {
             widget.line.style,
           ),
         )
-        .toList(growable: false);
+        .toList(
+          growable: false,
+        );
 
     return TextSpan(
       children: children,

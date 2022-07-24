@@ -56,7 +56,7 @@ class TextValueService {
   }
 
   // Triggers the build cycle for the editor when the text changes.
-  // It also updates the remote value from the connected system input (Red more in the InputConnectionService).
+  // It also updates the remote value from the connected system input (Read more in the InputConnectionService).
   // Displays the caret on screen and prevents blinking while typing.
   void onChangeTextEditingValue(bool ignoreCaret, EditorState state) {
     _textConnectionService.updateRemoteValueIfNeeded(state);

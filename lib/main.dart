@@ -298,6 +298,8 @@ class VisualEditorState extends State<VisualEditor>
   TextEditingValue? get currentTextEditingValue =>
       _textConnectionService.currentTextEditingValue;
 
+  // The new characters are inserted by the remote input when keys are pressed.
+  // The remote input is the input used by the system.
   @override
   void updateEditingValue(TextEditingValue value) {
     _textConnectionService.updateEditingValue(value, widget._state);
@@ -355,7 +357,10 @@ class VisualEditorState extends State<VisualEditor>
   // Required to avoid circular reference between EditorService and KeyboardService.
   // Ugly solution but it works.
   bool hardwareKeyboardEvent(KeyEvent _) =>
-      _keyboardService.hardwareKeyboardEvent(_textValueService, widget._state);
+      _keyboardService.hardwareKeyboardEvent(
+        _textValueService,
+        widget._state,
+      );
 
   void refresh() => setState(() {});
 

@@ -138,6 +138,7 @@ class InputConnectionService {
     // Check if only composing range changed.
     if (_lastKnownRemoteTextEditingValue!.text == value.text &&
         _lastKnownRemoteTextEditingValue!.selection == value.selection) {
+
       // This update only modifies composing range. Since we don't keep track
       // of composing range we just need to update last known value here.
       // This check fixes an issue on Android when it sends composing updates separately

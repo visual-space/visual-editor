@@ -38,6 +38,8 @@ Most of the top classes have been renamed to better reflect the new architecture
 - `QuillEditor` - `VisualEditor`
 - `QuillController` - `EditorController`
 - `QuillToolbar` - `EditorToolbar`
+- `DefaultTextBlockStyle` - `TextBlockStyleM`
+- `DefaultStyles` - `EditorStylesM`
 
 ## Model Classes Suffix
 
@@ -67,7 +69,7 @@ properties trough the codebase a lot easier.
     expands: false,
     padding: EdgeInsets.zero,
     customStyles: DefaultStyles(
-      h1: DefaultTextBlockStyle(
+      h1: TextBlockStyleM(
           const TextStyle(
             fontSize: 32,
             color: Colors.black,
@@ -94,7 +96,7 @@ Now becomes:
     config: EditorConfigM(
       placeholder: 'Add blocks',
       customStyles: DefaultStyles(
-        h1: DefaultTextBlockStyle(
+        h1: TextBlockStyleM(
           const TextStyle(
             fontSize: 32,
             color: Colors.black,

@@ -23,7 +23,7 @@ dependencies:
   pedantic: ^1.11.1
   video_player: ^2.4.0
   characters: ^1.2.0
-  youtube_player_flutter: ^8.0.0
+  youtube_player_flutter_quill: ^8.2.2
   diff_match_patch: ^0.4.1
   i18n_extension: ^4.2.1
   gallery_saver: ^2.3.2

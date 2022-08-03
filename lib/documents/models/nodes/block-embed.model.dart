@@ -12,4 +12,8 @@ class BlockEmbedM extends EmbeddableM {
   static const String videoType = 'video';
 
   static BlockEmbedM video(String videoUrl) => BlockEmbedM(videoType, videoUrl);
+
+  static const String formulaType = 'formula';
+
+  static BlockEmbedM formula(String formula) => BlockEmbedM(formulaType, formula);
 }

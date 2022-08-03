@@ -28,6 +28,7 @@ dependencies:
   i18n_extension: ^4.2.1
   gallery_saver: ^2.3.2
   device_info_plus: ^3.2.3
+  math_keyboard: ^0.1.6
 
 dev_dependencies:
   flutter_test:

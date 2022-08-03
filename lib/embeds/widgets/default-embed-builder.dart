@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gallery_saver/gallery_saver.dart';
+import 'package:math_keyboard/math_keyboard.dart';
+import 'package:flutter/services.dart';
 
 import '../../controller/controllers/editor-controller.dart';
 import '../../documents/models/attribute.model.dart';
@@ -198,6 +200,22 @@ Widget defaultEmbedBuilder(
         context: context,
         readOnly: readOnly,
       );
+
+    case BlockEmbedM.formulaType:
+      return Focus(
+        onFocusChange: (hasFocus) {
+          if (hasFocus) {
+            // If the MathField is tapped, hides the built in keyboard
+            SystemChannels.textInput.invokeMethod('TextInput.hide');
+          }
+        },
+        child: MathField(
+          variables: const ['x', 'y', 'z'],
+          onChanged: (value) {},
+          onSubmitted: (value) {},
+        ),
+      );
+
 
     default:
       // Throwing an error here does not help at all.

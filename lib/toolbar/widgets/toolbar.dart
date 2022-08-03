@@ -13,6 +13,7 @@ import 'buttons/camera-button.dart';
 import 'buttons/clear-format-button.dart';
 import 'buttons/color-button.dart';
 import 'buttons/dropdown-button.dart';
+import 'buttons/formula-button.dart';
 import 'buttons/history-button.dart';
 import 'buttons/image-button.dart';
 import 'buttons/indent-button.dart';
@@ -27,6 +28,7 @@ export '../../embeds/services/image-video.utils.dart';
 export '../../shared/widgets/icon-button.dart';
 export 'buttons/clear-format-button.dart';
 export 'buttons/color-button.dart';
+export 'buttons/formula-button.dart';
 export 'buttons/history-button.dart';
 export 'buttons/image-button.dart';
 export 'buttons/indent-button.dart';
@@ -122,6 +124,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
     bool showRedo = true,
     bool multiRowsDisplay = true,
     bool showImageButton = true,
+    bool showFormulaButton = true,
     bool showVideoButton = true,
     bool showCameraButton = true,
     bool showDirection = false,
@@ -375,6 +378,19 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
             webVideoPickImpl: webVideoPickImpl,
             buttonsSpacing: toolbarSectionSpacing,
             iconTheme: iconTheme,
+          ),
+        if (showFormulaButton)
+          FormulaButton(
+            icon: Icons.functions,
+            iconSize: toolbarIconSize,
+            buttonsSpacing: toolbarSectionSpacing,
+            controller: controller,
+            onImagePickCallback: onImagePickCallback,
+            filePickImpl: filePickImpl,
+            webImagePickImpl: webImagePickImpl,
+            mediaPickSettingSelector: mediaPickSettingSelector,
+            iconTheme: iconTheme,
+            dialogTheme: dialogTheme,
           ),
         if (showDividers &&
             isButtonGroupShown[0] &&

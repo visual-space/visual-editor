@@ -1,12 +1,13 @@
 # Changelog
 If you want to learn more about the specs, all tickets are available by following the hashtag links.
 
-## [0.5.0] Markers [#77](https://github.com/visual-space/visual-editor/issues/69)
+## [0.5.0] Markers [#69](https://github.com/visual-space/visual-editor/issues/69)
 * Added custom markers. Multiple marker types can be defined. The client app can define callbacks for hovering the markers.
     * Split the AttributeM static properties in methods in multiple files
-    * Refactored the DropdownButton in Toolbar to make it more generic
+    * Refactored the `DropdownButton` in Toolbar to make it more generic
     * Added demo page for the markers and highlights features
     * Various small code cleanups
+* Added new method in the editor controller `toggleMarkers()`. It toggles all markers at once. [#111](https://github.com/visual-space/visual-editor/issues/111)
 
 ## [0.4.0] Bug Fixing
 * Fixed issue with `EditorController` being reinitialised on setState(). Usually setState() should not be used. However there are scenarios when the host code might request the entire editor to update (for example when changing styles). Prior to this fix the editor was crashing completely. When a client app triggers `setState()` it also rebuilds the `EditorController` if the first controller instance is not cached by the developer. When a new controller is created a new internal state store object is created as well. In this state store we also keep references towards several important classes: ScrollController, FocusNode, EditorRenderer. The issue came from the fact that these references were not properly renewed. In many places of the code base we have code snippets that depend on the latest refs being available. The fix was to patch the newly created state store with the proper refs. In the old Quill Repo this was present but due to the lack of documentation this code got discarded. Now this fix restores this functionality but with the necessary changes to make it work within the refactored codebase of Visual editor. [#77](https://github.com/visual-space/visual-editor/issues/77)

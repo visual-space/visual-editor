@@ -9,7 +9,6 @@ import '../../cursor/widgets/cursor-painter.dart';
 import '../../documents/models/attributes/attributes.model.dart';
 import '../../documents/models/nodes/container.model.dart' as container_node;
 import '../../documents/models/nodes/line.model.dart';
-import '../../documents/models/nodes/node.model.dart';
 import '../../documents/models/nodes/text.model.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../selection/services/text-selection.utils.dart';
@@ -39,6 +38,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
   InlineCodeStyle inlineCodeStyle;
   final Map<TextLineSlot, RenderBox> children = <TextLineSlot, RenderBox>{};
   late StreamSubscription _cursorStateListener;
+  late StreamSubscription _toggleMarkersListener;
 
   // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
   // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
@@ -60,15 +60,6 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
   }) {
     setState(state);
     cursorController = state.refs.cursorController;
-  }
-
-  Iterable<RenderBox> get _children sync* {
-    if (_leading != null) {
-      yield _leading!;
-    }
-    if (_body != null) {
-      yield _body!;
-    }
   }
 
   void setTextSelection(TextSelection selection) {
@@ -119,6 +110,15 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     _body = _updateChild(_body, b, TextLineSlot.BODY) as RenderContentProxyBox?;
   }
 
+  void safeMarkNeedsPaint() {
+    if (!attached) {
+      // Should not paint if it was unattached.
+      return;
+    }
+
+    markNeedsPaint();
+  }
+
   // === SELECTION ===
 
   bool containsCursor() {
@@ -128,48 +128,6 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
           )
         : textSelection.isCollapsed &&
             line.containsOffset(textSelection.baseOffset);
-  }
-
-  RenderBox? _updateChild(
-    RenderBox? old,
-    RenderBox? newChild,
-    TextLineSlot slot,
-  ) {
-    if (old != null) {
-      dropChild(old);
-      children.remove(slot);
-    }
-
-    if (newChild != null) {
-      children[slot] = newChild;
-      adoptChild(newChild);
-    }
-
-    return newChild;
-  }
-
-  List<TextBox> _getBoxes(TextSelection textSelection) {
-    final parentData = _body!.parentData as BoxParentData?;
-
-    return _body!.getBoxesForSelection(textSelection).map((box) {
-      return TextBox.fromLTRBD(
-        box.left + parentData!.offset.dx,
-        box.top + parentData.offset.dy,
-        box.right + parentData.offset.dx,
-        box.bottom + parentData.offset.dy,
-        box.direction,
-      );
-    }).toList(growable: false);
-  }
-
-  void _resolvePadding() {
-    if (_resolvedPadding != null) {
-      return;
-    }
-
-    _resolvedPadding = padding.resolve(textDirection);
-
-    assert(_resolvedPadding!.isNonNegative);
   }
 
   @override
@@ -244,17 +202,6 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
   @override
   bool get isRepaintBoundary => true;
 
-  TextPosition? _getPosition(TextPosition textPosition, double dyScale) {
-    assert(textPosition.offset < line.length);
-    final offset = getOffsetForCaret(textPosition)
-        .translate(0, dyScale * preferredLineHeight(textPosition));
-    if (_body!.size
-        .contains(offset - (_body!.parentData as BoxParentData).offset)) {
-      return getPositionForOffset(offset);
-    }
-    return null;
-  }
-
   @override
   TextPosition getPositionForOffset(Offset offset) {
     return _body!.getPositionForOffset(
@@ -281,27 +228,6 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
       cursorController.style.height ??
       preferredLineHeight(const TextPosition(offset: 0));
 
-  // TODO: This is no longer producing the highest-fidelity caret
-  // heights for Android, especially when non-alphabetic languages are involved.
-  // The current implementation overrides the height set here with the full measured height of the
-  // text on Android which looks superior (subjectively and in terms of fidelity) in _paintCaret.
-  // We should rework this properly to once again match the platform.
-  // The constant _kCaretHeightOffset scales poorly for small font sizes.
-  // On iOS, the cursor is taller than the cursor on Android.
-  // The height of the cursor for iOS is approximate and obtained through an eyeball comparison.
-  void _computeCaretPrototype() {
-    if (isAppleOS()) {
-      _caretPrototype = Rect.fromLTWH(0, 0, cursorWidth, cursorHeight + 2);
-    } else {
-      _caretPrototype = Rect.fromLTWH(0, 2, cursorWidth, cursorHeight - 4.0);
-    }
-  }
-
-  void _onFloatingCursorChange() {
-    _containsCursor = null;
-    markNeedsPaint();
-  }
-
   // === RENDER BOX OVERRIDES ===
 
   bool _attachedToCursorController = false;
@@ -325,6 +251,11 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
       cursorController.color.addListener(safeMarkNeedsPaint);
       _attachedToCursorController = true;
     }
+
+    // Toggle markers
+    _toggleMarkersListener = _state.markersVisibility.toggleMarkers$.listen((_) {
+      markNeedsPaint();
+    });
   }
 
   @override
@@ -344,6 +275,8 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
       cursorController.color.removeListener(safeMarkNeedsPaint);
       _attachedToCursorController = false;
     }
+
+    _toggleMarkersListener.cancel();
   }
 
   @override
@@ -505,16 +438,6 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     _computeCaretPrototype();
   }
 
-  CursorPainter get _cursorPainter => CursorPainter(
-        editable: _body,
-        style: cursorController.style,
-        prototype: _caretPrototype,
-        color: cursorController.isFloatingCursorActive
-            ? cursorController.style.backgroundColor
-            : cursorController.color.value,
-        devicePixelRatio: devicePixelRatio,
-      );
-
   @override
   void paint(PaintingContext context, Offset offset) {
     // Leading (bullets, checkboxes)
@@ -538,25 +461,21 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
             continue;
           }
 
-          TextLinesUtils.drawRectFromNode(
-            node,
-            effectiveOffset,
-            context,
-            inlineCodeStyle.backgroundColor!,
-            inlineCodeStyle.radius,
-            _body
-          );
+          TextLinesUtils.drawRectFromNode(node, effectiveOffset, context,
+              inlineCodeStyle.backgroundColor!, inlineCodeStyle.radius, _body);
         }
       }
 
       // Markers
-      TextLinesUtils.renderMarkers(
-        effectiveOffset,
-        context,
-        line,
-        _state,
-        _body,
-      );
+      if (_state.markersVisibility.visibility == true) {
+        TextLinesUtils.renderMarkers(
+          effectiveOffset,
+          context,
+          line,
+          _state,
+          _body,
+        );
+      }
 
       // Cursor above text (iOS)
       if (_state.refs.focusNode.hasFocus &&
@@ -616,6 +535,173 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
       });
     }
   }
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
+    if (_leading != null) {
+      final childParentData = _leading!.parentData as BoxParentData;
+      final isHit = result.addWithPaintOffset(
+        offset: childParentData.offset,
+        position: position,
+        hitTest: (result, transformed) {
+          assert(transformed == position - childParentData.offset);
+
+          return _leading!.hitTest(result, position: transformed);
+        },
+      );
+
+      if (isHit) {
+        return true;
+      }
+    }
+
+    if (_body == null) {
+      return false;
+    }
+
+    final parentData = _body!.parentData as BoxParentData;
+
+    return result.addWithPaintOffset(
+      offset: parentData.offset,
+      position: position,
+      hitTest: (result, position) {
+        return _body!.hitTest(
+          result,
+          position: position,
+        );
+      },
+    );
+  }
+
+  @override
+  Rect getLocalRectForCaret(TextPosition position) {
+    final caretOffset = getOffsetForCaret(position);
+    var rect = Rect.fromLTWH(
+      0,
+      0,
+      cursorWidth,
+      cursorHeight,
+    ).shift(caretOffset);
+    final cursorOffset = cursorController.style.offset;
+
+    // Add additional cursor offset (generally only if on iOS).
+    if (cursorOffset != null) {
+      rect = rect.shift(cursorOffset);
+    }
+
+    return rect;
+  }
+
+  @override
+  TextPosition globalToLocalPosition(TextPosition position) {
+    assert(
+    container.containsOffset(position.offset),
+    'The provided text position is not in the current node',
+    );
+
+    return TextPosition(
+      offset: position.offset - container.documentOffset,
+      affinity: position.affinity,
+    );
+  }
+
+  @override
+  Rect getCaretPrototype(TextPosition position) => _caretPrototype;
+
+  Iterable<RenderBox> get _children sync* {
+    if (_leading != null) {
+      yield _leading!;
+    }
+    if (_body != null) {
+      yield _body!;
+    }
+  }
+
+  // === PRIVATE ===
+
+  RenderBox? _updateChild(
+      RenderBox? old,
+      RenderBox? newChild,
+      TextLineSlot slot,
+      ) {
+    if (old != null) {
+      dropChild(old);
+      children.remove(slot);
+    }
+
+    if (newChild != null) {
+      children[slot] = newChild;
+      adoptChild(newChild);
+    }
+
+    return newChild;
+  }
+
+  List<TextBox> _getBoxes(TextSelection textSelection) {
+    final parentData = _body!.parentData as BoxParentData?;
+
+    return _body!.getBoxesForSelection(textSelection).map((box) {
+      return TextBox.fromLTRBD(
+        box.left + parentData!.offset.dx,
+        box.top + parentData.offset.dy,
+        box.right + parentData.offset.dx,
+        box.bottom + parentData.offset.dy,
+        box.direction,
+      );
+    }).toList(growable: false);
+  }
+
+  void _resolvePadding() {
+    if (_resolvedPadding != null) {
+      return;
+    }
+
+    _resolvedPadding = padding.resolve(textDirection);
+
+    assert(_resolvedPadding!.isNonNegative);
+  }
+
+  TextPosition? _getPosition(TextPosition textPosition, double dyScale) {
+    assert(textPosition.offset < line.length);
+    final offset = getOffsetForCaret(textPosition)
+        .translate(0, dyScale * preferredLineHeight(textPosition));
+    if (_body!.size
+        .contains(offset - (_body!.parentData as BoxParentData).offset)) {
+      return getPositionForOffset(offset);
+    }
+    return null;
+  }
+
+  // TODO: This is no longer producing the highest-fidelity caret
+  // heights for Android, especially when non-alphabetic languages are involved.
+  // The current implementation overrides the height set here with the full measured height of the
+  // text on Android which looks superior (subjectively and in terms of fidelity) in _paintCaret.
+  // We should rework this properly to once again match the platform.
+  // The constant _kCaretHeightOffset scales poorly for small font sizes.
+  // On iOS, the cursor is taller than the cursor on Android.
+  // The height of the cursor for iOS is approximate and obtained through an eyeball comparison.
+  void _computeCaretPrototype() {
+    if (isAppleOS()) {
+      _caretPrototype = Rect.fromLTWH(0, 0, cursorWidth, cursorHeight + 2);
+    } else {
+      _caretPrototype = Rect.fromLTWH(0, 2, cursorWidth, cursorHeight - 4.0);
+    }
+  }
+
+  void _onFloatingCursorChange() {
+    _containsCursor = null;
+    markNeedsPaint();
+  }
+
+  CursorPainter get _cursorPainter => CursorPainter(
+    editable: _body,
+    style: cursorController.style,
+    prototype: _caretPrototype,
+    color: cursorController.isFloatingCursorActive
+        ? cursorController.style.backgroundColor
+        : cursorController.color.value,
+    devicePixelRatio: devicePixelRatio,
+  );
 
   bool _lineContainsSelection(TextSelection selection) {
     return line.documentOffset <= selection.end &&
@@ -679,85 +765,4 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
       lineHasEmbed,
     );
   }
-
-  @override
-  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
-    if (_leading != null) {
-      final childParentData = _leading!.parentData as BoxParentData;
-      final isHit = result.addWithPaintOffset(
-        offset: childParentData.offset,
-        position: position,
-        hitTest: (result, transformed) {
-          assert(transformed == position - childParentData.offset);
-
-          return _leading!.hitTest(result, position: transformed);
-        },
-      );
-
-      if (isHit) {
-        return true;
-      }
-    }
-
-    if (_body == null) {
-      return false;
-    }
-
-    final parentData = _body!.parentData as BoxParentData;
-
-    return result.addWithPaintOffset(
-      offset: parentData.offset,
-      position: position,
-      hitTest: (result, position) {
-        return _body!.hitTest(
-          result,
-          position: position,
-        );
-      },
-    );
-  }
-
-  @override
-  Rect getLocalRectForCaret(TextPosition position) {
-    final caretOffset = getOffsetForCaret(position);
-    var rect = Rect.fromLTWH(
-      0,
-      0,
-      cursorWidth,
-      cursorHeight,
-    ).shift(caretOffset);
-    final cursorOffset = cursorController.style.offset;
-
-    // Add additional cursor offset (generally only if on iOS).
-    if (cursorOffset != null) {
-      rect = rect.shift(cursorOffset);
-    }
-
-    return rect;
-  }
-
-  @override
-  TextPosition globalToLocalPosition(TextPosition position) {
-    assert(
-      container.containsOffset(position.offset),
-      'The provided text position is not in the current node',
-    );
-
-    return TextPosition(
-      offset: position.offset - container.documentOffset,
-      affinity: position.affinity,
-    );
-  }
-
-  void safeMarkNeedsPaint() {
-    if (!attached) {
-      // Should not paint if it was unattached.
-      return;
-    }
-
-    markNeedsPaint();
-  }
-
-  @override
-  Rect getCaretPrototype(TextPosition position) => _caretPrototype;
 }

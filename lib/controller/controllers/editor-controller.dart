@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import '../../documents/models/attribute.model.dart';
 import '../../documents/models/attributes/attributes.model.dart';
+import '../../documents/models/attributes/marker.model.dart';
 import '../../documents/models/change-source.enum.dart';
 import '../../documents/models/delta/delta-changes.model.dart';
 import '../../documents/models/delta/delta.model.dart';
@@ -16,6 +17,7 @@ import '../../documents/services/delta.utils.dart';
 import '../../embeds/models/image.model.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../markers/models/marker-type.model.dart';
+import '../../markers/services/markers.utils.dart';
 import '../../shared/state/editor-state-receiver.dart';
 import '../../shared/state/editor.state.dart';
 import '../models/paste-style.model.dart';
@@ -459,6 +461,20 @@ class EditorController {
   void removeAllHighlights(HighlightM highlight) {
     _state.highlights.removeAllHighlights();
     _state.refreshEditor.refreshEditor();
+  }
+
+  // === MARKERS ===
+
+  void toggleMarkers(bool areVisible) {
+    _state.markersVisibility.toggleMarkers(areVisible);
+  }
+
+  bool getMarkersVisibility() {
+    return _state.markersVisibility.visibility;
+  }
+
+  List<MarkerM> getAllMarkers() {
+    return MarkersUtils.getAllMarkersFromDoc(_state.document.document);
   }
 
   // === PRIVATE ===

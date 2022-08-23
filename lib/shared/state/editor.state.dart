@@ -10,6 +10,7 @@ import '../../highlights/state/highlights.state.dart';
 import '../../inputs/state/keyboard-visible.state.dart';
 import '../../inputs/state/pressed-keys.state.dart';
 import '../../markers/state/markers-types.state.dart';
+import '../../markers/state/markers-visibility.state.dart';
 import '../../selection/state/extend-selection.state.dart';
 import '../../selection/state/last-tap-down.state.dart';
 import '../../selection/state/selection-layers.state.dart';
@@ -52,6 +53,7 @@ class EditorState {
 
   // Markers
   final markersTypes = MarkersTypesState();
+  final markersVisibility = MarkersVisibilityState();
 
   // Selections
   final extendSelection = ExtendSelectionState();

@@ -30,6 +30,7 @@ class _MarkersPageState extends State<MarkersPage> {
         children: _controller != null
             ? [
                 _editor(),
+                _markersControls(),
                 _toolbar(),
               ]
             : [
@@ -58,6 +59,20 @@ class _MarkersPageState extends State<MarkersPage> {
             config: EditorConfigM(),
           ),
         ),
+      );
+
+  Widget _markersControls() => Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          OutlinedButton(
+            child: Text('Toggle Markers'),
+            onPressed: () {
+              final visibility =
+                  !(_controller?.getMarkersVisibility() ?? false);
+              _controller?.toggleMarkers(visibility);
+            },
+          ),
+        ],
       );
 
   Widget _toolbar() => Container(

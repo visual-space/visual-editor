@@ -1,8 +1,6 @@
 import '../models/marker-type.model.dart';
 
 class MarkersTypesState {
-  // === MARKERS ===
-
   List<MarkerTypeM> _types = [];
 
   List<MarkerTypeM> get types => _types;

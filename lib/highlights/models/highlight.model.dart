@@ -44,4 +44,25 @@ class HighlightM {
         onHover: onHover ?? this.onHover,
         onLeave: onLeave ?? this.onLeave);
   }
+
+  // added so as to keep visual editor imports generally as flutter minimalist as possible
+  HighlightM copyWithIntExtents(
+      {required int baseOffset,
+      required int extentOffset,
+      Color? color,
+      Color? hoverColor,
+      Function(HighlightM highlight)? onSingleTapUp,
+      Function(HighlightM highlight)? onEnter,
+      Function(HighlightM highlight)? onHover,
+      Function(HighlightM highlight)? onLeave}) {
+    return HighlightM(
+        textSelection:
+            TextSelection(baseOffset: baseOffset, extentOffset: extentOffset),
+        color: color ?? this.color,
+        hoverColor: hoverColor ?? this.hoverColor,
+        onSingleTapUp: onSingleTapUp ?? this.onSingleTapUp,
+        onEnter: onEnter ?? this.onEnter,
+        onHover: onHover ?? this.onHover,
+        onLeave: onLeave ?? this.onLeave);
+  }
 }

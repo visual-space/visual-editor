@@ -75,7 +75,11 @@ class EditorController {
   final DocumentM document;
   final bool keepStyleOnNewLine;
   TextSelection selection;
-  List<HighlightM> highlights;
+
+  bool rangeHasHighlight(int baseOffset, int extentOffset) =>
+      _state.highlights.selectionRangeHasHighlight(baseOffset, extentOffset);
+
+  List<HighlightM>? highlights;
   List<MarkerTypeM> markerTypes;
   ReplaceTextCallback? onReplaceText;
   DeleteCallback? onDelete;
@@ -117,7 +121,7 @@ class EditorController {
   EditorController({
     required this.document,
     this.selection = const TextSelection.collapsed(offset: 0),
-    this.highlights = const [],
+    this.highlights,
     this.markerTypes = const [],
     this.keepStyleOnNewLine = false,
     this.onReplaceText,
@@ -128,7 +132,7 @@ class EditorController {
     this.onScroll,
   }) {
     _state.document.setDocument(document);
-    _state.highlights.setHighlights(highlights);
+    _state.highlights.setHighlights(highlights ?? []);
 
     if (markerTypes.isNotEmpty) {
       _state.markersTypes.setMarkersTypes(markerTypes);
@@ -468,7 +472,12 @@ class EditorController {
     _state.refreshEditor.refreshEditor();
   }
 
-  void removeAllHighlights(HighlightM highlight) {
+  void removeHighlightInRange(int baseOffset, int extentOffset) {
+    _state.highlights.removeHighlightsInRange(baseOffset, extentOffset);
+    _state.refreshEditor.refreshEditor();
+  }
+
+  void removeAllHighlights() {
     _state.highlights.removeAllHighlights();
     _state.refreshEditor.refreshEditor();
   }

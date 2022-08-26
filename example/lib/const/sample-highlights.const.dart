@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:visual_editor/highlights/models/highlight.model.dart';
 import 'package:visual_editor/visual-editor.dart';
 
 final SAMPLE_HIGHLIGHTS = [
@@ -15,8 +16,7 @@ final SAMPLE_HIGHLIGHTS = [
       },
       onSingleTapUp: (_) {
         // print('Tapped highlight 1');
-      }
-  ),
+      }),
   HighlightM(
     textSelection: const TextSelection(
       baseOffset: 387,

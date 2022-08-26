@@ -75,11 +75,7 @@ class EditorController {
   final DocumentM document;
   final bool keepStyleOnNewLine;
   TextSelection selection;
-
-  bool rangeHasHighlight(int baseOffset, int extentOffset) =>
-      _state.highlights.selectionRangeHasHighlight(baseOffset, extentOffset);
-
-  List<HighlightM>? get highlights => _state.highlights.highlights;
+  List<HighlightM> highlights;
   List<MarkerTypeM> markerTypes;
   ReplaceTextCallback? onReplaceText;
   DeleteCallback? onDelete;
@@ -121,7 +117,7 @@ class EditorController {
   EditorController({
     required this.document,
     this.selection = const TextSelection.collapsed(offset: 0),
-    highlights,
+    required this.highlights,
     this.markerTypes = const [],
     this.keepStyleOnNewLine = false,
     this.onReplaceText,
@@ -140,9 +136,8 @@ class EditorController {
   }
 
   // TODO Deprecate (no longer needed)
-  factory EditorController.basic() => EditorController(
-        document: DocumentM(),
-      );
+  factory EditorController.basic() =>
+      EditorController(document: DocumentM(), highlights: []);
 
   // Safely pass the state from the controller to the buttons without the public having access to the state.
   // Read more in EditorStateReceiver doc comment.

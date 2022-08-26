@@ -26,4 +26,22 @@ class HighlightM {
     this.onHover,
     this.onLeave,
   });
+
+  HighlightM copyWith(
+      {TextSelection? textSelection,
+      Color? color,
+      Color? hoverColor,
+      Function(HighlightM highlight)? onSingleTapUp,
+      Function(HighlightM highlight)? onEnter,
+      Function(HighlightM highlight)? onHover,
+      Function(HighlightM highlight)? onLeave}) {
+    return HighlightM(
+        textSelection: textSelection ?? this.textSelection,
+        color: color ?? this.color,
+        hoverColor: hoverColor ?? this.hoverColor,
+        onSingleTapUp: onSingleTapUp ?? this.onSingleTapUp,
+        onEnter: onEnter ?? this.onEnter,
+        onHover: onHover ?? this.onHover,
+        onLeave: onLeave ?? this.onLeave);
+  }
 }

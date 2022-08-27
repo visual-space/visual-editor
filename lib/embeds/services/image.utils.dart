@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:string_validator/string_validator.dart';
 
@@ -57,11 +58,29 @@ Image imageByUrl(String imageUrl,
       width: width, height: height, alignment: alignment);
 }
 
-String standardizeImageUrl(String url) {
+String standardizeMediaUrl(String url) {
   if (url.contains('base64')) {
     return url.split(',')[1];
   }
-  return url;
+
+  // Process image URL to embed.
+
+  // Processes Google Drive image to correct format.
+  if (url.contains('https://drive.google.com/file/d/')) {
+    url = url.replaceAll('https://drive.google.com/file/d/', 'https://drive.google.com/uc?id=');
+  }
+
+  // Changes Discord domain
+  if (url.contains('cdn.discordapp.com')) {
+    url = url.replaceAll('cdn.discordapp.com', 'media.discordapp.net');
+  }
+
+  // Uses CORS proxy for web
+  if (kIsWeb) {
+    return 'https://corsproxy.garvshah.workers.dev/?$url';
+  } else {
+    return url;
+  }
 }
 
 // This is a bug of Gallery Saver Package.

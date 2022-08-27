@@ -33,7 +33,7 @@ Widget defaultEmbedBuilder(
 
   switch (node.value.type) {
     case BlockEmbedM.imageType:
-      final imageUrl = standardizeImageUrl(node.value.data);
+      final imageUrl = standardizeMediaUrl(node.value.data);
       var image;
       final style = node.style.attributes['style'];
 
@@ -185,7 +185,7 @@ Widget defaultEmbedBuilder(
       return _menuOptionsForReadonlyImage(context, imageUrl, image);
 
     case BlockEmbedM.videoType:
-      final videoUrl = node.value.data;
+      final videoUrl = standardizeMediaUrl(node.value.data);
 
       if (videoUrl.contains('youtube.com') || videoUrl.contains('youtu.be')) {
         return YoutubeVideoApp(

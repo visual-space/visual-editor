@@ -51,8 +51,32 @@ Image imageByUrl(String imageUrl,
   }
 
   if (imageUrl.startsWith('http')) {
-    return Image.network(imageUrl,
-        width: width, height: height, alignment: alignment);
+    return Image.network(
+      imageUrl,
+      width: width,
+      height: height,
+      alignment: alignment,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Center(
+          child: CircularProgressIndicator(
+            value: loadingProgress.expectedTotalBytes != null
+                ? loadingProgress.cumulativeBytesLoaded /
+                    loadingProgress.expectedTotalBytes!
+                : null,
+          ),
+        );
+      },
+      errorBuilder: (context, exception, stackTrace) {
+        return Row(
+          children: [
+            Icon(Icons.error, color: Colors.redAccent),
+            SizedBox(width: 16),
+            Text(exception.toString()),
+          ],
+        );
+      },
+    );
   }
   return Image.file(io.File(imageUrl),
       width: width, height: height, alignment: alignment);
@@ -67,7 +91,8 @@ String standardizeMediaUrl(String url) {
 
   // Processes Google Drive image to correct format.
   if (url.contains('https://drive.google.com/file/d/')) {
-    url = url.replaceAll('https://drive.google.com/file/d/', 'https://drive.google.com/uc?id=');
+    url = url.replaceAll(
+        'https://drive.google.com/file/d/', 'https://drive.google.com/uc?id=');
   }
 
   // Changes Discord domain

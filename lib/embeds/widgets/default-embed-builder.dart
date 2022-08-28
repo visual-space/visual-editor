@@ -203,8 +203,8 @@ Widget defaultEmbedBuilder(
 
     case BlockEmbedM.formulaType:
       final formula = node.value.data;
-      //final style = node.style.attributes['style'];
-      //print(node.style);
+      final style = node.style.attributes['style'];
+      print(node.style);
       return Math.tex(formula, textStyle: Theme.of(context).textTheme.subtitle1);
 
 

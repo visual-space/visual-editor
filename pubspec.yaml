@@ -29,6 +29,7 @@ dependencies:
   gallery_saver: ^2.3.2
   device_info_plus: ^3.2.3
   math_keyboard: ^0.1.6
+  flutter_math_fork: ^0.6.3+1
 
 dev_dependencies:
   flutter_test:

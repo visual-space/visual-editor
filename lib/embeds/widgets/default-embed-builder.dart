@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:gallery_saver/gallery_saver.dart';
-import 'package:math_keyboard/math_keyboard.dart';
 import 'package:flutter/services.dart';
 
 import '../../controller/controllers/editor-controller.dart';
@@ -202,19 +202,10 @@ Widget defaultEmbedBuilder(
       );
 
     case BlockEmbedM.formulaType:
-      return Focus(
-        onFocusChange: (hasFocus) {
-          if (hasFocus) {
-            // If the MathField is tapped, hides the built in keyboard
-            SystemChannels.textInput.invokeMethod('TextInput.hide');
-          }
-        },
-        child: MathField(
-          variables: const ['x', 'y', 'z'],
-          onChanged: (value) {},
-          onSubmitted: (value) {},
-        ),
-      );
+      final formula = node.value.data;
+      //final style = node.style.attributes['style'];
+      //print(node.style);
+      return Math.tex(formula, textStyle: Theme.of(context).textTheme.subtitle1);
 
 
     default:

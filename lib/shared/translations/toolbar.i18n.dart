@@ -5,6 +5,7 @@ extension Localization on String {
       {
         'en': {
           'Paste a link': 'Paste a link',
+          'Please input a LATEX formula': 'Please input a LATEX formula',
           'Ok': 'Ok',
           'Select Color': 'Select Color',
           'Gallery': 'Gallery',
@@ -25,6 +26,7 @@ extension Localization on String {
         },
         'en_us': {
           'Paste a link': 'Paste a link',
+          'Please input a LATEX formula': 'Please input a LATEX formula',
           'Ok': 'Ok',
           'Select Color': 'Select Color',
           'Gallery': 'Gallery',
@@ -45,6 +47,7 @@ extension Localization on String {
         },
         'ar': {
           'Paste a link': 'نسخ الرابط',
+          'Please input a LATEX formula': 'Please input a LATEX formula',
           'Ok': 'نعم',
           'Select Color': 'اختار اللون',
           'Gallery': 'الصور',
@@ -65,6 +68,7 @@ extension Localization on String {
         },
         'da': {
           'Paste a link': 'Indsæt link',
+          'Please input a LATEX formula': 'Please input a LATEX formula',
           'Ok': 'Ok',
           'Select Color': 'Vælg farve',
           'Gallery': 'Galleri',
@@ -85,6 +89,7 @@ extension Localization on String {
         },
         'de': {
           'Paste a link': 'Link hinzufügen',
+          'Please input a LATEX formula': 'Please input a LATEX formula',
           'Ok': 'Ok',
           'Select Color': 'Farbe auswählen',
           'Gallery': 'Gallerie',
@@ -106,6 +111,7 @@ extension Localization on String {
         },
         'fr': {
           'Paste a link': 'Coller un lien',
+          'Please input a LATEX formula': 'Please input a LATEX formula',
           'Ok': 'Ok',
           'Select Color': 'Choisir une couleur',
           'Gallery': 'Galerie',
@@ -126,6 +132,7 @@ extension Localization on String {
         },
         'zh_CN': {
           'Paste a link': '粘贴链接',
+          'Please input a LATEX formula': 'Please input a LATEX formula',
           'Ok': '好',
           'Select Color': '选择颜色',
           'Gallery': '相簿',
@@ -146,6 +153,7 @@ extension Localization on String {
         },
         'ko': {
           'Paste a link': '링크를 붙여넣어 주세요.',
+          'Please input a LATEX formula': 'Please input a LATEX formula',
           'Ok': '확인',
           'Select Color': '색상 선택',
           'Gallery': '갤러리',
@@ -166,6 +174,7 @@ extension Localization on String {
         },
         'ru': {
           'Paste a link': 'Вставить ссылку',
+          'Please input a LATEX formula': 'Please input a LATEX formula',
           'Ok': 'ОК',
           'Select Color': 'Выбрать цвет',
           'Gallery': 'Галерея',
@@ -186,6 +195,7 @@ extension Localization on String {
         },
         'es': {
           'Paste a link': 'Pega un enlace',
+          'Please input a LATEX formula': 'Please input a LATEX formula',
           'Ok': 'Ok',
           'Select Color': 'Selecciona un color',
           'Gallery': 'Galeria',
@@ -207,6 +217,7 @@ extension Localization on String {
         },
         'tr': {
           'Paste a link': 'Bağlantıyı Yapıştır',
+          'Please input a LATEX formula': 'Please input a LATEX formula',
           'Ok': 'Tamam',
           'Select Color': 'Renk Seçin',
           'Gallery': 'Galeri',
@@ -227,6 +238,7 @@ extension Localization on String {
         },
         'uk': {
           'Paste a link': 'Вставити посилання',
+          'Please input a LATEX formula': 'Please input a LATEX formula',
           'Ok': 'ОК',
           'Select Color': 'Вибрати колір',
           'Gallery': 'Галерея',
@@ -247,6 +259,7 @@ extension Localization on String {
         },
         'pt': {
           'Paste a link': 'Colar um link',
+          'Please input a LATEX formula': 'Please input a LATEX formula',
           'Ok': 'Ok',
           'Select Color': 'Selecionar uma cor',
           'Gallery': 'Galeria',
@@ -268,6 +281,7 @@ extension Localization on String {
         },
         'pl': {
           'Paste a link': 'Wklej link',
+          'Please input a LATEX formula': 'Please input a LATEX formula',
           'Ok': 'OK',
           'Select Color': 'Wybierz kolor',
           'Gallery': 'Galeria',
@@ -289,6 +303,7 @@ extension Localization on String {
         },
         'vi': {
           'Paste a link': 'Chèn liên kết',
+          'Please input a LATEX formula': 'Please input a LATEX formula',
           'Ok': 'OK',
           'Select Color': 'Chọn Màu',
           'Gallery': 'Thư viện',
@@ -310,6 +325,7 @@ extension Localization on String {
         },
         'ur': {
           'Paste a link': 'لنک پیسٹ کریں',
+          'Please input a LATEX formula': 'Please input a LATEX formula',
           'Ok': 'ٹھیک ہے',
           'Select Color': 'رنگ منتخب کریں',
           'Gallery': 'گیلری',
@@ -330,6 +346,7 @@ extension Localization on String {
         },
         'id': {
           'Paste a link': 'Tempel tautan',
+          'Please input a LATEX formula': 'Please input a LATEX formula',
           'Ok': 'Oke',
           'Select Color': 'Pilih Warna',
           'Gallery': 'Galeri',
@@ -350,6 +367,7 @@ extension Localization on String {
         },
         'no': {
           'Paste a link': 'Lim inn lenke',
+          'Please input a LATEX formula': 'Please input a LATEX formula',
           'Ok': 'Ok',
           'Select Color': 'Velg farge',
           'Gallery': 'Galleri',
@@ -370,6 +388,7 @@ extension Localization on String {
         },
         'fa': {
           'Paste a link': 'جایگذاری لینک',
+          'Please input a LATEX formula': 'Please input a LATEX formula',
           'Ok': 'اوکی',
           'Select Color': 'انتخاب رنگ',
           'Gallery': 'گالری',
@@ -390,6 +409,7 @@ extension Localization on String {
         },
         'hi': {
           'Paste a link': 'लिंक पेस्ट करें',
+          'Please input a LATEX formula': 'Please input a LATEX formula',
           'Ok': 'ठीक है',
           'Select Color': 'रंग चुनें',
           'Gallery': 'गैलरी',

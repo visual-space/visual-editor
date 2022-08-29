@@ -74,7 +74,7 @@ class EditorController {
   bool rangeHasHighlight(int baseOffset, int extentOffset) =>
       _state.highlights.selectionRangeHasHighlight(baseOffset, extentOffset);
 
-  List<HighlightM>? highlights;
+  List<HighlightM>? get highlights => _state.highlights.highlights;
   List<MarkerTypeM> markerTypes;
   ReplaceTextCallback? onReplaceText;
   DeleteCallback? onDelete;
@@ -114,7 +114,7 @@ class EditorController {
   EditorController({
     required this.document,
     this.selection = const TextSelection.collapsed(offset: 0),
-    this.highlights,
+    highlights,
     this.markerTypes = const [],
     this.keepStyleOnNewLine = false,
     this.onReplaceText,

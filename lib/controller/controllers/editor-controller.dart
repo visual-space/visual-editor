@@ -465,6 +465,11 @@ class EditorController {
     _state.refreshEditor.refreshEditor();
   }
 
+  void removeFirstHighlightInRange(int baseOffset, int extentOffset) {
+    _state.highlights.removeFirstHighlightInRange(baseOffset, extentOffset);
+    _state.refreshEditor.refreshEditor();
+  }
+
   void removeAllHighlights() {
     _state.highlights.removeAllHighlights();
     _state.refreshEditor.refreshEditor();

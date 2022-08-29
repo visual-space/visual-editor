@@ -65,4 +65,26 @@ class HighlightM {
         onHover: onHover ?? this.onHover,
         onLeave: onLeave ?? this.onLeave);
   }
+
+  @override
+  int get hashCode => Object.hash(textSelection, color, onSingleTapUp, onEnter,
+      onHover, onLeave, hoverColor);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other.runtimeType != runtimeType) {
+      return false;
+    }
+    return other is HighlightM &&
+        other.color == color &&
+        other.hoverColor == hoverColor &&
+        other.onEnter == onEnter &&
+        other.onHover == onHover &&
+        other.onLeave == onLeave &&
+        other.onSingleTapUp == onSingleTapUp &&
+        other.textSelection == textSelection;
+  }
 }

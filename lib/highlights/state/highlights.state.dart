@@ -46,7 +46,8 @@ class HighlightsState {
   }
 
   List<HighlightM> getHighlightsInRange(int baseOffset, int extentOffset) {
-    List<HighlightM> highlights = [];
+    // ignore: prefer_final_locals
+    var highlights = <HighlightM>[];
 
     for (final highlight in _highlights) {
       if (_selectionRangeOverlapsHighlightedRange(
@@ -69,8 +70,7 @@ class HighlightsState {
   /// Removes only the first highlight found for this range.
   /// Only removes the section of the highlight at the range given.
   void removeFirstHighlightInRange(int baseOffset, int extentOffset) {
-    final allHighlights = getHighlightsInRange(baseOffset, extentOffset);
-    var highlight = highlights.isNotEmpty ? highlights.first : null;
+    final highlight = highlights.isNotEmpty ? highlights.first : null;
     if (highlight != null) {
       _manageHighlightRemovalInRange(extentOffset, baseOffset, highlight);
     }
@@ -78,13 +78,6 @@ class HighlightsState {
 
   void _manageHighlightRemovalInRange(
       int extentOffset, int baseOffset, HighlightM highlight) {
-    var selectionLength =
-        max(extentOffset, baseOffset) - min(baseOffset, extentOffset);
-    var highlightLength = max(highlight.textSelection.extentOffset,
-            highlight.textSelection.baseOffset) -
-        min(highlight.textSelection.baseOffset,
-            highlight.textSelection.extentOffset);
-
     // case: base offset smaller than highlight baseoffset and extent offset smaller than highlight extent offset - 1 replacement highlight
     if (baseOffset <= highlight.textSelection.baseOffset &&
         extentOffset < highlight.textSelection.extentOffset) {
@@ -121,15 +114,6 @@ class HighlightsState {
       _highlights.remove(highlight);
       _highlights.add(newHighlight);
     }
-  }
-
-  /// Should only be called if a range and highlight are already known to intersect.
-  List<int> _getIntersectedRanges(
-      int baseOffset, int extentOffset, HighlightM highlight) {
-    return [
-      max(baseOffset, highlight.textSelection.baseOffset),
-      min(extentOffset, highlight.textSelection.extentOffset)
-    ];
   }
 
   // === HOVERED HIGHLIGHTS ===

@@ -19,7 +19,7 @@ void main() {
   late EditorController editorController;
   setUp(() {
     document = DocumentM.fromJson(jsonDecode(SIMPLE_TEXT_MOCK));
-    editorController = EditorController(document: document);
+    editorController = EditorController(document: document, highlights: []);
   });
 
   group('Highlights', () {

@@ -160,9 +160,7 @@ void main() {
           editorController.selection.extentOffset);
       expect(editorController.highlights, []);
     });
-    test(
-        'Removes first highlight retrieved highlight when two highlights overlap',
-        () {
+    test('Removes first highlight retrieved when two highlights overlap', () {
       final highlight = HighlightM(
           textSelection: TextSelection(baseOffset: 5, extentOffset: 10),
           color: Colors.green);
@@ -179,6 +177,20 @@ void main() {
           editorController.selection.baseOffset,
           editorController.selection.extentOffset);
       expect(editorController.highlights, [highlight2]);
+    });
+    test('remove all highlights', () {
+      final highlight = HighlightM(
+          textSelection: TextSelection(baseOffset: 5, extentOffset: 10),
+          color: Colors.green);
+      final highlight2 = HighlightM(
+          textSelection: TextSelection(baseOffset: 5, extentOffset: 10),
+          color: Colors.red);
+      editorController.updateSelection(
+          TextSelection(baseOffset: 2, extentOffset: 15), ChangeSource.LOCAL);
+      editorController.addHighlight(highlight);
+      editorController.addHighlight(highlight2);
+      editorController.removeAllHighlights();
+      expect(editorController.highlights, []);
     });
     // test('Hovers highlights', () {});
   });

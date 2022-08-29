@@ -87,4 +87,9 @@ class HighlightM {
         other.onSingleTapUp == onSingleTapUp &&
         other.textSelection == textSelection;
   }
+
+  @override
+  String toString() {
+    return 'HighlightM: hashCode $hashCode \n TextSelection ${textSelection.baseOffset} ${textSelection.extentOffset} \n Color $color \n hoverColor $hoverColor';
+  }
 }

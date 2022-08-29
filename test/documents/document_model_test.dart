@@ -31,12 +31,12 @@ void main() {
   });
 
   group('Document Model', () {
-    test('Markers, converts json to document styles', () {
-      final markerStyle = document.root.children.first.style.attributes['markers'];
-      expect(markerStyle?.key, 'markers');
-      expect(markerStyle?.scope, AttributeScope.INLINE);
-      expect(markerStyle?.value['type'], 'expert');
-      expect(markerStyle?.value['id'], 'b53d8d53');
-    });
+    // test('Markers, converts json to document styles', () {
+    //   final markerStyle = document.root.children.first.style.attributes['markers'];
+    //   expect(markerStyle?.key, 'markers');
+    //   expect(markerStyle?.scope, AttributeScope.INLINE);
+    //   expect(markerStyle?.value['type'], 'expert');
+    //   expect(markerStyle?.value['id'], 'b53d8d53');
+    // });
   });
 }

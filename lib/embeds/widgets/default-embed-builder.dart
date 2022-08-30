@@ -28,7 +28,6 @@ Widget defaultEmbedBuilder(
   EmbedM node,
   bool readOnly,
 ) {
-  assert(!kIsWeb, 'Please provide EmbedBuilder for Web');
   ContentSizeM? _widthHeight;
 
   switch (node.value.type) {

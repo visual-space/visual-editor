@@ -101,7 +101,7 @@ String standardizeMediaUrl(String url) {
   }
 
   // Uses CORS proxy for web
-  if (kIsWeb) {
+  if (kIsWeb && !url.contains('firebasestorage')) {
     return 'https://corsproxy.garvshah.workers.dev/?$url';
   } else {
     return url;

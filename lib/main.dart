@@ -102,6 +102,7 @@ class VisualEditor extends StatefulWidget with EditorStateReceiver {
     _state.refs.setFocusNode(focusNode);
     _state.editorConfig.setEditorConfig(config);
     _state.refs.setEditor(this);
+    _state.markersVisibility.toggleMarkers(config.markersVisibility ?? true);
   }
 
   // Quickly a basic Visual Editor using a basic configuration

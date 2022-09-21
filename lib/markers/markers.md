@@ -86,6 +86,10 @@ There are two ways to add markers:
 - Via the toolbar - First select some text that you want marked. Then click on the markers dropdown. Select a the desired marker type.
 - Via the controller - An alternative is to add them via controller triggered by custom buttons.
 
+```dart
+controller.addMarker('expert'); // Any of the markers types that have been provided
+```
+
 ## List Of Markers
 Get a list of all markers. Each marker provides the position relative to text and the custom data. Positions can be used to render other custom text decorations in perfect alignment with the text.
 
@@ -105,6 +109,19 @@ Despite being part of the delta document the markers can be hidden on demand. To
 ```dart
 _controller.toggleMarkers(); // Enables or disables the visibility of all markers
 _controller.getMarkersVisibility(); // Query if markers are disabled
+```
+
+For certain scenarios it might be desired to init the editor with the markers turned off. Later the markers can be enabled using the editor controller API.
+
+```dart
+ VisualEditor(
+  controller: _controller,
+  scrollController: ScrollController(),
+  focusNode: _focusNode,
+  config: EditorConfigM(
+    markersVisibility: true,
+  ),
+),
 ```
 
 ## How Markers Are Rendered (WIP)

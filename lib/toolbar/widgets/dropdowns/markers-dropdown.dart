@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../controller/controllers/editor-controller.dart';
-import '../../../documents/models/attribute-scope.enum.dart';
-import '../../../documents/models/attribute.model.dart';
 import '../../../documents/models/attributes/attributes.model.dart';
-import '../../../documents/models/attributes/marker.model.dart';
 import '../../../documents/services/attribute.utils.dart';
 import '../../../markers/models/marker-type.model.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
@@ -146,53 +143,6 @@ class MarkersDropdown extends StatelessWidget with EditorStateReceiver {
 
   // The logic used to add new markers on top of existing ones or from scratch.
   void _selectMarker(DropDownOptionM<String> newMarker) {
-    // Existing markers
-    final style = controller.getSelectionStyle();
-    final styleAttributes = style.values.toList();
-
-    List<MarkerM>? markers = [];
-
-    // Convert from json map to models
-    if (styleAttributes.isNotEmpty) {
-      final markersMap = styleAttributes.firstWhere(
-        (attribute) => attribute.key == AttributesM.markers.key,
-        orElse: () => AttributeM('', AttributeScope.INLINE, null),
-      );
-
-      if (markersMap.key != '') {
-        markers = AttributeUtils.extractMarkersFromAttributeMap(
-          markersMap.value,
-        );
-      }
-    }
-
-    // On Add Callback
-    // Returns the UUIDs or whatever custom data the client app desires
-    // to store inline as a value of hte marker attribute.
-    final markersTypes = _state.markersTypes.types;
-
-    final MarkerTypeM? markerType = markersTypes.firstWhere(
-      (marker) => marker.id == newMarker.value,
-      orElse: () => defaultMarkerType,
-    );
-
-    var data;
-
-    if (markerType != null && markerType.onAddMarkerViaToolbar != null) {
-      data = markerType.onAddMarkerViaToolbar!(markerType);
-    }
-
-    // Add the new marker
-    markers?.add(
-      MarkerM(newMarker.value, data),
-    );
-
-    // Markers are stored as json data in the styles
-    final jsonMarkers = markers?.map((marker) => marker.toJson()).toList();
-
-    // Add to document
-    controller.formatSelection(
-      AttributeUtils.fromKeyValue('markers', jsonMarkers),
-    );
+    controller.addMarker(newMarker.value);
   }
 }

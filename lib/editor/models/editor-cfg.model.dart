@@ -145,6 +145,11 @@ class EditorConfigM {
   // Custom GUI for text selection controls
   final TextSelectionControls? textSelectionControls;
 
+  // Controls the initial markers visibility.
+  // For certain scenarios it might be desired to init the editor with the markers turned off.
+  // Later the markers can be enabled using: _controller.toggleMarkers()
+  final bool? markersVisibility;
+
   // Customize any of the settings available  in VisualEditor
   const EditorConfigM({
     this.scrollable = true,
@@ -176,6 +181,7 @@ class EditorConfigM {
     this.floatingCursorDisabled = false,
     this.forcePressEnabled = false,
     this.textSelectionControls,
+    this.markersVisibility = true,
   })  : assert(maxHeight == null || maxHeight > 0, 'maxHeight cannot be null'),
         assert(minHeight == null || minHeight >= 0, 'minHeight cannot be null'),
         assert(maxHeight == null || minHeight == null || maxHeight >= minHeight,

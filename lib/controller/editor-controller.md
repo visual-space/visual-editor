@@ -46,6 +46,7 @@ The editor controller is a class used to sync the state between the Editor input
 
 **Markers**
 
+* `addMarker()` - Add marker of type
 * `toggleMarkers()` - Hide or show markers
 * `getMarkersVisibility()` - Query if markers are disabled
 * `getAllMarkers()` - Get a list of all markers. Each marker provides the position relative to text and the custom data.

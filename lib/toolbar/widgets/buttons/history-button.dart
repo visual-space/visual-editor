@@ -40,6 +40,7 @@ class _HistoryButtonState extends State<HistoryButton> {
     widget.controller.changes.listen((event) async {
       _setIconColor();
     });
+
     return IconBtn(
       highlightElevation: 0,
       hoverElevation: 0,

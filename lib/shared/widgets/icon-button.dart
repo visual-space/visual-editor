@@ -26,7 +26,9 @@ class IconBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: buttonsSpacing),
+      margin: EdgeInsets.symmetric(
+        horizontal: buttonsSpacing,
+      ),
       child: ConstrainedBox(
         constraints: BoxConstraints.tightFor(
           width: size,

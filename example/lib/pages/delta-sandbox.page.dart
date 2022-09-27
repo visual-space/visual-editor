@@ -16,12 +16,13 @@ class DeltaSandbox extends StatefulWidget {
 
 class _DeltaSandboxState extends State<DeltaSandbox> {
   late EditorController _editorController;
+  final _scrollController = ScrollController();
   late TextEditingController _jsonInputController;
   late final StreamSubscription _editorListener;
   late final StreamSubscription _jsonInputListener;
 
   // Essential for preventing a circular invocation.
-  final FocusNode _focusNode = FocusNode();
+  final _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -77,7 +78,7 @@ class _DeltaSandboxState extends State<DeltaSandbox> {
             ),
             child: VisualEditor(
               controller: _editorController,
-              scrollController: ScrollController(),
+              scrollController: _scrollController,
               focusNode: _focusNode,
               config: EditorConfigM(
                 placeholder: 'Enter text',
@@ -95,6 +96,7 @@ class _DeltaSandboxState extends State<DeltaSandbox> {
         ),
         child: EditorToolbar.basic(
           controller: _editorController,
+          showMarkers: true,
         ),
       );
 

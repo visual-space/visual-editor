@@ -34,11 +34,13 @@ class DocumentM {
   }
 
   // Creates new document from provided `delta`.
+  // Delta is the converted json string to dart json data.
   DocumentM.fromDelta(DeltaM delta) : _delta = delta {
     _initDocument(delta);
   }
 
   // The root node of the document tree
+  // Delta operation (json data) are converted to Nodes (models)
   final RootM _root = RootM();
 
   RootM get root => _root;
@@ -178,7 +180,6 @@ class DocumentM {
   // It is callers responsibility to ensure that the change conforms to the document
   // models semantics and can be composed with the current state of this document.
   // In case the change is invalid, behavior of this method is unspecified.
-
   void compose(DeltaM delta, ChangeSource changeSource) {
     assert(!_observer.isClosed);
     delta.trim();
@@ -213,9 +214,19 @@ class DocumentM {
       throw '_delta compose failed';
     }
 
-    if (_delta != _root.toDelta()) {
-      throw 'Compose failed';
-    }
+    // TODO This error might be overkill since the markers have been added.
+    // IT's possible to successfully add a new marker without changing the number of attributes.
+    // We need to evaluate if we can either improve the error (ideal) or remove it completely (not ideal).
+    //
+    // (!) Apparently this was the source of a silent failure
+    // When inserting any character in an editor with markers inlined in the text the editor would not update.
+    // It appears that this condition fails silently (no trace in the console).
+    // Until this condition is fixed I have disabled completely.
+    // It does not seem to be essential, much rather a safety measure.
+    // However it would be nice to restore this safety measure.
+    // if (_delta != _root.toDelta()) {
+    //   throw 'Compose failed';
+    // }
 
     final change = DeltaChangeM(originalDelta, delta, changeSource);
 

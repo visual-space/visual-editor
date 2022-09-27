@@ -15,7 +15,8 @@ Check out the [changelog](https://github.com/visual-space/visual-editor/blob/dev
 - **[Demo Pages](https://github.com/visual-space/visual-editor/issues/63)** - We've provided simple, concise demo pages to exemplify how to use Visual Editor for the various tasks you have.
 - **[Automatic Testing](https://github.com/visual-space/visual-editor/issues/3)** - In Quill there's no automatic testing available. New contributions constantly break the legacy code. The PR's are not policed enough. We started by adding tests and we are slowly increasing the coverage of the tests.
 - **[Custom Highlights](https://github.com/visual-space/visual-editor/issues/4)** - Highlights custom regions of text that are sensitive to taps and hovering.
-- **[Custom Markers](https://github.com/visual-space/visual-editor/issues/69)** - Same as highlgihts but instead of being temporary in the controller they are permanent in the document.
+- **[Custom Markers](https://github.com/visual-space/visual-editor/issues/69)** - Same as highlights but instead of being temporary in the controller they are permanent in the document.
+- **[Markers Attachments](https://github.com/visual-space/visual-editor/issues/117)** - Markers provide support for attachments by returning their pixel coordinates and dimensions for positioning in text. Based on this information any widget can be linked to a marker.
 - **[Active Discord Support Community](https://discord.gg/XpGygmXde4)** - You'll be able to get quick answers from the maintainers of the repo. We are available almost at all times to answer your questions. Including general Flutter and Dart questions.
 
 ## How To Start

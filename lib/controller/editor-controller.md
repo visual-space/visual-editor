@@ -1,7 +1,18 @@
 # Editor Controller (WIP)
 The editor controller is a class used to sync the state between the Editor input itself and the Editor toolbar. The Controller exposes several useful callbacks that can be used by the client app to detect changes in the document content.
 
-## Useful methods (WIP)
+## Public methods (WIP)
+
+**Constructor**
+
+These methods are provided by the client developer.
+
+* `onReplaceText()` - Invoked each time a character is inserted or removed
+* `onDelete()` - Invoked when characters are deleted
+* `onSelectionCompleted()` - Invoked after release the pointer when selecting text
+* `onSelectionChanged()` - Invoked when the selection is changed
+* `onBuildComplete()` - Invoked after the layout is fully built. Useful for attaching elements to markers.
+* `onScroll()` - Invoked when the editor is scrolling. Useful for updating the position of attached elements.
 
 **History**
 

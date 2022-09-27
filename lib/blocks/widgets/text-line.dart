@@ -91,7 +91,7 @@ class _TextLineState extends State<TextLine> {
     assert(debugCheckHasMediaQuery(context));
     final isEmbedOnly = widget.line.hasEmbed && widget.line.childCount == 1;
 
-    return isEmbedOnly ? _embed(context) : _richTextProxy(context);
+    return isEmbedOnly ? _embedProxy(context) : _richTextProxy(context);
   }
 
   @override
@@ -103,7 +103,7 @@ class _TextLineState extends State<TextLine> {
     );
   }
 
-  EmbedProxy _embed(BuildContext context) {
+  EmbedProxy _embedProxy(BuildContext context) {
     // For video, it is always single child
     final embed = widget.line.children.single as EmbedM;
 

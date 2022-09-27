@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import '../../documents/models/attribute-scope.enum.dart';
 import '../../documents/models/attribute.model.dart';
 import '../../documents/models/attributes/attributes.model.dart';
-import '../../documents/models/attributes/marker.model.dart';
 import '../../documents/models/change-source.enum.dart';
 import '../../documents/models/delta/delta-changes.model.dart';
 import '../../documents/models/delta/delta.model.dart';
@@ -18,11 +17,12 @@ import '../../documents/services/attribute.utils.dart';
 import '../../documents/services/delta.utils.dart';
 import '../../embeds/models/image.model.dart';
 import '../../highlights/models/highlight.model.dart';
+import '../../markers/const/default-marker-type.const.dart';
 import '../../markers/models/marker-type.model.dart';
-import '../../markers/services/markers.utils.dart';
+import '../../markers/models/marker.model.dart';
 import '../../shared/state/editor-state-receiver.dart';
 import '../../shared/state/editor.state.dart';
-import '../../toolbar/widgets/dropdowns/markers-dropdown.dart';
+import '../../shared/utils/string.utils.dart';
 import '../models/paste-style.model.dart';
 
 // Return false to ignore the event.
@@ -81,6 +81,8 @@ class EditorController {
   DeleteCallback? onDelete;
   void Function()? onSelectionCompleted;
   void Function(TextSelection textSelection)? onSelectionChanged;
+  void Function()? onBuildComplete;
+  void Function()? onScroll;
   bool ignoreFocusOnTextChange = false;
 
   // Store any styles attribute that got toggled by the tap of a button and that has not been applied yet.
@@ -122,10 +124,15 @@ class EditorController {
     this.onDelete,
     this.onSelectionCompleted,
     this.onSelectionChanged,
+    this.onBuildComplete,
+    this.onScroll,
   }) {
     _state.document.setDocument(document);
     _state.highlights.setHighlights(highlights);
-    _state.markersTypes.setMarkersTypes(markerTypes);
+
+    if (markerTypes.isNotEmpty) {
+      _state.markersTypes.setMarkersTypes(markerTypes);
+    }
   }
 
   // TODO Deprecate (no longer needed)
@@ -483,9 +490,7 @@ class EditorController {
       );
 
       if (markersMap.key != '') {
-        markers = AttributeUtils.extractMarkersFromAttributeMap(
-          markersMap.value,
-        );
+        markers = markersMap.value;
       }
     }
 
@@ -507,7 +512,11 @@ class EditorController {
 
     // Add the new marker
     markers?.add(
-      MarkerM(markerTypeId, data),
+      MarkerM(
+        id: getTimeBasedId(),
+        type: markerTypeId,
+        data: data,
+      ),
     );
 
     // Markers are stored as json data in the styles
@@ -528,7 +537,7 @@ class EditorController {
   }
 
   List<MarkerM> getAllMarkers() {
-    return MarkersUtils.getAllMarkersFromDoc(_state.document.document);
+    return _state.markers.markers;
   }
 
   // === PRIVATE ===

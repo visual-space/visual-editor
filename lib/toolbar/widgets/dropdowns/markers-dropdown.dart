@@ -2,19 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../../../controller/controllers/editor-controller.dart';
 import '../../../documents/models/attributes/attributes.model.dart';
-import '../../../documents/services/attribute.utils.dart';
-import '../../../markers/models/marker-type.model.dart';
+import '../../../markers/const/default-marker-type.const.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
 import '../../../shared/state/editor-state-receiver.dart';
 import '../../../shared/state/editor.state.dart';
 import '../../../shared/widgets/editor-dropdown.dart';
 import '../../models/dropdown-option.model.dart';
-
-// In case no markers have been defined there's a default type
-final defaultMarkerType = MarkerTypeM(
-  id: 'reminder',
-  name: 'Reminder',
-);
 
 // When the dropdown renders the list we highlight the options selected in the current text selection.
 // Most attributes use primitive values such as the sizes dropdown.
@@ -103,21 +96,26 @@ class MarkersDropdown extends StatelessWidget with EditorStateReceiver {
   // However the markers use a custom data format to store multiple layers in one attribute.
   // Therefore we need a custom method to read the attributes values and
   // to convert them into selected dropdown options.
-  List<DropDownOptionM<String>> _getOptionsByCustomAttribute(jsonMarkers) {
-    final markers = AttributeUtils.extractMarkersFromAttributeMap(
-          jsonMarkers,
-        ) ??
-        [];
+  List<DropDownOptionM<String>> _getOptionsByCustomAttribute(markers) {
+    assert(
+      markers.runtimeType.toString() == 'List<MarkerM>',
+      'The markers dropdown received the wrong attribute. '
+      'Unexpected type ${markers.runtimeType.toString()}',
+    );
 
-    final matchedTypes = _markersTypes
-        .where(
-          (markerType) => markers.any(
-            (marker) => marker.type == markerType.value,
-          ),
-        )
-        .toList();
+    if (markers.runtimeType.toString() == 'List<MarkerM>') {
+      final matchedTypes = _markersTypes
+          .where(
+            (markerType) => markers.any(
+              (marker) => marker.type == markerType.value,
+            ),
+          )
+          .toList();
 
-    return matchedTypes;
+      return matchedTypes;
+    } else {
+      return [];
+    }
   }
 
   // In the case of markers we can have multiple overlapping markers on the same text selection (even of the same type).
@@ -126,23 +124,28 @@ class MarkersDropdown extends StatelessWidget with EditorStateReceiver {
   // It's not easy to tell with confidence which marker will be removed.
   // Therefore the solution is to integrate in the text content itself the removal controls for markers.
   // In other words the dropdown is used only for adding but not for removing markers.
-  int _countMarkerLayersByOption(jsonMarkers, DropDownOptionM<String> option) {
-    final markers = AttributeUtils.extractMarkersFromAttributeMap(
-          jsonMarkers,
-        ) ??
-        [];
+  int _countMarkerLayersByOption(markers, DropDownOptionM<String> option) {
+    assert(
+      markers.runtimeType.toString() == 'List<MarkerM>',
+      'The markers dropdown received the wrong attribute. '
+      'Unexpected type ${markers.runtimeType.toString()}',
+    );
 
-    final matchedMarkers = markers
-        .where(
-          (marker) => marker.type == option.value,
-        )
-        .toList();
+    if (markers.runtimeType.toString() == 'List<MarkerM>') {
+      final matchedMarkers = markers
+          .where(
+            (marker) => marker.type == option.value,
+          )
+          .toList();
 
-    return matchedMarkers.length;
+      return matchedMarkers.length;
+    } else {
+      return 0;
+    }
   }
 
   // The logic used to add new markers on top of existing ones or from scratch.
-  void _selectMarker(DropDownOptionM<String> newMarker) {
-    controller.addMarker(newMarker.value);
+  void _selectMarker(DropDownOptionM<String> markerOption) {
+    controller.addMarker(markerOption.value);
   }
 }

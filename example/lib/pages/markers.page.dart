@@ -17,7 +17,8 @@ class MarkersPage extends StatefulWidget {
 
 class _MarkersPageState extends State<MarkersPage> {
   EditorController? _controller;
-  final FocusNode _focusNode = FocusNode();
+  final _scrollController = ScrollController();
+  final _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -54,12 +55,12 @@ class _MarkersPageState extends State<MarkersPage> {
           ),
           child: VisualEditor(
             controller: _controller!,
-            scrollController: ScrollController(),
+            scrollController: _scrollController,
             focusNode: _focusNode,
             config: EditorConfigM(
               // Uncomment this param if you want to initialise the editor with the markers turned off.
               // They can later be re-enabled at runtime via the controller.
-              markersVisibility: true,
+              // markersVisibility: true,
             ),
           ),
         ),

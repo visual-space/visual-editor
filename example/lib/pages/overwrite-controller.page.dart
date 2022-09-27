@@ -17,7 +17,8 @@ class OverwriteControllerPage extends StatefulWidget {
 
 class _OverwriteControllerPageState extends State<OverwriteControllerPage> {
   EditorController? _controller;
-  final FocusNode _focusNode = FocusNode();
+  final _scrollController = ScrollController();
+  final _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -61,7 +62,7 @@ class _OverwriteControllerPageState extends State<OverwriteControllerPage> {
           ),
           child: VisualEditor(
             controller: _controller!,
-            scrollController: ScrollController(),
+            scrollController: _scrollController,
             focusNode: _focusNode,
             config: EditorConfigM(
               placeholder: 'Enter text',

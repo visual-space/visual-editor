@@ -24,6 +24,10 @@ class LinesBlocksService {
 
   LinesBlocksService._privateConstructor();
 
+  // Generates the editable text line widget from a delta document node
+  // Nodes are defined in the delta json using new line chars "\n"
+  // An editable text line is composed of a underlying text line (text spans)
+  // and the editable text line wrapper (which renders text selection, markers and highlights).
   EditableTextLine getEditableTextLineFromNode(LineM node, EditorState state) {
     final editor = state.refs.editorState;
 
@@ -38,7 +42,7 @@ class LinesBlocksService {
     final editableTextLine = EditableTextLine(
       line: node,
       leading: null,
-      body: textLine,
+      underlyingText: textLine,
       indentWidth: 0,
       verticalSpacing: getVerticalSpacingForLine(
         node,

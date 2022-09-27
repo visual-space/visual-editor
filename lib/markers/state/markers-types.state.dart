@@ -1,7 +1,10 @@
+import '../const/default-marker-type.const.dart';
 import '../models/marker-type.model.dart';
 
+// Before initialising the editor we need to provide a list of markers types
+// that are available for insertion in the delta document.
 class MarkersTypesState {
-  List<MarkerTypeM> _types = [];
+  List<MarkerTypeM> _types = [defaultMarkerType];
 
   List<MarkerTypeM> get types => _types;
 
@@ -17,7 +20,7 @@ class MarkersTypesState {
     _types.remove(type);
   }
 
-  void removeAllMarkers() {
+  void removeAllMarkersTypes() {
     _types = [];
   }
 }

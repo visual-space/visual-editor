@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'paragraph-proxy-renderer.dart';
 
 // TODO Document Proxy. It's unclear what it does. Bellow is my best current explanation. But it needs to be double checked.
-// My best current understanding is that the proxy are extremely important for generating the virtual scrool behavior.
+// My best current understanding is that the proxy are extremely important for generating the virtual scroll behavior.
 // All the text lines are mapped to text lines proxies.
 // These proxies generate RenderObjects.
 // Flutter uses RenderObjects to calculate the layout of widgets without rendering them.

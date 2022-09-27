@@ -42,21 +42,31 @@ class StyleM {
 
   StyleM.attr(this._attributes);
 
+  // Converts the style attributes found in the delta json to model classes.
+  // One special case was added for the markers model (explained bellow).
   static StyleM fromJson(Map<String, dynamic>? attributes) {
     if (attributes == null) {
       return StyleM();
     }
 
     final result = attributes.map((key, dynamic value) {
-      final attr = AttributeUtils.fromKeyValue(key, value);
 
+      // Most attributes are primitive values, therefore converting form json map to delta is straight forward.
+      // However, markers are a special type of attribute with additional nesting.
+      // For this particular attribute we need additional processing to extract the data types.
+      // (!) Order matters. Prior to this we had a mistake by generating the models after the attribute was created.
+      // Therefore all the code downstream was built using the json data instead of the delta models.
       if (key == AttributesM.markers.key) {
         value = AttributeUtils.extractMarkersFromAttributeMap(value);
       }
 
+      final attribute = AttributeUtils.fromKeyValue(key, value);
+
       return MapEntry<String, AttributeM>(
         key,
-        attr ?? AttributeM(key, AttributeScope.IGNORE, value),
+
+        // Fail safe
+        attribute ?? AttributeM(key, AttributeScope.INLINE, value),
       );
     });
 

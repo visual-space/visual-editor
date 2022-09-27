@@ -114,7 +114,7 @@ class EditableTextBlock extends StatelessWidget {
           indentLevelCounts,
           count,
         ),
-        body: TextLine(
+        underlyingText: TextLine(
           line: line,
           textDirection: textDirection,
           styles: styles,

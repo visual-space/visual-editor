@@ -1,0 +1,1 @@
+const PAGE_WIDTH = 900.0;

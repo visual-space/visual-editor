@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:i18n_extension/i18n_widget.dart';
@@ -178,6 +179,7 @@ class VisualEditorState extends State<VisualEditor>
     assert(debugCheckHasMediaQuery(context));
     super.build(context);
     _initStylesAndCursorOnlyOnce(context);
+    _callBuildCompleteCallback();
 
     // If doc is empty override with a placeholder
     final document = _documentService.getDocOrPlaceholder(widget._state);
@@ -394,6 +396,14 @@ class VisualEditorState extends State<VisualEditor>
 
   // === PRIVATE ===
 
+  void _callBuildCompleteCallback() {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (widget.controller.onBuildComplete != null) {
+        widget.controller.onBuildComplete!();
+      }
+    });
+  }
+
   // TODO Find better solution.
   // The current setup is not able to deal with updated styles.
   // It's stuck on the initial set of styles.
@@ -580,9 +590,8 @@ class VisualEditorState extends State<VisualEditor>
 
   // On init
   void _listenToScrollAndUpdateOverlayMenu() {
-    widget._state.refs.scrollController.addListener(
-      _updateSelectionOverlayOnScroll,
-    );
+    final _scrollController = widget._state.refs.scrollController;
+    _scrollController.addListener(_onScroll);
   }
 
   // On widget update
@@ -590,9 +599,9 @@ class VisualEditorState extends State<VisualEditor>
     final _scrollController = widget._state.refs.scrollController;
 
     if (widget.scrollController != _scrollController) {
-      _scrollController.removeListener(_updateSelectionOverlayOnScroll);
+      _scrollController.removeListener(_onScroll);
       widget._state.refs.setScrollController(widget.scrollController);
-      _scrollController.addListener(_updateSelectionOverlayOnScroll);
+      _scrollController.addListener(_onScroll);
     }
   }
 
@@ -619,8 +628,19 @@ class VisualEditorState extends State<VisualEditor>
     widget._state.refs.setEditorState(this);
   }
 
+  void _onScroll() {
+    _updateSelectionOverlayOnScroll();
+    _callOnScrollCallback();
+  }
+
   void _updateSelectionOverlayOnScroll() {
     selectionActionsController?.updateOnScroll();
+  }
+
+  void _callOnScrollCallback() {
+    if (widget.controller.onScroll != null) {
+      widget.controller.onScroll!();
+    }
   }
 
   void _initFloatingCursorController() {

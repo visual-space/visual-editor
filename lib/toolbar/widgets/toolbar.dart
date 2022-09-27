@@ -128,6 +128,10 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
     bool showVideoButton = true,
     bool showCameraButton = true,
     bool showDirection = false,
+
+    // Disabled by default because most apps wont need such functionality.
+    // Enable it only if your app requires the authors to define the markers themselves.
+    // Markers can be added also programmatically via the controller.
     bool showMarkers = false,
     OnImagePickCallback? onImagePickCallback,
     OnVideoPickCallback? onVideoPickCallback,

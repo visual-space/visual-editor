@@ -114,6 +114,7 @@ class SelectionActionsController {
     );
   }
 
+  // TODO Review why this method is not called
   void setHandlesVisible(bool visible) {
     if (handlesVisible == visible) {
       return;
@@ -249,7 +250,7 @@ class SelectionActionsController {
     List<TextSelectionPoint> endpoints;
 
     try {
-      // Building with an invalid selection with throw an exception.
+      // Building with an invalid selection will throw an exception.
       // This happens where the selection has changed, but the buttons hasn't been dismissed yet.
       endpoints = _selectionActionsService.getEndpointsForSelection(
         _selection,
@@ -259,6 +260,7 @@ class SelectionActionsController {
       return Container();
     }
 
+    // Computes the position of the editor relative to viewport
     final editingRegion = Rect.fromPoints(
       renderObject.localToGlobal(Offset.zero),
       renderObject.localToGlobal(

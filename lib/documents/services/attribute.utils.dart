@@ -1,7 +1,7 @@
+import '../../markers/models/marker.model.dart';
 import '../models/attribute.model.dart';
 import '../models/attributes/attributes-aliases.model.dart';
 import '../models/attributes/attributes-registry.const.dart';
-import '../models/attributes/marker.model.dart';
 import '../models/attributes/styling-attributes.dart';
 
 // Attributes defined the characteristics of text.
@@ -61,7 +61,7 @@ class AttributeUtils {
   }
 
   // Markers have additional nested metadata assigned to the value property.
-  // Therefore we need to convert it to a MarkerAttributeValueM.
+  // Therefore we need to convert it to a MarkerM.
   static List<MarkerM>? extractMarkersFromAttributeMap(List<dynamic>? value) {
     // No markers on the attribute (fail safe)
     if (value == null) {
@@ -75,15 +75,25 @@ class AttributeUtils {
       final keys = marker.values.toList();
 
       // Type
-      final type = keys[0];
+      final id = keys[0];
+
+      // Type
+      final type = keys[1];
 
       // Data (if any)
       dynamic data;
-      if (keys.length == 2) {
-        data = marker.values.toList()[1];
+
+      if (keys.length == 3) {
+        data = marker.values.toList()[2];
       }
 
-      markers.add(MarkerM(type, data));
+      markers.add(
+        MarkerM(
+          id: id,
+          type: type,
+          data: data,
+        ),
+      );
     }
 
     return markers;

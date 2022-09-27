@@ -60,7 +60,7 @@ properties trough the codebase a lot easier.
   Widget _buildWelcomeEditor(BuildContext context) {
   var quillEditor = QuillEditor(
     controller: _controller!,
-    scrollController: ScrollController(),
+    scrollController: _scrollController,
     scrollable: true,
     focusNode: _focusNode,
     autoFocus: false,
@@ -91,7 +91,7 @@ Now becomes:
   Widget _buildWelcomeEditor(BuildContext context) {
   var visualEditor = VisualEditor(
     controller: _controller!,
-    scrollController: ScrollController(),
+    scrollController: _scrollController,
     focusNode: _focusNode,
     config: EditorConfigM(
       placeholder: 'Add blocks',

@@ -19,7 +19,8 @@ class HighlightsPage extends StatefulWidget {
 
 class _HighlightsPageState extends State<HighlightsPage> {
   EditorController? _controller;
-  final FocusNode _focusNode = FocusNode();
+  final _focusNode = FocusNode();
+  final _scrollController = ScrollController();
   final _selection$ = StreamController<TextSelection>.broadcast();
   // TextSelection _selection = TextSelection.collapsed(offset: 0);
 
@@ -92,7 +93,7 @@ class _HighlightsPageState extends State<HighlightsPage> {
           ),
           child: VisualEditor(
             controller: _controller!,
-            scrollController: ScrollController(),
+            scrollController: _scrollController,
             focusNode: _focusNode,
             config: EditorConfigM(),
           ),

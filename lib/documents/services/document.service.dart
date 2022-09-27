@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../../blocks/services/lines-blocks.service.dart';
 import '../../blocks/widgets/editable-text-block.dart';
@@ -24,6 +25,7 @@ class DocumentService {
   DocumentService._privateConstructor();
 
   // Renders all the text elements (lines and blocs) that are visible in the editor.
+  // For each node it renders a new rich text widget.
   List<Widget> documentBlocsAndLines({
     required DocumentM document,
     required EditorState state,
@@ -32,18 +34,35 @@ class DocumentService {
     final indentLevelCounts = <int, int>{};
     final nodes = document.root.children;
 
+    // We need to collect all markers from all lines only once per document update.
+    // Subsequent draw calls that are triggered by the cursor animation will be ignored.
+    state.markers.cacheMarkersAfterBuild = true;
+
+    // Clear the old markers
+    state.markers.removeAllMarkers();
+
     for (final node in nodes) {
       // Line
       if (node is LineM) {
+        final editableTextLine =
+            _linesBlocksService.getEditableTextLineFromNode(node, state);
+
         docElements.add(
           Directionality(
             textDirection: getDirectionOfNode(node),
-            child: _linesBlocksService.getEditableTextLineFromNode(
-              node,
-              state,
-            ),
+            child: editableTextLine,
           ),
         );
+
+        // Cache markers in state store (after layout was fully built)
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          final markers = editableTextLine.getRenderedMarkersCoordinates();
+
+          // Cache markers in state store
+          markers.forEach((marker) {
+            state.markers.addMarker(marker);
+          });
+        });
 
         // Block
       } else if (node is BlockM) {
@@ -64,6 +83,9 @@ class DocumentService {
         throw StateError('Unreachable.');
       }
     }
+
+    // Only the draws triggered by the build() will end up caching markers
+    state.markers.cacheMarkersAfterBuild = false;
 
     return docElements;
   }

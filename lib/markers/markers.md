@@ -73,6 +73,7 @@ The delta text format can be extended with the marker attribute.
     "attributes": {
       "bold": true,
       "marker": {
+        "id": "1160109744764000",
         "type": "expert",
         "data": "UmSuvI9ZcP"
       }
@@ -87,7 +88,8 @@ There are two ways to add markers:
 - Via the controller - An alternative is to add them via controller triggered by custom buttons.
 
 ```dart
-controller.addMarker('expert'); // Any of the markers types that have been provided
+// Add any of the markers types that have been provided.
+controller.addMarker('expert'); 
 ```
 
 ## List Of Markers
@@ -99,7 +101,7 @@ Multiple markers can be added on top of each other. Inspecting multiple markers 
 ## Storing Custom Data In Markers (WIP)
 Advanced use cases might require that markers store custom data such as UUIDs or whatever else the client app developers require. A callback method can be used to generate the custom data when a new marker is added from the dropdown. Beware that these IDs could be generated and then discarded if the author decided to cancel the edit. Therefore make sure you don't populate your DB eagerly unless the document was saved.
 
-A marker defines it's type (class) and additional data. The "data" attribute stores custom params as desired by the client app (uuid or serialised json data). It's up to the client app to decide how to use the data attribute. One idea is to use UUIDS that point to a separate list of entries which describe the various attributes of a marker. For example a developer might want to render a bunch of stats that are repeating on a large set of the markers of the app. Therefore instead of repeating the same data inline in the entire doc it's better to reference these values from a separate list. In this case using the data to store an UUID will be good enough.
+A marker defines it's type (class) and additional data. The "data" attribute stores custom params as desired by the client app (uuid or serialised json data). It's up to the client app to decide how to use the data attribute. One idea is to use UUIDS that point to separate objects which provide additional info for a marker. For example a developer might want to render a bunch of stats that are repeating on a large set of the markers of the app. Therefore instead of repeating the same data inline in the entire doc it's better to reference these values from a separate list. In this case using the data to store an UUID for the descriptor object will be enough.
 
 On the other hand, if the dev knows that most of the markers will have few and unique attributes than he can store the attributes in the "data" attribute itself. The "data" attribute will be returned by the callbacks methods invoked on hover and tap. Multiple markers can use the same "data" values to trigger the same common behaviours. In essence there are many ways this attribute can be put to good use. It's also possible not to use it at all and just render highlights that don't have any unique data assigned.
 
@@ -122,6 +124,50 @@ For certain scenarios it might be desired to init the editor with the markers tu
     markersVisibility: true,
   ),
 ),
+```
+
+## Markers Attachments
+Markers provide support for attachments by returning their pixel coordinates and dimensions for positioning in text. Based on this information any widget can be linked to a marker. Keep in mind that markers are not widgets, so a simple Overlay from Flutter wont do the trick. Markers are rendered as painted rectangles in a canvas on top of the text. Therefore the only way to simulate attached widgets is by positioning them to the exact coordinates. This page demonstrates such a setup. Attachments can be used render elements such as the markers options menu or delete button.
+
+This is a simplified example to showcase the parts involved. For a complete example check out the **markers-attachments.page.dart**
+```dart
+final StreamController<List<MarkerM>> markers$;
+
+_controller = EditorController(
+  document: document,
+  markerTypes: [
+    // MarkerTypeM(), ...
+  ],
+  onBuildComplete: _updateMarkerAttachments,
+  onScroll: _updateMarkerAttachments,
+);
+
+@override
+Widget build(BuildContext context) =>
+  Row(
+    children: [
+      MarkersAttachments(
+        markers$: _markers$,
+      ),
+      VisualEditor(
+        controller: _controller!,
+        scrollController: _scrollController,
+        focusNode: _focusNode,
+        config: EditorConfigM(),
+      ),
+    ]
+  );
+
+// From here on it's up to the client developer to decide how to draw the attachments.
+// Once you have the build and scroll updates + the pixel coordinates, you can do whatever you want.
+// (!) Inspect the coordinates to draw only the markers that are still visible in the viewport.
+// (!) This method will be invoked many times by the scroll callback.
+// (!) Avoid heavy computations here, otherwise your page might slow down.
+// (!) Avoid setState() on the parent page, setState in a smallest possible widget to minimise the update cost.
+void _updateMarkerAttachments() {
+  final markers = _controller?.getAllMarkers() ?? [];
+  _markers$.sink.add(markers);
+}
 ```
 
 ## How Markers Are Rendered (WIP)

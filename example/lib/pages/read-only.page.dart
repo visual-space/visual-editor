@@ -16,7 +16,8 @@ class ReadOnlyPage extends StatefulWidget {
 
 class _ReadOnlyPageState extends State<ReadOnlyPage> {
   EditorController? _controller;
-  final FocusNode _focusNode = FocusNode();
+  final _scrollController = ScrollController();
+  final _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -51,7 +52,7 @@ class _ReadOnlyPageState extends State<ReadOnlyPage> {
           ),
           child: VisualEditor(
             controller: _controller!,
-            scrollController: ScrollController(),
+            scrollController: _scrollController,
             focusNode: _focusNode,
             config: EditorConfigM(
               placeholder: 'Enter text',

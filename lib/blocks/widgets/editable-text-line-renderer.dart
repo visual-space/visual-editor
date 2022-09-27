@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import '../../cursor/controllers/cursor.controller.dart';
@@ -11,6 +10,8 @@ import '../../documents/models/nodes/container.model.dart' as container_node;
 import '../../documents/models/nodes/line.model.dart';
 import '../../documents/models/nodes/text.model.dart';
 import '../../highlights/models/highlight.model.dart';
+import '../../markers/models/marker-type.model.dart';
+import '../../markers/models/marker.model.dart';
 import '../../selection/services/text-selection.utils.dart';
 import '../../shared/models/content-proxy-box-renderer.model.dart';
 import '../../shared/models/editable-box-renderer.model.dart';
@@ -18,13 +19,19 @@ import '../../shared/state/editor.state.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../models/inline-code-style.model.dart';
 import '../models/text-line-slot.enum.dart';
-import '../services/teyt-lines.utils.dart';
+import '../services/text-lines.utils.dart';
 
+// Over the basic rich text made from spans it adds additional layouting or styling
+// For example:
+// - checkboxes for todos
+// - colored backgrounds for code blocks
+// - bullets for bullets lists
+// Additionally it renders as an overlay the text selection or highlights and markers boxes.
 class EditableTextLineRenderer extends EditableBoxRenderer {
   final _textSelectionUtils = TextSelectionUtils();
 
   RenderBox? _leading;
-  RenderContentProxyBox? _body;
+  RenderContentProxyBox? _underlyingText;
   LineM line;
   TextDirection textDirection;
   TextSelection textSelection;
@@ -39,6 +46,9 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
   final Map<TextLineSlot, RenderBox> children = <TextLineSlot, RenderBox>{};
   late StreamSubscription _cursorStateListener;
   late StreamSubscription _toggleMarkersListener;
+  Offset _cachedOffset = Offset(0, 0);
+  void Function(List<MarkerM> markers)
+      cacheRenderedMarkersCoordinatesInStateStore;
 
   // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
   // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
@@ -56,10 +66,43 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     required this.devicePixelRatio,
     required this.padding,
     required this.inlineCodeStyle,
+    required this.cacheRenderedMarkersCoordinatesInStateStore,
     required EditorState state,
   }) {
     setState(state);
     cursorController = state.refs.cursorController;
+  }
+
+  // We need the markers rectangles coordinates as rendered against the actual lines of text after build().
+  // One way would be to tap into the paint() method (as attempted initially).
+  // The paint() method is triggered by the insertion of new chars and by the pulsating caret animation (30-60 fps).
+  // Each time the paint() method runs we had to cache the rectangles and the offset of their parent lines.
+  // This means we are wastefully updating the state store 30-60 times per second with mostly the same info.
+  // Another issue when using the paint() method is that after the first render
+  // we get only the markers from the paragraphs that are clicked.
+  // This happens because the Flutter change detection runs the paint() method
+  // only for the paragraphs that are clicked/interacted with.
+  // To avoid the above issues we made the effort of splitting the code that
+  // generates the markers rectangles from the code that paints them.
+  List<MarkerM> getRenderedMarkersCoordinates() {
+    var markers = <MarkerM>[];
+
+    if (_underlyingText != null) {
+      final parentData = _underlyingText!.parentData as BoxParentData;
+      final effectiveOffset = _cachedOffset + parentData.offset;
+
+      // Markers
+      if (_state.markersVisibility.visibility == true) {
+        markers = TextLinesUtils.getMarkersToRender(
+          effectiveOffset,
+          line,
+          _state,
+          _underlyingText,
+        );
+      }
+    }
+
+    return markers;
   }
 
   void setTextSelection(TextSelection selection) {
@@ -106,8 +149,12 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     _leading = _updateChild(_leading, leading, TextLineSlot.LEADING);
   }
 
-  void setBody(RenderContentProxyBox? b) {
-    _body = _updateChild(_body, b, TextLineSlot.BODY) as RenderContentProxyBox?;
+  void setBody(RenderContentProxyBox? proxyBox) {
+    _underlyingText = _updateChild(
+      _underlyingText,
+      proxyBox,
+      TextLineSlot.UNDERLYING_TEXT,
+    ) as RenderContentProxyBox?;
   }
 
   void safeMarkNeedsPaint() {
@@ -172,7 +219,10 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
         .translate(0, 0.5 * preferredLineHeight(position))
         .dy;
     final lineBoxes = _getBoxes(
-      TextSelection(baseOffset: 0, extentOffset: line.length - 1),
+      TextSelection(
+        baseOffset: 0,
+        extentOffset: line.length - 1,
+      ),
     )
         .where((element) => element.top < lineDy && element.bottom > lineDy)
         .toList(growable: false);
@@ -185,8 +235,8 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
 
   @override
   Offset getOffsetForCaret(TextPosition position) {
-    return _body!.getOffsetForCaret(position, _caretPrototype) +
-        (_body!.parentData as BoxParentData).offset;
+    return _underlyingText!.getOffsetForCaret(position, _caretPrototype) +
+        (_underlyingText!.parentData as BoxParentData).offset;
   }
 
   @override
@@ -204,19 +254,19 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
 
   @override
   TextPosition getPositionForOffset(Offset offset) {
-    return _body!.getPositionForOffset(
-      offset - (_body!.parentData as BoxParentData).offset,
+    return _underlyingText!.getPositionForOffset(
+      offset - (_underlyingText!.parentData as BoxParentData).offset,
     );
   }
 
   @override
   TextRange getWordBoundary(TextPosition position) {
-    return _body!.getWordBoundary(position);
+    return _underlyingText!.getWordBoundary(position);
   }
 
   @override
   double preferredLineHeight(TextPosition position) {
-    return _body!.preferredLineHeight;
+    return _underlyingText!.preferredLineHeight;
   }
 
   @override
@@ -253,7 +303,8 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     }
 
     // Toggle markers
-    _toggleMarkersListener = _state.markersVisibility.toggleMarkers$.listen((_) {
+    _toggleMarkersListener =
+        _state.markersVisibility.toggleMarkers$.listen((_) {
       markNeedsPaint();
     });
   }
@@ -300,7 +351,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     }
 
     add(_leading, 'leading');
-    add(_body, 'body');
+    add(_underlyingText, 'underlyingText');
 
     return value;
   }
@@ -317,15 +368,15 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     final leadingWidth = _leading == null
         ? 0
         : _leading!.getMinIntrinsicWidth(height - verticalPadding).ceil();
-    final bodyWidth = _body == null
+    final underlyingTextWidth = _underlyingText == null
         ? 0
-        : _body!
+        : _underlyingText!
             .getMinIntrinsicWidth(
               math.max(0, height - verticalPadding),
             )
             .ceil();
 
-    return horizontalPadding + leadingWidth + bodyWidth;
+    return horizontalPadding + leadingWidth + underlyingTextWidth;
   }
 
   @override
@@ -337,15 +388,15 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     final leadingWidth = _leading == null
         ? 0
         : _leading!.getMaxIntrinsicWidth(height - verticalPadding).ceil();
-    final bodyWidth = _body == null
+    final underlyingTextWidth = _underlyingText == null
         ? 0
-        : _body!
+        : _underlyingText!
             .getMaxIntrinsicWidth(
               math.max(0, height - verticalPadding),
             )
             .ceil();
 
-    return horizontalPadding + leadingWidth + bodyWidth;
+    return horizontalPadding + leadingWidth + underlyingTextWidth;
   }
 
   @override
@@ -355,8 +406,8 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     final horizontalPadding = _resolvedPadding!.left + _resolvedPadding!.right;
     final verticalPadding = _resolvedPadding!.top + _resolvedPadding!.bottom;
 
-    if (_body != null) {
-      return _body!.getMinIntrinsicHeight(
+    if (_underlyingText != null) {
+      return _underlyingText!.getMinIntrinsicHeight(
             math.max(0, width - horizontalPadding),
           ) +
           verticalPadding;
@@ -370,19 +421,21 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     _resolvePadding();
     final horizontalPadding = _resolvedPadding!.left + _resolvedPadding!.right;
     final verticalPadding = _resolvedPadding!.top + _resolvedPadding!.bottom;
-    if (_body != null) {
-      return _body!.getMaxIntrinsicHeight(
+
+    if (_underlyingText != null) {
+      return _underlyingText!.getMaxIntrinsicHeight(
             math.max(0, width - horizontalPadding),
           ) +
           verticalPadding;
     }
+
     return verticalPadding;
   }
 
   @override
   double computeDistanceToActualBaseline(TextBaseline baseline) {
     _resolvePadding();
-    return _body!.getDistanceToActualBaseline(baseline)! +
+    return _underlyingText!.getDistanceToActualBaseline(baseline)! +
         _resolvedPadding!.top;
   }
 
@@ -394,7 +447,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     _resolvePadding();
     assert(_resolvedPadding != null);
 
-    if (_body == null && _leading == null) {
+    if (_underlyingText == null && _leading == null) {
       size = constraints.constrain(
         Size(
           _resolvedPadding!.left + _resolvedPadding!.right,
@@ -409,8 +462,8 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
         ? _resolvedPadding!.left
         : _resolvedPadding!.right;
 
-    _body!.layout(innerConstraints, parentUsesSize: true);
-    (_body!.parentData as BoxParentData).offset = Offset(
+    _underlyingText!.layout(innerConstraints, parentUsesSize: true);
+    (_underlyingText!.parentData as BoxParentData).offset = Offset(
       _resolvedPadding!.left,
       _resolvedPadding!.top,
     );
@@ -419,7 +472,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
       final leadingConstraints = innerConstraints.copyWith(
         minWidth: indentWidth,
         maxWidth: indentWidth,
-        maxHeight: _body!.size.height,
+        maxHeight: _underlyingText!.size.height,
       );
       _leading!.layout(leadingConstraints, parentUsesSize: true);
       (_leading!.parentData as BoxParentData).offset = Offset(
@@ -430,8 +483,12 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
 
     size = constraints.constrain(
       Size(
-        _resolvedPadding!.left + _body!.size.width + _resolvedPadding!.right,
-        _resolvedPadding!.top + _body!.size.height + _resolvedPadding!.bottom,
+        _resolvedPadding!.left +
+            _underlyingText!.size.width +
+            _resolvedPadding!.right,
+        _resolvedPadding!.top +
+            _underlyingText!.size.height +
+            _resolvedPadding!.bottom,
       ),
     );
 
@@ -440,6 +497,8 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
 
   @override
   void paint(PaintingContext context, Offset offset) {
+    _cachedOffset = offset;
+
     // Leading (bullets, checkboxes)
     if (_leading != null) {
       final parentData = _leading!.parentData as BoxParentData;
@@ -447,8 +506,8 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
       context.paintChild(_leading!, effectiveOffset);
     }
 
-    if (_body != null) {
-      final parentData = _body!.parentData as BoxParentData;
+    if (_underlyingText != null) {
+      final parentData = _underlyingText!.parentData as BoxParentData;
       final effectiveOffset = offset + parentData.offset;
 
       // Code
@@ -461,20 +520,39 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
             continue;
           }
 
-          TextLinesUtils.drawRectFromNode(node, effectiveOffset, context,
-              inlineCodeStyle.backgroundColor!, inlineCodeStyle.radius, _body);
+          TextLinesUtils.drawRectanglesFromNode(
+            node,
+            effectiveOffset,
+            context,
+            inlineCodeStyle.backgroundColor!,
+            inlineCodeStyle.radius,
+            _underlyingText,
+          );
         }
       }
 
       // Markers
       if (_state.markersVisibility.visibility == true) {
-        TextLinesUtils.renderMarkers(
+        // Coordinates
+        final markers = TextLinesUtils.getMarkersToRender(
           effectiveOffset,
-          context,
           line,
           _state,
-          _body,
+          _underlyingText,
         );
+
+        // Draw Markers
+        markers.forEach((marker) {
+          final markerType = _getMarkerType(marker);
+
+          TextLinesUtils.drawRectangles(
+            marker.rectangles ?? [],
+            effectiveOffset,
+            context,
+            markerType.color,
+            Radius.zero,
+          );
+        });
       }
 
       // Cursor above text (iOS)
@@ -487,7 +565,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
 
       // TextLine
       // The raw text, no highlights, only TextSpans with styling
-      context.paintChild(_body!, effectiveOffset);
+      context.paintChild(_underlyingText!, effectiveOffset);
 
       // Cursor bellow text (Android)
       if (_state.refs.focusNode.hasFocus &&
@@ -508,7 +586,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
           textSelection,
           false,
         );
-        _selectedRects ??= _body!.getBoxesForSelection(local);
+        _selectedRects ??= _underlyingText!.getBoxesForSelection(local);
         _paintSelection(context, effectiveOffset);
       }
 
@@ -524,7 +602,8 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
             highlight.textSelection,
             false,
           );
-          final _highlightedRects = _body!.getBoxesForSelection(local);
+          final _highlightedRects =
+              _underlyingText!.getBoxesForSelection(local);
           _paintHighlights(
             highlight,
             _highlightedRects,
@@ -555,17 +634,17 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
       }
     }
 
-    if (_body == null) {
+    if (_underlyingText == null) {
       return false;
     }
 
-    final parentData = _body!.parentData as BoxParentData;
+    final parentData = _underlyingText!.parentData as BoxParentData;
 
     return result.addWithPaintOffset(
       offset: parentData.offset,
       position: position,
       hitTest: (result, position) {
-        return _body!.hitTest(
+        return _underlyingText!.hitTest(
           result,
           position: position,
         );
@@ -595,8 +674,8 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
   @override
   TextPosition globalToLocalPosition(TextPosition position) {
     assert(
-    container.containsOffset(position.offset),
-    'The provided text position is not in the current node',
+      container.containsOffset(position.offset),
+      'The provided text position is not in the current node',
     );
 
     return TextPosition(
@@ -612,18 +691,32 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     if (_leading != null) {
       yield _leading!;
     }
-    if (_body != null) {
-      yield _body!;
+    if (_underlyingText != null) {
+      yield _underlyingText!;
     }
   }
 
   // === PRIVATE ===
 
+  // Once a marker is retrieved from the doc we check against the declared markers types.
+  MarkerTypeM _getMarkerType(marker) {
+    assert(
+      _state.markersTypes.types.isNotEmpty,
+      'At least one marker type must be defined',
+    );
+
+    final markerType = _state.markersTypes.types.firstWhere(
+      (markerType) => markerType.id == marker.type,
+    );
+
+    return markerType;
+  }
+
   RenderBox? _updateChild(
-      RenderBox? old,
-      RenderBox? newChild,
-      TextLineSlot slot,
-      ) {
+    RenderBox? old,
+    RenderBox? newChild,
+    TextLineSlot slot,
+  ) {
     if (old != null) {
       dropChild(old);
       children.remove(slot);
@@ -638,9 +731,9 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
   }
 
   List<TextBox> _getBoxes(TextSelection textSelection) {
-    final parentData = _body!.parentData as BoxParentData?;
+    final parentData = _underlyingText!.parentData as BoxParentData?;
 
-    return _body!.getBoxesForSelection(textSelection).map((box) {
+    return _underlyingText!.getBoxesForSelection(textSelection).map((box) {
       return TextBox.fromLTRBD(
         box.left + parentData!.offset.dx,
         box.top + parentData.offset.dy,
@@ -665,8 +758,9 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     assert(textPosition.offset < line.length);
     final offset = getOffsetForCaret(textPosition)
         .translate(0, dyScale * preferredLineHeight(textPosition));
-    if (_body!.size
-        .contains(offset - (_body!.parentData as BoxParentData).offset)) {
+    if (_underlyingText!.size.contains(
+      offset - (_underlyingText!.parentData as BoxParentData).offset,
+    )) {
       return getPositionForOffset(offset);
     }
     return null;
@@ -694,14 +788,14 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
   }
 
   CursorPainter get _cursorPainter => CursorPainter(
-    editable: _body,
-    style: cursorController.style,
-    prototype: _caretPrototype,
-    color: cursorController.isFloatingCursorActive
-        ? cursorController.style.backgroundColor
-        : cursorController.color.value,
-    devicePixelRatio: devicePixelRatio,
-  );
+        editable: _underlyingText,
+        style: cursorController.style,
+        prototype: _caretPrototype,
+        color: cursorController.isFloatingCursorActive
+            ? cursorController.style.backgroundColor
+            : cursorController.color.value,
+        devicePixelRatio: devicePixelRatio,
+      );
 
   bool _lineContainsSelection(TextSelection selection) {
     return line.documentOffset <= selection.end &&

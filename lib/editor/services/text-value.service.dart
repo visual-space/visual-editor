@@ -86,6 +86,7 @@ class TextValueService {
         if (!state.refs.editorState.mounted) {
           return;
         }
+
         _selectionActionsService.updateOrDisposeSelectionOverlayIfNeeded(state);
       });
     }

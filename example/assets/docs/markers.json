@@ -7,10 +7,12 @@
     "attributes": {
       "markers": [
         {
+          "id": "0471416641097000",
           "type": "expert",
           "data": "b53d8d53"
         },
         {
+          "id": "0471109741664000",
           "type": "beginner",
           "data": "f36335c4"
         }
@@ -25,6 +27,7 @@
     "attributes": {
       "markers": [
         {
+          "id": "1160109744764000",
           "type": "expert",
           "data": "b53d8d53"
         }

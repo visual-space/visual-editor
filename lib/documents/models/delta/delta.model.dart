@@ -12,6 +12,13 @@ import 'operation.model.dart';
 // Delta represents a document or a modification of a document as a sequence of insert, delete and retain operations.
 // Delta consisting of only "insert" operations is usually referred to as "document delta".
 // When delta includes also "retain" or "delete" operations it is a "change delta".
+//
+// DeltaM is a list of operations derived from the raw json data object.
+// The operations themselves are dynamic objects.
+// DeltaM later gets converted to Nodes which have the operation in strictly typed models.
+// Currently I'm not entirely sure why the DeltaM and NodeM are 2 distinct objects instead of one.
+// My only theory is that NodeM is a linked list thus more efficient for processing compared to DeltaM which is List.
+// Though I'm not sure at the moment that this is the main reason why DeltaM and NodeM are 2 distinct formats.
 class DeltaM {
   // Creates new empty DeltaM.
   factory DeltaM() => DeltaM._(<OperationM>[]);

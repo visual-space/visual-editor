@@ -1,6 +1,6 @@
+import '../../../markers/models/marker.model.dart';
 import '../attribute-scope.enum.dart';
 import '../attribute.model.dart';
-import 'marker.model.dart';
 
 // Using the AttributeM model class we are predefining the rich text attributes to be used in the editor.
 // Additional attributes need to be defined here when implementing new text features.

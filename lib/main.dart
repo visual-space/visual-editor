@@ -7,6 +7,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:i18n_extension/i18n_widget.dart';
+
 import 'blocks/services/styles.utils.dart';
 import 'controller/controllers/editor-controller.dart';
 import 'controller/services/editor-text.service.dart';
@@ -74,7 +75,7 @@ import 'shared/state/editor.state.dart';
 class VisualEditor extends StatefulWidget with EditorStateReceiver {
   final EditorController controller;
   final FocusNode focusNode;
-  final ScrollController scrollController;
+  final ScrollController? scrollController;
   final EditorConfigM config;
 
   // Used internally to retrieve the state from the EditorController instance that is linked to this controller.
@@ -99,7 +100,7 @@ class VisualEditor extends StatefulWidget with EditorStateReceiver {
     // Avoids prop drilling or Providers.
     // Easy to trace, easy to mock for testing.
     _state.refs.setEditorController(controller);
-    _state.refs.setScrollController(scrollController);
+    _state.refs.setScrollController(scrollController ?? ScrollController());
     _state.refs.setFocusNode(focusNode);
     _state.editorConfig.setEditorConfig(config);
     _state.refs.setEditor(this);
@@ -187,18 +188,18 @@ class VisualEditorState extends State<VisualEditor>
     return _conditionalPreventKeyPropagationToParentIfWeb(
       child: _i18n(
         child: _textGestures(
-	        child: _hotkeysActions(
-	          child: _focusField(
-	            child: _keyboardListener(
-	              child: _constrainedBox(
-	                child: _conditionalScrollable(
-	                  child: _overlayTargetForMobileToolbar(
-	                    child: _editorRenderer(
-	                      document: document,
-	                      // This is where the document elements are rendered
-	                      children: _documentService.documentBlocsAndLines(
-	                        state: widget._state,
-	                        document: document,
+          child: _hotkeysActions(
+            child: _focusField(
+              child: _keyboardListener(
+                child: _constrainedBox(
+                  child: _conditionalScrollable(
+                    child: _overlayTargetForMobileToolbar(
+                      child: _editorRenderer(
+                        document: document,
+                        // This is where the document elements are rendered
+                        children: _documentService.documentBlocsAndLines(
+                          state: widget._state,
+                          document: document,
                         ),
                       ),
                     ),
@@ -600,7 +601,9 @@ class VisualEditorState extends State<VisualEditor>
 
     if (widget.scrollController != _scrollController) {
       _scrollController.removeListener(_onScroll);
-      widget._state.refs.setScrollController(widget.scrollController);
+      widget._state.refs.setScrollController(
+        widget.scrollController ?? ScrollController(),
+      );
       _scrollController.addListener(_onScroll);
     }
   }

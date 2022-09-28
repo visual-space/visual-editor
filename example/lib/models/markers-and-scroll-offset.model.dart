@@ -4,10 +4,12 @@ import 'package:visual_editor/markers/models/marker.model.dart';
 @immutable
 class MarkersAndScrollOffset {
   final List<MarkerM> markers;
+
+  // If your editor is not scrollable don't provide this parameter or provide 0
   final double scrollOffset;
 
   const MarkersAndScrollOffset({
     required this.markers,
-    required this.scrollOffset,
+    this.scrollOffset = 0,
   });
 }

@@ -44,7 +44,12 @@ class TextLinesUtils {
       // ignore: avoid_types_on_closure_parameters
       markers.forEach((marker) {
         final rectangles = getRectanglesFromNode(node, underlyingText);
-        final scrollOffset = state.refs.scrollController.offset;
+
+        var scrollOffset = 0.0;
+        if (state.editorConfig.config.scrollable == true) {
+          scrollOffset = state.refs.scrollController.offset;
+        }
+
         final documentNodePos = underlyingText?.localToGlobal(
           // Regardless off the current state of the scroll we want the offset
           // relative to the beginning of document.

@@ -8,9 +8,6 @@ import 'package:visual_editor/visual-editor.dart';
 
 var RTL_TEXT_MOCK = '''[
   {
-    "insert": "1.نحن ندعم rtl"
-  },
-  {
     "insert": "\\n",
     "attributes": {
       "align": "right",
@@ -24,7 +21,6 @@ MaterialApp buildPage(EditorController controller) {
     home: Scaffold(
       body: Column(
         children: [
-          Icon(Icons.format_align_left),
           buildEditor(controller),
           buildRTLToolbar(controller),
         ],
@@ -35,7 +31,6 @@ MaterialApp buildPage(EditorController controller) {
 
 VisualEditor buildEditor(EditorController controller) {
   return VisualEditor(
-    key: Key('visualEditor'),
     controller: controller,
     scrollController: ScrollController(),
     focusNode: FocusNode(),
@@ -45,8 +40,8 @@ VisualEditor buildEditor(EditorController controller) {
 
 EditorToolbar buildRTLToolbar(EditorController controller) {
   return EditorToolbar.basic(
-    key: Key('editorToolBar'),
     controller: controller,
+
     /// Disable all buttons except RTL button
     multiRowsDisplay: false,
     showDividers: false,
@@ -79,27 +74,30 @@ EditorToolbar buildRTLToolbar(EditorController controller) {
     showCenterAlignment: false,
     showRightAlignment: false,
     showJustifyAlignment: false,
+
     /// Enable RTL
     showDirection: true,
   );
 }
-
 
 void main() {
   late DocumentM document;
   late Widget rtlPage;
   late EditorController controller;
 
+  setUp((){
+    document = DocumentM.fromJson(jsonDecode(RTL_TEXT_MOCK));
+  });
 
   group('Editor Support RTL', () {
-    group('Json to Delta',(){
+    group('Json to Delta', () {
       test(
           'Given document loaded from json '
-              'With nodes containing attributes: align:right and direction:rtl '
-              "Then node's attributes align=right and direction=rtl "
-              '', () {
+          'With nodes containing attributes: align:right and direction:rtl '
+          "Then node's attributes align=right and direction=rtl "
+          '', () {
         /// ARRANGE - Set up everything needs to be used by the test.
-        var document = DocumentM.fromJson(jsonDecode(RTL_TEXT_MOCK));
+
 
         /// ACT - Call the specific method / change to test on.
         final nodeStyle = document.root.children.first.style;
@@ -114,58 +112,61 @@ void main() {
       });
     });
 
-    group('Internal-Logic',(){
-      test('Given TextLineStyleUtils '
+    group('Internal-Logic', () {
+      test(
+          'Given TextLineStyleUtils '
           'With leftAlignment and TextDirection.rtl '
-          'Then TextAlign should be Text.End',(){
+          'Then TextAlign should be Text.End', () {
         /// ARRANGE
         final textLineUtil = TextLineStyleUtils();
 
         /// ACT
-        final res = textLineUtil.getTextAlign(AttributesAliasesM.leftAlignment,TextDirection.rtl);
+        final res = textLineUtil.getTextAlign(
+            AttributesAliasesM.leftAlignment, TextDirection.rtl);
 
         /// ASSERT
-        expect(res,TextAlign.end);
+        expect(res, TextAlign.end);
       });
-      test('Given TextLineStyleUtils '
+      test(
+          'Given TextLineStyleUtils '
           'With rightAlignment and TextDirection.rtl '
-          'Then TextAlign should be Text.Start',(){
+          'Then TextAlign should be Text.Start', () {
         /// ARRANGE
         final textLineUtil = TextLineStyleUtils();
 
         /// ACT
-        final res = textLineUtil.getTextAlign(AttributesAliasesM.rightAlignment,TextDirection.rtl);
+        final res = textLineUtil.getTextAlign(
+            AttributesAliasesM.rightAlignment, TextDirection.rtl);
 
         /// ASSERT
-        expect(res,TextAlign.start);
+        expect(res, TextAlign.start);
       });
     });
 
-    group('ToolBar',(){
-
+    group('ToolBar', () {
       testWidgets(
           'Given ToolBarEditor '
-              'with direction enabled '
-              'Then button appears in Toolbar',
-              (WidgetTester tester) async {
-            /// ARRANGE
-            var document = DocumentM.fromJson(jsonDecode(RTL_TEXT_MOCK));
-            var controller = EditorController(document: document);
-            // Page with buttons enabled
-            rtlPage = buildPage(controller);
+          'With direction enabled '
+          'Then button appears in Toolbar', (WidgetTester tester) async {
+        /// ARRANGE
+        // Page with buttons enabled
+        controller = EditorController(document: document);
+        rtlPage = buildPage(controller);
 
-            /// ACT
-            await tester.pumpWidget(rtlPage);
-            await tester.pumpAndSettle();
-            final buttonRTL = find.byKey(ValueKey('buttonRTL'));
 
-            /// ASSERT - check value
-            expect(buttonRTL, findsOneWidget);
-          });
-      testWidgets('Given Editor '
+        /// ACT
+        await tester.pumpWidget(rtlPage);
+        await tester.pumpAndSettle();
+        final buttonRTL = find.byKey(ValueKey('buttonRTL'));
+
+        /// ASSERT - check value
+        expect(buttonRTL, findsOneWidget);
+      });
+      testWidgets(
+          'Given Editor '
           'With left to right document '
-          'Then trigger direction button in ToolBar changes attribute to right to left', (WidgetTester tester) async {
-
+          'Then trigger direction button in ToolBar changes attribute to right to left',
+          (WidgetTester tester) async {
         /// ARRANGE
         final document = DocumentM.fromJson(jsonDecode(RTL_TEXT_MOCK));
         final controller = EditorController(document: document);
@@ -176,14 +177,14 @@ void main() {
         await tester.pumpAndSettle();
 
         final buttonRTL = find.byKey(ValueKey('buttonRTL'));
-        Map<String,dynamic> blockStyle = controller.document.toDelta().toJson().firstWhere((element) => element['insert'] == "\n");
         await tester.tap(buttonRTL);
         await tester.pumpAndSettle();
-        blockStyle = controller.document.toDelta().toJson().firstWhere((element) => element['insert'] == "\n");
-        expect(blockStyle['attributes']['direction'],null);
-
+        final Map<String, dynamic> blockStyle = controller.document
+            .toDelta()
+            .toJson()
+            .firstWhere((element) => element['insert'] == "\n");
+        expect(blockStyle['attributes']['direction'], null);
       });
     });
-
   });
 }

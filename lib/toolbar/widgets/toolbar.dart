@@ -370,6 +370,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
           ),
         if (showDirection)
           ToggleStyleButton(
+            key: ValueKey('buttonRTL'),
             attribute: AttributesAliasesM.rtl,
             buttonsSpacing: toolbarSectionSpacing,
             controller: controller,

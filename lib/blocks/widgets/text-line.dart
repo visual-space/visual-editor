@@ -117,10 +117,13 @@ class _TextLineState extends State<TextLine> {
     );
   }
 
+
+
   RichTextProxy _richTextProxy(BuildContext context) {
     final textSpan = _textSpanForWholeLine(context);
     final strutStyle = StrutStyle.fromTextStyle(textSpan.style!);
-    final textAlign = _textLineStylesUtils.getTextAlign(widget.line);
+    final alignment = widget.line.style.attributes[AttributesM.align.key];
+    final textAlign = _textLineStylesUtils.getTextAlign(alignment,widget.textDirection);
 
     return RichTextProxy(
       textStyle: textSpan.style!,

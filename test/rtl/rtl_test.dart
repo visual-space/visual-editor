@@ -85,7 +85,7 @@ void main() {
   late Widget rtlPage;
   late EditorController controller;
 
-  setUp((){
+  setUp(() {
     document = DocumentM.fromJson(jsonDecode(RTL_TEXT_MOCK));
   });
 
@@ -93,11 +93,10 @@ void main() {
     group('Json to Delta', () {
       test(
           'Given document loaded from json '
-          'With nodes containing attributes: align:right and direction:rtl '
-          "Then node's attributes align=right and direction=rtl "
+          "With node's attributes: align:right and direction:rtl "
+          "Then node's object attributes align:right and direction:rtl "
           '', () {
         /// ARRANGE - Set up everything needs to be used by the test.
-
 
         /// ACT - Call the specific method / change to test on.
         final nodeStyle = document.root.children.first.style;
@@ -153,7 +152,6 @@ void main() {
         controller = EditorController(document: document);
         rtlPage = buildPage(controller);
 
-
         /// ACT
         await tester.pumpWidget(rtlPage);
         await tester.pumpAndSettle();
@@ -183,6 +181,8 @@ void main() {
             .toDelta()
             .toJson()
             .firstWhere((element) => element['insert'] == "\n");
+
+        /// ASSERT - check value
         expect(blockStyle['attributes']['direction'], null);
       });
     });

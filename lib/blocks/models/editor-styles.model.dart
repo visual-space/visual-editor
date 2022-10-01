@@ -26,6 +26,7 @@ class EditorStylesM {
   final TextBlockStyleM? code;
   final TextBlockStyleM? indent;
   final TextBlockStyleM? align;
+  final TextBlockStyleM? direction;
   final TextBlockStyleM? leading;
 
   EditorStylesM({
@@ -47,6 +48,7 @@ class EditorStylesM {
     this.code,
     this.indent,
     this.align,
+    this.direction,
     this.leading,
     this.sizeSmall,
     this.sizeLarge,
@@ -72,6 +74,7 @@ class EditorStylesM {
         code: other.code ?? code,
         indent: other.indent ?? indent,
         align: other.align ?? align,
+        direction: other.direction ?? direction,
         leading: other.leading ?? leading,
         sizeSmall: other.sizeSmall ?? sizeSmall,
         sizeLarge: other.sizeLarge ?? sizeLarge,

@@ -241,20 +241,32 @@ class TextLineStyleUtils {
     return textStyle;
   }
 
-  TextAlign getTextAlign(LineM line) {
-    final alignment = line.style.attributes[AttributesM.align.key];
 
-    if (alignment == AttributesAliasesM.leftAlignment) {
-      return TextAlign.start;
-    } else if (alignment == AttributesAliasesM.centerAlignment) {
-      return TextAlign.center;
-    } else if (alignment == AttributesAliasesM.rightAlignment) {
+  TextAlign getTextAlign(AttributeM? alignment,TextDirection? direction) {
+    /// RTL Language requires invert default TextAlignments (start->end, end->start).
+    if(direction == TextDirection.rtl) {
+      if (alignment == AttributesAliasesM.leftAlignment) {
+        return TextAlign.end;
+      } else if (alignment == AttributesAliasesM.centerAlignment) {
+        return TextAlign.center;
+      } else if (alignment == AttributesAliasesM.rightAlignment) {
+        return TextAlign.start;
+      } else if (alignment == AttributesAliasesM.justifyAlignment) {
+        return TextAlign.justify;
+      }
       return TextAlign.end;
-    } else if (alignment == AttributesAliasesM.justifyAlignment) {
-      return TextAlign.justify;
+    }else{
+      if (alignment == AttributesAliasesM.leftAlignment) {
+        return TextAlign.start;
+      } else if (alignment == AttributesAliasesM.centerAlignment) {
+        return TextAlign.center;
+      } else if (alignment == AttributesAliasesM.rightAlignment) {
+        return TextAlign.end;
+      } else if (alignment == AttributesAliasesM.justifyAlignment) {
+        return TextAlign.justify;
+      }
+      return TextAlign.start;
     }
-
-    return TextAlign.start;
   }
 
   // === PRIVATE ===

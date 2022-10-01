@@ -162,6 +162,12 @@ EditorStylesM getDefaultStyles(BuildContext context) {
       VerticalSpacing(top: 0, bottom: 0),
       null,
     ),
+    direction: TextBlockStyleM(
+      baseStyle,
+      VerticalSpacing(top: 0, bottom: 0),
+      VerticalSpacing(top: 0, bottom: 0),
+      null,
+    ),
     leading: TextBlockStyleM(
       baseStyle,
       VerticalSpacing(top: 0, bottom: 0),

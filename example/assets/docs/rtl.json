@@ -1,0 +1,62 @@
+[
+  {
+    "insert": "Visual Editor - RTL Support"
+  },
+  {
+    "insert": "\n"
+  },
+  {
+    "insert": "This document will demonstrate the RTL feature available in Visual Editor."
+  },
+  {
+    "insert": "\n"
+  },
+  {
+    "insert": "There are 12 Right-To-Left Languages:\nar Arabic\narc Aramaic\ndv Divehi\nfa Persian\nha Hausa\nhe Hebrew\nkhw Khowar\nks Kashmiri\nku Kurdish\nps Pashto\nur Urdu\nyi Yiddish\n\nThe most widespread RTL writing systems in modern times are: Arabic, Hebrew and Persian\nExamples for \"We support rtl\":\n"
+  },
+  {
+    "insert": "\n"
+  },
+  {
+    "insert": "1. Arabic\n"
+  },
+  {
+    "insert": "1.نحن ندعم rtl"
+  },
+  {
+    "insert": "\n\n",
+    "attributes": {
+      "align": "right",
+      "direction": "rtl"
+    }
+  },
+  {
+    "insert": "2. Hebrew\n"
+  },
+  {
+    "insert": "2.אנו תומכים ב-rtl"
+  },
+  {
+    "insert": "\n\n",
+    "attributes": {
+      "align": "right",
+      "direction": "rtl"
+    }
+  },
+  {
+    "insert": "3. Persian\n"
+  },
+  {
+    "insert": "3.ما از rtl پشتیبانی می کنیم"
+  },
+  {
+    "insert": "\n\n",
+    "attributes": {
+      "align": "right",
+      "direction": "rtl"
+    }
+  },
+  {
+    "insert": "\n"
+  }
+]

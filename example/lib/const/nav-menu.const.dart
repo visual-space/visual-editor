@@ -41,4 +41,8 @@ const List<NavMenuLinkM> NAV_MENU = [
     title: 'Overwrite Controller',
     route: '/overwrite-controller',
   ),
+  NavMenuLinkM(
+    title: 'RTL Support',
+    route: '/rtl',
+  ),
 ];

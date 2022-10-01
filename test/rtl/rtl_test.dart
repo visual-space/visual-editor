@@ -164,8 +164,8 @@ void main() {
       });
       testWidgets(
           'Given Editor '
-          'With left to right document '
-          'Then trigger direction button in ToolBar changes attribute to right to left',
+          'With direction:rtl attribute in document '
+          'Then pressing direction button in ToolBar removes direction attribute ',
           (WidgetTester tester) async {
         /// ARRANGE
         final document = DocumentM.fromJson(jsonDecode(RTL_TEXT_MOCK));

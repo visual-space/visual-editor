@@ -11,6 +11,9 @@ import '../widgets/demo-scaffold.dart';
 import '../widgets/loading.dart';
 import '../widgets/markers-attachments.dart';
 
+// For smoke testing. You don't need this in your implementation.
+const SCROLLABLE = true;
+
 // Markers provide support for attachments by returning their pixel
 // coordinates and dimensions for positioning in text.
 // Based on this information any widget can be linked to a marker.
@@ -81,21 +84,23 @@ class _MarkersAttachmentsPageState extends State<MarkersAttachmentsPage> {
       );
 
   Widget _editor() => Flexible(
-    child: Container(
+        child: Container(
           width: PAGE_WIDTH,
           color: Colors.white,
           padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
           child: VisualEditor(
             controller: _controller!,
-            scrollController: _scrollController,
             // (!) Don't do this mistake.
             // You will override the Scroll controller with a new instance and the scroll callback wont fire.
-            // scrollController: ScrollController(),
+            scrollController: SCROLLABLE ? _scrollController : null,
             focusNode: _focusNode,
-            config: EditorConfigM(),
+            config: EditorConfigM(
+              // ignore: avoid_redundant_argument_values
+              scrollable: SCROLLABLE,
+            ),
           ),
         ),
-  );
+      );
 
   // Row is space in between, therefore we need on the right side an empty container to force the editor on the center.
   Widget _fillerToBalanceRow() => Container(width: 0);
@@ -156,9 +161,11 @@ class _MarkersAttachmentsPageState extends State<MarkersAttachmentsPage> {
   // (!) Avoid setState() on the parent page, setState in a smallest possible widget to minimise the update cost.
   void _updateMarkerAttachments() {
     final markers = _controller?.getAllMarkers() ?? [];
-    _markers$.sink.add(MarkersAndScrollOffset(
-      markers: markers,
-      scrollOffset: _scrollController.offset,
-    ));
+    _markers$.sink.add(
+      MarkersAndScrollOffset(
+        markers: markers,
+        scrollOffset: SCROLLABLE ? _scrollController.offset : 0,
+      ),
+    );
   }
 }

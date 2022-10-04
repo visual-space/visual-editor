@@ -121,7 +121,7 @@ class EditorController {
   EditorController({
     required this.document,
     this.selection = const TextSelection.collapsed(offset: 0),
-    this.highlights,
+    highlights,
     this.markerTypes = const [],
     this.keepStyleOnNewLine = false,
     this.onReplaceText,

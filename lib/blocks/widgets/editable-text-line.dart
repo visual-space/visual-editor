@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../documents/models/nodes/line.model.dart';
+import '../../highlights/models/highlight.model.dart';
 import '../../markers/models/marker.model.dart';
 import '../../shared/state/editor.state.dart';
 import '../models/vertical-spacing.model.dart';
@@ -24,6 +25,7 @@ class EditableTextLine extends RenderObjectWidget {
   final VerticalSpacing verticalSpacing;
   final TextDirection textDirection;
   final TextSelection textSelection;
+  final List<HighlightM> highlights;
   final bool hasFocus;
   final double devicePixelRatio;
 
@@ -46,6 +48,7 @@ class EditableTextLine extends RenderObjectWidget {
     required this.verticalSpacing,
     required this.textDirection,
     required this.textSelection,
+    required this.highlights,
     required this.hasFocus,
     required this.devicePixelRatio,
     required EditorState state,
@@ -68,6 +71,7 @@ class EditableTextLine extends RenderObjectWidget {
       line: line,
       textDirection: textDirection,
       textSelection: textSelection,
+      highlights: highlights,
       devicePixelRatio: devicePixelRatio,
       padding: _getPadding(),
       inlineCodeStyle: defaultStyles.inlineCode!,
@@ -84,10 +88,16 @@ class EditableTextLine extends RenderObjectWidget {
     covariant EditableTextLineRenderer renderObject,
   ) {
     _renderer = renderObject;
+
+    // Calling these setters is essential.
+    // They do the diff checking to figure out if we want to invoke safeMarkNeedsPaint()
+    // TODO Some values are missing because I was not fully aware how this works when I did the migration.
+    // They will be restored on a need to have basis.
     renderObject
       ..setState(_state)
       ..setLine(line)
-      ..setTextSelection(textSelection);
+      ..setTextSelection(textSelection)
+      ..setHighlights(highlights);
   }
 
   // Avoids exposing the private renderer, it only collects the markers.

@@ -21,7 +21,9 @@ class _HighlightsPageState extends State<HighlightsPage> {
   EditorController? _controller;
   final _focusNode = FocusNode();
   final _scrollController = ScrollController();
+  late TextSelection _selection;
   final _selection$ = StreamController<TextSelection>.broadcast();
+
   // TextSelection _selection = TextSelection.collapsed(offset: 0);
 
   @override
@@ -69,7 +71,16 @@ class _HighlightsPageState extends State<HighlightsPage> {
               ),
               child: ElevatedButton(
                 child: Text('Add highlight'),
-                onPressed: () {},
+                onPressed: () {
+                  _controller?.addHighlight(
+                    HighlightM(
+                      textSelection: _selection.copyWith(),
+                      onEnter: (_) {},
+                      onLeave: (_) {},
+                      onSingleTapUp: (_) {},
+                    ),
+                  );
+                },
               ),
             ),
             ElevatedButton(
@@ -119,6 +130,8 @@ class _HighlightsPageState extends State<HighlightsPage> {
         document: document,
         highlights: SAMPLE_HIGHLIGHTS,
         onSelectionChanged: (selection) {
+          _selection = selection;
+
           // (!) Notice that we don't setState() on the entire widget.
           // We only trigger a smaller widget down bellow in the widget tree.
           // The goal is to keep maximum rendering performance by avoiding to re-render the entire editor again.

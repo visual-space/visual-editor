@@ -27,6 +27,14 @@ import 'references.state.dart';
 // However the issue with the prev design was that multiple instances were sharing the same state.
 // With the current pattern we still have to drill down props, but it's far easier to follow the line.
 // Read more here: https://github.com/visual-space/visual-editor/blob/develop/lib/shared/state-store.md
+//
+// Keep the state store private
+// I made special effort too keep the store private and not to allow access to the state.
+// If you are exposing the store in public you are breaking encapsulation,
+// thus allowing anyone to write code that depends on our private code.
+// Therefore our private code becomes public API.
+// Therefore we can't safely upgrade without ruining many client apps that
+// used the private state for their own affairs.
 class EditorState {
   // Controller
   final paste = PasteState();

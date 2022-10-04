@@ -5,6 +5,7 @@ import '../../documents/models/attributes/attributes.model.dart';
 import '../../documents/models/nodes/block.model.dart';
 import '../../documents/models/nodes/line.model.dart';
 import '../../documents/services/delta.utils.dart';
+import '../../highlights/models/highlight.model.dart';
 import '../../shared/state/editor.state.dart';
 import '../models/editor-styles.model.dart';
 import '../models/link-action.picker.type.dart';
@@ -20,6 +21,7 @@ class EditableTextBlock extends StatelessWidget {
   final TextDirection textDirection;
   final VerticalSpacing verticalSpacing;
   final TextSelection textSelection;
+  final List<HighlightM> highlights;
   final EditorStylesM? styles;
   final bool hasFocus;
   bool isCodeBlock = false;
@@ -40,6 +42,7 @@ class EditableTextBlock extends StatelessWidget {
     required this.textDirection,
     required this.verticalSpacing,
     required this.textSelection,
+    required this.highlights,
     required this.styles,
     required this.hasFocus,
     required this.isCodeBlock,
@@ -62,11 +65,8 @@ class EditableTextBlock extends StatelessWidget {
       block: block,
       textDirection: textDirection,
       padding: verticalSpacing,
-      decoration: _getDecorationForBlock(
-            block,
-            styles,
-          ) ??
-          const BoxDecoration(),
+      decoration:
+          _getDecorationForBlock(block, styles) ?? const BoxDecoration(),
       isCodeBlock: isCodeBlock,
       state: _state,
       children: _buildChildren(
@@ -130,6 +130,7 @@ class EditableTextBlock extends StatelessWidget {
         ),
         textDirection: textDirection,
         textSelection: textSelection,
+        highlights: highlights,
         hasFocus: hasFocus,
         devicePixelRatio: MediaQuery.of(context).devicePixelRatio,
         state: _state,

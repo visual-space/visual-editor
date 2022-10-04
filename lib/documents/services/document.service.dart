@@ -121,6 +121,7 @@ class DocumentService {
         state.styles.styles,
       ),
       textSelection: state.refs.editorController.selection,
+      highlights: state.highlights.highlights,
       styles: state.styles.styles,
       hasFocus: state.refs.focusNode.hasFocus,
       isCodeBlock: attributes.containsKey(AttributesM.codeBlock.key),

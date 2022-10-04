@@ -15,10 +15,6 @@ class EditorTextService {
 
   EditorTextService._privateConstructor();
 
-  // TextEditingValue get textEditingValue {
-  //   return state.refs.editorController.plainTextEditingValue;
-  // }
-
   void setTextEditingValue(TextEditingValue value, EditorState state) {
     final cursorPosition = value.selection.extentOffset;
     final oldText = state.document.document.toPlainText();

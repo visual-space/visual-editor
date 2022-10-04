@@ -104,6 +104,9 @@ class VisualEditor extends StatefulWidget with EditorStateReceiver {
     _state.refs.setFocusNode(focusNode);
     _state.editorConfig.setEditorConfig(config);
     _state.refs.setEditor(this);
+
+    // Beware that if you use the controller.toggleMarkers() and then you setState()
+    // on the parent component of the editor the config value will be used again.
     _state.markersVisibility.toggleMarkers(config.markersVisibility ?? true);
   }
 

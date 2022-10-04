@@ -59,4 +59,18 @@ final _controller = EditorController(
 );
 ```
 
+## Adding Highlights From The Controller
+Checkout the highlights demo page for a full sample.
+
+```dart
+_controller?.addHighlight(
+  HighlightM(
+    textSelection: _selection.copyWith(),
+    onEnter: (_) {},
+    onLeave: (_) {},
+    onSingleTapUp: (_) {},
+  ),
+);
+```
+
 Join on [discord](https://discord.gg/XpGygmXde4) to get advice and help or follow us on [YouTube Visual Coding](https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA) to learn more about the architecture of Visual Editor and other Flutter apps.

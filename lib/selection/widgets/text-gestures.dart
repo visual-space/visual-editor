@@ -204,6 +204,7 @@ class _TextGesturesState extends State<TextGestures> {
   // Drag updates are being throttled to avoid excessive text layouts in text fields.
   // The frequency of invocations is controlled by the constant [_kDragSelectionUpdateThrottle].
   // Once the drag gesture ends, any pending drag update will be fired immediately. See [_handleDragEnd].
+  // Once a selection is started then this callback is the one that keeps updating the text.
   void _handleDragUpdateThrottled() {
     assert(_lastDragStartDetails != null);
     assert(_lastDragUpdateDetails != null);

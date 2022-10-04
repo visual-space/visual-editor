@@ -91,7 +91,10 @@ class _MarkersAttachmentsState extends State<MarkersAttachments> {
   }
 
   double _getMarkerPosition(MarkerM marker, TextBox? rectangle) =>
-      (marker.docRelPosition?.dy ?? 0) + (rectangle?.top ?? 0) - _scrollOffset - _topBarOffset;
+      (marker.docRelPosition?.dy ?? 0) +
+      (rectangle?.top ?? 0) -
+      _scrollOffset -
+      _topBarOffset;
 
   void _subscribeToMarkers() {
     _markersListener = widget.markers$.stream.listen(

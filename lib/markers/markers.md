@@ -129,6 +129,35 @@ For certain scenarios it might be desired to init the editor with the markers tu
 ## Markers Attachments
 Markers provide support for attachments by returning their pixel coordinates and dimensions for positioning in text. Based on this information any widget can be linked to a marker. Keep in mind that markers are not widgets, so a simple Overlay from Flutter wont do the trick. Markers are rendered as painted rectangles in a canvas on top of the text. Therefore the only way to simulate attached widgets is by positioning them to the exact coordinates. This page demonstrates such a setup. Attachments can be used render elements such as the markers options menu or delete button.
 
+**How Markers Attachments Work And How To Use Them**
+
+Basically each time the editor text is update the main `build()` method is triggered which in turn does a bunch of stuff to render the lines of text. I've taped into the logic that computes the rectangles for all markers. After the main `build()` completes there's a`addPostFrameCallback` that queries all the lines of text in the editor and retrieves a list of markers and their rendered rectangles. This information is cached to be later retrieved on demand.
+
+Additionally I've added 2 callbacks for the editor:
+
+- one for notifying when a build cycle is complete
+- one for notifying when a scroll step is complete
+
+```dart
+_controller = EditorController(
+  document: document,
+  markerTypes: [
+    //...
+  ],
+  onBuildComplete: _updateMarkerAttachments,
+  onScroll: _updateMarkerAttachments,
+  // ...
+```
+You can hook into these callback to run whatever rendering logic you need for attachments. Basically you have:
+- Markers data
+- Markers rectangles (viewport coordinates)
+- Scroll offset
+- Viewport dimensions
+
+Using this data you can compute yourself if you want to render something on screen or not, to wherever you want to render it. There's an entire sample page `MarkersAttachmentsPage` indicating how to piece together this setup (has nice comments to guide you). Beware that in the page I made dedicated effort to avoid using `setState()` on the parent page. This is essential for preserving scroll performance. Follow the sample step by step and you will figure out precisely how to render anything you want at any position relative to the markers. It's also possible to adjust this code for situation where the editor is configured as non scrollable. You'll have to use the outer `ScrollController` but the setup is similar.
+
+There's still a list of smaller issues that I'm currently documenting as tickets but overall you should be able to use it successfully.
+
 This is a simplified example to showcase the parts involved. For a complete example check out the **markers-attachments.page.dart**
 ```dart
 final StreamController<List<MarkerM>> markers$;

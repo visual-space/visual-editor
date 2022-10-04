@@ -17,6 +17,7 @@ import '../../shared/models/content-proxy-box-renderer.model.dart';
 import '../../shared/models/editable-box-renderer.model.dart';
 import '../../shared/state/editor.state.dart';
 import '../../shared/utils/platform.utils.dart';
+import '../../shared/utils/shared.utils.dart';
 import '../models/inline-code-style.model.dart';
 import '../models/text-line-slot.enum.dart';
 import '../services/text-lines.utils.dart';
@@ -35,6 +36,8 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
   LineM line;
   TextDirection textDirection;
   TextSelection textSelection;
+  List<HighlightM> highlights;
+  List<HighlightM> _prevHighlights = [];
   double devicePixelRatio;
   EdgeInsetsGeometry padding;
   late CursorController cursorController;
@@ -63,6 +66,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     required this.line,
     required this.textDirection,
     required this.textSelection,
+    required this.highlights,
     required this.devicePixelRatio,
     required this.padding,
     required this.inlineCodeStyle,
@@ -70,6 +74,9 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     required EditorState state,
   }) {
     setState(state);
+    // Because the highlights array is provided as reference from the store we need to
+    // shallow clone the contents to make sure we can compare old vs new on update.
+    _prevHighlights = [...highlights];
     cursorController = state.refs.cursorController;
   }
 
@@ -130,11 +137,25 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
       _attachedToCursorController = true;
     }
 
+    // TODO Review, seems to be the same code
     if (containsSelection || _lineContainsSelection(textSelection)) {
       safeMarkNeedsPaint();
     }
   }
 
+  // If new highlights are detected then we trigger widget repaint
+  void setHighlights(List<HighlightM> _highlights) {
+    final sameHighlights = areListsEqual(_prevHighlights, _highlights);
+
+    if (sameHighlights) {
+      return;
+    }
+
+    _prevHighlights = [..._highlights];
+    safeMarkNeedsPaint();
+  }
+
+  // If a new line is detected then we trigger widget repaint
   void setLine(LineM _line) {
     if (line == _line) {
       return;

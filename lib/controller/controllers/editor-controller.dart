@@ -128,7 +128,7 @@ class EditorController {
     this.onScroll,
   }) {
     _state.document.setDocument(document);
-    _state.highlights.setHighlights(highlights ?? []);
+    _state.highlights.setHighlights(highlights);
 
     if (markerTypes.isNotEmpty) {
       _state.markersTypes.setMarkersTypes(markerTypes);

@@ -76,10 +76,6 @@ class EditorController {
   final bool keepStyleOnNewLine;
   TextSelection selection;
 
-  bool rangeHasHighlight(int baseOffset, int extentOffset) =>
-      _state.highlights.selectionRangeHasHighlight(baseOffset, extentOffset);
-
-  List<HighlightM>? get highlights => _state.highlights.highlights;
   List<MarkerTypeM> markerTypes;
   ReplaceTextCallback? onReplaceText;
   DeleteCallback? onDelete;
@@ -461,6 +457,13 @@ class EditorController {
   }
 
   // === HIGHLIGHTS ===
+
+  bool rangeHasHighlight(int baseOffset, int extentOffset) =>
+      _state.highlights.selectionRangeHasHighlight(baseOffset, extentOffset);
+
+  List<HighlightM> getHighlights() {
+    return _state.highlights.highlights;
+  }
 
   void addHighlight(HighlightM highlight) {
     _state.highlights.addHighlight(highlight);

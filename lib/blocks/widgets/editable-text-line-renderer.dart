@@ -37,7 +37,9 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
   TextDirection textDirection;
   TextSelection textSelection;
   List<HighlightM> highlights;
+  List<HighlightM> hoveredHighlights;
   List<HighlightM> _prevHighlights = [];
+  List<HighlightM> _prevHoveredHighlights = [];
   double devicePixelRatio;
   EdgeInsetsGeometry padding;
   late CursorController cursorController;
@@ -67,6 +69,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     required this.textDirection,
     required this.textSelection,
     required this.highlights,
+    required this.hoveredHighlights,
     required this.devicePixelRatio,
     required this.padding,
     required this.inlineCodeStyle,
@@ -77,6 +80,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     // Because the highlights array is provided as reference from the store we need to
     // shallow clone the contents to make sure we can compare old vs new on update.
     _prevHighlights = [...highlights];
+    _prevHoveredHighlights = [...hoveredHighlights];
     cursorController = state.refs.cursorController;
   }
 
@@ -152,6 +156,18 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     }
 
     _prevHighlights = [..._highlights];
+    safeMarkNeedsPaint();
+  }
+
+  // If new highlights are detected then we trigger widget repaint
+  void setHoveredHighlights(List<HighlightM> _hoveredHighlights) {
+    final sameHighlights = areListsEqual(_prevHoveredHighlights, _hoveredHighlights);
+
+    if (sameHighlights) {
+      return;
+    }
+
+    _prevHoveredHighlights = [..._hoveredHighlights];
     safeMarkNeedsPaint();
   }
 
@@ -843,8 +859,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     Offset effectiveOffset,
   ) {
     assert(highlightedRects.isNotEmpty);
-    // final isHovered = _hoveredHighlights.contains(highlight); RESTORE
-    const isHovered = false;
+    final isHovered = _state.highlights.hoveredHighlights.contains(highlight);
     final paint = Paint()
       ..color = isHovered ? highlight.hoverColor : highlight.color;
 

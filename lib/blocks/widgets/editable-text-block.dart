@@ -22,6 +22,7 @@ class EditableTextBlock extends StatelessWidget {
   final VerticalSpacing verticalSpacing;
   final TextSelection textSelection;
   final List<HighlightM> highlights;
+  final List<HighlightM> hoveredHighlights;
   final EditorStylesM? styles;
   final bool hasFocus;
   bool isCodeBlock = false;
@@ -43,6 +44,7 @@ class EditableTextBlock extends StatelessWidget {
     required this.verticalSpacing,
     required this.textSelection,
     required this.highlights,
+    required this.hoveredHighlights,
     required this.styles,
     required this.hasFocus,
     required this.isCodeBlock,
@@ -131,6 +133,7 @@ class EditableTextBlock extends StatelessWidget {
         textDirection: textDirection,
         textSelection: textSelection,
         highlights: highlights,
+        hoveredHighlights: hoveredHighlights,
         hasFocus: hasFocus,
         devicePixelRatio: MediaQuery.of(context).devicePixelRatio,
         state: _state,

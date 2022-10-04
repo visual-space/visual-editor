@@ -26,6 +26,7 @@ class EditableTextLine extends RenderObjectWidget {
   final TextDirection textDirection;
   final TextSelection textSelection;
   final List<HighlightM> highlights;
+  final List<HighlightM> hoveredHighlights;
   final bool hasFocus;
   final double devicePixelRatio;
 
@@ -49,6 +50,7 @@ class EditableTextLine extends RenderObjectWidget {
     required this.textDirection,
     required this.textSelection,
     required this.highlights,
+    required this.hoveredHighlights,
     required this.hasFocus,
     required this.devicePixelRatio,
     required EditorState state,
@@ -72,6 +74,7 @@ class EditableTextLine extends RenderObjectWidget {
       textDirection: textDirection,
       textSelection: textSelection,
       highlights: highlights,
+      hoveredHighlights: hoveredHighlights,
       devicePixelRatio: devicePixelRatio,
       padding: _getPadding(),
       inlineCodeStyle: defaultStyles.inlineCode!,
@@ -97,7 +100,8 @@ class EditableTextLine extends RenderObjectWidget {
       ..setState(_state)
       ..setLine(line)
       ..setTextSelection(textSelection)
-      ..setHighlights(highlights);
+      ..setHighlights(highlights)
+      ..setHoveredHighlights(hoveredHighlights);
   }
 
   // Avoids exposing the private renderer, it only collects the markers.

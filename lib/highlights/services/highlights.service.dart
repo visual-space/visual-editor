@@ -42,6 +42,7 @@ class HighlightsService {
           // Only once at enter to avoid performance issues
           // Could be further improved if multiple highlights overlap
           state.highlights.hoverHighlight(highlight);
+          state.refreshEditor.refreshEditor();
         }
 
         if (highlight.onHover != null) {
@@ -53,6 +54,7 @@ class HighlightsService {
 
           // Only once at exit to avoid performance issues
           state.highlights.exitHighlight(highlight);
+          state.refreshEditor.refreshEditor();
         }
       }
     });

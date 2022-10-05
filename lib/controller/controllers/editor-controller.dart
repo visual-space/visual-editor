@@ -20,6 +20,7 @@ import '../../highlights/models/highlight.model.dart';
 import '../../markers/const/default-marker-type.const.dart';
 import '../../markers/models/marker-type.model.dart';
 import '../../markers/models/marker.model.dart';
+import '../../shared/models/selection-rectangles.model.dart';
 import '../../shared/state/editor-state-receiver.dart';
 import '../../shared/state/editor.state.dart';
 import '../../shared/utils/string.utils.dart';
@@ -28,6 +29,13 @@ import '../models/paste-style.model.dart';
 // Return false to ignore the event.
 typedef ReplaceTextCallback = bool Function(int index, int len, Object? data);
 typedef DeleteCallback = void Function(int cursorPosition, bool forward);
+typedef SelectionCompleteCallback = void Function(
+  List<SelectionRectanglesM?> rectanglesByLines,
+);
+typedef SelectionChangedCallback = void Function(
+  TextSelection textSelection,
+  List<SelectionRectanglesM?> rectanglesByLines,
+);
 
 // Controller object which establishes a link between a rich text document and this editor.
 // EditorController stores the the state of the Document and the current TextSelection.
@@ -77,22 +85,31 @@ class EditorController {
   TextSelection selection;
   List<HighlightM> highlights;
   List<MarkerTypeM> markerTypes;
+
+  // Fires when characters are added or removed from the document.
+  // (!) Does not fire on style changes.
+  // Return false to ignore the event.
   ReplaceTextCallback? onReplaceText;
   DeleteCallback? onDelete;
-  void Function()? onSelectionCompleted;
-  void Function(TextSelection textSelection)? onSelectionChanged;
+  SelectionChangedCallback? onSelectionChanged;
+  SelectionCompleteCallback? onSelectionCompleted;
+
+  // Called each time when the editor is updated via the refreshEditor$ stream.
+  // This signal can be used to update the placement of attachments using the latest rectangles data (after any text editing operation).
+  // It happens after the build has completed to ensure that we have access to the latest rectangles.
   void Function()? onBuildComplete;
   void Function()? onScroll;
-  bool ignoreFocusOnTextChange = false;
 
+  // TODO Move to dedicated state
   // Store any styles attribute that got toggled by the tap of a button and that has not been applied yet.
   // It gets reset after each format action within the document.
   StyleM toggledStyle = StyleM();
 
-  // Stream the changes of every document
+  // Stream the changes of every document.
   Stream<DeltaChangeM> get changes => document.changes;
 
-  // Clipboard for image url and its corresponding style item1 is url and item2 is style string
+  // Clipboard for image url and its corresponding style item1 is url and item2 is style string.
+  // TODO Review this, it seems like a workaround (not yet refactored)
   ImageM? _copiedImageUrl;
 
   ImageM? get copiedImageUrl => _copiedImageUrl;
@@ -102,7 +119,7 @@ class EditorController {
     Clipboard.setData(const ClipboardData(text: ''));
   }
 
-  // Notify buttons buttons directly with attributes
+  // Notify buttons buttons directly with attributes.
   Map<String, AttributeM> toolbarButtonToggler = {};
 
   TextEditingValue get plainTextEditingValue => TextEditingValue(
@@ -264,7 +281,7 @@ class EditorController {
 
     if (textSelection != null) {
       if (delta == null || delta.isEmpty) {
-        _updateSelection(textSelection, ChangeSource.LOCAL);
+        _cacheSelection(textSelection, ChangeSource.LOCAL);
       } else {
         final user = DeltaM()
           ..retain(index)
@@ -272,7 +289,7 @@ class EditorController {
           ..delete(len);
         final positionDelta = getPositionDelta(user, delta);
 
-        _updateSelection(
+        _cacheSelection(
           textSelection.copyWith(
             baseOffset: textSelection.baseOffset + positionDelta,
             extentOffset: textSelection.extentOffset + positionDelta,
@@ -282,20 +299,11 @@ class EditorController {
       }
     }
 
-    if (ignoreFocus) {
-      // Temporary disable the placement of the caret when changing text
-      ignoreFocusOnTextChange = true;
+    _state.refreshEditor.refreshEditorWithoutCaretPlacement();
+
+    if (textSelection != null) {
+      _selectionChangedCallback();
     }
-
-    // Ask the editor to refresh it's layout
-    _state.refreshEditor.refreshEditor();
-
-    // We have to wait for the above async task to complete.
-    // The easiest way is to place a Timer with Duration 0 such that the immediate
-    // next task after the async code is to reset the temporary override.
-    Timer(Duration.zero, () {
-      ignoreFocusOnTextChange = false;
-    });
   }
 
   void compose(
@@ -318,11 +326,16 @@ class EditorController {
       ),
     );
 
-    if (selection != textSelection) {
-      _updateSelection(textSelection, source);
+    final sameSelection = selection == textSelection;
+    if (!sameSelection) {
+      _cacheSelection(textSelection, source);
     }
 
     _state.refreshEditor.refreshEditor();
+
+    if (!sameSelection) {
+      _selectionChangedCallback();
+    }
   }
 
   // Called in two cases:
@@ -363,14 +376,17 @@ class EditorController {
       extentOffset: change.transformPosition(selection.extentOffset),
     );
 
-    if (selection != adjustedSelection) {
-      _updateSelection(
-        adjustedSelection,
-        ChangeSource.LOCAL,
-      );
+    final sameSelection = selection == adjustedSelection;
+
+    if (!sameSelection) {
+      _cacheSelection(adjustedSelection, ChangeSource.LOCAL);
     }
 
     _state.refreshEditor.refreshEditor();
+
+    if (!sameSelection) {
+      _selectionChangedCallback();
+    }
   }
 
   // Applies an attribute to a selection of text
@@ -445,8 +461,9 @@ class EditorController {
     TextSelection textSelection,
     ChangeSource source,
   ) {
-    _updateSelection(textSelection, source);
+    _cacheSelection(textSelection, source);
     _state.refreshEditor.refreshEditor();
+    _selectionChangedCallback();
   }
 
   // === NODES ===
@@ -556,15 +573,40 @@ class EditorController {
     }
   }
 
-  void _updateSelection(TextSelection textSelection, ChangeSource source) {
-    selection = textSelection;
+  // Store the new selection extent values
+  void _cacheSelection(TextSelection _selection, ChangeSource source) {
+    selection = _selection;
     final end = document.length - 1;
     selection = selection.copyWith(
       baseOffset: math.min(selection.baseOffset, end),
       extentOffset: math.min(selection.extentOffset, end),
     );
     toggledStyle = StyleM();
+  }
 
-    onSelectionChanged?.call(textSelection);
+  // We have separated the selection callback from the selection caching code because we have to wait
+  // for the build() to complete to extract the rectangles of a text selection.
+  // We want to use these rectangles to give total freedom to the client devs to decide how to place their attachments.
+  //
+  // This means we now have 2 ways of customizing the selection menu:
+  // 1) When the selection callbacks have emitted we can use the rectangles data to place any attachment anywhere
+  //    Recommended when you want to place atypical looking markers related to the lines of selected text
+  // 2) Standard flutter procedure using a custom TextSelectionControls
+  //    Recommended when you want to display standard selection menu with custom buttons.
+  //
+  // Therefore (as of Oct 2022, Adrian) we decided to split the selection update cycle in two stages.
+  // Stage 1
+  // - First, we collect the new selection extends (as it was done until now).
+  // - We wait for the build() to complete to gain access to the latest selection rectangles from the editable line renderers.
+  // - We cache the rectangles by lines information in the state store
+  // Stage 2
+  // - Now that the build is complete and we have latest data, we call the selection callbacks
+  //   that were defined in the original API, now including the rectangles data
+  // It's possible that this pattern might change if we learn more after refactoring the selection handles code
+  void _selectionChangedCallback() {
+    if (onSelectionChanged != null) {
+      final rectangles = _state.selection.selectionRectangles;
+      onSelectionChanged!(selection, rectangles);
+    }
   }
 }

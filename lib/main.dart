@@ -538,6 +538,7 @@ class VisualEditorState extends State<VisualEditor>
         child: child,
       );
 
+  // TODO Rename to smth better
   // Used by the selection toolbar to position itself in the right location
   Widget _overlayTargetForMobileToolbar({required Widget child}) =>
       CompositedTransformTarget(

@@ -5,7 +5,7 @@ import 'package:visual_editor/markers/models/marker.model.dart';
 
 import '../models/markers-and-scroll-offset.model.dart';
 
-// Marker attachments are widgets that are synced to mathc the same position on screen as the markers.
+// Marker attachments are widgets that are synced to match the same position on screen as the markers.
 // Notice we use a stream to pass the updates instead of using setState on the parent widget which contains the editor.
 // By using the stream we avoid heavy re-renders of the editor and we maintain maximum performance.
 class MarkersAttachments extends StatefulWidget {

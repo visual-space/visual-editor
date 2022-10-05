@@ -28,7 +28,7 @@ class TextValueService {
   // - Adding characters
   // - Undo redo
   void updateEditor(EditorState state) {
-    final ignoreFocus = state.refs.editorController.ignoreFocusOnTextChange;
+    final ignoreFocus = state.refreshEditor.ignoreFocusOnTextChange;
 
     if (kIsWeb) {
       onChangeTextEditingValue(ignoreFocus, state);

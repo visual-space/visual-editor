@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+// TODO Merge into selection state
 class LastTapDownState {
   late Offset _position;
 

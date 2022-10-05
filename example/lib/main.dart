@@ -10,6 +10,7 @@ import 'pages/multiple-editors.page.dart';
 import 'pages/overwrite-controller.page.dart';
 import 'pages/placeholder.page.dart';
 import 'pages/read-only.page.dart';
+import 'pages/selection-menu.page.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,6 +39,7 @@ class DemoApp extends StatelessWidget {
         '/highlights': (context) => HighlightsPage(),
         '/markers': (context) => MarkersPage(),
         '/markers-attachments': (context) => MarkersAttachmentsPage(),
+        '/selection-menu': (context) => SelectionMenuPage(),
         '/delta-sandbox': (context) => DeltaSandbox(),
         '/overwrite-controller': (context) => OverwriteControllerPage(),
       },

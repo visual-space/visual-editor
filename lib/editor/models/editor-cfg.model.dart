@@ -168,6 +168,7 @@ class EditorConfigM {
     this.textCapitalization = TextCapitalization.sentences,
     this.keyboardAppearance = Brightness.light,
     this.scrollPhysics,
+    // TODO Why not have all of them in one place?
     this.onLaunchUrl,
     this.onTapDown,
     this.onTapUp,

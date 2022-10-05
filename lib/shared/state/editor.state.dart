@@ -12,9 +12,9 @@ import '../../inputs/state/pressed-keys.state.dart';
 import '../../markers/state/markers-types.state.dart';
 import '../../markers/state/markers-visibility.state.dart';
 import '../../markers/state/markers.state.dart';
-import '../../selection/state/extend-selection.state.dart';
 import '../../selection/state/last-tap-down.state.dart';
 import '../../selection/state/selection-layers.state.dart';
+import '../../selection/state/selection.state.dart';
 import 'references.state.dart';
 
 // Global state store.
@@ -65,7 +65,7 @@ class EditorState {
   final markersVisibility = MarkersVisibilityState();
 
   // Selections
-  final extendSelection = ExtendSelectionState();
+  final selection = SelectionState();
   final lastTapDown = LastTapDownState();
   final selectionLayers = SelectionLayersState();
 

@@ -1,6 +1,7 @@
 import '../attribute.model.dart';
 import 'styling-attributes.dart';
 
+// TODO Doc
 class AttributesAliasesM {
   static AttributeM<int?> get h1 => HeaderAttributeM(level: 1);
 

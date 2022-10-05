@@ -6,6 +6,7 @@ import '../../documents/models/nodes/block.model.dart';
 import '../../documents/models/nodes/line.model.dart';
 import '../../documents/services/delta.utils.dart';
 import '../../highlights/models/highlight.model.dart';
+import '../../markers/models/marker.model.dart';
 import '../../shared/state/editor.state.dart';
 import '../models/editor-styles.model.dart';
 import '../models/link-action.picker.type.dart';
@@ -23,6 +24,7 @@ class EditableTextBlock extends StatelessWidget {
   final TextSelection textSelection;
   final List<HighlightM> highlights;
   final List<HighlightM> hoveredHighlights;
+  final List<MarkerM> hoveredMarkers;
   final EditorStylesM? styles;
   final bool hasFocus;
   bool isCodeBlock = false;
@@ -45,6 +47,7 @@ class EditableTextBlock extends StatelessWidget {
     required this.textSelection,
     required this.highlights,
     required this.hoveredHighlights,
+    required this.hoveredMarkers,
     required this.styles,
     required this.hasFocus,
     required this.isCodeBlock,
@@ -134,6 +137,7 @@ class EditableTextBlock extends StatelessWidget {
         textSelection: textSelection,
         highlights: highlights,
         hoveredHighlights: hoveredHighlights,
+        hoveredMarkers: hoveredMarkers,
         hasFocus: hasFocus,
         devicePixelRatio: MediaQuery.of(context).devicePixelRatio,
         state: _state,

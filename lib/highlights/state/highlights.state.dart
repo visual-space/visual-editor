@@ -1,3 +1,5 @@
+import 'package:collection/collection.dart';
+
 import '../models/highlight.model.dart';
 
 class HighlightsState {
@@ -29,14 +31,25 @@ class HighlightsState {
 
   List<HighlightM> get hoveredHighlights => _hoveredHighlights;
 
-  void hoverHighlight(HighlightM highlight) {
-    _hoveredHighlights.add(highlight);
+  // Pointer has entered one of the rectangles of a highlight
+  void enterHighlightById(String id) {
+    final highlight = _highlights.firstWhereOrNull(
+      (highlight) => highlight.id == id,
+    );
+
+    if (highlight != null) {
+      _hoveredHighlights.add(highlight);
+    }
   }
 
-  void exitHighlight(HighlightM highlight) {
-    _hoveredHighlights.remove(highlight);
-  }
+  // Pointer has exited the rectangles of a highlight
+  void exitHighlightById(String id) {
+    final highlight = _hoveredHighlights.firstWhereOrNull(
+      (highlight) => highlight.id == id,
+    );
 
-  // TODO REVIEW
-  void clearHoveredHighlights() {}
+    if (highlight != null) {
+      _hoveredHighlights.remove(highlight);
+    }
+  }
 }

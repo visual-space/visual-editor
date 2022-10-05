@@ -42,6 +42,7 @@ class EditorTextService {
     _applyPasteStyle(insertedText, diff.start, state);
   }
 
+  // TODO merge with method above
   void userUpdateTextEditingValue(
     TextEditingValue value,
     SelectionChangedCause cause,

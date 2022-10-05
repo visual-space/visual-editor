@@ -20,4 +20,14 @@ TODO Explain the relations between: EditableBlock, EditableTextBlock, and the ot
 
 ## Markers (WIP)
 
+## Code Snippets
+
+Snippet used to convert the position of the pointer in X and Y to a TextSelection extent.
+```dart
+final position = _linesBlocksService.getPositionForOffset(
+  details.globalPosition,
+  state,
+);
+```
+
 Join on [discord](https://discord.gg/XpGygmXde4) to get advice and help or follow us on [YouTube Visual Coding](https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA) to learn more about the architecture of Visual Editor and other Flutter apps.

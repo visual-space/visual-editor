@@ -158,7 +158,7 @@ class TextSelectionService {
     EditorState state, {
     required SelectionChangedCause cause,
   }) {
-    final selOrigin = state.extendSelection.origin;
+    final selOrigin = state.selection.origin;
 
     // The below logic does not exactly match the native version because
     // we do not allow swapping of base and extent positions.
@@ -246,6 +246,8 @@ class TextSelectionService {
   }
 
   void onSelectionCompleted(EditorState state) {
-    state.refs.editorController.onSelectionCompleted?.call();
+    state.refs.editorController.onSelectionCompleted?.call(
+      state.selection.selectionRectangles,
+    );
   }
 }

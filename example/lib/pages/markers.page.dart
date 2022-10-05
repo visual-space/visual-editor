@@ -58,10 +58,10 @@ class _MarkersPageState extends State<MarkersPage> {
             scrollController: _scrollController,
             focusNode: _focusNode,
             config: EditorConfigM(
-              // Uncomment this param if you want to initialise the editor with the markers turned off.
-              // They can later be re-enabled at runtime via the controller.
-              // markersVisibility: true,
-            ),
+                // Uncomment this param if you want to initialise the editor with the markers turned off.
+                // They can later be re-enabled at runtime via the controller.
+                // markersVisibility: true,
+                ),
           ),
         ),
       );
@@ -102,29 +102,42 @@ class _MarkersPageState extends State<MarkersPage> {
     final document = DocumentM.fromJson(jsonDecode(result));
 
     setState(() {
-      _controller = EditorController(
-        document: document,
-        markerTypes: [
-          MarkerTypeM(
-            name: 'Expert',
-            id: 'expert',
-            color: Colors.amber.withOpacity(0.2),
-            onAddMarkerViaToolbar: (_) => 'fake-id-1',
-          ),
-          MarkerTypeM(
-            name: 'Beginner',
-            id: 'beginner',
-            color: Colors.blue.withOpacity(0.2),
-            onAddMarkerViaToolbar: (_) => 'fake-id-2',
-          ),
-          MarkerTypeM(
-            name: 'Reminder',
-            id: 'reminder',
-            color: Colors.cyan.withOpacity(0.2),
-            onAddMarkerViaToolbar: (_) => 'fake-id-3',
-          ),
-        ],
-      );
+      _initEditorController(document);
     });
+  }
+
+  void _initEditorController(DocumentM document) {
+    _controller = EditorController(
+      document: document,
+      markerTypes: [
+        MarkerTypeM(
+          id: 'expert',
+          name: 'Expert',
+          color: Colors.amber.withOpacity(0.2),
+          onAddMarkerViaToolbar: (_) => 'fake-id-1',
+          onSingleTapUp: (marker) {
+            print('Marker Tapped - ${marker.type}');
+          },
+        ),
+        MarkerTypeM(
+          id: 'beginner',
+          name: 'Beginner',
+          color: Colors.blue.withOpacity(0.2),
+          onAddMarkerViaToolbar: (_) => 'fake-id-2',
+          onSingleTapUp: (marker) {
+            print('Marker Tapped - ${marker.type}');
+          },
+        ),
+        MarkerTypeM(
+          id: 'reminder',
+          name: 'Reminder',
+          color: Colors.cyan.withOpacity(0.2),
+          onAddMarkerViaToolbar: (_) => 'fake-id-3',
+          onSingleTapUp: (marker) {
+            print('Marker Tapped - ${marker.type}');
+          },
+        ),
+      ],
+    );
   }
 }

@@ -5,9 +5,15 @@ import '../../documents/models/attributes/attributes.model.dart';
 import '../../documents/models/nodes/line.model.dart';
 import '../../documents/models/nodes/node.model.dart';
 import '../../markers/models/marker.model.dart';
+import '../../selection/services/text-selection.utils.dart';
 import '../../shared/models/content-proxy-box-renderer.model.dart';
+import '../../shared/models/selection-rectangles.model.dart';
 import '../../shared/state/editor.state.dart';
 
+// TODO Move internally in the class
+final _textSelectionUtils = TextSelectionUtils();
+
+// TODO Convert back from static methods to regular methods
 class TextLinesUtils {
   static final _instance = TextLinesUtils._privateConstructor();
 
@@ -15,10 +21,65 @@ class TextLinesUtils {
 
   TextLinesUtils._privateConstructor();
 
+  // === EXTRACT HIGHLIGHTS ===
+
+  // Highlights are painted as rectangles on top of a canvas overlaid on top of the raw text.
+  // The underlying text is the text (text spans) bellow the highlights.
+  // (!) Almost identical to markers with slight differences.
+  // (!) We avoided code sharing to avoid bug sharing and to enable them to evolve separately.
+  static SelectionRectanglesM? getSelectionCoordinates(
+    TextSelection textSelection,
+    Offset effectiveOffset,
+    LineM line,
+    EditorState state,
+    RenderContentProxyBox underlyingText,
+  ) {
+    // Highlight rectangles
+    SelectionRectanglesM? rectangles;
+
+    // Scroll offset
+    var scrollOffset = 0.0;
+    if (state.editorConfig.config.scrollable == true) {
+      scrollOffset = state.refs.scrollController.offset;
+    }
+
+    // Iterate trough all the children of a line.
+    // Children are fragments containing a unique combination of attributes.
+    // If one of these fragments contains highlights then we extract the rectangles.
+    final lineContainsHighlight = _lineContainsSelection(
+      line,
+      textSelection,
+    );
+
+    if (lineContainsHighlight) {
+      final local = _textSelectionUtils.getLocalSelection(
+        line,
+        textSelection,
+        false,
+      );
+      final nodeRectangles = underlyingText.getBoxesForSelection(local);
+
+      final documentNodePos = underlyingText.localToGlobal(
+        // Regardless of the current state of the scroll we want the offset
+        // relative to the beginning of document.
+        Offset(0, scrollOffset),
+      );
+
+      rectangles = SelectionRectanglesM(
+        textSelection: local,
+        rectangles: nodeRectangles,
+        docRelPosition: documentNodePos,
+      );
+    }
+
+    return rectangles;
+  }
+
   // === EXTRACT MARKERS ===
 
   // Markers are painted as rectangles on top of a canvas overlaid on top of the raw text.
   // The underlying text is the text (text spans) bellow the markers.
+  // TODO Maybe it's better to move this method in the /markers module
   static List<MarkerM> getMarkersToRender(
     Offset effectiveOffset,
     LineM line,
@@ -40,7 +101,9 @@ class TextLinesUtils {
 
       final markers = _getTheMarkersAttributeFromNode(node);
 
-      // Render all markers
+      // Markers rectangles
+      // (!) Each styleFragment (node) is fully aligned with a markers.
+      // Which means the boundaries of a node are the boundaries of a marker as well.
       // ignore: avoid_types_on_closure_parameters
       markers.forEach((marker) {
         final rectangles = getRectanglesFromNode(node, underlyingText);
@@ -51,7 +114,7 @@ class TextLinesUtils {
         }
 
         final documentNodePos = underlyingText?.localToGlobal(
-          // Regardless off the current state of the scroll we want the offset
+          // Regardless of the current state of the scroll we want the offset
           // relative to the beginning of document.
           Offset(0, scrollOffset),
         );
@@ -101,7 +164,6 @@ class TextLinesUtils {
   }
 
   // Get the rectangles needed to encompass a slice of text (node).
-  // Border radius can be defined.
   static List<TextBox> getRectanglesFromNode(
     NodeM node,
     RenderContentProxyBox? underlyingText,
@@ -152,5 +214,18 @@ class TextLinesUtils {
     }
 
     return rectangles;
+  }
+
+  bool isRectangleHovered(TextBox area, Offset pointer) {
+    final xHovered = area.left < pointer.dx && pointer.dx < area.right;
+    final yHovered = area.top < pointer.dy && pointer.dy < area.bottom;
+    return xHovered && yHovered;
+  }
+
+  // === PRIVATE ===
+
+  static bool _lineContainsSelection(LineM line, TextSelection selection) {
+    return line.documentOffset <= selection.end &&
+        selection.start <= line.documentOffset + line.length - 1;
   }
 }

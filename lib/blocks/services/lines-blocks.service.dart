@@ -52,6 +52,7 @@ class LinesBlocksService {
       textSelection: state.refs.editorController.selection,
       highlights: state.highlights.highlights,
       hoveredHighlights: state.highlights.hoveredHighlights,
+      hoveredMarkers: state.markers.hoveredMarkers,
       hasFocus: state.refs.focusNode.hasFocus,
       devicePixelRatio: MediaQuery.of(editor.context).devicePixelRatio,
       state: state,

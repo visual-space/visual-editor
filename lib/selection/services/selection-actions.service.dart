@@ -127,17 +127,16 @@ class SelectionActionsService {
       return false;
     }
 
-    final selectionActions = state.refs.editorState.selectionActionsController;
-
-    final hasSelection = selectionActions == null;
-    final hasToolbarAlready = selectionActions!.toolbar != null;
+    final controller = state.refs.editorState.selectionActionsController;
+    final hasSelection = controller == null;
+    final hasToolbarAlready = controller!.toolbar != null;
 
     if (hasSelection || hasToolbarAlready) {
       return false;
     }
 
-    selectionActions.update(state.refs.editorState.textEditingValue);
-    selectionActions.showToolbar();
+    controller.update(state.refs.editorState.textEditingValue);
+    controller.showToolbar();
 
     return true;
   }
@@ -146,11 +145,11 @@ class SelectionActionsService {
     EditorState state, [
     bool hideHandles = true,
   ]) {
-    final selectionActions = state.refs.editorState.selectionActionsController;
+    final controller = state.refs.editorState.selectionActionsController;
 
     // If the buttons is currently visible.
-    if (selectionActions?.toolbar != null) {
-      hideHandles ? selectionActions?.hide() : selectionActions?.hideToolbar();
+    if (controller?.toolbar != null) {
+      hideHandles ? controller?.hide() : controller?.hideToolbar();
     }
   }
 

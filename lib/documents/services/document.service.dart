@@ -6,6 +6,9 @@ import 'package:flutter/scheduler.dart';
 
 import '../../blocks/services/lines-blocks.service.dart';
 import '../../blocks/widgets/editable-text-block.dart';
+import '../../blocks/widgets/editable-text-line.dart';
+import '../../highlights/models/highlight.model.dart';
+import '../../shared/models/selection-rectangles.model.dart';
 import '../../shared/state/editor.state.dart';
 import '../models/attribute.model.dart';
 import '../models/attributes/attributes.model.dart';
@@ -30,43 +33,31 @@ class DocumentService {
     required DocumentM document,
     required EditorState state,
   }) {
-    final docElements = <Widget>[];
+    final docWidgets = <Widget>[];
     final indentLevelCounts = <int, int>{};
     final nodes = document.root.children;
 
-    // We need to collect all markers from all lines only once per document update.
-    // Subsequent draw calls that are triggered by the cursor animation will be ignored.
-    state.markers.cacheMarkersAfterBuild = true;
-
-    // Clear the old markers
-    state.markers.removeAllMarkers();
+    final renderers = <EditableTextLine>[];
 
     for (final node in nodes) {
       // Line
       if (node is LineM) {
-        final editableTextLine =
-            _linesBlocksService.getEditableTextLineFromNode(node, state);
+        final renderer = _linesBlocksService.getEditableTextLineFromNode(
+          node,
+          state,
+        );
+        renderers.add(renderer);
 
-        docElements.add(
+        docWidgets.add(
           Directionality(
             textDirection: getDirectionOfNode(node),
-            child: editableTextLine,
+            child: renderer,
           ),
         );
 
-        // Cache markers in state store (after layout was fully built)
-        SchedulerBinding.instance.addPostFrameCallback((_) {
-          final markers = editableTextLine.getRenderedMarkersCoordinates();
-
-          // Cache markers in state store
-          markers.forEach((marker) {
-            state.markers.addMarker(marker);
-          });
-        });
-
         // Block
       } else if (node is BlockM) {
-        docElements.add(
+        docWidgets.add(
           Directionality(
             textDirection: getDirectionOfNode(node),
             child: _editableTextBlock(
@@ -84,10 +75,14 @@ class DocumentService {
       }
     }
 
-    // Only the draws triggered by the build() will end up caching markers
-    state.markers.cacheMarkersAfterBuild = false;
+    // Cache markers and highlights coordinates in the state store, after the layout was fully built.
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _cacheMarkers(state, renderers);
+      _cacheHighlights(state, renderers);
+      _cacheSelectionRectangles(state, renderers);
+    });
 
-    return docElements;
+    return docWidgets;
   }
 
   // Right before sending the document to the rendering layer, we want to check if the document is not empty.
@@ -104,6 +99,8 @@ class DocumentService {
               ),
             )
           : state.document.document;
+
+  // === PRIVATE ===
 
   Widget _editableTextBlock(
     BlockM node,
@@ -123,6 +120,7 @@ class DocumentService {
       textSelection: state.refs.editorController.selection,
       highlights: state.highlights.highlights,
       hoveredHighlights: state.highlights.hoveredHighlights,
+      hoveredMarkers: state.markers.hoveredMarkers,
       styles: state.styles.styles,
       hasFocus: state.refs.focusNode.hasFocus,
       isCodeBlock: attributes.containsKey(AttributesM.codeBlock.key),
@@ -135,5 +133,70 @@ class DocumentService {
       ),
       state: state,
     );
+  }
+
+  void _cacheMarkers(EditorState state, List<EditableTextLine> renderers) {
+    // Clear the old markers
+    state.markers.flushAllMarkers();
+
+    // Markers coordinates
+    renderers.forEach((renderer) {
+      // We will have to prepopulate the list of markers before rendering to be able to group rectangles by markers.
+      final markers = renderer.getMarkersWithCoordinates();
+
+      markers.forEach((marker) {
+        state.markers.cacheMarker(marker);
+      });
+    });
+  }
+
+  // (!) For highlights that span multiple lines of text we are extracting from
+  // each renderer only the rectangles belonging to that particular line.
+  void _cacheHighlights(EditorState state, List<EditableTextLine> renderers) {
+    final highlights = <HighlightM>[];
+
+    // Get Rectangles
+    state.highlights.highlights.forEach((highlight) {
+      final allRectangles = <SelectionRectanglesM>[];
+
+      renderers.forEach((renderer) {
+        // Highlight coordinates
+        final lineRectangles = renderer.getHighlightCoordinates(highlight);
+
+        if (lineRectangles != null) {
+          allRectangles.add(lineRectangles);
+        }
+      });
+
+      // Clone and extend
+      highlights.add(
+        highlight.copyWith(
+          rectanglesByLines: allRectangles,
+        ),
+      );
+    });
+
+    // Cache in state store
+    state.highlights.setHighlights(highlights);
+  }
+
+  // (!) For a selection that span multiple lines of text we are extracting from
+  // each renderer only the rectangles belonging to that particular line.
+  void _cacheSelectionRectangles(EditorState state, List<EditableTextLine> renderers) {
+
+    // Get Rectangles
+    final rectangles = <SelectionRectanglesM>[];
+
+    renderers.forEach((renderer) {
+      // Selection coordinates
+      final lineRectangles = renderer.getSelectionCoordinates();
+
+      if (lineRectangles != null) {
+        rectangles.add(lineRectangles);
+      }
+    });
+
+    // Cache in state store
+    state.selection.setSelectionRectangles(rectangles);
   }
 }

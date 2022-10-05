@@ -22,6 +22,7 @@ import 'nodes/segment-leaf-node.model.dart';
 import 'style.model.dart';
 
 // The rich text document
+// TODO Better doc comment
 class DocumentM {
   // Creates new empty document.
   DocumentM() : _delta = DeltaM()..insert('\n') {
@@ -62,6 +63,7 @@ class DocumentM {
 
   final StreamController<DeltaChangeM> _observer = StreamController.broadcast();
 
+  // TODO Better doc
   final HistoryM _history = HistoryM();
 
   bool get hasUndo => _history.hasUndo;

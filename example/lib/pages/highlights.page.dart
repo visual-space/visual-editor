@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:visual_editor/shared/utils/string.utils.dart';
 import 'package:visual_editor/visual-editor.dart';
 
 import '../const/sample-highlights.const.dart';
@@ -74,10 +75,13 @@ class _HighlightsPageState extends State<HighlightsPage> {
                 onPressed: () {
                   _controller?.addHighlight(
                     HighlightM(
+                      id: getTimeBasedId(),
                       textSelection: _selection.copyWith(),
-                      onEnter: (_) {},
-                      onLeave: (_) {},
-                      onSingleTapUp: (_) {},
+                      onEnter: (highlight) {},
+                      onExit: (highlight) {},
+                      onSingleTapUp: (highlight) {
+                        print('Highlight tapped ${highlight.id}');
+                      },
                     ),
                   );
                 },
@@ -126,21 +130,25 @@ class _HighlightsPageState extends State<HighlightsPage> {
     final document = DocumentM.fromJson(jsonDecode(result));
 
     setState(() {
-      _controller = EditorController(
-        document: document,
-        highlights: SAMPLE_HIGHLIGHTS,
-        onSelectionChanged: (selection) {
-          _selection = selection;
-
-          // (!) Notice that we don't setState() on the entire widget.
-          // We only trigger a smaller widget down bellow in the widget tree.
-          // The goal is to keep maximum rendering performance by avoiding to re-render the entire editor again.
-          // Even with the change detection mechanism, there's still a performance penalty.
-          // Pay attention to such issues when building your app.
-          // _selection = selection;
-          _selection$.sink.add(selection);
-        },
-      );
+      _initEditorController(document);
     });
+  }
+
+  void _initEditorController(DocumentM document) {
+    _controller = EditorController(
+      document: document,
+      highlights: SAMPLE_HIGHLIGHTS,
+      onSelectionChanged: (selection, markers) {
+        _selection = selection;
+
+        // (!) Notice that we don't setState() on the entire widget.
+        // We only trigger a smaller widget down bellow in the widget tree.
+        // The goal is to keep maximum rendering performance by avoiding to re-render the entire editor again.
+        // Even with the change detection mechanism, there's still a performance penalty.
+        // Pay attention to such issues when building your app.
+        // _selection = selection;
+        _selection$.sink.add(selection);
+      },
+    );
   }
 }

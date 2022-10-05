@@ -34,6 +34,10 @@ const List<NavMenuLinkM> NAV_MENU = [
     route: '/markers-attachments',
   ),
   NavMenuLinkM(
+    title: 'Selection Menu',
+    route: '/selection-menu',
+  ),
+  NavMenuLinkM(
     title: 'Delta sandbox',
     route: '/delta-sandbox',
   ),

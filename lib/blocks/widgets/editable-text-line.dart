@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../documents/models/nodes/line.model.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../markers/models/marker.model.dart';
+import '../../shared/models/selection-rectangles.model.dart';
 import '../../shared/state/editor.state.dart';
 import '../models/vertical-spacing.model.dart';
 import '../services/styles.utils.dart';
@@ -27,6 +28,7 @@ class EditableTextLine extends RenderObjectWidget {
   final TextSelection textSelection;
   final List<HighlightM> highlights;
   final List<HighlightM> hoveredHighlights;
+  final List<MarkerM> hoveredMarkers;
   final bool hasFocus;
   final double devicePixelRatio;
 
@@ -51,6 +53,7 @@ class EditableTextLine extends RenderObjectWidget {
     required this.textSelection,
     required this.highlights,
     required this.hoveredHighlights,
+    required this.hoveredMarkers,
     required this.hasFocus,
     required this.devicePixelRatio,
     required EditorState state,
@@ -75,6 +78,7 @@ class EditableTextLine extends RenderObjectWidget {
       textSelection: textSelection,
       highlights: highlights,
       hoveredHighlights: hoveredHighlights,
+      hoveredMarkers: hoveredMarkers,
       devicePixelRatio: devicePixelRatio,
       padding: _getPadding(),
       inlineCodeStyle: defaultStyles.inlineCode!,
@@ -101,12 +105,23 @@ class EditableTextLine extends RenderObjectWidget {
       ..setLine(line)
       ..setTextSelection(textSelection)
       ..setHighlights(highlights)
-      ..setHoveredHighlights(hoveredHighlights);
+      ..setHoveredHighlights(hoveredHighlights)
+      ..setHoveredMarkers(hoveredMarkers);
   }
 
   // Avoids exposing the private renderer, it only collects the markers.
-  List<MarkerM> getRenderedMarkersCoordinates() {
-    return _renderer?.getRenderedMarkersCoordinates() ?? [];
+  List<MarkerM> getMarkersWithCoordinates() {
+    return _renderer?.getMarkersWithCoordinates() ?? [];
+  }
+
+  // Avoids exposing the private renderer, it only collects the highlights.
+  SelectionRectanglesM? getHighlightCoordinates(HighlightM highlight) {
+    return _renderer?.getHighlightCoordinates(highlight);
+  }
+
+  // Avoids exposing the private renderer, it only collects the selection.
+  SelectionRectanglesM? getSelectionCoordinates() {
+    return _renderer?.getSelectionCoordinates();
   }
 
   EdgeInsetsGeometry _getPadding() {

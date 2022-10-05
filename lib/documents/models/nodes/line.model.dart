@@ -352,6 +352,8 @@ class LineM extends ContainerM<LeafM?> {
     return plainText.toString();
   }
 
+  // === PRIVATE ===
+
   int _getNodeText(
     LeafM node,
     StringBuffer buffer,
@@ -369,8 +371,6 @@ class LineM extends ContainerM<LeafM?> {
 
     return remaining - (end - offset);
   }
-
-  // === PRIVATE ===
 
   // Formats this line.
   void _format(StyleM? newStyle) {

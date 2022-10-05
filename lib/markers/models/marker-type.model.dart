@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 
+import 'marker.model.dart';
+
+// TODO Move to shared colors
 const _DEFAULT_MARKER_COLOR = Color.fromRGBO(0xD4, 0x17, 0xFF, 0.3);
 const _HOVERED_MARKER_COLOR = Color.fromRGBO(0x84, 0xB, 0x9E, 0.3);
 
+// TODO Consider adding material icon as config (toolbar dropdown, marker attachments)
 // Custom markers types can be provided to the EditorController.
 // Authors can select from different marker types that have been provided by the app developers.
 // The markers are defined in the delta document using the marker attribute
@@ -14,10 +18,10 @@ class MarkerTypeM {
   final String name;
   final Color color;
   final Color hoverColor;
-  final Function(MarkerTypeM marker)? onSingleTapUp;
-  final Function(MarkerTypeM marker)? onEnter;
-  final Function(MarkerTypeM marker)? onHover;
-  final Function(MarkerTypeM marker)? onLeave;
+  final Function(MarkerM marker)? onSingleTapUp;
+  final Function(MarkerM marker)? onEnter;
+  final Function(MarkerM marker)? onHover;
+  final Function(MarkerM marker)? onExit;
 
   // Can be used to execute arbitrary code when a new marker is added in the document via the markers dropdown.
   // The returning data is used data content for the attribute.
@@ -32,7 +36,17 @@ class MarkerTypeM {
     this.onSingleTapUp,
     this.onEnter,
     this.onHover,
-    this.onLeave,
+    this.onExit,
     this.onAddMarkerViaToolbar,
   });
+
+  @override
+  String toString() {
+    return 'MarkerTypeM('
+        'id: $id, '
+        'name: $name, '
+        'color: $color, '
+        'hoverColor: $hoverColor,'
+        ')';
+  }
 }

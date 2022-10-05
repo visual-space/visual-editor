@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import '../../cursor/controllers/cursor.controller.dart';
@@ -15,6 +17,7 @@ import '../../markers/models/marker.model.dart';
 import '../../selection/services/text-selection.utils.dart';
 import '../../shared/models/content-proxy-box-renderer.model.dart';
 import '../../shared/models/editable-box-renderer.model.dart';
+import '../../shared/models/selection-rectangles.model.dart';
 import '../../shared/state/editor.state.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../../shared/utils/shared.utils.dart';
@@ -40,6 +43,8 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
   List<HighlightM> hoveredHighlights;
   List<HighlightM> _prevHighlights = [];
   List<HighlightM> _prevHoveredHighlights = [];
+  List<MarkerM> hoveredMarkers;
+  List<MarkerM> _prevHoveredMarkers = [];
   double devicePixelRatio;
   EdgeInsetsGeometry padding;
   late CursorController cursorController;
@@ -70,6 +75,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     required this.textSelection,
     required this.highlights,
     required this.hoveredHighlights,
+    required this.hoveredMarkers,
     required this.devicePixelRatio,
     required this.padding,
     required this.inlineCodeStyle,
@@ -81,6 +87,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     // shallow clone the contents to make sure we can compare old vs new on update.
     _prevHighlights = [...highlights];
     _prevHoveredHighlights = [...hoveredHighlights];
+    _prevHoveredMarkers = [...hoveredMarkers];
     cursorController = state.refs.cursorController;
   }
 
@@ -95,7 +102,10 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
   // only for the paragraphs that are clicked/interacted with.
   // To avoid the above issues we made the effort of splitting the code that
   // generates the markers rectangles from the code that paints them.
-  List<MarkerM> getRenderedMarkersCoordinates() {
+  // FYI: Markers are already split as styles between lines and their extents trimmed to fit the line.
+  // Therefore for makers we are not getting duplicate rectangles, that's why we can extract them right away.
+  // TODO Could be merged with getHighlightsCoordinates(), there's no "separate concern" for this method
+  List<MarkerM> getMarkersWithCoordinates() {
     var markers = <MarkerM>[];
 
     if (_underlyingText != null) {
@@ -114,6 +124,52 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     }
 
     return markers;
+  }
+
+  // We need the highlights rectangles coordinates as rendered against the actual lines of text after build().
+  // Because highlights can span multiple lines we want only the rectangles of the current line.
+  // Read the doc comment for the getRenderedMarkersCoordinates() method to learn more.
+  SelectionRectanglesM? getHighlightCoordinates(HighlightM highlight) {
+    SelectionRectanglesM? rectangles;
+
+    if (_underlyingText != null) {
+      final parentData = _underlyingText!.parentData as BoxParentData;
+      final effectiveOffset = _cachedOffset + parentData.offset;
+
+      // Highlights
+      rectangles = TextLinesUtils.getSelectionCoordinates(
+        highlight.textSelection,
+        effectiveOffset,
+        line,
+        _state,
+        _underlyingText!,
+      );
+    }
+
+    return rectangles;
+  }
+
+  // We need the selection rectangles coordinates as rendered against the actual lines of text after build().
+  // Because a selection can span multiple lines we want only the rectangles of the current line.
+  // Read the doc comment for the getRenderedMarkersCoordinates() method to learn more.
+  SelectionRectanglesM? getSelectionCoordinates() {
+    SelectionRectanglesM? rectangles;
+
+    if (_underlyingText != null) {
+      final parentData = _underlyingText!.parentData as BoxParentData;
+      final effectiveOffset = _cachedOffset + parentData.offset;
+
+      // Selection
+      rectangles = TextLinesUtils.getSelectionCoordinates(
+        _state.refs.editorController.selection,
+        effectiveOffset,
+        line,
+        _state,
+        _underlyingText!,
+      );
+    }
+
+    return rectangles;
   }
 
   void setTextSelection(TextSelection selection) {
@@ -159,15 +215,28 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     safeMarkNeedsPaint();
   }
 
-  // If new highlights are detected then we trigger widget repaint
+  // If any highlight is hovered then we trigger widget repaint
   void setHoveredHighlights(List<HighlightM> _hoveredHighlights) {
-    final sameHighlights = areListsEqual(_prevHoveredHighlights, _hoveredHighlights);
+    final sameHighlights =
+        areListsEqual(_prevHoveredHighlights, _hoveredHighlights);
 
     if (sameHighlights) {
       return;
     }
 
     _prevHoveredHighlights = [..._hoveredHighlights];
+    safeMarkNeedsPaint();
+  }
+
+  // If any marker is hovered then we trigger widget repaint
+  void setHoveredMarkers(List<MarkerM> _hoveredMarkers) {
+    final sameMarkers = areListsEqual(_prevHoveredMarkers, _hoveredMarkers);
+
+    if (sameMarkers) {
+      return;
+    }
+
+    _prevHoveredMarkers = [..._hoveredMarkers];
     safeMarkNeedsPaint();
   }
 
@@ -582,11 +651,16 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
         markers.forEach((marker) {
           final markerType = _getMarkerType(marker);
 
+          final isHovered = _state.markers.hoveredMarkers.firstWhereOrNull(
+                (_marker) => _marker.id == marker.id,
+              ) !=
+              null;
+
           TextLinesUtils.drawRectangles(
             marker.rectangles ?? [],
             effectiveOffset,
             context,
-            markerType.color,
+            _getMarkerColor(isHovered, markerType),
             Radius.zero,
           );
         });
@@ -612,28 +686,29 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
         _paintCursor(context, effectiveOffset, line.hasEmbed);
       }
 
-      final selectionIsWithinDocBounds = _lineContainsSelection(
-        textSelection,
-      );
+      // Selection
+      final lineContainsSelection = _lineContainsSelection(textSelection);
 
       if (_state.editorConfig.config.enableInteractiveSelection &&
-          selectionIsWithinDocBounds) {
+          lineContainsSelection) {
         final local = _textSelectionUtils.getLocalSelection(
           line,
           textSelection,
           false,
         );
+        // TODO improve types
         _selectedRects ??= _underlyingText!.getBoxesForSelection(local);
         _paintSelection(context, effectiveOffset);
       }
 
       // Highlights
+      // TODO Double check if highlights are rendered on top of markers (or the other way around)
       _state.highlights.highlights.forEach((highlight) {
-        final highlightIsWithinDocBounds = _lineContainsSelection(
+        final lineContainsHighlight = _lineContainsSelection(
           highlight.textSelection,
         );
 
-        if (highlightIsWithinDocBounds) {
+        if (lineContainsHighlight) {
           final local = _textSelectionUtils.getLocalSelection(
             line,
             highlight.textSelection,
@@ -736,17 +811,22 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
   // === PRIVATE ===
 
   // Once a marker is retrieved from the doc we check against the declared markers types.
-  MarkerTypeM _getMarkerType(marker) {
+  MarkerTypeM? _getMarkerType(marker) {
     assert(
       _state.markersTypes.types.isNotEmpty,
       'At least one marker type must be defined',
     );
 
-    final markerType = _state.markersTypes.types.firstWhere(
+    final markerType = _state.markersTypes.types.firstWhereOrNull(
       (markerType) => markerType.id == marker.type,
     );
 
     return markerType;
+  }
+
+  Color _getMarkerColor(bool isHovered, MarkerTypeM? markerType) {
+    return (isHovered ? markerType?.hoverColor : markerType?.color) ??
+        Colors.blue.withOpacity(0.1);
   }
 
   RenderBox? _updateChild(
@@ -859,7 +939,9 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     Offset effectiveOffset,
   ) {
     assert(highlightedRects.isNotEmpty);
-    final isHovered = _state.highlights.hoveredHighlights.contains(highlight);
+    final isHovered = _state.highlights.hoveredHighlights
+        .map((_highlight) => _highlight.id)
+        .contains(highlight.id);
     final paint = Paint()
       ..color = isHovered ? highlight.hoverColor : highlight.color;
 

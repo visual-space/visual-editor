@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 // Read more in markers.md
 @immutable
 class MarkerM {
-
   // We need ids, otherwise we don't have a reliable means of deleting
   // arbitrary markers from a stack of markers that share the same text span.
   // We would be forced to delete only markers from the top.
@@ -33,11 +32,9 @@ class MarkerM {
   final dynamic data;
 
   // At initialisation the editor will parse the delta document and will start rendering the text lines one by one.
-  // Each EditableTextLine render the markers belonging to that particular LineM.
-  // When drawing each marker we retrieve the rectangles and the do relative position of the text line.
+  // Each EditableTextLine renders the markers belonging to that particular LineM.
+  // When drawing each marker we retrieve the rectangles and the relative position of the text line.
   // This information is essential for rendering marker attachments after the editor build is completed.
-  // An additional model was created to make a clear distinction between the marker as retrieved from the delta document (MarkerM)
-  // and the markers that have been rendered and their coordinates are now known.
   // (!) Added at runtime
   final List<TextBox>? rectangles;
 
@@ -54,11 +51,12 @@ class MarkerM {
     this.docRelPosition,
   });
 
+  // (!) Only the static data, no runtime props here
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'type': type,
-    if (data != null) 'data': data,
-  };
+        'id': id,
+        'type': type,
+        if (data != null) 'data': data,
+      };
 
   @override
   String toString() {
@@ -68,7 +66,7 @@ class MarkerM {
         'data: $data, '
         'rectangles: $rectangles,'
         'docRelPosition: $docRelPosition,'
-      ')';
+        ')';
   }
 
   MarkerM copyWith({

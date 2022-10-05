@@ -5,7 +5,7 @@ Visual Editor is a Rich Text editor for [Flutter] originally forked from [Flutte
 <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/visual-editor-demo.gif"/>
 
 ## Why Fork Flutter Quill?
-While building the [Visual Space] platform we begun using [Flutter Quill] to render text content for nextgen interactive tutorials and projects. Initially we attempted to extended Quill with additional features such as custom highlights. However, we had to deal with major issues such as opaque architecture, severe lack of documentation, lack of automatic testing and a complete lack of technical support from the maintainers. Therefore, we decided to fork Quill and improve it with additional features and a focus on higher quality standards. This [reddit post](https://www.reddit.com/r/FlutterDev/comments/uq340b/ive_decided_to_fork_flutter_quill_rich_text/) contains a detailed explanation. 
+While building the [Visual Space] platform we begun using [Flutter Quill] to render text content for nextgen interactive tutorials and projects. Initially we attempted to extend Quill with additional features such as custom highlights. However, we had to deal with major issues such as opaque architecture, severe lack of documentation, lack of automatic testing and a complete lack of technical support from the maintainers. Therefore, we decided to fork Quill and improve it with additional features and a focus on higher quality standards. This [reddit post](https://www.reddit.com/r/FlutterDev/comments/uq340b/ive_decided_to_fork_flutter_quill_rich_text/) contains a detailed explanation. 
 
 ## Major Improvements Compared To Quill
 Check out the [changelog](https://github.com/visual-space/visual-editor/blob/develop/CHANGELOG.md) for a detailed review of what was changed. Also there's a [migration](https://github.com/visual-space/visual-editor/blob/develop/MIGRATING.md) guide for users migrating from Quill.
@@ -131,7 +131,7 @@ Learn more about Visual Editor architecture and how to use the features.
 - **[Cursor (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/cursor/cursor.md)** - Indicates the position where new characters will be inserted.
 - **[Inputs (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/inputs/inputs.md)** - Hardware Keyboard and Software keyboard.
 - **[Rules (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/rules/rules.md)** - Rules execute behavior when certain condition are met.
-- **[Selection (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/selection/selection.md)** - Rules execute behavior when certain condition are met.
+- **[Selection (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/selection/selection.md)** - Handles the rendering of text selection handles and toolbar.
 - **[Highlights](https://github.com/visual-space/visual-editor/blob/develop/lib/highlights/highlights.md)** - Renders temporary text markers sensitive to taps.
 - **[Markers](https://github.com/visual-space/visual-editor/blob/develop/lib/markers/markers.md)** - Renders permanent text markers sensitive to taps as part of the delta document.
 - **[Performance](https://github.com/visual-space/visual-editor/blob/develop/PERFORMANCE.md)** - Basic tips to follow in order to maintain the editor's performance.
@@ -151,12 +151,13 @@ Learn more about Visual Editor architecture and how to use the features.
 Send us a message on [Visual Editor Discord] if you want your app to be listed here.
 
 ## Useful Resources
-[QuillJs Delta](https://github.com/quilljs/delta) •
-[Designing The Delta Format](https://quilljs.com/guides/designing-the-delta-format) •
-[Language Tool](https://languagetool.org) •
-[Language Server Protocol](https://microsoft.github.io/language-server-protocol) •
+[QuillJs Delta](https://github.com/quilljs/delta) • 
+[Designing The Delta Format](https://quilljs.com/guides/designing-the-delta-format) • 
+[Language Tool](https://languagetool.org) • 
+[Language Server Protocol](https://microsoft.github.io/language-server-protocol) • 
 [Word Processing Terminology 1](http://w.sunybroome.edu/basic-computer-skills/functions/word_processing/2wp_terminology.html) • 
-[Word Processing Terminology 2](https://www.computerhope.com/jargon/word-processor.htm)
+[Word Processing Terminology 2](https://www.computerhope.com/jargon/word-processor.htm) • 
+[Flutter custom selection toolbar](https://ktuusj.medium.com/flutter-custom-selection-toolbar-3acbe7937dd3)
 
 [Quill]: https://quilljs.com/docs/formats
 [Quilljs Delta]: https://github.com/quilljs/delta

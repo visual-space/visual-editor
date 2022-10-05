@@ -83,7 +83,7 @@ class SelectionActionsController {
   // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
   late EditorState _state;
 
-  void setState(EditorState state) {
+  void cacheState(EditorState state) {
     _state = state;
   }
 
@@ -99,7 +99,7 @@ class SelectionActionsController {
     this.dragStartBehavior = DragStartBehavior.start,
     this.handlesVisible = false,
   }) {
-    setState(state);
+    cacheState(state);
 
     // The context must not be null and must have an Overlay as an ancestor.
     _context = state.refs.editorState.context;
@@ -130,6 +130,7 @@ class SelectionActionsController {
     }
   }
 
+  // TODO Review why this method is not called
   // Destroys the handles by removing them from overlay.
   void hideHandles() {
     if (_handles == null) {

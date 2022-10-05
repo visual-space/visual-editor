@@ -129,13 +129,6 @@ class TextGesturesService {
     TargetPlatform platform,
     EditorState state,
   ) {
-    if (state.editorConfig.config.onTapUp != null &&
-        state.editorConfig.config.onTapUp!(
-          details,
-          _linesBlocksService.getPositionForOffset,
-        )) {
-      return;
-    }
 
     _selectionActionsService.hideToolbar(state);
 
@@ -329,7 +322,7 @@ class TextGesturesService {
     }
 
     // Make sure to remember the origin for extend selection.
-    state.extendSelection.setOrigin(newSelection);
+    state.selection.setOrigin(newSelection);
   }
 
   // By default, it updates the selection location specified in the provided details objects.

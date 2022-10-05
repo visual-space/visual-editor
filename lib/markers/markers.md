@@ -13,7 +13,7 @@ class MarkerTypeM {
   final Function(MarkersTypeM marker)? onSingleTapUp;
   final Function(MarkersTypeM marker)? onEnter;
   final Function(MarkersTypeM marker)? onHover;
-  final Function(MarkersTypeM marker)? onLeave;
+  final Function(MarkersTypeM marker)? onExit;
 
   const MarkerTypeM({
     required this.id,
@@ -23,7 +23,7 @@ class MarkerTypeM {
     this.onSingleTapUp,
     this.onEnter,
     this.onHover,
-    this.onLeave,
+    this.onExit,
   });
 }
 ```
@@ -40,13 +40,13 @@ final MARKERS_TYPES = [
   MarkerTypeM(
       id: 'UmSuvI9ZcP',
       name: 'Reminder',
-      onEnter: (_) {
+      onEnter: (marker) {
         print('Entering reminder marker 1');
       },
-      onLeave: (_) {
+      onExit: (marker) {
         print('Leaving reminder marker 1');
       },
-      onSingleTapUp: (_) {
+      onSingleTapUp: (marker) {
         print('Tapped reminder marker 1');
       }
   ),
@@ -199,12 +199,69 @@ void _updateMarkerAttachments() {
 }
 ```
 
-## How Markers Are Rendered (WIP)
+## Displaying A Custom Widget When Tapping A Marker
+
+This is a general overview of setting up a marker menu or custom widgets when the marker is tapped. To view a complete sample go to the `SelectionMenuPage` and inspect the code.
+
+```dart
+Widget build(BuildContext context) => Stack(
+  children: [
+    DemoScaffold(
+      child: _controller != null
+          ? _col(
+        children: [
+          _editor(),
+          _toolbar(),
+        ],
+      )
+          : Loading(),
+    ),
+
+    // Has to be a Positioned Widget (anything you need)
+    if (_isQuickMenuVisible) _quickMenu(),
+  ],
+);
+```
+
+Init the editor controller with callbacks defined for the markers types.
+
+```dart
+void _initEditorController(DocumentM document) {
+  _controller = EditorController(
+    document: document,
+    onScroll: _updateQuickMenuPosition,
+    
+    // Hide menu while the selection is changing
+    onSelectionChanged: (selection, rectangles) {
+      _hideQuickMenu();
+    },
+    
+    markerTypes: [
+      MarkerTypeM(
+        id: 'expert',
+        name: 'Expert',
+        onAddMarkerViaToolbar: (type) => 'fake-id-1',
+        
+        // Use your own logic for rendering and positioning the attached widget(s)
+        onSingleTapUp: _displayQuickMenuOnMarker,
+      ),
+    ],
+  );
+}
+```
+
+## How Markers Are Rendered (explained for maintainers)
 Similar to highlights that used the selection rendering logic we will render above the TextLine. We can't use TextSpan Styles to render the document markers since the background color already has this role.
 
 **Toggle Markers**
 
 The `_toggleMarkers$` stream is used to trigger `markForPaint()` in every `EditableTextLineRenderer` (similar to how the cursor updates it's animated opacity). We can't use `_state.refreshEditor.refreshEditor()` because there's no new content, therefore Flutter change detection will not find any change, so it wont trigger any repaint.
+
+**Hover Markers**
+
+In Flutter we don't have any built in mechanic for easily detecting hover over random stretches of text. Therefore we have to write our own code for detecting hovering over markers. When the editor is initialised we store all the markers in the state store. Once the build() method is executed we have references to all the rendering classes for every single class. Using a callback after build we query every single line to check if it has markers, and if so we request the rectangles needed to draw the markers. Unlike highlights, markers are sliced per line by default (when DeltaM is converted to DocumentM). For each marker we cache also the local to global offset of the line where it is hosted. This offset will be essential to align the pointer coordinates with the markers rectangles coordinates. 
+
+Once we have the rectangles we cache them by deep cloning the markers to include this information. When the user pointer enters the editor screen space then the TextGestures widget matches the correct action (onHover). In the on hover method we check every single marker to see if any of the rectangles are intersected by the pointer. Once one or many markers are matched we then cache the ids. On every single hover event we compare if new ids have been added or removed. For each added or removed marker we run the corresponding callbacks defined by the marker type. Then we cache the new hovered markers in the state store and trigger a new editor refresh (build cycle). When the editor is running the build cycle each line will check again for markers that it has to draw and will apply the hovering color according to the hovered markers from the state stare.
 
 
 Join on [discord](https://discord.gg/XpGygmXde4) to get advice and help or follow us on [YouTube Visual Coding](https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA) to learn more about the architecture of Visual Editor and other Flutter apps.

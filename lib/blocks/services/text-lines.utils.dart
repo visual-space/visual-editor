@@ -80,6 +80,12 @@ class TextLinesUtils {
   // Markers are painted as rectangles on top of a canvas overlaid on top of the raw text.
   // The underlying text is the text (text spans) bellow the markers.
   // TODO Maybe it's better to move this method in the /markers module
+  //
+  // Technical note
+  // The markers could have been extracted once on document init (loading json) and then again at update (marker insert).
+  // If the markers are available early, then we can use the same method as for highlights and also have the markers ready earlier in the callstack.
+  // So far we did not do this because we realised a bit late in the game what would be the optimal solution.
+  // And also at teh moment it's not that big of a problem. Maybe we will improve in the future.
   static List<MarkerM> getMarkersToRender(
     Offset effectiveOffset,
     LineM line,
@@ -119,6 +125,17 @@ class TextLinesUtils {
           Offset(0, scrollOffset),
         );
         final renderedMarker = marker.copyWith(
+          // For markers that have been extracted at init we already have the text selection.
+          // However, for markers that are freshly generated we don't have the text selection defined as a property on the marker.
+          // And actually it is not needed. We only need this information when going out of the library to the client code.
+          // While inside the library code we always have access to the text selection data by studying the information provided in the node.
+          // When a new marker is inserted it is passed to the format() method, then to the rules and then to composes().
+          // Once compose completes, it then calls the refreshEditor() which means a new build() cycle starts.
+          // During the build we always have access to the selection values, once again by looking at the document data.
+          textSelection: TextSelection(
+            baseOffset: node.documentOffset,
+            extentOffset: node.documentOffset + node.length,
+          ),
           rectangles: rectangles,
           docRelPosition: documentNodePos,
         );

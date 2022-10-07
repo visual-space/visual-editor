@@ -354,6 +354,7 @@ class EditorController {
     });
   }
 
+  // TODO Add comment
   void formatText(
     int index,
     int len,
@@ -499,7 +500,7 @@ class EditorController {
 
     List<MarkerM>? markers = [];
 
-    // Convert from json map to models
+    // Get Existing Markers
     if (styleAttributes.isNotEmpty) {
       final markersMap = styleAttributes.firstWhere(
         (attribute) => attribute.key == AttributesM.markers.key,
@@ -517,32 +518,61 @@ class EditorController {
     final markersTypes = _state.markersTypes.types;
 
     final MarkerTypeM? markerType = markersTypes.firstWhere(
-      (marker) => marker.id == markerTypeId,
+      (type) => type.id == markerTypeId,
       orElse: () => defaultMarkerType,
     );
 
     var data;
 
+    // The client app is given the option to generate a random UUID and save it in the marker on marker creation.
+    // This UUID can be used to link the marker to entries from another table where you can keep additional metadata about this marker.
+    // For ex: You can have a marker linked to a user profile by the user profile UUID.
+    // By using UUIDs we can avoid duplicating metadata in the delta json when we copy paste markers.
+    // It also keeps the delta document lightweight.
     if (markerType != null && markerType.onAddMarkerViaToolbar != null) {
       data = markerType.onAddMarkerViaToolbar!(markerType);
     }
 
-    // Add the new marker
-    markers?.add(
-      MarkerM(
-        id: getTimeBasedId(),
-        type: markerTypeId,
-        data: data,
-      ),
+    final marker = MarkerM(
+      textSelection: selection.copyWith(),
+      id: getTimeBasedId(),
+      type: markerTypeId,
+      data: data,
     );
+
+    // Add the new marker
+    markers?.add(marker);
 
     // Markers are stored as json data in the styles
     final jsonMarkers = markers?.map((marker) => marker.toJson()).toList();
 
     // Add to document
     formatSelection(
-      AttributeUtils.fromKeyValue('markers', jsonMarkers),
+      AttributeUtils.fromKeyValue(AttributesM.markers.key, jsonMarkers),
     );
+  }
+
+  // Because we can have the same marker copied in different parts of the
+  // document we have to delete all markers with the same id
+  void deleteMarkerById(String markerId) {
+    _state.markers.markers.forEach((marker) {
+      if (marker.id == markerId) {
+        assert(
+          marker.textSelection != null,
+          "Can't find text selection data on the marker. Therefore we can't remove the marker",
+        );
+
+        final index = marker.textSelection?.baseOffset ?? 0;
+        final length = (marker.textSelection?.extentOffset ?? 0) -
+            (marker.textSelection?.baseOffset ?? 0);
+
+        formatText(
+          index,
+          length,
+          AttributeUtils.fromKeyValue(AttributesM.markers.key, null),
+        );
+      }
+    });
   }
 
   void toggleMarkers(bool areVisible) {

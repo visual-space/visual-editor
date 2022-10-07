@@ -5,6 +5,7 @@ import 'attributes/attributes-types.model.dart';
 
 // Attributes defined the characteristics of text.
 // The delta document stores attributes for each operation.
+// @immutable TODO
 class AttributeM<T> {
   final String key;
   final AttributeScope scope;

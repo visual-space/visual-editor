@@ -60,18 +60,19 @@ class AttributeUtils {
     );
   }
 
+  // Converts raw delta json to markers model
   // Markers have additional nested metadata assigned to the value property.
   // Therefore we need to convert it to a MarkerM.
-  static List<MarkerM>? extractMarkersFromAttributeMap(List<dynamic>? value) {
+  static List<MarkerM>? extractMarkersFromAttributeMap(List<dynamic>? markersAttr) {
     // No markers on the attribute (fail safe)
-    if (value == null) {
+    if (markersAttr == null) {
       return null;
     }
 
     final markers = <MarkerM>[];
 
     // Iterate the properties of the map object
-    for (final marker in value) {
+    for (final marker in markersAttr) {
       final keys = marker.values.toList();
 
       // Type

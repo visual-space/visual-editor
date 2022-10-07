@@ -98,8 +98,8 @@ class _MarkersPageState extends State<MarkersPage> {
       );
 
   Future<void> _loadDocument() async {
-    final result = await rootBundle.loadString('assets/docs/markers.json');
-    final document = DocumentM.fromJson(jsonDecode(result));
+    final deltaJson = await rootBundle.loadString('assets/docs/markers.json');
+    final document = DocumentM.fromJson(jsonDecode(deltaJson));
 
     setState(() {
       _initEditorController(document);

@@ -126,6 +126,13 @@ For certain scenarios it might be desired to init the editor with the markers tu
 ),
 ```
 
+## Delete markers
+Markers can be deleted from the document. All markers with the same id will be removed.
+
+```dart
+controller.deleteMarkerById(_marker.id);
+```
+
 ## Markers Attachments
 Markers provide support for attachments by returning their pixel coordinates and dimensions for positioning in text. Based on this information any widget can be linked to a marker. Keep in mind that markers are not widgets, so a simple Overlay from Flutter wont do the trick. Markers are rendered as painted rectangles in a canvas on top of the text. Therefore the only way to simulate attached widgets is by positioning them to the exact coordinates. This page demonstrates such a setup. Attachments can be used render elements such as the markers options menu or delete button.
 

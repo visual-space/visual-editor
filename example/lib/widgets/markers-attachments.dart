@@ -47,7 +47,7 @@ class _MarkersAttachmentsState extends State<MarkersAttachments> {
     );
   }
 
-  // (!) AAttachments that exit the viewport should no longer be rendered.
+  // (!) Attachments that exit the viewport should no longer be rendered.
   // For the sake of simplicity of example we don't do this performance check here.
   // Additional logic for collision detection could be implemented as well.
   List<Widget> _attachments() => _markers.map((marker) {

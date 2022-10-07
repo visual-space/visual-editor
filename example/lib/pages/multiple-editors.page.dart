@@ -95,11 +95,11 @@ class _MultipleEditorsPageState extends State<MultipleEditorsPage> {
       );
 
   Future<void> _loadDocument() async {
-    final result = await rootBundle.loadString(
+    final deltaJson = await rootBundle.loadString(
       'assets/docs/multiple-editors.json',
     );
-    final document1 = DocumentM.fromJson(jsonDecode(result)[0]);
-    final document2 = DocumentM.fromJson(jsonDecode(result)[1]);
+    final document1 = DocumentM.fromJson(jsonDecode(deltaJson)[0]);
+    final document2 = DocumentM.fromJson(jsonDecode(deltaJson)[1]);
 
     setState(() {
       _controller1 = EditorController(

@@ -14,13 +14,18 @@ class MarkerM {
   // to the marker node that he needs to delete (which is not fun).
   // (!) If you need to link one object to multiple marker consider
   // using the data attribute as a shared identifier.
+  // Markers with the same id will be considered a single marker even though they are positioned in different parts of the document.
+  // Because of this they will react at the same time during interactions (hover, delete, etc.)
   final String id;
   final String type;
 
+  // Let's assume you want to link the profile of a particular user to one or more arbitrary markers
+  // (for example to render a user card on top of the marker on hovering).
   // The "data" attribute stores custom params as desired by the client app (uuid or serialised json data).
   // It's up to the client app to decide how to use the data attribute.
-  // One idea is to use UUIDS that point to separate objects which provide additional info for a marker.
-  // For example a developer might want to render a bunch of stats that are repeating on a large set of the markers of the app.
+  // One idea is to use UUIDs that point to separate objects which provide additional info for a marker.
+  // For example a developer might want to render a bunch of statistics (or an user profile)
+  // that are repeating on a large set of the markers of the app.
   // Therefore instead of repeating the same data inline in the entire doc it's better to reference these values from a separate list.
   // In this case using the data to store an UUID for the descriptor object will be enough.
   // On the other hand, if the dev knows that most of the markers will have few
@@ -35,6 +40,8 @@ class MarkerM {
   // Each EditableTextLine renders the markers belonging to that particular LineM.
   // When drawing each marker we retrieve the rectangles and the relative position of the text line.
   // This information is essential for rendering marker attachments after the editor build is completed.
+  // An additional model was created to make a clear distinction between the marker as retrieved from the delta document (MarkerM)
+  // and the markers that have been rendered and their coordinates are now known.
   // (!) Added at runtime
   final List<TextBox>? rectangles;
 
@@ -43,12 +50,17 @@ class MarkerM {
   // (!) Added at runtime
   final Offset? docRelPosition;
 
+  // When reading the delta json we want to understand from which chars up to which chars the marker is defined.
+  // (!) Added at runtime
+  final TextSelection? textSelection;
+
   MarkerM({
     required this.id,
     required this.type,
     this.data,
     this.rectangles,
     this.docRelPosition,
+    this.textSelection,
   });
 
   // (!) Only the static data, no runtime props here
@@ -56,6 +68,9 @@ class MarkerM {
         'id': id,
         'type': type,
         if (data != null) 'data': data,
+        // We don't want to add the runtime data (textSelection, docRelPosition, rectangles)
+        // because that is a projection of data already
+        // encoded in the way the text was sliced into operations.
       };
 
   @override
@@ -66,7 +81,8 @@ class MarkerM {
         'data: $data, '
         'rectangles: $rectangles,'
         'docRelPosition: $docRelPosition,'
-        ')';
+        'textSelection: $textSelection,'
+      ')';
   }
 
   MarkerM copyWith({
@@ -75,6 +91,7 @@ class MarkerM {
     dynamic data,
     List<TextBox>? rectangles,
     Offset? docRelPosition,
+    TextSelection? textSelection,
   }) =>
       MarkerM(
         id: id ?? this.id,
@@ -82,5 +99,6 @@ class MarkerM {
         data: data ?? this.data,
         rectangles: rectangles ?? this.rectangles,
         docRelPosition: docRelPosition ?? this.docRelPosition,
+        textSelection: textSelection ?? this.textSelection,
       );
 }

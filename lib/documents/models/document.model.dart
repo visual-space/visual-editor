@@ -1,10 +1,14 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
+
 import '../../controller/models/paste-style.model.dart';
+import '../../markers/models/marker.model.dart';
 import '../../rules/controllers/rules.controller.dart';
 import '../../rules/models/rule-type.enum.dart';
 import '../../rules/models/rule.model.dart';
 import 'attribute.model.dart';
+import 'attributes/attributes.model.dart';
 import 'change-source.enum.dart';
 import 'delta/delta-changes.model.dart';
 import 'delta/delta.model.dart';
@@ -150,6 +154,7 @@ class DocumentM {
     return delta;
   }
 
+  // TODO Improve doc to better express that format is before rules
   // Formats segment of this document with specified attribute.
   // Applies heuristic rules before modifying this document and
   // produces a change event with its source set to ChangeSource.local.
@@ -177,6 +182,7 @@ class DocumentM {
     return delta;
   }
 
+  // TODO Improve doc to better express that compose is after rules
   // Composes change Delta into this document.
   // Use this method with caution as it does not apply heuristic rules to the change.
   // It is callers responsibility to ensure that the change conforms to the document
@@ -191,22 +197,23 @@ class DocumentM {
     delta = _transform(delta);
     final originalDelta = toDelta();
 
-    for (final op in delta.toList()) {
-      final style =
-          op.attributes != null ? StyleM.fromJson(op.attributes) : null;
+    for (final operation in delta.toList()) {
+      final style = operation.attributes != null
+          ? StyleM.fromJson(operation.attributes)
+          : null;
 
-      if (op.isInsert) {
+      if (operation.isInsert) {
         // Must normalize data before inserting into the document, makes sure
         // that any embedded objects are converted into EmbeddableObject type.
-        _root.insert(offset, _normalize(op.data), style);
-      } else if (op.isDelete) {
-        _root.delete(offset, op.length);
-      } else if (op.attributes != null) {
-        _root.retain(offset, op.length, style);
+        _root.insert(offset, _normalize(operation.data), style);
+      } else if (operation.isDelete) {
+        _root.delete(offset, operation.length);
+      } else if (operation.attributes != null) {
+        _root.retain(offset, operation.length, style);
       }
 
-      if (!op.isDelete) {
-        offset += op.length!;
+      if (!operation.isDelete) {
+        offset += operation.length!;
       }
     }
 
@@ -360,6 +367,29 @@ class DocumentM {
           : null;
       final data = _normalize(operation.data);
 
+      // Add base and extent for markers (needed for delete)
+      final hasMarkers =
+          style?.attributes.keys.toList().contains(AttributesM.markers.key) ??
+              false;
+
+      if (hasMarkers) {
+        final markers =
+            style!.attributes[AttributesM.markers.key]!.value as List<MarkerM>;
+        final _markers = markers
+            .map(
+              (marker) => marker.copyWith(
+                textSelection: TextSelection(
+                  baseOffset: offset,
+                  extentOffset: offset + (operation.length ?? 0),
+                ),
+              ),
+            )
+            .toList();
+
+        markers.clear();
+        markers.addAll(_markers);
+      }
+
       // Add to root
       _root.insert(offset, data, style);
       offset += operation.length!;
@@ -376,6 +406,8 @@ class DocumentM {
     }
   }
 
+  // Data is normalized (converted to models) before inserting into the document.
+  // Ensures that any embedded objects are converted into EmbeddableObject type when new content is added to the document.
   Object _normalize(Object? data) {
     if (data is String) {
       return data;

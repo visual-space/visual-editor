@@ -45,6 +45,8 @@ class OperationM {
 
   static const String deleteKey = 'delete';
 
+  // Retains length of characters and optionally applies attributes.
+  // This is useful when you want to apply changes on the same delta without progressing to the next operation.
   static const String retainKey = 'retain';
 
   static const String attributesKey = 'attributes';
@@ -55,6 +57,7 @@ class OperationM {
   // Can be "insert", "delete" or "retain".
   final String key;
 
+  // TODO Dow really woant optional value here? Should be guaranteed with fail safe to zero.
   // Length of this operation.
   final int? length;
 

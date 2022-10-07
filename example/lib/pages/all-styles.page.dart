@@ -82,10 +82,10 @@ class _AllStylesPageState extends State<AllStylesPage> {
       );
 
   Future<void> _loadDocument() async {
-    final result = await rootBundle.loadString(
+    final deltaJson = await rootBundle.loadString(
       'assets/docs/all-styles.json',
     );
-    final document = DocumentM.fromJson(jsonDecode(result));
+    final document = DocumentM.fromJson(jsonDecode(deltaJson));
 
     setState(() {
       _controller = EditorController(

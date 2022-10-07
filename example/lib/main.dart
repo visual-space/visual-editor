@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'pages/all-styles.page.dart';
 import 'pages/custom-toolbar.page.dart';
+import 'pages/delete-markers.page.dart';
 import 'pages/delta-sandbox.page.dart';
 import 'pages/highlights.page.dart';
 import 'pages/markers-attachments.page.dart';
@@ -39,6 +40,7 @@ class DemoApp extends StatelessWidget {
         '/highlights': (context) => HighlightsPage(),
         '/markers': (context) => MarkersPage(),
         '/markers-attachments': (context) => MarkersAttachmentsPage(),
+        '/delete-markers': (context) => DeleteMarkersPage(),
         '/selection-menu': (context) => SelectionMenuPage(),
         '/delta-sandbox': (context) => DeltaSandbox(),
         '/overwrite-controller': (context) => OverwriteControllerPage(),

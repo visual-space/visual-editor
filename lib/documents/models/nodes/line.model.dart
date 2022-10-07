@@ -140,10 +140,11 @@ class LineM extends ContainerM<LeafM?> {
 
     if (isLineFormat) {
       assert(
-          style.values.every((attr) =>
-              attr.scope == AttributeScope.BLOCK ||
-              attr.scope == AttributeScope.IGNORE),
-          'It is not allowed to apply inline attributes to line itself.');
+        style.values.every((attr) =>
+            attr.scope == AttributeScope.BLOCK ||
+            attr.scope == AttributeScope.IGNORE),
+        'It is not allowed to apply inline attributes to line itself.',
+      );
       _format(style);
     } else {
       // Otherwise forward to children as it's an inline format update.

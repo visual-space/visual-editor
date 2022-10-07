@@ -217,8 +217,10 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
 
   // If any highlight is hovered then we trigger widget repaint
   void setHoveredHighlights(List<HighlightM> _hoveredHighlights) {
-    final sameHighlights =
-        areListsEqual(_prevHoveredHighlights, _hoveredHighlights);
+    final sameHighlights = areListsEqual(
+      _prevHoveredHighlights,
+      _hoveredHighlights,
+    );
 
     if (sameHighlights) {
       return;

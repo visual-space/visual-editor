@@ -63,8 +63,8 @@ class _ReadOnlyPageState extends State<ReadOnlyPage> {
       );
 
   Future<void> _loadDocument() async {
-    final result = await rootBundle.loadString('assets/docs/read-only.json');
-    final document = DocumentM.fromJson(jsonDecode(result));
+    final deltaJson = await rootBundle.loadString('assets/docs/read-only.json');
+    final document = DocumentM.fromJson(jsonDecode(deltaJson));
 
     setState(() {
       _controller = EditorController(

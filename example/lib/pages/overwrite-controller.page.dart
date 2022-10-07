@@ -82,10 +82,10 @@ class _OverwriteControllerPageState extends State<OverwriteControllerPage> {
   );
 
   Future<void> _loadDocument() async {
-    final result = await rootBundle.loadString(
+    final deltaJson = await rootBundle.loadString(
       'assets/docs/overwrite-controller.json',
     );
-    final document = DocumentM.fromJson(jsonDecode(result));
+    final document = DocumentM.fromJson(jsonDecode(deltaJson));
 
     setState(() {
       _controller = EditorController(

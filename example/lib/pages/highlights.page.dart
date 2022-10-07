@@ -126,8 +126,8 @@ class _HighlightsPageState extends State<HighlightsPage> {
       );
 
   Future<void> _loadDocument() async {
-    final result = await rootBundle.loadString('assets/docs/highlights.json');
-    final document = DocumentM.fromJson(jsonDecode(result));
+    final deltaJson = await rootBundle.loadString('assets/docs/highlights.json');
+    final document = DocumentM.fromJson(jsonDecode(deltaJson));
 
     setState(() {
       _initEditorController(document);

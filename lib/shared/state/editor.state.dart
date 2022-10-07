@@ -43,6 +43,9 @@ class EditorState {
   final cursor = CursorState();
 
   // Documents
+  // Usually if you change the document then you will have to call refreshState()
+  // to trigger a new widget tree build()
+  // Most of the code that changes the document directly is hosted in the controller.
   final document = DocumentState();
 
   // Editor
@@ -61,6 +64,7 @@ class EditorState {
 
   // Markers
   final markersTypes = MarkersTypesState();
+  // (!) Derived from the document at each build (not the source of truth)
   final markers = MarkersState();
   final markersVisibility = MarkersVisibilityState();
 

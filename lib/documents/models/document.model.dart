@@ -369,12 +369,12 @@ class DocumentM {
 
       // Add base and extent for markers (needed for delete)
       final hasMarkers =
-          style?.attributes.keys.toList().contains(AttributesM.markers.key) ??
+          style?.attributes?.keys.toList().contains(AttributesM.markers.key) ??
               false;
 
       if (hasMarkers) {
         final markers =
-            style!.attributes[AttributesM.markers.key]!.value as List<MarkerM>;
+            style!.attributes![AttributesM.markers.key]!.value as List<MarkerM>;
         final _markers = markers
             .map(
               (marker) => marker.copyWith(

@@ -375,7 +375,7 @@ class LineM extends ContainerM<LeafM?> {
 
   // Formats this line.
   void _format(StyleM? newStyle) {
-    if (newStyle == null || newStyle.isEmpty) {
+    if (newStyle == null || newStyle.isEmpty || newStyle.attributes == null) {
       return;
     }
 
@@ -401,14 +401,16 @@ class LineM extends ContainerM<LeafM?> {
         _unwrap();
 
         // Block style now can contain multiple attributes
-        if (newStyle.attributes.keys
-            .any(AttributesTypesM.exclusiveBlockKeys.contains)) {
+        if (newStyle.attributes!.keys.any(
+          AttributesTypesM.exclusiveBlockKeys.contains,
+        )) {
           parentStyle.removeWhere(
-              (key, attr) => AttributesTypesM.exclusiveBlockKeys.contains(key));
+            (key, attr) => AttributesTypesM.exclusiveBlockKeys.contains(key),
+          );
         }
 
         parentStyle.removeWhere(
-          (key, attr) => newStyle?.attributes.keys.contains(key) ?? false,
+          (key, attr) => newStyle?.attributes!.keys.contains(key) ?? false,
         );
 
         final parentStyleToMerge = StyleM.attr(parentStyle);

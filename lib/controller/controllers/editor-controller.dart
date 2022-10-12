@@ -16,6 +16,8 @@ import '../../documents/models/style.model.dart';
 import '../../documents/services/attribute.utils.dart';
 import '../../documents/services/delta.utils.dart';
 import '../../embeds/models/image.model.dart';
+import '../../headings/models/heading-type.enum.dart';
+import '../../headings/models/heading.model.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../markers/const/default-marker-type.const.dart';
 import '../../markers/models/marker-type.model.dart';
@@ -273,8 +275,11 @@ class EditorController {
 
     if (keepStyleOnNewLine) {
       final style = getSelectionStyle();
-      final notInlineStyle = style.attributes.values.where((s) => !s.isInline);
-      toggledStyle = style.removeAll(notInlineStyle.toSet());
+      final hasAttrs = style.attributes != null;
+      final notInlineStyle = style.attributes!.values.where((s) => !s.isInline);
+      if (hasAttrs) {
+        toggledStyle = style.removeAll(notInlineStyle.toSet());
+      }
     } else {
       toggledStyle = StyleM();
     }
@@ -349,9 +354,13 @@ class EditorController {
   // === TEXT STYLES ===
 
   void formatTextStyle(int index, int len, StyleM style) {
-    style.attributes.forEach((key, attr) {
-      formatText(index, len, attr);
-    });
+    final hasAttrs = style.attributes != null;
+
+    if (hasAttrs) {
+      style.attributes!.forEach((key, attr) {
+        formatText(index, len, attr);
+      });
+    }
   }
 
   // TODO Add comment
@@ -585,6 +594,14 @@ class EditorController {
 
   List<MarkerM> getAllMarkers() {
     return _state.markers.markers;
+  }
+
+  List<HeadingM> getHeadingsByType({List<HeadingTypeE>? types}) {
+    if (types != null) {
+      _state.headings.setHeadingTypes(types);
+    }
+
+    return _state.headings.headings;
   }
 
   // === PRIVATE ===

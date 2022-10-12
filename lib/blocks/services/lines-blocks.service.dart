@@ -89,7 +89,9 @@ class LinesBlocksService {
 
   Future<LinkMenuAction> linkActionPicker(
       NodeM linkNode, EditorState state) async {
-    final link = linkNode.style.attributes[AttributesM.link.key]!.value!;
+    final hasAttr = linkNode.style.attributes != null;
+    final link =
+        hasAttr ? linkNode.style.attributes![AttributesM.link.key]!.value! : '';
     final linkDelegate = state.editorConfig.config.linkActionPickerDelegate ??
         defaultLinkActionPickerDelegate;
 
@@ -206,18 +208,21 @@ class LinesBlocksService {
     BlockM node,
     EditorStylesM? defaultStyles,
   ) {
+    final hasAttr = node.style.attributes != null;
     final attrs = node.style.attributes;
 
-    if (attrs.containsKey(AttributesM.blockQuote.key)) {
-      return defaultStyles!.quote!.verticalSpacing;
-    } else if (attrs.containsKey(AttributesM.codeBlock.key)) {
-      return defaultStyles!.code!.verticalSpacing;
-    } else if (attrs.containsKey(AttributesM.indent.key)) {
-      return defaultStyles!.indent!.verticalSpacing;
-    } else if (attrs.containsKey(AttributesM.list.key)) {
-      return defaultStyles!.lists!.verticalSpacing;
-    } else if (attrs.containsKey(AttributesM.align.key)) {
-      return defaultStyles!.align!.verticalSpacing;
+    if (hasAttr) {
+      if (attrs!.containsKey(AttributesM.blockQuote.key)) {
+        return defaultStyles!.quote!.verticalSpacing;
+      } else if (attrs.containsKey(AttributesM.codeBlock.key)) {
+        return defaultStyles!.code!.verticalSpacing;
+      } else if (attrs.containsKey(AttributesM.indent.key)) {
+        return defaultStyles!.indent!.verticalSpacing;
+      } else if (attrs.containsKey(AttributesM.list.key)) {
+        return defaultStyles!.lists!.verticalSpacing;
+      } else if (attrs.containsKey(AttributesM.align.key)) {
+        return defaultStyles!.align!.verticalSpacing;
+      }
     }
 
     return VerticalSpacing(top: 0, bottom: 0);
@@ -227,19 +232,22 @@ class LinesBlocksService {
     LineM line,
     EditorStylesM? defaultStyles,
   ) {
+    final hasAttr = line.style.attributes != null;
     final attrs = line.style.attributes;
 
-    if (attrs.containsKey(AttributesM.header.key)) {
-      final int? level = attrs[AttributesM.header.key]!.value;
-      switch (level) {
-        case 1:
-          return defaultStyles!.h1!.verticalSpacing;
-        case 2:
-          return defaultStyles!.h2!.verticalSpacing;
-        case 3:
-          return defaultStyles!.h3!.verticalSpacing;
-        default:
-          throw 'Invalid level $level';
+    if (hasAttr) {
+      if (attrs!.containsKey(AttributesM.header.key)) {
+        final int? level = attrs[AttributesM.header.key]!.value;
+        switch (level) {
+          case 1:
+            return defaultStyles!.h1!.verticalSpacing;
+          case 2:
+            return defaultStyles!.h2!.verticalSpacing;
+          case 3:
+            return defaultStyles!.h3!.verticalSpacing;
+          default:
+            throw 'Invalid level $level';
+        }
       }
     }
 

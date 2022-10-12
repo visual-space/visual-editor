@@ -1,6 +1,12 @@
 # Changelog
 If you want to learn more about the specs, all tickets are available by following the hashtag links.
 
+## [0.6.0] Headings List [#140](https://github.com/visual-space/visual-editor/issues/140)
+* Exposed public method to access the headings after rendering headings from the document. The client code can read the text and the position (rectangles) of every heading. Similar to markers and highlights, we are storing this information in the internal state store after rendering. [#135](https://github.com/visual-space/visual-editor/issues/135)
+  * Improved the null safety for the operation attributes. The getter was guaranteeing that the array will contain at least one AttributeM. Which is not true.
+  * Added demo page to demonstrate how to render an index panel using the headings.
+  * Implemented a scroll to feature. Tapping the headings will scroll ot the coresponding text.
+
 ## [0.5.0] Markers [#69](https://github.com/visual-space/visual-editor/issues/69)
 * Added custom markers. Multiple marker types can be defined. The client app can define callbacks for hovering the markers.
   * Split the AttributeM static properties in methods in multiple files

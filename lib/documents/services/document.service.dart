@@ -62,15 +62,15 @@ class DocumentService {
             textDirection: getDirectionOfNode(node),
             child: _editableTextBlock(
               node,
-              node.style.attributes,
+              node.style.attributes!,
               indentLevelCounts,
               state,
             ),
           ),
         );
-
-        // Fail
-      } else {
+      }
+      // Fail
+      else {
         throw StateError('Unreachable.');
       }
     }
@@ -80,13 +80,14 @@ class DocumentService {
       _cacheMarkers(state, renderers);
       _cacheHighlights(state, renderers);
       _cacheSelectionRectangles(state, renderers);
+      _cacheHeadings(state, renderers);
     });
 
     return docWidgets;
   }
 
-  // Right before sending the document to the rendering layer, we want to check if the document is not empty.
-  // If the document is empty, we replace it with placeholder content.
+// Right before sending the document to the rendering layer, we want to check if the document is not empty.
+// If the document is empty, we replace it with placeholder content.
   DocumentM getDocOrPlaceholder(EditorState state) =>
       state.document.document.isEmpty() &&
               state.editorConfig.config.placeholder != null
@@ -182,8 +183,8 @@ class DocumentService {
 
   // (!) For a selection that span multiple lines of text we are extracting from
   // each renderer only the rectangles belonging to that particular line.
-  void _cacheSelectionRectangles(EditorState state, List<EditableTextLine> renderers) {
-
+  void _cacheSelectionRectangles(
+      EditorState state, List<EditableTextLine> renderers) {
     // Get Rectangles
     final rectangles = <SelectionRectanglesM>[];
 
@@ -198,5 +199,19 @@ class DocumentService {
 
     // Cache in state store
     state.selection.setSelectionRectangles(rectangles);
+  }
+
+  void _cacheHeadings(EditorState state, List<EditableTextLine> renderers) {
+    // Clear the old headings
+    state.headings.removeAllHeadings();
+
+    // Headings offset
+    renderers.forEach((renderer) {
+      final heading = renderer.getRenderedHeadingCoordinates();
+
+      if (heading != null) {
+        state.headings.addHeading(heading);
+      }
+    });
   }
 }

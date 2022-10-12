@@ -256,7 +256,7 @@ class _TextLineState extends State<TextLine> {
     final textNode = node as TextM;
     final nodeStyle = textNode.style;
     final isLink = nodeStyle.containsKey(AttributesM.link.key) &&
-        nodeStyle.attributes[AttributesM.link.key]!.value != null;
+        nodeStyle.attributes?[AttributesM.link.key]!.value != null;
     final canLaunchLink = isLink &&
         _textLineLinkUtils.canLaunchLinks(
           widget._state,

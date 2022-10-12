@@ -33,9 +33,9 @@ ImageNodeM getImageNode(EditorController controller, int offset) {
 String getImageStyleString(EditorController controller) {
   final String? s = controller
       .getAllSelectionStyles()
-      .firstWhere((s) => s.attributes.containsKey(AttributesM.style.key),
+      .firstWhere((s) => s.attributes!.containsKey(AttributesM.style.key),
           orElse: () => StyleM())
-      .attributes[AttributesM.style.key]
+      .attributes?[AttributesM.style.key]
       ?.value;
   return s ?? '';
 }

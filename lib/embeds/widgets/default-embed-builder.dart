@@ -33,7 +33,7 @@ Widget defaultEmbedBuilder(
     case BlockEmbedM.imageType:
       final imageUrl = standardizeImageUrl(node.value.data);
       var image;
-      final style = node.style.attributes['style'];
+      final style = node.style.attributes?['style'];
 
       if (isMobile() && style != null) {
         final _attrs = parseKeyValuePairs(

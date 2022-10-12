@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../documents/models/nodes/line.model.dart';
+import '../../headings/models/heading.model.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../markers/models/marker.model.dart';
 import '../../shared/models/selection-rectangles.model.dart';
@@ -122,6 +123,11 @@ class EditableTextLine extends RenderObjectWidget {
   // Avoids exposing the private renderer, it only collects the selection.
   SelectionRectanglesM? getSelectionCoordinates() {
     return _renderer?.getSelectionCoordinates();
+  }
+
+  // Avoids exposing the private renderer, it only collects the headings.
+  HeadingM? getRenderedHeadingCoordinates() {
+    return _renderer?.getRenderedHeadingCoordinates();
   }
 
   EdgeInsetsGeometry _getPadding() {

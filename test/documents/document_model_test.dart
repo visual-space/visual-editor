@@ -33,7 +33,7 @@ void main() {
 
   group('Document Model', () {
     test('Markers, converts json to document styles', () {
-      final markerStyle = document.root.children.first.style.attributes[AttributesM.markers.key];
+      final markerStyle = document.root.children.first.style.attributes?[AttributesM.markers.key];
       expect(markerStyle?.key, AttributesM.markers.key);
       expect(markerStyle?.scope, AttributeScope.INLINE);
       expect(markerStyle?.value['type'], 'expert');

@@ -22,7 +22,7 @@ class StyleM {
             AttributeUtils.getRegistryOrder(b),
       );
 
-  Map<String, AttributeM> get attributes => _attributes;
+  Map<String, AttributeM>? get attributes => _attributes;
 
   bool get isEmpty => _attributes.isEmpty;
 
@@ -105,11 +105,13 @@ class StyleM {
   Map<String, AttributeM> getBlocksExceptHeader() {
     final m = <String, AttributeM>{};
 
-    attributes.forEach((key, value) {
-      if (AttributesTypesM.blockKeysExceptHeader.contains(key)) {
-        m[key] = value;
-      }
-    });
+    if (attributes != null) {
+      attributes!.forEach((key, value) {
+        if (AttributesTypesM.blockKeysExceptHeader.contains(key)) {
+          m[key] = value;
+        }
+      });
+    }
 
     return m;
   }
@@ -143,7 +145,7 @@ class StyleM {
   }
 
   StyleM put(AttributeM attribute) {
-    final m = Map<String, AttributeM>.from(attributes);
+    final m = Map<String, AttributeM>.from(attributes!);
     m[attribute.key] = attribute;
 
     return StyleM.attr(m);

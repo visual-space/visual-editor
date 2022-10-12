@@ -55,9 +55,12 @@ class TextLineLinkUtils {
   }
 
   void _tapNodeLink(NodeM node, EditorState state) {
-    final link = node.style.attributes[AttributesM.link.key]!.value;
+    final link = node.style.attributes![AttributesM.link.key]!.value;
+    final hasAttrs = node.style.attributes != null;
 
-    _tapLink(link, state);
+    if (hasAttrs) {
+      _tapLink(link, state);
+    }
   }
 
   void _tapLink(String? link, EditorState state) {
@@ -84,7 +87,7 @@ class TextLineLinkUtils {
     EditorState state,
     LinkActionPicker linkActionPicker,
   ) async {
-    final link = node.style.attributes[AttributesM.link.key]!.value!;
+    final link = node.style.attributes?[AttributesM.link.key]!.value!;
     final action = await linkActionPicker(node, state);
 
     switch (action) {

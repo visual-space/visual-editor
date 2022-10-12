@@ -63,12 +63,17 @@ class _ColorButtonState extends State<ColorButton> {
   @override
   void initState() {
     super.initState();
-    _isToggledColor = _getIsToggledColor(_selectionStyle.attributes);
-    _isToggledBackground = _getIsToggledBackground(_selectionStyle.attributes);
-    _isWhite = _isToggledColor &&
-        _selectionStyle.attributes['color']!.value == '#ffffff';
-    _isWhiteBackground = _isToggledBackground &&
-        _selectionStyle.attributes['background']!.value == '#ffffff';
+
+    if (_selectionStyle.attributes != null) {
+      _isToggledColor = _getIsToggledColor(_selectionStyle.attributes!);
+      _isToggledBackground =
+          _getIsToggledBackground(_selectionStyle.attributes!);
+      _isWhite = _isToggledColor &&
+          _selectionStyle.attributes!['color']!.value == '#ffffff';
+      _isWhiteBackground = _isToggledBackground &&
+          _selectionStyle.attributes!['background']!.value == '#ffffff';
+    }
+
     _subscribeToRefreshListener();
   }
 
@@ -90,12 +95,12 @@ class _ColorButtonState extends State<ColorButton> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final iconColor = _isToggledColor && !widget.background && !_isWhite
-        ? stringToColor(_selectionStyle.attributes['color']!.value)
+        ? stringToColor(_selectionStyle.attributes?['color']!.value)
         : (widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color);
 
     final iconColorBackground =
         _isToggledBackground && widget.background && !_isWhiteBackground
-            ? stringToColor(_selectionStyle.attributes['background']!.value)
+            ? stringToColor(_selectionStyle.attributes?['background']!.value)
             : (widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color);
 
     final fillColor = _isToggledColor && !widget.background && _isWhite
@@ -132,13 +137,13 @@ class _ColorButtonState extends State<ColorButton> {
       _refreshListener?.cancel();
       widget.controller.setStateInEditorStateReceiver(widget);
       _subscribeToRefreshListener();
-      _isToggledColor = _getIsToggledColor(_selectionStyle.attributes);
+      _isToggledColor = _getIsToggledColor(_selectionStyle.attributes!);
       _isToggledBackground =
-          _getIsToggledBackground(_selectionStyle.attributes);
+          _getIsToggledBackground(_selectionStyle.attributes!);
       _isWhite = _isToggledColor &&
-          _selectionStyle.attributes['color']!.value == '#ffffff';
+          _selectionStyle.attributes?['color']!.value == '#ffffff';
       _isWhiteBackground = _isToggledBackground &&
-          _selectionStyle.attributes['background']!.value == '#ffffff';
+          _selectionStyle.attributes?['background']!.value == '#ffffff';
     }
   }
 
@@ -153,15 +158,15 @@ class _ColorButtonState extends State<ColorButton> {
   void _didChangeEditingValue() {
     setState(() {
       _isToggledColor = _getIsToggledColor(
-        widget.controller.getSelectionStyle().attributes,
+        widget.controller.getSelectionStyle().attributes!,
       );
       _isToggledBackground = _getIsToggledBackground(
-        widget.controller.getSelectionStyle().attributes,
+        widget.controller.getSelectionStyle().attributes!,
       );
       _isWhite = _isToggledColor &&
-          _selectionStyle.attributes['color']!.value == '#ffffff';
+          _selectionStyle.attributes?['color']!.value == '#ffffff';
       _isWhiteBackground = _isToggledBackground &&
-          _selectionStyle.attributes['background']!.value == '#ffffff';
+          _selectionStyle.attributes?['background']!.value == '#ffffff';
     });
   }
 

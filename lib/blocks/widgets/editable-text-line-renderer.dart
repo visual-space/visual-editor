@@ -11,6 +11,7 @@ import '../../documents/models/attributes/attributes.model.dart';
 import '../../documents/models/nodes/container.model.dart' as container_node;
 import '../../documents/models/nodes/line.model.dart';
 import '../../documents/models/nodes/text.model.dart';
+import '../../headings/models/heading.model.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../markers/models/marker-type.model.dart';
 import '../../markers/models/marker.model.dart';
@@ -124,6 +125,26 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
     }
 
     return markers;
+  }
+
+  // We need the coordinates of every header stored
+  // They will be useful for custom features such as scroll to tapped heading
+  HeadingM? getRenderedHeadingCoordinates() {
+    HeadingM? heading;
+
+    if (_underlyingText != null) {
+      final parentData = _underlyingText!.parentData as BoxParentData;
+      final effectiveOffset = _cachedOffset + parentData.offset;
+
+      heading = TextLinesUtils.getHeadingToRender(
+        effectiveOffset,
+        line,
+        _state,
+        _underlyingText,
+      );
+    }
+
+    return heading;
   }
 
   // We need the highlights rectangles coordinates as rendered against the actual lines of text after build().

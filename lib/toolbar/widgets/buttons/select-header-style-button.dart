@@ -171,7 +171,7 @@ class _SelectHeaderStyleButtonState extends State<SelectHeaderStyleButton> {
       widget.controller.toolbarButtonToggler.remove(AttributesM.header.key);
       return attr;
     }
-    return _selectionStyle.attributes[AttributesM.header.key] ??
+    return _selectionStyle.attributes?[AttributesM.header.key] ??
         AttributesM.header;
   }
 }

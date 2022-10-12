@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import '../../documents/models/attribute-scope.enum.dart';
+import '../../documents/models/attribute.model.dart';
 import '../../documents/models/attributes/attributes.model.dart';
 import '../../documents/models/nodes/line.model.dart';
 import '../../documents/models/nodes/node.model.dart';
+import '../../headings/models/heading-type.enum.dart';
+import '../../headings/models/heading.model.dart';
 import '../../markers/models/marker.model.dart';
 import '../../selection/services/text-selection.utils.dart';
 import '../../shared/models/content-proxy-box-renderer.model.dart';
@@ -150,11 +154,89 @@ class TextLinesUtils {
 
   // A node can host multiple attributes, one of them is the markers attribute.
   static List<MarkerM> _getTheMarkersAttributeFromNode(NodeM node) {
-    return node.style.attributes.values
+    return node.style.attributes?.values
         .firstWhere(
           (attribute) => attribute.key == AttributesM.markers.key,
+          orElse: () => AttributeM('', AttributeScope.INLINE, null),
         )
         .value;
+  }
+
+  // === HEADINGS ===
+
+  static HeadingM? getHeadingToRender(
+    Offset effectiveOffset,
+    LineM line,
+    EditorState state,
+    RenderContentProxyBox? underlyingText,
+  ) {
+    HeadingM? _heading;
+    final hasAttrs = line.style.attributes != null;
+
+    if (hasAttrs) {
+      final headingAttr = line.style.attributes!.values.firstWhere(
+        (attribute) => attribute.key == AttributesM.header.key,
+        orElse: () => AttributeM('', AttributeScope.INLINE, null),
+      );
+      final hasHeading = _headingIsCorrectType(headingAttr, state);
+
+      if (hasHeading) {
+        final heading = HeadingM(
+          text: line.toPlainText(),
+        );
+
+        var scrollOffset = 0.0;
+        if (state.editorConfig.config.scrollable == true) {
+          scrollOffset = state.refs.scrollController.offset;
+        }
+
+        final documentNodePos = underlyingText?.localToGlobal(
+          // Regardless off the current state of the scroll we want the offset
+          // relative to the beginning of document.
+          Offset(0, scrollOffset),
+        );
+        final textSelection = TextSelection(
+          baseOffset: line.documentOffset,
+          extentOffset: line.documentOffset + line.length,
+        );
+        final rectangles = underlyingText?.getBoxesForSelection(textSelection);
+        final renderedHeading = heading.copyWith(
+          docRelPosition: documentNodePos,
+          rectangles: rectangles,
+        );
+
+        _heading = renderedHeading;
+      }
+    }
+
+    return _heading;
+  }
+
+  static bool _headingIsCorrectType(
+    AttributeM<dynamic> headingAttr,
+    EditorState state,
+  ) {
+    var isCorrectType = false;
+
+    state.headings.headingsTypes.forEach((type) {
+      if (type == HeadingTypeE.h1) {
+        if (headingAttr.value == 1) {
+          isCorrectType = true;
+        }
+      }
+      if (type == HeadingTypeE.h2) {
+        if (headingAttr.value == 2) {
+          isCorrectType = true;
+        }
+      }
+      if (type == HeadingTypeE.h3) {
+        if (headingAttr.value == 3) {
+          isCorrectType = true;
+        }
+      }
+    });
+
+    return isCorrectType;
   }
 
   // === DRAW SHAPES ===

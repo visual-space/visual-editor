@@ -274,7 +274,7 @@ class _EditorDropdownState<T> extends State<EditorDropdown<T>> {
 
   // Retrieves the value of the edited attribute from the selected text.
   List<DropDownOptionM<T>> _getSelectedOptionsFromTextSelection() {
-    final attribute = _selectionStyle.attributes[widget.attribute.key];
+    final attribute = _selectionStyle.attributes?[widget.attribute.key];
     var selectedOptions = <DropDownOptionM<T>>[];
 
     // Get the attribute value
@@ -338,7 +338,7 @@ class _EditorDropdownState<T> extends State<EditorDropdown<T>> {
   // When selecting text we want to see how many layers of the same marker type are present.
   // It is possible and allowed to enter multiple overlapping markers.
   int _countMarkers(DropDownOptionM<T> option) {
-    final attribute = _selectionStyle.attributes[widget.attribute.key];
+    final attribute = _selectionStyle.attributes?[widget.attribute.key];
 
     // Get the attribute value
     if (attribute != null) {

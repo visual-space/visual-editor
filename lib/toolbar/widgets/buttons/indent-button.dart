@@ -58,7 +58,7 @@ class _IndentButtonState extends State<IndentButton> {
   void _indent() {
     final indent = widget.controller
         .getSelectionStyle()
-        .attributes[AttributesM.indent.key];
+        .attributes?[AttributesM.indent.key];
 
     if (indent == null) {
       if (widget.isIncrease) {

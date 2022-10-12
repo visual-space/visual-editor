@@ -38,6 +38,10 @@ const List<NavMenuLinkM> NAV_MENU = [
     route: '/markers-attachments',
   ),
   NavMenuLinkM(
+    title: 'Headings',
+    route: '/headings',
+  ),
+  NavMenuLinkM(
     title: 'Delete Markers',
     route: '/delete-markers',
   ),

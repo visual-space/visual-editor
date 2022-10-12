@@ -85,16 +85,18 @@ class EditableTextBlock extends StatelessWidget {
     BlockM node,
     EditorStylesM? defaultStyles,
   ) {
+    final hasAttrs = block.style.attributes != null;
     final attrs = block.style.attributes;
 
-    if (attrs.containsKey(AttributesM.blockQuote.key)) {
-      return defaultStyles!.quote!.decoration;
-    }
+    if (hasAttrs) {
+      if (attrs!.containsKey(AttributesM.blockQuote.key)) {
+        return defaultStyles!.quote!.decoration;
+      }
 
-    if (attrs.containsKey(AttributesM.codeBlock.key)) {
-      return defaultStyles!.code!.decoration;
+      if (attrs.containsKey(AttributesM.codeBlock.key)) {
+        return defaultStyles!.code!.decoration;
+      }
     }
-
     return null;
   }
 
@@ -168,84 +170,89 @@ class EditableTextBlock extends StatelessWidget {
   ) {
     final styles = _state.styles.styles;
     final attrs = line.style.attributes;
+    final hasAttrs = line.style.attributes != null;
 
-    if (attrs[AttributesM.list.key] == AttributesAliasesM.ol) {
-      return NumberPoint(
-        index: index,
-        indentLevelCounts: indentLevelCounts,
-        count: count,
-        style: styles.leading!.style,
-        attrs: attrs,
-        width: 32,
-        padding: 8,
-      );
+    if (hasAttrs) {
+      if (attrs![AttributesM.list.key] == AttributesAliasesM.ol) {
+        return NumberPoint(
+          index: index,
+          indentLevelCounts: indentLevelCounts,
+          count: count,
+          style: styles.leading!.style,
+          attrs: attrs,
+          width: 32,
+          padding: 8,
+        );
+      }
+
+      if (attrs[AttributesM.list.key] == AttributesAliasesM.ul) {
+        return BulletPoint(
+          style: styles.leading!.style.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+          width: 32,
+        );
+      }
+
+      if (attrs[AttributesM.list.key] == AttributesAliasesM.checked) {
+        return CheckboxPoint(
+          size: 14,
+          value: true,
+          enabled: !_state.editorConfig.config.readOnly,
+          onChanged: (checked) => onCheckboxTap(line.documentOffset, checked),
+          uiBuilder: styles.lists?.checkboxUIBuilder,
+        );
+      }
+
+      if (attrs[AttributesM.list.key] == AttributesAliasesM.unchecked) {
+        return CheckboxPoint(
+          size: 14,
+          value: false,
+          enabled: !_state.editorConfig.config.readOnly,
+          onChanged: (checked) => onCheckboxTap(line.documentOffset, checked),
+          uiBuilder: styles.lists?.checkboxUIBuilder,
+        );
+      }
+
+      if (attrs.containsKey(AttributesM.codeBlock.key)) {
+        return NumberPoint(
+          index: index,
+          indentLevelCounts: indentLevelCounts,
+          count: count,
+          style: styles.code!.style.copyWith(
+            color: styles.code!.style.color!.withOpacity(0.4),
+          ),
+          width: 32,
+          attrs: attrs,
+          padding: 16,
+          withDot: false,
+        );
+      }
     }
-
-    if (attrs[AttributesM.list.key] == AttributesAliasesM.ul) {
-      return BulletPoint(
-        style: styles.leading!.style.copyWith(
-          fontWeight: FontWeight.bold,
-        ),
-        width: 32,
-      );
-    }
-
-    if (attrs[AttributesM.list.key] == AttributesAliasesM.checked) {
-      return CheckboxPoint(
-        size: 14,
-        value: true,
-        enabled: !_state.editorConfig.config.readOnly,
-        onChanged: (checked) => onCheckboxTap(line.documentOffset, checked),
-        uiBuilder: styles.lists?.checkboxUIBuilder,
-      );
-    }
-
-    if (attrs[AttributesM.list.key] == AttributesAliasesM.unchecked) {
-      return CheckboxPoint(
-        size: 14,
-        value: false,
-        enabled: !_state.editorConfig.config.readOnly,
-        onChanged: (checked) => onCheckboxTap(line.documentOffset, checked),
-        uiBuilder: styles.lists?.checkboxUIBuilder,
-      );
-    }
-
-    if (attrs.containsKey(AttributesM.codeBlock.key)) {
-      return NumberPoint(
-        index: index,
-        indentLevelCounts: indentLevelCounts,
-        count: count,
-        style: styles.code!.style.copyWith(
-          color: styles.code!.style.color!.withOpacity(0.4),
-        ),
-        width: 32,
-        attrs: attrs,
-        padding: 16,
-        withDot: false,
-      );
-    }
-
     return null;
   }
 
   double _getIndentWidth() {
     final attrs = block.style.attributes;
-    final indent = attrs[AttributesM.indent.key];
+    final hasAttrs = block.style.attributes != null;
+    final indent = attrs?[AttributesM.indent.key];
     var extraIndent = 0.0;
 
     if (indent != null && indent.value != null) {
       extraIndent = 16.0 * indent.value;
     }
 
-    if (attrs.containsKey(AttributesM.blockQuote.key)) {
+    if (hasAttrs && attrs!.containsKey(AttributesM.blockQuote.key)) {
       return 16.0 + extraIndent;
     }
 
     var baseIndent = 0.0;
 
-    if (attrs.containsKey(AttributesM.list.key) ||
-        attrs.containsKey(AttributesM.codeBlock.key)) {
-      baseIndent = 32.0;
+    if (hasAttrs) {
+      if (attrs!.containsKey(AttributesM.list.key) ||
+          attrs.containsKey(AttributesM.codeBlock.key)) {
+        baseIndent = 32.0;
+      }
     }
 
     return baseIndent + extraIndent;
@@ -259,55 +266,58 @@ class EditableTextBlock extends StatelessWidget {
   ) {
     var top = 0.0, bottom = 0.0;
     final attrs = block.style.attributes;
+    final hasAttrs = block.style.attributes != null;
 
-    if (attrs.containsKey(AttributesM.header.key)) {
-      final level = attrs[AttributesM.header.key]!.value;
+    if (hasAttrs) {
+      if (attrs!.containsKey(AttributesM.header.key)) {
+        final level = attrs[AttributesM.header.key]!.value;
 
-      switch (level) {
-        case 1:
-          top = defaultStyles!.h1!.verticalSpacing.top;
-          bottom = defaultStyles.h1!.verticalSpacing.bottom;
-          break;
+        switch (level) {
+          case 1:
+            top = defaultStyles!.h1!.verticalSpacing.top;
+            bottom = defaultStyles.h1!.verticalSpacing.bottom;
+            break;
 
-        case 2:
-          top = defaultStyles!.h2!.verticalSpacing.top;
-          bottom = defaultStyles.h2!.verticalSpacing.bottom;
-          break;
+          case 2:
+            top = defaultStyles!.h2!.verticalSpacing.top;
+            bottom = defaultStyles.h2!.verticalSpacing.bottom;
+            break;
 
-        case 3:
-          top = defaultStyles!.h3!.verticalSpacing.top;
-          bottom = defaultStyles.h3!.verticalSpacing.bottom;
-          break;
+          case 3:
+            top = defaultStyles!.h3!.verticalSpacing.top;
+            bottom = defaultStyles.h3!.verticalSpacing.bottom;
+            break;
 
-        default:
-          throw 'Invalid level $level';
+          default:
+            throw 'Invalid level $level';
+        }
+      } else {
+        late VerticalSpacing lineSpacing;
+
+        // TODO Convert to switch
+        if (attrs.containsKey(AttributesM.blockQuote.key)) {
+          lineSpacing = defaultStyles!.quote!.lineSpacing;
+        } else if (attrs.containsKey(AttributesM.indent.key)) {
+          lineSpacing = defaultStyles!.indent!.lineSpacing;
+        } else if (attrs.containsKey(AttributesM.list.key)) {
+          lineSpacing = defaultStyles!.lists!.lineSpacing;
+        } else if (attrs.containsKey(AttributesM.codeBlock.key)) {
+          lineSpacing = defaultStyles!.code!.lineSpacing;
+        } else if (attrs.containsKey(AttributesM.align.key)) {
+          lineSpacing = defaultStyles!.align!.lineSpacing;
+        }
+
+        top = lineSpacing.top;
+        bottom = lineSpacing.bottom;
       }
-    } else {
-      late VerticalSpacing lineSpacing;
 
-      // TODO Convert to switch
-      if (attrs.containsKey(AttributesM.blockQuote.key)) {
-        lineSpacing = defaultStyles!.quote!.lineSpacing;
-      } else if (attrs.containsKey(AttributesM.indent.key)) {
-        lineSpacing = defaultStyles!.indent!.lineSpacing;
-      } else if (attrs.containsKey(AttributesM.list.key)) {
-        lineSpacing = defaultStyles!.lists!.lineSpacing;
-      } else if (attrs.containsKey(AttributesM.codeBlock.key)) {
-        lineSpacing = defaultStyles!.code!.lineSpacing;
-      } else if (attrs.containsKey(AttributesM.align.key)) {
-        lineSpacing = defaultStyles!.align!.lineSpacing;
+      if (index == 1) {
+        top = 0.0;
       }
 
-      top = lineSpacing.top;
-      bottom = lineSpacing.bottom;
-    }
-
-    if (index == 1) {
-      top = 0.0;
-    }
-
-    if (index == count) {
-      bottom = 0.0;
+      if (index == count) {
+        bottom = 0.0;
+      }
     }
 
     return VerticalSpacing(

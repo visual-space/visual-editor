@@ -62,7 +62,7 @@ class _SelectAlignmentButtonState extends State<SelectAlignmentButton> {
   void initState() {
     super.initState();
     setState(() {
-      _value = _selectionStyle.attributes[AttributesM.align.key] ??
+      _value = _selectionStyle.attributes?[AttributesM.align.key] ??
           AttributesAliasesM.leftAlignment;
     });
     _subscribeToRefreshListener();
@@ -174,7 +174,7 @@ class _SelectAlignmentButtonState extends State<SelectAlignmentButton> {
       _refreshListener?.cancel();
       widget.controller.setStateInEditorStateReceiver(widget);
       _subscribeToRefreshListener();
-      _value = _selectionStyle.attributes[AttributesM.align.key] ??
+      _value = _selectionStyle.attributes?[AttributesM.align.key] ??
           AttributesAliasesM.leftAlignment;
     }
   }
@@ -195,7 +195,7 @@ class _SelectAlignmentButtonState extends State<SelectAlignmentButton> {
 
   void _didChangeEditingValue() {
     setState(() {
-      _value = _selectionStyle.attributes[AttributesM.align.key] ??
+      _value = _selectionStyle.attributes?[AttributesM.align.key] ??
           AttributesAliasesM.leftAlignment;
     });
   }

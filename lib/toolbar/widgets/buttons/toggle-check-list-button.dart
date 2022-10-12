@@ -61,7 +61,11 @@ class _ToggleCheckListButtonState extends State<ToggleCheckListButton> {
   @override
   void initState() {
     super.initState();
-    _isToggled = _getIsToggled(_selectionStyle.attributes);
+
+    if (_selectionStyle.attributes != null) {
+      _isToggled = _getIsToggled(_selectionStyle.attributes!);
+    }
+
     _subscribeToRefreshListener();
   }
 
@@ -96,7 +100,7 @@ class _ToggleCheckListButtonState extends State<ToggleCheckListButton> {
       _refreshListener?.cancel();
       widget.controller.setStateInEditorStateReceiver(widget);
       _subscribeToRefreshListener();
-      _isToggled = _getIsToggled(_selectionStyle.attributes);
+      _isToggled = _getIsToggled(_selectionStyle.attributes!);
     }
   }
 
@@ -111,7 +115,7 @@ class _ToggleCheckListButtonState extends State<ToggleCheckListButton> {
   void _didChangeEditingValue() {
     setState(() {
       _isToggled = _getIsToggled(
-        widget.controller.getSelectionStyle().attributes,
+        widget.controller.getSelectionStyle().attributes!,
       );
     });
   }

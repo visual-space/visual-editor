@@ -55,8 +55,10 @@ class _ClearFormatButtonState extends State<ClearFormatButton> {
     final attrs = <AttributeM>{};
 
     for (final style in widget.controller.getAllSelectionStyles()) {
-      for (final attr in style.attributes.values) {
-        attrs.add(attr);
+      if (style.attributes != null) {
+        for (final attr in style.attributes!.values) {
+          attrs.add(attr);
+        }
       }
     }
 

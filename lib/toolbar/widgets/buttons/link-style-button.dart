@@ -176,7 +176,7 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
   String? _getLinkAttributeValue() {
     return widget.controller
         .getSelectionStyle()
-        .attributes[AttributesM.link.key]
+        .attributes?[AttributesM.link.key]
         ?.value;
   }
 

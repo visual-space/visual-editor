@@ -80,10 +80,13 @@ int getPositionDelta(
 }
 
 TextDirection getDirectionOfNode(NodeM node) {
-  final direction = node.style.attributes[AttributesM.direction.key];
+  final direction = node.style.attributes![AttributesM.direction.key];
+  final hasAttrs = node.style.attributes != null;
 
-  if (direction == AttributesAliasesM.rtl) {
-    return TextDirection.rtl;
+  if (hasAttrs) {
+    if (direction == AttributesAliasesM.rtl) {
+      return TextDirection.rtl;
+    }
   }
 
   return TextDirection.ltr;

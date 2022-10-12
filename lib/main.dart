@@ -183,12 +183,11 @@ class VisualEditorState extends State<VisualEditor>
     assert(debugCheckHasMediaQuery(context));
     super.build(context);
     _initStylesAndCursorOnlyOnce(context);
-    _callBuildCompleteCallback();
 
     // If doc is empty override with a placeholder
     final document = _documentService.getDocOrPlaceholder(widget._state);
 
-    return _conditionalPreventKeyPropagationToParentIfWeb(
+    final editorTree = _conditionalPreventKeyPropagationToParentIfWeb(
       child: _i18n(
         child: _textGestures(
           child: _hotkeysActions(
@@ -214,6 +213,12 @@ class VisualEditorState extends State<VisualEditor>
         ),
       ),
     );
+
+    // (!) Calling after the widget tree is built ensures that we schedule the
+    // onBuildComplete callback as the last addPostFrameCallback() to execute.
+    _callBuildCompleteCallback();
+
+    return editorTree;
   }
 
   @override

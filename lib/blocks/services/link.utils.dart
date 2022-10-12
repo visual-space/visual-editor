@@ -8,26 +8,29 @@ TextRange getLinkRange(NodeM node) {
   var start = node.documentOffset;
   var length = node.length;
   var prev = node.previous;
-  final linkAttr = node.style.attributes[AttributesM.link.key]!;
+  final hasAttr = node.style.attributes != null;
+  final linkAttr = node.style.attributes?[AttributesM.link.key]!;
 
-  while (prev != null) {
-    if (prev.style.attributes[AttributesM.link.key] == linkAttr) {
-      start = prev.documentOffset;
-      length += prev.length;
-      prev = prev.previous;
-    } else {
-      break;
+  if (hasAttr) {
+    while (prev != null) {
+      if (prev.style.attributes![AttributesM.link.key] == linkAttr) {
+        start = prev.documentOffset;
+        length += prev.length;
+        prev = prev.previous;
+      } else {
+        break;
+      }
     }
-  }
 
-  var next = node.next;
+    var next = node.next;
 
-  while (next != null) {
-    if (next.style.attributes[AttributesM.link.key] == linkAttr) {
-      length += next.length;
-      next = next.next;
-    } else {
-      break;
+    while (next != null) {
+      if (next.style.attributes![AttributesM.link.key] == linkAttr) {
+        length += next.length;
+        next = next.next;
+      } else {
+        break;
+      }
     }
   }
 

@@ -114,9 +114,9 @@ class _ToggleStyleButtonState extends State<ToggleStyleButton> {
     );
   }
 
-  bool _getIsToggled(Map<String, AttributeM> attrs) {
+  bool _getIsToggled(Map<String, AttributeM>? attrs) {
     if (widget.attribute.key == AttributesM.list.key) {
-      final attribute = attrs[widget.attribute.key];
+      final attribute = attrs?[widget.attribute.key];
 
       if (attribute == null) {
         return false;
@@ -125,7 +125,7 @@ class _ToggleStyleButtonState extends State<ToggleStyleButton> {
       return attribute.value == widget.attribute.value;
     }
 
-    return attrs.containsKey(widget.attribute.key);
+    return attrs!.containsKey(widget.attribute.key);
   }
 
   void _toggleAttribute() {

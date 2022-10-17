@@ -92,16 +92,10 @@ class _DeltaSandboxState extends State<DeltaSandbox> {
         ),
       );
 
-  Widget _toolbar() => Container(
-        color: Colors.white,
-        padding: const EdgeInsets.symmetric(
-          vertical: 16,
-          horizontal: 8,
-        ),
-        child: EditorToolbar.basic(
-          controller: _editorController,
-          showMarkers: true,
-        ),
+  Widget _toolbar() => EditorToolbar.basic(
+        controller: _editorController,
+        showMarkers: true,
+        multiRowsDisplay: false,
       );
 
   Widget _jsonPreview() => Expanded(

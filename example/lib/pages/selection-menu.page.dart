@@ -92,13 +92,14 @@ class _SelectionMenuPageState extends State<SelectionMenuPage> {
       );
 
   Widget _toolbar() => Container(
-        padding: const EdgeInsets.symmetric(
+        padding: EdgeInsets.symmetric(
           vertical: 16,
           horizontal: 8,
         ),
         child: EditorToolbar.basic(
           controller: _controller!,
           showMarkers: true,
+          multiRowsDisplay: false,
         ),
       );
 

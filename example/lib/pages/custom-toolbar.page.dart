@@ -68,7 +68,7 @@ class _CustomToolbarPageState extends State<CustomToolbarPage> {
 
   Widget _toolbar() =>
       Container(
-        padding: const EdgeInsets.symmetric(
+        padding: EdgeInsets.symmetric(
           vertical: 16,
           horizontal: 8,
         ),
@@ -77,6 +77,7 @@ class _CustomToolbarPageState extends State<CustomToolbarPage> {
             Text('Extended Toolbar'),
             EditorToolbar.basic(
               controller: _controller!,
+              multiRowsDisplay: false,
               customIcons: [
                 // Custom icon
                 EditorCustomButtonM(

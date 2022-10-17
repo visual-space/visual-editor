@@ -71,6 +71,7 @@ class _MultipleEditorsPageState extends State<MultipleEditorsPage> {
         ),
         child: EditorToolbar.basic(
           controller: controller!,
+          multiRowsDisplay: false,
         ),
       );
 

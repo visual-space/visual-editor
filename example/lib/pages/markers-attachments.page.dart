@@ -106,13 +106,14 @@ class _MarkersAttachmentsPageState extends State<MarkersAttachmentsPage> {
   Widget _fillerToBalanceRow() => Container(width: 0);
 
   Widget _toolbar() => Container(
-        padding: const EdgeInsets.symmetric(
+        padding: EdgeInsets.symmetric(
           vertical: 16,
           horizontal: 8,
         ),
         child: EditorToolbar.basic(
           controller: _controller!,
           showMarkers: true,
+          multiRowsDisplay: false,
         ),
       );
 

@@ -18,6 +18,10 @@ const List<NavMenuLinkM> NAV_MENU = [
     route: '/custom-toolbar',
   ),
   NavMenuLinkM(
+    title: 'Wrapping Toolbar',
+    route: '/wrapping-toolbar',
+  ),
+  NavMenuLinkM(
     title: 'Placeholder',
     route: '/placeholder',
   ),

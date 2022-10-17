@@ -67,7 +67,7 @@ class _HighlightsPageState extends State<HighlightsPage> {
         child: Row(
           children: [
             Padding(
-              padding: const EdgeInsets.only(
+              padding: EdgeInsets.only(
                 right: 10,
               ),
               child: ElevatedButton(
@@ -102,7 +102,7 @@ class _HighlightsPageState extends State<HighlightsPage> {
   Widget _editor() => Flexible(
         child: Container(
           color: Colors.white,
-          padding: const EdgeInsets.only(
+          padding: EdgeInsets.only(
             left: 16,
             right: 16,
           ),
@@ -116,12 +116,13 @@ class _HighlightsPageState extends State<HighlightsPage> {
       );
 
   Widget _toolbar() => Container(
-        padding: const EdgeInsets.symmetric(
+        padding: EdgeInsets.symmetric(
           vertical: 16,
           horizontal: 8,
         ),
         child: EditorToolbar.basic(
           controller: _controller!,
+          multiRowsDisplay: false,
         ),
       );
 

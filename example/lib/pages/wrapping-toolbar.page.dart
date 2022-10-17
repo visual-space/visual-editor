@@ -8,14 +8,16 @@ import 'package:visual_editor/visual-editor.dart';
 import '../widgets/demo-scaffold.dart';
 import '../widgets/loading.dart';
 
-// In case setState() is used by mistake the editor should be able to continue working.
-class OverwriteControllerPage extends StatefulWidget {
+// Horizontal toolbars can either scroll or wrap.
+// It is recommended on mobiles to use the horizontal scrolling toolbar.
+// Or if you don't want scroll, avoid enabling all editing options, to have fewer tools.
+// Otherwise they will wrap around.
+class WrappingToolbarPage extends StatefulWidget {
   @override
-  _OverwriteControllerPageState createState() =>
-      _OverwriteControllerPageState();
+  _WrappingToolbarPageState createState() => _WrappingToolbarPageState();
 }
 
-class _OverwriteControllerPageState extends State<OverwriteControllerPage> {
+class _WrappingToolbarPageState extends State<WrappingToolbarPage> {
   EditorController? _controller;
   final _scrollController = ScrollController();
   final _focusNode = FocusNode();
@@ -23,14 +25,6 @@ class _OverwriteControllerPageState extends State<OverwriteControllerPage> {
   @override
   void initState() {
     _loadDocument();
-
-    // (!) This is a counter example of what not to do.
-    // Visual Editor was built to endure such an event.
-    // However you will see the impact of performance.
-    // Check the EditorController API to see how to
-    // update the doc without using setState().
-    Timer(Duration(seconds: 3), _loadDocument);
-
     super.initState();
   }
 
@@ -39,7 +33,12 @@ class _OverwriteControllerPageState extends State<OverwriteControllerPage> {
         children: _controller != null
             ? [
                 _editor(),
-                _toolbar(),
+                _toolbars(
+                  children: [
+                    _withScroll(),
+                    _fixed(),
+                  ],
+                ),
               ]
             : [
                 Loading(),
@@ -71,22 +70,49 @@ class _OverwriteControllerPageState extends State<OverwriteControllerPage> {
         ),
       );
 
-  Widget _toolbar() => Container(
+  Widget _toolbars({required List<Widget> children}) => Container(
         padding: EdgeInsets.symmetric(
           vertical: 16,
           horizontal: 8,
         ),
-        child: EditorToolbar.basic(
-          controller: _controller!,
-          multiRowsDisplay: false,
+        child: Column(
+          children: children,
         ),
       );
 
+  Widget _toolbar({required String title, required bool multiRowsDisplay}) =>
+      Padding(
+        padding: EdgeInsets.only(top: 50),
+        child: Column(
+          children: [
+            Text(title),
+            EditorToolbar.basic(
+              controller: _controller!,
+              multiRowsDisplay: multiRowsDisplay,
+              customIcons: [
+                // Custom icon
+                EditorCustomButtonM(icon: Icons.favorite, onTap: () {}),
+              ],
+            ),
+          ],
+        ),
+      );
+
+  Widget _withScroll() => _toolbar(
+        title: 'Horizontal with scroll',
+        multiRowsDisplay: false,
+      );
+
+  Widget _fixed() => _toolbar(
+        title: 'Horizontal wrapping',
+        multiRowsDisplay: true,
+      );
+
   Future<void> _loadDocument() async {
-    final deltaJson = await rootBundle.loadString(
-      'assets/docs/overwrite-controller.json',
+    final result = await rootBundle.loadString(
+      'assets/docs/wrapping-toolbar.json',
     );
-    final document = DocumentM.fromJson(jsonDecode(deltaJson));
+    final document = DocumentM.fromJson(jsonDecode(result));
 
     setState(() {
       _controller = EditorController(

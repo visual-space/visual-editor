@@ -40,6 +40,7 @@ class OperationM {
   factory OperationM.retain(int? length, [Map<String, dynamic>? attributes]) =>
       OperationM(OperationM.retainKey, length, '', attributes);
 
+  // TODO Move to enum
   static const String insertKey = 'insert';
 
   static const String deleteKey = 'delete';

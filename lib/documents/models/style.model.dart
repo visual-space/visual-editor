@@ -1,46 +1,25 @@
 import 'package:collection/collection.dart';
 import 'package:quiver/core.dart';
 
+import '../services/attribute.utils.dart';
 import 'attribute-scope.enum.dart';
 import 'attribute.model.dart';
+import 'attributes/attributes-types.model.dart';
+import 'attributes/attributes.model.dart';
 
-// Collection of style attributes
+// Collection of style attributes.
+// Operations have an associated styles model.
 class StyleM {
   StyleM() : _attributes = <String, AttributeM>{};
 
-  StyleM.attr(this._attributes);
-
   final Map<String, AttributeM> _attributes;
-
-  static StyleM fromJson(Map<String, dynamic>? attributes) {
-    if (attributes == null) {
-      return StyleM();
-    }
-
-    final result = attributes.map((key, dynamic value) {
-      final attr = AttributeM.fromKeyValue(key, value);
-
-      return MapEntry<String, AttributeM>(
-        key,
-        attr ?? AttributeM(key, AttributeScope.IGNORE, value),
-      );
-    });
-    return StyleM.attr(result);
-  }
-
-  Map<String, dynamic>? toJson() => _attributes.isEmpty
-      ? null
-      : _attributes.map<String, dynamic>(
-          (_, attribute) => MapEntry<String, dynamic>(
-            attribute.key,
-            attribute.value,
-          ),
-        );
 
   Iterable<String> get keys => _attributes.keys;
 
   Iterable<AttributeM> get values => _attributes.values.sorted(
-        (a, b) => AttributeM.getRegistryOrder(a) - AttributeM.getRegistryOrder(b),
+        (a, b) =>
+            AttributeUtils.getRegistryOrder(a) -
+            AttributeUtils.getRegistryOrder(b),
       );
 
   Map<String, AttributeM> get attributes => _attributes;
@@ -60,6 +39,50 @@ class StyleM {
   AttributeM get single => _attributes.values.single;
 
   bool containsKey(String key) => _attributes.containsKey(key);
+
+  StyleM.attr(this._attributes);
+
+  // Converts the style attributes found in the delta json to model classes.
+  // One special case was added for the markers model (explained bellow).
+  static StyleM fromJson(Map<String, dynamic>? attributes) {
+    if (attributes == null) {
+      return StyleM();
+    }
+
+    final result = attributes.map((key, dynamic value) {
+
+      // Most attributes are primitive values, therefore converting form json map to delta is straight forward.
+      // However, markers are a special type of attribute with additional nesting.
+      // For this particular attribute we need additional processing to extract the data types.
+      // (!) Order matters. Prior to this we had a mistake by generating the models after the attribute was created.
+      // Therefore all the code downstream was built using the json data instead of the delta models.
+      if (key == AttributesM.markers.key) {
+        value = AttributeUtils.extractMarkersFromAttributeMap(value);
+      }
+
+      final attribute = AttributeUtils.fromKeyValue(key, value);
+
+      return MapEntry<String, AttributeM>(
+        key,
+
+        // Fail safe
+        attribute ?? AttributeM(key, AttributeScope.INLINE, value),
+      );
+    });
+
+    return StyleM.attr(result);
+  }
+
+  Map<String, dynamic>? toJson() => _attributes.isEmpty
+      ? null
+      : _attributes.map<String, dynamic>(
+          (_, attribute) => MapEntry<String, dynamic>(
+            attribute.key,
+            attribute.value,
+          ),
+        );
+
+  // === UTILS ===
 
   AttributeM? getBlockExceptHeader() {
     for (final val in values) {
@@ -81,7 +104,7 @@ class StyleM {
     final m = <String, AttributeM>{};
 
     attributes.forEach((key, value) {
-      if (AttributeM.blockKeysExceptHeader.contains(key)) {
+      if (AttributesTypesM.blockKeysExceptHeader.contains(key)) {
         m[key] = value;
       }
     });
@@ -120,6 +143,7 @@ class StyleM {
   StyleM put(AttributeM attribute) {
     final m = Map<String, AttributeM>.from(attributes);
     m[attribute.key] = attribute;
+
     return StyleM.attr(m);
   }
 

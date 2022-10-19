@@ -9,6 +9,7 @@ import '../../editor/widgets/editor-renderer-inner.dart';
 import '../../shared/state/editor.state.dart';
 import '../models/text-selection-handle-position.enum.dart';
 
+// TODO Needs a major refactor
 // This widget represents a single draggable text selection handle.
 // ignore: must_be_immutable
 class TextSelectionHandleOverlay extends StatefulWidget {

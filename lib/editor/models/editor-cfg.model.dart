@@ -123,7 +123,7 @@ class EditorConfigM {
   // Custom embeds don't work as editable text, they are standalone blocks of content that have their own internal behaviour.
   final EmbedBuilder? embedBuilder;
 
-  // Styles can be provided to customize the look and feel of the Visual Editor.
+  // Styles can be provided to customize the look and feel of the Visual Editor using custom attributes.
   final CustomStyleBuilder? customStyleBuilder;
 
   // The locale to use for the editor buttons, defaults to system locale.
@@ -145,6 +145,11 @@ class EditorConfigM {
   // Custom GUI for text selection controls
   final TextSelectionControls? textSelectionControls;
 
+  // Controls the initial markers visibility.
+  // For certain scenarios it might be desired to init the editor with the markers turned off.
+  // Later the markers can be enabled using: _controller.toggleMarkers()
+  final bool? markersVisibility;
+
   // Customize any of the settings available  in VisualEditor
   const EditorConfigM({
     this.scrollable = true,
@@ -163,6 +168,7 @@ class EditorConfigM {
     this.textCapitalization = TextCapitalization.sentences,
     this.keyboardAppearance = Brightness.light,
     this.scrollPhysics,
+    // TODO Why not have all of them in one place?
     this.onLaunchUrl,
     this.onTapDown,
     this.onTapUp,
@@ -176,6 +182,7 @@ class EditorConfigM {
     this.floatingCursorDisabled = false,
     this.forcePressEnabled = false,
     this.textSelectionControls,
+    this.markersVisibility = true,
   })  : assert(maxHeight == null || maxHeight > 0, 'maxHeight cannot be null'),
         assert(minHeight == null || minHeight >= 0, 'minHeight cannot be null'),
         assert(maxHeight == null || minHeight == null || maxHeight >= minHeight,

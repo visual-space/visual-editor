@@ -2,5 +2,6 @@
 .dart_tool
 .idea
 .packages
+/build
 .flutter-plugins
 .flutter-plugins-dependencies

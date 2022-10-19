@@ -18,7 +18,7 @@ linter:
     - cascade_invocations: false
     - directives_ordering
     - lines_longer_than_80_chars: false
-    - omit_local_variable_types
+    - omit_local_variable_types: true
     - prefer_const_constructors: false
     - prefer_const_declarations
     - prefer_final_fields

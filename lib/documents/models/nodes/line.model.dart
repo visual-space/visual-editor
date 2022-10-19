@@ -5,6 +5,7 @@ import 'package:collection/collection.dart';
 import '../../../controller/models/paste-style.model.dart';
 import '../attribute-scope.enum.dart';
 import '../attribute.model.dart';
+import '../attributes/attributes-types.model.dart';
 import '../delta/delta.model.dart';
 import '../style.model.dart';
 import 'block.model.dart';
@@ -18,6 +19,8 @@ import 'text.model.dart';
 // A line of rich text in a Editor document.
 // Line serves as a container for Leafs, like Text and Embed.
 // When a line contains an embed, it fully occupies the line, no other embeds or text nodes are allowed.
+// Lines of text are fragmented into children.
+// Children are fragments containing a unique combination of attributes.
 class LineM extends ContainerM<LeafM?> {
   @override
   LeafM get defaultChild => TextM();
@@ -203,6 +206,172 @@ class LineM extends ContainerM<LeafM?> {
     }
   }
 
+  // Returns style for specified text range.
+  // Only attributes applied to all characters within this range are included in the result.
+  // Inline and line level attributes are handled separately, e.g.:
+  // - line attribute X is included in the result only if it exists for
+  //   every line within this range (partially included lines are counted).
+  // - inline attribute X is included in the result only if it exists
+  //   for every character within this range (line-break characters excluded).
+  // In essence, it is INTERSECTION of each individual segment's styles
+  StyleM collectStyle(int offset, int len) {
+    final local = math.min(length - offset, len);
+    var result = StyleM();
+    final excluded = <AttributeM>{};
+
+    void _handle(StyleM style) {
+      if (result.isEmpty) {
+        excluded.addAll(style.values);
+      } else {
+        for (final attr in result.values) {
+          if (!style.containsKey(attr.key)) {
+            excluded.add(attr);
+          }
+        }
+      }
+
+      final remaining = style.removeAll(excluded);
+      result = result.removeAll(excluded);
+      result = result.mergeAll(remaining);
+    }
+
+    final data = queryChild(offset, true);
+    var node = data.node as LeafM?;
+
+    if (node != null) {
+      result = result.mergeAll(node.style);
+      var pos = node.length - data.offset;
+      while (!node!.isLast && pos < local) {
+        node = node.next as LeafM;
+        _handle(node.style);
+        pos += node.length;
+      }
+    }
+
+    result = result.mergeAll(style);
+
+    if (parent is BlockM) {
+      final block = parent as BlockM;
+      result = result.mergeAll(block.style);
+    }
+
+    final remaining = len - local;
+
+    if (remaining > 0) {
+      final rest = nextLine!.collectStyle(0, remaining);
+      _handle(rest);
+    }
+
+    return result;
+  }
+
+  // Returns each node segment's offset in selection with its corresponding style as a list
+  List<PasteStyleM> collectAllIndividualStyles(
+    int offset,
+    int len, {
+    int beg = 0,
+  }) {
+    final local = math.min(length - offset, len);
+    final result = <PasteStyleM>[];
+    final data = queryChild(offset, true);
+    var node = data.node as LeafM?;
+
+    if (node != null) {
+      var pos = 0;
+
+      if (node is TextM) {
+        pos = node.length - data.offset;
+        result.add(PasteStyleM(beg, node.style));
+      }
+
+      while (!node!.isLast && pos < local) {
+        node = node.next as LeafM;
+
+        if (node is TextM) {
+          result.add(PasteStyleM(pos + beg, node.style));
+          pos += node.length;
+        }
+      }
+    }
+
+    // TODO: add line style and parent's block style
+    final remaining = len - local;
+
+    if (remaining > 0) {
+      final rest = nextLine!.collectAllIndividualStyles(
+        0,
+        remaining,
+        beg: local,
+      );
+      result.addAll(rest);
+    }
+
+    return result;
+  }
+
+  // Returns all styles for any character within the specified text range.
+  // In essence, it is UNION of each individual segment's styles
+  List<StyleM> collectAllStyles(int offset, int len) {
+    final local = math.min(length - offset, len);
+    final result = <StyleM>[];
+    final data = queryChild(offset, true);
+    var node = data.node as LeafM?;
+
+    if (node != null) {
+      result.add(node.style);
+      var pos = node.length - data.offset;
+
+      while (!node!.isLast && pos < local) {
+        node = node.next as LeafM;
+        result.add(node.style);
+        pos += node.length;
+      }
+    }
+
+    result.add(style);
+
+    if (parent is BlockM) {
+      final block = parent as BlockM;
+      result.add(block.style);
+    }
+
+    final remaining = len - local;
+
+    if (remaining > 0) {
+      final rest = nextLine!.collectAllStyles(0, remaining);
+      result.addAll(rest);
+    }
+
+    return result;
+  }
+
+  // Returns plain text within the specified text range.
+  String getPlainText(int offset, int len) {
+    final plainText = StringBuffer();
+    _getPlainText(offset, len, plainText);
+    return plainText.toString();
+  }
+
+  // === PRIVATE ===
+
+  int _getNodeText(
+    LeafM node,
+    StringBuffer buffer,
+    int offset,
+    int remaining,
+  ) {
+    final text = node.toPlainText();
+
+    if (text == EmbedM.kObjectReplacementCharacter) {
+      return remaining - node.length;
+    }
+
+    final end = math.min(offset + remaining, text.length);
+    buffer.write(text.substring(offset, end));
+
+    return remaining - (end - offset);
+  }
+
   // Formats this line.
   void _format(StyleM? newStyle) {
     if (newStyle == null || newStyle.isEmpty) {
@@ -232,9 +401,9 @@ class LineM extends ContainerM<LeafM?> {
 
         // Block style now can contain multiple attributes
         if (newStyle.attributes.keys
-            .any(AttributeM.exclusiveBlockKeys.contains)) {
+            .any(AttributesTypesM.exclusiveBlockKeys.contains)) {
           parentStyle.removeWhere(
-              (key, attr) => AttributeM.exclusiveBlockKeys.contains(key));
+              (key, attr) => AttributesTypesM.exclusiveBlockKeys.contains(key));
         }
 
         parentStyle.removeWhere(
@@ -350,161 +519,6 @@ class LineM extends ContainerM<LeafM?> {
       final result = queryChild(index, true);
       result.node!.insert(result.offset, data, style);
     }
-  }
-
-  // Returns style for specified text range.
-  // Only attributes applied to all characters within this range are included in the result.
-  // Inline and line level attributes are handled separately, e.g.:
-  // - line attribute X is included in the result only if it exists for
-  //   every line within this range (partially included lines are counted).
-  // - inline attribute X is included in the result only if it exists
-  //   for every character within this range (line-break characters excluded).
-  // In essence, it is INTERSECTION of each individual segment's styles
-  StyleM collectStyle(int offset, int len) {
-    final local = math.min(length - offset, len);
-    var result = StyleM();
-    final excluded = <AttributeM>{};
-
-    void _handle(StyleM style) {
-      if (result.isEmpty) {
-        excluded.addAll(style.values);
-      } else {
-        for (final attr in result.values) {
-          if (!style.containsKey(attr.key)) {
-            excluded.add(attr);
-          }
-        }
-      }
-
-      final remaining = style.removeAll(excluded);
-      result = result.removeAll(excluded);
-      result = result.mergeAll(remaining);
-    }
-
-    final data = queryChild(offset, true);
-    var node = data.node as LeafM?;
-
-    if (node != null) {
-      result = result.mergeAll(node.style);
-      var pos = node.length - data.offset;
-      while (!node!.isLast && pos < local) {
-        node = node.next as LeafM;
-        _handle(node.style);
-        pos += node.length;
-      }
-    }
-
-    result = result.mergeAll(style);
-
-    if (parent is BlockM) {
-      final block = parent as BlockM;
-      result = result.mergeAll(block.style);
-    }
-
-    final remaining = len - local;
-
-    if (remaining > 0) {
-      final rest = nextLine!.collectStyle(0, remaining);
-      _handle(rest);
-    }
-
-    return result;
-  }
-
-  // Returns each node segment's offset in selection with its corresponding style as a list
-  List<PasteStyleM> collectAllIndividualStyles(
-    int offset,
-    int len, {
-    int beg = 0,
-  }) {
-    final local = math.min(length - offset, len);
-    final result = <PasteStyleM>[];
-    final data = queryChild(offset, true);
-    var node = data.node as LeafM?;
-
-    if (node != null) {
-      var pos = 0;
-
-      if (node is TextM) {
-        pos = node.length - data.offset;
-        result.add(PasteStyleM(beg, node.style));
-      }
-
-      while (!node!.isLast && pos < local) {
-        node = node.next as LeafM;
-        if (node is TextM) {
-          result.add(PasteStyleM(pos + beg, node.style));
-          pos += node.length;
-        }
-      }
-    }
-
-    // TODO: add line style and parent's block style
-    final remaining = len - local;
-
-    if (remaining > 0) {
-      final rest =
-          nextLine!.collectAllIndividualStyles(0, remaining, beg: local);
-      result.addAll(rest);
-    }
-
-    return result;
-  }
-
-  // Returns all styles for any character within the specified text range.
-  // In essence, it is UNION of each individual segment's styles
-  List<StyleM> collectAllStyles(int offset, int len) {
-    final local = math.min(length - offset, len);
-    final result = <StyleM>[];
-    final data = queryChild(offset, true);
-    var node = data.node as LeafM?;
-
-    if (node != null) {
-      result.add(node.style);
-      var pos = node.length - data.offset;
-
-      while (!node!.isLast && pos < local) {
-        node = node.next as LeafM;
-        result.add(node.style);
-        pos += node.length;
-      }
-    }
-
-    result.add(style);
-
-    if (parent is BlockM) {
-      final block = parent as BlockM;
-      result.add(block.style);
-    }
-
-    final remaining = len - local;
-
-    if (remaining > 0) {
-      final rest = nextLine!.collectAllStyles(0, remaining);
-      result.addAll(rest);
-    }
-
-    return result;
-  }
-
-  // Returns plain text within the specified text range.
-  String getPlainText(int offset, int len) {
-    final plainText = StringBuffer();
-    _getPlainText(offset, len, plainText);
-    return plainText.toString();
-  }
-
-  int _getNodeText(LeafM node, StringBuffer buffer, int offset, int remaining) {
-    final text = node.toPlainText();
-
-    if (text == EmbedM.kObjectReplacementCharacter) {
-      return remaining - node.length;
-    }
-
-    final end = math.min(offset + remaining, text.length);
-    buffer.write(text.substring(offset, end));
-
-    return remaining - (end - offset);
   }
 
   int _getPlainText(

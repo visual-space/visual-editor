@@ -2,7 +2,8 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import '../controllers/delta.iterator.dart';
-import '../models/attribute.model.dart';
+import '../models/attributes/attributes-aliases.model.dart';
+import '../models/attributes/attributes.model.dart';
 import '../models/delta/delta.model.dart';
 import '../models/delta/diff.model.dart';
 import '../models/nodes/node.model.dart';
@@ -79,9 +80,9 @@ int getPositionDelta(
 }
 
 TextDirection getDirectionOfNode(NodeM node) {
-  final direction = node.style.attributes[AttributeM.direction.key];
+  final direction = node.style.attributes[AttributesM.direction.key];
 
-  if (direction == AttributeM.rtl) {
+  if (direction == AttributesAliasesM.rtl) {
     return TextDirection.rtl;
   }
 

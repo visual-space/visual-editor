@@ -7,6 +7,12 @@ import 'package:visual_editor/visual-editor.dart';
 
 import '../widgets/demo-scaffold.dart';
 
+// Here you can test any change in the editor and see the delta document output that is generated.
+// Very useful for debugging or when adding new features or just for learning purposes.
+// (!) If you want to see some particular feature in isolation,
+// delete the demo content and insert whatever content you need.
+// TODO Highlight changed text fragments between edits
+// TODO Use monospace font for the json preview
 class DeltaSandbox extends StatefulWidget {
   const DeltaSandbox({Key? key}) : super(key: key);
 
@@ -16,19 +22,19 @@ class DeltaSandbox extends StatefulWidget {
 
 class _DeltaSandboxState extends State<DeltaSandbox> {
   late EditorController _editorController;
+  final _scrollController = ScrollController();
   late TextEditingController _jsonInputController;
-  late final StreamSubscription _editorListener;
   late final StreamSubscription _jsonInputListener;
 
-  // Essential for preventing a circular invocation.
-  final FocusNode _focusNode = FocusNode();
+  // We use the focus to check if editor or json input has triggered the change.
+  // This is essential for preventing a circular update loop between editor and input.
+  final _focusNode = FocusNode();
 
   @override
   void initState() {
     _setupEditorController();
     _setupJsonInputController();
-    _subscribeToEditor();
-    _subscribeToJsonInput();
+    _subscribeToJsonInputAndUpdateEditorDoc();
     _loadDocument();
     super.initState();
   }
@@ -36,7 +42,6 @@ class _DeltaSandboxState extends State<DeltaSandbox> {
   @override
   void dispose() {
     _jsonInputController.dispose();
-    _editorListener.cancel();
     _jsonInputListener.cancel();
     super.dispose();
   }
@@ -77,7 +82,7 @@ class _DeltaSandboxState extends State<DeltaSandbox> {
             ),
             child: VisualEditor(
               controller: _editorController,
-              scrollController: ScrollController(),
+              scrollController: _scrollController,
               focusNode: _focusNode,
               config: EditorConfigM(
                 placeholder: 'Enter text',
@@ -95,6 +100,7 @@ class _DeltaSandboxState extends State<DeltaSandbox> {
         ),
         child: EditorToolbar.basic(
           controller: _editorController,
+          showMarkers: true,
         ),
       );
 
@@ -115,10 +121,10 @@ class _DeltaSandboxState extends State<DeltaSandbox> {
 
   void _setupEditorController() {
     _editorController = EditorController(
-      document: DocumentM.fromJson(
-        jsonDecode(LOREM_LIPSUM_DOC_JSON),
-      ),
-    );
+        document: DocumentM.fromJson(
+          jsonDecode(LOREM_LIPSUM_DOC_JSON),
+        ),
+        onBuildComplete: _updateJsonPreview);
   }
 
   void _setupJsonInputController() =>
@@ -143,20 +149,19 @@ class _DeltaSandboxState extends State<DeltaSandbox> {
     _jsonInputController.text = doc;
   }
 
-  void _subscribeToEditor() {
-    _editorListener = _editorController.document.changes.listen((_) {
-      final jsonDoc = jsonEncode(
-        _editorController.document.toDelta().toJson(),
-      );
+  // Each time the editor changes we update the contents of the json preview
+  void _updateJsonPreview() {
+    final jsonDoc = jsonEncode(
+      _editorController.document.toDelta().toJson(),
+    );
 
-      // Update json preview only if the change was emitted by the editor
-      if (_focusNode.hasFocus) {
-        _jsonInputController.text = _formatJson(jsonDoc);
-      }
-    });
+    // Update json preview only if the change was emitted by the editor
+    if (_focusNode.hasFocus) {
+      _jsonInputController.text = _formatJson(jsonDoc);
+    }
   }
 
-  void _subscribeToJsonInput() {
+  void _subscribeToJsonInputAndUpdateEditorDoc() {
     _jsonInputController.addListener(() {
       // Update editor only if the change was emitted by the json input
       if (!_focusNode.hasFocus) {

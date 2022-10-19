@@ -1,16 +1,20 @@
 import 'package:flutter/cupertino.dart';
 
-import '../../documents/models/attribute.model.dart';
+import '../../documents/models/attributes/attributes.model.dart';
 
 Map<String, String> parseKeyValuePairs(String string, Set<String> targetKeys) {
   final result = <String, String>{};
   final pairs = string.split(';');
+
   for (final pair in pairs) {
     final _index = pair.indexOf(':');
+
     if (_index < 0) {
       continue;
     }
+
     final _key = pair.substring(0, _index).trim();
+
     if (targetKeys.contains(_key)) {
       result[_key] = pair.substring(_index + 1).trim();
     }
@@ -26,18 +30,22 @@ String replaceStyleString(
 ) {
   final result = <String, String>{};
   final pairs = string.split(';');
+
   for (final pair in pairs) {
     final _index = pair.indexOf(':');
+
     if (_index < 0) {
       continue;
     }
+
     final _key = pair.substring(0, _index).trim();
     result[_key] = pair.substring(_index + 1).trim();
   }
 
-  result[AttributeM.mobileWidth] = width.toString();
-  result[AttributeM.mobileHeight] = height.toString();
+  result[AttributesM.mobileWidth] = width.toString();
+  result[AttributesM.mobileHeight] = height.toString();
   final sb = StringBuffer();
+
   for (final pair in result.entries) {
     sb
       ..write(pair.key)
@@ -45,11 +53,13 @@ String replaceStyleString(
       ..write(pair.value)
       ..write('; ');
   }
+
   return sb.toString();
 }
 
 Alignment getAlignment(String? string) {
   const _defaultAlignment = Alignment.center;
+
   if (string == null) {
     return _defaultAlignment;
   }
@@ -65,6 +75,7 @@ Alignment getAlignment(String? string) {
     'bottomCenter',
     'bottomRight'
   ].indexOf(string);
+
   if (_index < 0) {
     return _defaultAlignment;
   }
@@ -80,4 +91,11 @@ Alignment getAlignment(String? string) {
     Alignment.bottomCenter,
     Alignment.bottomRight
   ][_index];
+}
+
+// Just a word of caution: this does not rely on strong random data.
+// Therefore, the generated UUIDs should not be considered cryptographically strong.
+String getTimeBasedId() {
+  final now = DateTime.now();
+  return now.microsecondsSinceEpoch.toString();
 }

@@ -65,12 +65,28 @@ in sync with your editor every single button receives the controller as an input
 classes of the code base the buttons do receive the controller explicitly.
 
 ```dart
- ColorButton
-(
-icon: Icons.color_lens,iconSize: toolbarIconSize,controller: controller,background: false
-,
-iconTheme: iconTheme,)
-,
+// Extended toolbar
+EditorToolbar.basic(
+  controller: controller,
+  customIcons: [
+    EditorCustomButtonM(
+      icon: Icons.favorite,
+      onTap: () {
+        // Add custom behavior here  
+      }
+    ),
+  ],
+),
+
+// Custom independent button
+ColorButton(
+  icon: Icons.color_lens,
+  iconSize: toolbarIconSize,
+  controller: controller,
+  background: false,
+  buttonsSpacing: 10,
+  iconTheme: iconTheme,
+),
 ```
 
 Join on [discord](https://discord.gg/XpGygmXde4) to get advice and help or follow us

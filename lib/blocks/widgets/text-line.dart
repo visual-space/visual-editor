@@ -4,10 +4,8 @@ import 'dart:collection';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-import '../../documents/models/attribute.model.dart';
+import '../../documents/models/attributes/attributes.model.dart';
 import '../../documents/models/nodes/embed.model.dart';
 import '../../documents/models/nodes/line.model.dart';
 import '../../documents/models/nodes/node.model.dart';
@@ -17,15 +15,21 @@ import '../../editor/widgets/proxy/embed-proxy.dart';
 import '../../editor/widgets/proxy/rich-text-proxy.dart';
 import '../../embeds/widgets/default-embed-builder.dart';
 import '../../shared/state/editor.state.dart';
-import '../../shared/utils/color.utils.dart';
-import '../../shared/utils/platform.utils.dart';
-import '../const/link-prefixes.const.dart';
 import '../models/custom-builders.type.dart';
 import '../models/editor-styles.model.dart';
-import '../models/link-action-menu.enum.dart';
 import '../models/link-action.picker.type.dart';
-import '../services/link.utils.dart';
+import 'text-line-link.utils.dart';
+import 'text-line-styles.utils.dart';
 
+// Text lines render text spans as indicated by the new line character "\n".
+// Text lines can have multiple styling attributes applied on arbitrary text selections.
+// A node is a continuous section of text with uniform styles.
+// When a new attribute is found, a new node is generated.
+// TextLines are split in nodes.
+// Each node is mapped ot a distinct child textSpan with unique styling.
+// All the child text spans are then collected in one parent TextSpan (widget).
+// In case a line contains embeds the TextLine is split in several TextSpans (Ex: TextSpan, WidgetSpan, TextSpan).
+// Proxy wrappers are generated for the parent text span or embeds to improve performance (virtual scroll).
 // ignore: must_be_immutable
 class TextLine extends StatefulWidget {
   final LineM line;
@@ -57,6 +61,9 @@ class TextLine extends StatefulWidget {
 }
 
 class _TextLineState extends State<TextLine> {
+  final _textLineStylesUtils = TextLineStyleUtils();
+  final _textLineLinkUtils = TextLineLinkUtils();
+
   bool _metaOrControlPressed = false;
   UniqueKey _richTextKey = UniqueKey();
   final _linkRecognizers = <NodeM, GestureRecognizer>{};
@@ -82,24 +89,38 @@ class _TextLineState extends State<TextLine> {
   @override
   Widget build(BuildContext context) {
     assert(debugCheckHasMediaQuery(context));
+    final isEmbedOnly = widget.line.hasEmbed && widget.line.childCount == 1;
 
-    if (widget.line.hasEmbed && widget.line.childCount == 1) {
-      // For video, it is always single child
-      final embed = widget.line.children.single as EmbedM;
+    return isEmbedOnly ? _embedProxy(context) : _richTextProxy(context);
+  }
 
-      return EmbedProxy(
-        _embedBuilder(
-          context,
-          widget._state.refs.editorController,
-          embed,
-          widget._state.editorConfig.config.readOnly,
-        ),
-      );
-    }
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _pressedKeysListener?.cancel();
+    _pressedKeysListener = widget._state.pressedKeys.pressedKeys$.listen(
+      (pressedKeys) => _pressedKeysChanged(),
+    );
+  }
 
-    final textSpan = _getTextSpanForWholeLine(context);
+  EmbedProxy _embedProxy(BuildContext context) {
+    // For video, it is always single child
+    final embed = widget.line.children.single as EmbedM;
+
+    return EmbedProxy(
+      _embedBuilder(
+        context,
+        widget._state.refs.editorController,
+        embed,
+        widget._state.editorConfig.config.readOnly,
+      ),
+    );
+  }
+
+  RichTextProxy _richTextProxy(BuildContext context) {
+    final textSpan = _textSpanForWholeLine(context);
     final strutStyle = StrutStyle.fromTextStyle(textSpan.style!);
-    final textAlign = _getTextAlign();
+    final textAlign = _textLineStylesUtils.getTextAlign(widget.line);
 
     return RichTextProxy(
       textStyle: textSpan.style!,
@@ -118,53 +139,23 @@ class _TextLineState extends State<TextLine> {
     );
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _pressedKeysListener?.cancel();
-    _pressedKeysListener = widget._state.pressedKeys.pressedKeys$.listen(
-      (pressedKeys) => _pressedKeysChanged(),
+  // Each new line (\n) renders a TextSpan widget.
+  // It also splits the text lines if they contain embeds.
+  // Ex: TextSpan, WidgetSpan, TextSpan.
+  InlineSpan _textSpanForWholeLine(BuildContext context) {
+    final lineStyle = _textLineStylesUtils.getLineStyle(
+      widget.styles,
+      widget.line,
+      widget._state,
     );
-  }
 
-  bool get canLaunchLinks {
-    // In readOnly mode users can launch links
-    // by simply tapping (clicking) on them
-    if (widget._state.editorConfig.config.readOnly) {
-      return true;
-    }
-
-    // In editing mode it depends on the platform:
-    // Desktop platforms (macos, linux, windows):
-    // only allow Meta(Control)+Click combinations
-    if (isDesktop()) {
-      return _metaOrControlPressed;
-    }
-
-    // Mobile platforms (ios, android): always allow but we install a
-    // long-press handler instead of a tap one. LongPress is followed by a
-    // context menu with actions.
-    return true;
-  }
-
-  // === PRIVATE ===
-
-  void _pressedKeysChanged() {
-    final metaOrControlPressed = widget._state.pressedKeys.metaPressed ||
-        widget._state.pressedKeys.controlPressed;
-    if (_metaOrControlPressed != metaOrControlPressed) {
-      setState(() {
-        _metaOrControlPressed = metaOrControlPressed;
-        _richTextKey = UniqueKey();
-      });
-    }
-  }
-
-  InlineSpan _getTextSpanForWholeLine(BuildContext context) {
-    final lineStyle = _getLineStyle(widget.styles);
-
+    // No embeds
     if (!widget.line.hasEmbed) {
-      return _buildTextSpan(widget.styles, widget.line.children, lineStyle);
+      return _textSpanFromNodes(
+        widget.styles,
+        widget.line.children,
+        lineStyle,
+      );
     }
 
     // The line could contain more than one Embed & more than one Text
@@ -172,15 +163,21 @@ class _TextLineState extends State<TextLine> {
     var textNodes = LinkedList<NodeM>();
 
     for (final child in widget.line.children) {
+      // If child is embed run the logic to transform text and embeds in a seris of text spans
       if (child is EmbedM) {
+        // Cache the text nodes from a text line that contains an embed
         if (textNodes.isNotEmpty) {
+          // Convert to text spans and add to textspans cache
           textSpanChildren.add(
-            _buildTextSpan(widget.styles, textNodes, lineStyle),
+            _textSpanFromNodes(widget.styles, textNodes, lineStyle),
           );
+
+          // Clear text cache
           textNodes = LinkedList<NodeM>();
         }
 
-        // Here it should be image
+        // Build the embed as a widget span
+        // TextSpan allow custom embeds inside the text.
         final embed = WidgetSpan(
           child: EmbedProxy(
             _embedBuilder(
@@ -191,41 +188,36 @@ class _TextLineState extends State<TextLine> {
             ),
           ),
         );
+
+        // Cache the embedded widget
         textSpanChildren.add(embed);
 
+        // Not plain text so skip over the next step
         continue;
       }
 
-      // here child is Text node and its value is cloned
+      // Accumulate the text nodes until an embed is found (Fewer text spans).
       textNodes.add(child.clone());
     }
 
+    // If no more embeds are found convert the remaining text Nodes into text spans.
     if (textNodes.isNotEmpty) {
       textSpanChildren.add(
-        _buildTextSpan(widget.styles, textNodes, lineStyle),
+        _textSpanFromNodes(widget.styles, textNodes, lineStyle),
       );
     }
 
-    return TextSpan(style: lineStyle, children: textSpanChildren);
+    // Return all the child text spans in a parent text span.
+    return TextSpan(
+      style: lineStyle,
+      children: textSpanChildren,
+    );
   }
 
-  TextAlign _getTextAlign() {
-    final alignment = widget.line.style.attributes[AttributeM.align.key];
-
-    if (alignment == AttributeM.leftAlignment) {
-      return TextAlign.start;
-    } else if (alignment == AttributeM.centerAlignment) {
-      return TextAlign.center;
-    } else if (alignment == AttributeM.rightAlignment) {
-      return TextAlign.end;
-    } else if (alignment == AttributeM.justifyAlignment) {
-      return TextAlign.justify;
-    }
-
-    return TextAlign.start;
-  }
-
-  TextSpan _buildTextSpan(
+  // A text span containing multiple text span children.
+  // Each one configured to match the combination of styling attributes present in a node.
+  // If 2 attributes overlap partly it means we get 3 different child text spans (bold, bold-italic, italic).
+  TextSpan _textSpanFromNodes(
     EditorStylesM defaultStyles,
     LinkedList<NodeM> nodes,
     TextStyle lineStyle,
@@ -255,68 +247,7 @@ class _TextLineState extends State<TextLine> {
     );
   }
 
-  TextStyle _getLineStyle(EditorStylesM defaultStyles) {
-    var textStyle = const TextStyle();
-
-    if (widget.line.style.containsKey(AttributeM.placeholder.key)) {
-      return defaultStyles.placeHolder!.style;
-    }
-
-    final header = widget.line.style.attributes[AttributeM.header.key];
-    final m = <AttributeM, TextStyle>{
-      AttributeM.h1: defaultStyles.h1!.style,
-      AttributeM.h2: defaultStyles.h2!.style,
-      AttributeM.h3: defaultStyles.h3!.style,
-    };
-
-    textStyle = textStyle.merge(m[header] ?? defaultStyles.paragraph!.style);
-
-    // Only retrieve exclusive block format for the line style purpose
-    AttributeM? block;
-    widget.line.style.getBlocksExceptHeader().forEach((key, value) {
-      if (AttributeM.exclusiveBlockKeys.contains(key)) {
-        block = value;
-      }
-    });
-
-    TextStyle? toMerge;
-
-    if (block == AttributeM.blockQuote) {
-      toMerge = defaultStyles.quote!.style;
-    } else if (block == AttributeM.codeBlock) {
-      toMerge = defaultStyles.code!.style;
-    } else if (block == AttributeM.list) {
-      toMerge = defaultStyles.lists!.style;
-    }
-
-    textStyle = textStyle.merge(toMerge);
-    textStyle = _applyCustomAttributes(textStyle, widget.line.style.attributes);
-
-    return textStyle;
-  }
-
-  TextStyle _applyCustomAttributes(
-    TextStyle textStyle,
-    Map<String, AttributeM> attributes,
-  ) {
-    if (widget._state.editorConfig.config.customStyleBuilder == null) {
-      return textStyle;
-    }
-
-    attributes.keys.forEach((key) {
-      final attr = attributes[key];
-
-      if (attr != null) {
-        // Custom Attribute
-        final customAttr =
-            widget._state.editorConfig.config.customStyleBuilder!.call(attr);
-        textStyle = textStyle.merge(customAttr);
-      }
-    });
-
-    return textStyle;
-  }
-
+  // Builds a text span with styles and gesture recognizers out of a node.
   TextSpan _getTextSpanFromNode(
     EditorStylesM defaultStyles,
     NodeM node,
@@ -324,220 +255,47 @@ class _TextLineState extends State<TextLine> {
   ) {
     final textNode = node as TextM;
     final nodeStyle = textNode.style;
-    final isLink = nodeStyle.containsKey(AttributeM.link.key) &&
-        nodeStyle.attributes[AttributeM.link.key]!.value != null;
+    final isLink = nodeStyle.containsKey(AttributesM.link.key) &&
+        nodeStyle.attributes[AttributesM.link.key]!.value != null;
+    final canLaunchLink = isLink &&
+        _textLineLinkUtils.canLaunchLinks(
+          widget._state,
+          _metaOrControlPressed,
+        );
 
     return TextSpan(
       text: textNode.value,
-      style: _getInlineTextStyle(
+      style: _textLineStylesUtils.getInlineTextStyle(
         textNode,
         defaultStyles,
         nodeStyle,
         lineStyle,
         isLink,
+        widget._state,
       ),
-      recognizer: isLink && canLaunchLinks ? _getRecognizer(node) : null,
-      mouseCursor: isLink && canLaunchLinks ? SystemMouseCursors.click : null,
+      recognizer: canLaunchLink
+          ? _textLineLinkUtils.getRecognizer(
+              node,
+              widget._state,
+              widget.linkActionPicker,
+              _linkRecognizers,
+            )
+          : null,
+      mouseCursor: canLaunchLink ? SystemMouseCursors.click : null,
     );
   }
 
-  TextStyle _getInlineTextStyle(
-    TextM textNode,
-    EditorStylesM defaultStyles,
-    StyleM nodeStyle,
-    StyleM lineStyle,
-    bool isLink,
-  ) {
-    var res = const TextStyle(); // This is inline text style
-    final color = textNode.style.attributes[AttributeM.color.key];
+  // === UTILS ===
 
-    <String, TextStyle?>{
-      AttributeM.bold.key: defaultStyles.bold,
-      AttributeM.italic.key: defaultStyles.italic,
-      AttributeM.small.key: defaultStyles.small,
-      AttributeM.link.key: defaultStyles.link,
-      AttributeM.underline.key: defaultStyles.underline,
-      AttributeM.strikeThrough.key: defaultStyles.strikeThrough,
-    }.forEach((k, s) {
-      if (nodeStyle.values.any((v) => v.key == k)) {
-        if (k == AttributeM.underline.key ||
-            k == AttributeM.strikeThrough.key) {
-          var textColor = defaultStyles.color;
+  void _pressedKeysChanged() {
+    final metaOrControlPressed = widget._state.pressedKeys.metaPressed ||
+        widget._state.pressedKeys.controlPressed;
 
-          if (color?.value is String) {
-            textColor = stringToColor(color?.value);
-          }
-          res = _merge(res.copyWith(decorationColor: textColor),
-              s!.copyWith(decorationColor: textColor));
-        } else if (k == AttributeM.link.key && !isLink) {
-          // null value for link should be ignored
-          // i.e. nodeStyle.attributes[Attribute.link.key]!.value == null
-        } else {
-          res = _merge(res, s!);
-        }
-      }
-    });
-
-    if (nodeStyle.containsKey(AttributeM.inlineCode.key)) {
-      res = _merge(res, defaultStyles.inlineCode!.styleFor(lineStyle));
+    if (_metaOrControlPressed != metaOrControlPressed) {
+      setState(() {
+        _metaOrControlPressed = metaOrControlPressed;
+        _richTextKey = UniqueKey();
+      });
     }
-
-    final font = textNode.style.attributes[AttributeM.font.key];
-
-    if (font != null && font.value != null) {
-      res = res.merge(TextStyle(fontFamily: font.value));
-    }
-
-    final size = textNode.style.attributes[AttributeM.size.key];
-
-    if (size != null && size.value != null) {
-      switch (size.value) {
-        case 'small':
-          res = res.merge(defaultStyles.sizeSmall);
-          break;
-
-        case 'large':
-          res = res.merge(defaultStyles.sizeLarge);
-          break;
-
-        case 'huge':
-          res = res.merge(defaultStyles.sizeHuge);
-          break;
-
-        default:
-          double? fontSize;
-          if (size.value is double) {
-            fontSize = size.value;
-          } else if (size.value is int) {
-            fontSize = size.value.toDouble();
-          } else if (size.value is String) {
-            fontSize = double.tryParse(size.value);
-          }
-          if (fontSize != null) {
-            res = res.merge(TextStyle(fontSize: fontSize));
-          } else {
-            throw 'Invalid size ${size.value}';
-          }
-      }
-    }
-
-    if (color != null && color.value != null) {
-      var textColor = defaultStyles.color;
-
-      if (color.value is String) {
-        textColor = stringToColor(color.value);
-      }
-
-      if (textColor != null) {
-        res = res.merge(TextStyle(color: textColor));
-      }
-    }
-
-    final background = textNode.style.attributes[AttributeM.background.key];
-
-    if (background != null && background.value != null) {
-      final backgroundColor = stringToColor(background.value);
-      res = res.merge(TextStyle(backgroundColor: backgroundColor));
-    }
-
-    res = _applyCustomAttributes(res, textNode.style.attributes);
-
-    return res;
-  }
-
-  // A system for caching recognizers
-  // TODO document why this system was created. It's not obvious from the code.
-  // Most likely for perf reasons
-  GestureRecognizer _getRecognizer(NodeM segment) {
-    if (_linkRecognizers.containsKey(segment)) {
-      return _linkRecognizers[segment]!;
-    }
-
-    if (isDesktop() || widget._state.editorConfig.config.readOnly) {
-      _linkRecognizers[segment] = TapGestureRecognizer()
-        ..onTap = () => _tapNodeLink(segment);
-    } else {
-      _linkRecognizers[segment] = LongPressGestureRecognizer()
-        ..onLongPress = () => _longPressLink(segment);
-    }
-
-    return _linkRecognizers[segment]!;
-  }
-
-  Future<void> _launchUrl(String url) async {
-    await launchUrl(Uri.parse(url));
-  }
-
-  void _tapNodeLink(NodeM node) {
-    final link = node.style.attributes[AttributeM.link.key]!.value;
-
-    _tapLink(link);
-  }
-
-  void _tapLink(String? link) {
-    if (link == null) {
-      return;
-    }
-
-    var launchUrl = widget._state.editorConfig.config.onLaunchUrl;
-    launchUrl ??= _launchUrl;
-
-    link = link.trim();
-
-    if (!linkPrefixes.any(
-      (linkPrefix) => link!.toLowerCase().startsWith(linkPrefix),
-    )) {
-      link = 'https://$link';
-    }
-
-    launchUrl(link);
-  }
-
-  Future<void> _longPressLink(NodeM node) async {
-    final link = node.style.attributes[AttributeM.link.key]!.value!;
-    final action = await widget.linkActionPicker(node, widget._state);
-
-    switch (action) {
-      case LinkMenuAction.launch:
-        _tapLink(link);
-        break;
-
-      case LinkMenuAction.copy:
-        // ignore: unawaited_futures
-        Clipboard.setData(
-          ClipboardData(text: link),
-        );
-        break;
-
-      case LinkMenuAction.remove:
-        final range = getLinkRange(node);
-        widget._state.refs.editorController.formatText(
-          range.start,
-          range.end - range.start,
-          AttributeM.link,
-        );
-        break;
-
-      case LinkMenuAction.none:
-        break;
-    }
-  }
-
-  TextStyle _merge(TextStyle a, TextStyle b) {
-    final decorations = <TextDecoration?>[];
-
-    if (a.decoration != null) {
-      decorations.add(a.decoration);
-    }
-
-    if (b.decoration != null) {
-      decorations.add(b.decoration);
-    }
-
-    return a.merge(b).apply(
-          decoration: TextDecoration.combine(
-            List.castFrom<dynamic, TextDecoration>(decorations),
-          ),
-        );
   }
 }

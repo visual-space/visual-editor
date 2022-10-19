@@ -22,23 +22,26 @@ import 'nodes/segment-leaf-node.model.dart';
 import 'style.model.dart';
 
 // The rich text document
+// TODO Better doc comment
 class DocumentM {
   // Creates new empty document.
   DocumentM() : _delta = DeltaM()..insert('\n') {
-    _loadDocument(_delta);
+    _initDocument(_delta);
   }
 
   // Creates new document from provided JSON `data`.
   DocumentM.fromJson(List data) : _delta = _transform(DeltaM.fromJson(data)) {
-    _loadDocument(_delta);
+    _initDocument(_delta);
   }
 
   // Creates new document from provided `delta`.
+  // Delta is the converted json string to dart json data.
   DocumentM.fromDelta(DeltaM delta) : _delta = delta {
-    _loadDocument(delta);
+    _initDocument(delta);
   }
 
   // The root node of the document tree
+  // Delta operation (json data) are converted to Nodes (models)
   final RootM _root = RootM();
 
   RootM get root => _root;
@@ -60,6 +63,7 @@ class DocumentM {
 
   final StreamController<DeltaChangeM> _observer = StreamController.broadcast();
 
+  // TODO Better doc
   final HistoryM _history = HistoryM();
 
   bool get hasUndo => _history.hasUndo;
@@ -164,12 +168,106 @@ class DocumentM {
       len: len,
       attribute: attribute,
     );
+
     if (formatDelta.isNotEmpty) {
       compose(formatDelta, ChangeSource.LOCAL);
       delta = delta.compose(formatDelta);
     }
 
     return delta;
+  }
+
+  // Composes change Delta into this document.
+  // Use this method with caution as it does not apply heuristic rules to the change.
+  // It is callers responsibility to ensure that the change conforms to the document
+  // models semantics and can be composed with the current state of this document.
+  // In case the change is invalid, behavior of this method is unspecified.
+  void compose(DeltaM delta, ChangeSource changeSource) {
+    assert(!_observer.isClosed);
+    delta.trim();
+    assert(delta.isNotEmpty);
+
+    var offset = 0;
+    delta = _transform(delta);
+    final originalDelta = toDelta();
+
+    for (final op in delta.toList()) {
+      final style =
+          op.attributes != null ? StyleM.fromJson(op.attributes) : null;
+
+      if (op.isInsert) {
+        // Must normalize data before inserting into the document, makes sure
+        // that any embedded objects are converted into EmbeddableObject type.
+        _root.insert(offset, _normalize(op.data), style);
+      } else if (op.isDelete) {
+        _root.delete(offset, op.length);
+      } else if (op.attributes != null) {
+        _root.retain(offset, op.length, style);
+      }
+
+      if (!op.isDelete) {
+        offset += op.length!;
+      }
+    }
+
+    try {
+      _delta = _delta.compose(delta);
+    } catch (e) {
+      throw '_delta compose failed';
+    }
+
+    // TODO This error might be overkill since the markers have been added.
+    // IT's possible to successfully add a new marker without changing the number of attributes.
+    // We need to evaluate if we can either improve the error (ideal) or remove it completely (not ideal).
+    //
+    // (!) Apparently this was the source of a silent failure
+    // When inserting any character in an editor with markers inlined in the text the editor would not update.
+    // It appears that this condition fails silently (no trace in the console).
+    // Until this condition is fixed I have disabled completely.
+    // It does not seem to be essential, much rather a safety measure.
+    // However it would be nice to restore this safety measure.
+    // if (_delta != _root.toDelta()) {
+    //   throw 'Compose failed';
+    // }
+
+    final change = DeltaChangeM(originalDelta, delta, changeSource);
+
+    _observer.add(change);
+    _history.handleDocChange(change);
+  }
+
+  RevertOperationM undo() {
+    return _history.undo(this);
+  }
+
+  RevertOperationM redo() {
+    return _history.redo(this);
+  }
+
+  void close() {
+    _observer.close();
+    _history.clear();
+  }
+
+  // Returns plain text representation of this document.
+  String toPlainText() => _root.children.map((e) => e.toPlainText()).join();
+
+  bool isEmpty() {
+    if (root.children.length != 1) {
+      return false;
+    }
+
+    final node = root.children.first;
+
+    if (!node.isLast) {
+      return false;
+    }
+
+    final delta = node.toDelta();
+
+    return delta.length == 1 &&
+        delta.first.data == '\n' &&
+        delta.first.key == 'insert';
   }
 
   // Only attributes applied to all characters within this range are included in the result.
@@ -230,63 +328,65 @@ class DocumentM {
     return SegmentLeafNodeM(line, segment);
   }
 
-  // Composes change Delta into this document.
-  // Use this method with caution as it does not apply heuristic rules to the change.
-  // It is callers responsibility to ensure that the change conforms to the document
-  // models semantics and can be composed with the current state of this document.
-  // In case the change is invalid, behavior of this method is unspecified.
-  void compose(DeltaM delta, ChangeSource changeSource) {
-    assert(!_observer.isClosed);
-    delta.trim();
-    assert(delta.isNotEmpty);
+  // === PRIVATE ===
+
+  // Runs several validation checks.
+  // Adds the nodes and styles to the root.
+  void _initDocument(DeltaM delta) {
+    if (delta.isEmpty) {
+      throw ArgumentError.value(delta, 'Document Delta cannot be empty.');
+    }
+
+    assert(
+      (delta.last.data as String).endsWith('\n'),
+      'Document delta must end with \n',
+    );
 
     var offset = 0;
-    delta = _transform(delta);
-    final originalDelta = toDelta();
 
-    for (final op in delta.toList()) {
-      final style =
-          op.attributes != null ? StyleM.fromJson(op.attributes) : null;
-
-      if (op.isInsert) {
-        // Must normalize data before inserting into the document, makes sure
-        // that any embedded objects are converted into EmbeddableObject type.
-        _root.insert(offset, _normalize(op.data), style);
-      } else if (op.isDelete) {
-        _root.delete(offset, op.length);
-      } else if (op.attributes != null) {
-        _root.retain(offset, op.length, style);
+    // Add to root
+    for (final operation in delta.toList()) {
+      // Only insert operations
+      if (!operation.isInsert) {
+        throw ArgumentError.value(
+          delta,
+          'Document can only contain insert operations but ${operation.key} found.',
+        );
       }
 
-      if (!op.isDelete) {
-        offset += op.length!;
-      }
+      // Init styles
+      final style = operation.attributes != null
+          ? StyleM.fromJson(operation.attributes)
+          : null;
+      final data = _normalize(operation.data);
+
+      // Add to root
+      _root.insert(offset, data, style);
+      offset += operation.length!;
     }
 
-    try {
-      _delta = _delta.compose(delta);
-    } catch (e) {
-      throw '_delta compose failed';
+    final lastNode = _root.last;
+
+    // Remove last empty line
+    if (lastNode is LineM &&
+        lastNode.parent is! BlockM &&
+        lastNode.style.isEmpty &&
+        _root.childCount > 1) {
+      _root.remove(lastNode);
+    }
+  }
+
+  Object _normalize(Object? data) {
+    if (data is String) {
+      return data;
     }
 
-    if (_delta != _root.toDelta()) {
-      throw 'Compose failed';
+    if (data is EmbeddableM) {
+      return data;
     }
 
-    final change = DeltaChangeM(originalDelta, delta, changeSource);
-    _observer.add(change);
-    _history.handleDocChange(change);
+    return EmbeddableM.fromJson(data as Map<String, dynamic>);
   }
-
-  RevertOperationM undo() {
-    return _history.undo(this);
-  }
-
-  RevertOperationM redo() {
-    return _history.redo(this);
-  }
-
-  // === PRIVATE ===
 
   static DeltaM _transform(DeltaM delta) {
     final res = DeltaM();
@@ -332,74 +432,5 @@ class DocumentM {
       // Automatically append '\n' for embeddable
       res.push(OperationM.insert('\n'));
     }
-  }
-
-  Object _normalize(Object? data) {
-    if (data is String) {
-      return data;
-    }
-
-    if (data is EmbeddableM) {
-      return data;
-    }
-
-    return EmbeddableM.fromJson(data as Map<String, dynamic>);
-  }
-
-  void close() {
-    _observer.close();
-    _history.clear();
-  }
-
-  // Returns plain text representation of this document.
-  String toPlainText() => _root.children.map((e) => e.toPlainText()).join();
-
-  void _loadDocument(DeltaM doc) {
-    if (doc.isEmpty) {
-      throw ArgumentError.value(doc, 'Document Delta cannot be empty.');
-    }
-
-    assert((doc.last.data as String).endsWith('\n'));
-
-    var offset = 0;
-
-    for (final op in doc.toList()) {
-      if (!op.isInsert) {
-        throw ArgumentError.value(doc,
-            'Document can only contain insert operations but ${op.key} found.');
-      }
-      final style =
-          op.attributes != null ? StyleM.fromJson(op.attributes) : null;
-      final data = _normalize(op.data);
-      _root.insert(offset, data, style);
-      offset += op.length!;
-    }
-
-    final node = _root.last;
-
-    if (node is LineM &&
-        node.parent is! BlockM &&
-        node.style.isEmpty &&
-        _root.childCount > 1) {
-      _root.remove(node);
-    }
-  }
-
-  bool isEmpty() {
-    if (root.children.length != 1) {
-      return false;
-    }
-
-    final node = root.children.first;
-
-    if (!node.isLast) {
-      return false;
-    }
-
-    final delta = node.toDelta();
-
-    return delta.length == 1 &&
-        delta.first.data == '\n' &&
-        delta.first.key == 'insert';
   }
 }

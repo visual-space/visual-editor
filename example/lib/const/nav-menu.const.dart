@@ -22,6 +22,22 @@ const List<NavMenuLinkM> NAV_MENU = [
     route: '/placeholder',
   ),
   NavMenuLinkM(
+    title: 'Highlights',
+    route: '/highlights',
+  ),
+  NavMenuLinkM(
+    title: 'Markers',
+    route: '/markers',
+  ),
+  NavMenuLinkM(
+    title: 'Markers Attachments',
+    route: '/markers-attachments',
+  ),
+  NavMenuLinkM(
+    title: 'Selection Menu',
+    route: '/selection-menu',
+  ),
+  NavMenuLinkM(
     title: 'Delta sandbox',
     route: '/delta-sandbox',
   ),

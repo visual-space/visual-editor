@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-import '../../blocks/models/editable-box-renderer.model.dart';
 import '../../blocks/services/lines-blocks.service.dart';
+import '../../shared/models/editable-box-renderer.model.dart';
 import '../../shared/state/editor.state.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../controllers/selection-actions.controller.dart';
@@ -127,17 +127,16 @@ class SelectionActionsService {
       return false;
     }
 
-    final selectionActions = state.refs.editorState.selectionActionsController;
-
-    final hasSelection = selectionActions == null;
-    final hasToolbarAlready = selectionActions!.toolbar != null;
+    final controller = state.refs.editorState.selectionActionsController;
+    final hasSelection = controller == null;
+    final hasToolbarAlready = controller!.toolbar != null;
 
     if (hasSelection || hasToolbarAlready) {
       return false;
     }
 
-    selectionActions.update(state.refs.editorState.textEditingValue);
-    selectionActions.showToolbar();
+    controller.update(state.refs.editorState.textEditingValue);
+    controller.showToolbar();
 
     return true;
   }
@@ -146,11 +145,11 @@ class SelectionActionsService {
     EditorState state, [
     bool hideHandles = true,
   ]) {
-    final selectionActions = state.refs.editorState.selectionActionsController;
+    final controller = state.refs.editorState.selectionActionsController;
 
     // If the buttons is currently visible.
-    if (selectionActions?.toolbar != null) {
-      hideHandles ? selectionActions?.hide() : selectionActions?.hideToolbar();
+    if (controller?.toolbar != null) {
+      hideHandles ? controller?.hide() : controller?.hideToolbar();
     }
   }
 

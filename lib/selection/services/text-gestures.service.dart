@@ -12,6 +12,15 @@ import '../../shared/utils/platform.utils.dart';
 import 'selection-actions.service.dart';
 import 'text-selection.service.dart';
 
+// How text selection works:
+// Controls the selection of text after tapDown and tapUp events.
+// Once the selection range is known it's than passed to the state store.
+// Starting and updating the selection is triggered from the TextGestures widget and
+// parsed by this service which in turn calls TextSelectionService.
+// Then the controller.updateSelection() is called which triggers the refreshEditor() which triggers a build() in main.
+// EditableTextLine widget then calls on the renderer object methods to update information.
+// If the renderer callbacks notice that the selection is changed and within it's bounds then it triggers a paint() cycle.
+// A new paint() cycle will "render" the selection rectangles vector data on top of the text.
 class TextGesturesService {
   final _textSelectionService = TextSelectionService();
   final _selectionActionsService = SelectionActionsService();
@@ -120,13 +129,6 @@ class TextGesturesService {
     TargetPlatform platform,
     EditorState state,
   ) {
-    if (state.editorConfig.config.onTapUp != null &&
-        state.editorConfig.config.onTapUp!(
-          details,
-          _linesBlocksService.getPositionForOffset,
-        )) {
-      return;
-    }
 
     _selectionActionsService.hideToolbar(state);
 
@@ -320,7 +322,7 @@ class TextGesturesService {
     }
 
     // Make sure to remember the origin for extend selection.
-    state.extendSelection.setOrigin(newSelection);
+    state.selection.setOrigin(newSelection);
   }
 
   // By default, it updates the selection location specified in the provided details objects.

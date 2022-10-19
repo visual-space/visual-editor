@@ -15,7 +15,8 @@ class PlaceholderPage extends StatefulWidget {
 
 class _PlaceholderPageState extends State<PlaceholderPage> {
   late EditorController _controller;
-  final FocusNode _focusNode = FocusNode();
+  final _scrollController = ScrollController();
+  final _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -46,7 +47,7 @@ class _PlaceholderPageState extends State<PlaceholderPage> {
           ),
           child: VisualEditor(
             controller: _controller,
-            scrollController: ScrollController(),
+            scrollController: _scrollController,
             focusNode: _focusNode,
             config: EditorConfigM(
               placeholder: 'Enter text',

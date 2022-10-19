@@ -83,7 +83,7 @@ class SelectionActionsController {
   // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
   late EditorState _state;
 
-  void setState(EditorState state) {
+  void cacheState(EditorState state) {
     _state = state;
   }
 
@@ -99,7 +99,7 @@ class SelectionActionsController {
     this.dragStartBehavior = DragStartBehavior.start,
     this.handlesVisible = false,
   }) {
-    setState(state);
+    cacheState(state);
 
     // The context must not be null and must have an Overlay as an ancestor.
     _context = state.refs.editorState.context;
@@ -114,6 +114,7 @@ class SelectionActionsController {
     );
   }
 
+  // TODO Review why this method is not called
   void setHandlesVisible(bool visible) {
     if (handlesVisible == visible) {
       return;
@@ -129,6 +130,7 @@ class SelectionActionsController {
     }
   }
 
+  // TODO Review why this method is not called
   // Destroys the handles by removing them from overlay.
   void hideHandles() {
     if (_handles == null) {
@@ -249,7 +251,7 @@ class SelectionActionsController {
     List<TextSelectionPoint> endpoints;
 
     try {
-      // Building with an invalid selection with throw an exception.
+      // Building with an invalid selection will throw an exception.
       // This happens where the selection has changed, but the buttons hasn't been dismissed yet.
       endpoints = _selectionActionsService.getEndpointsForSelection(
         _selection,
@@ -259,6 +261,7 @@ class SelectionActionsController {
       return Container();
     }
 
+    // Computes the position of the editor relative to viewport
     final editingRegion = Rect.fromPoints(
       renderObject.localToGlobal(Offset.zero),
       renderObject.localToGlobal(

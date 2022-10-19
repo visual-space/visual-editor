@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-// Collides with Flutter IconButton
+// Collides with Flutter IconButton, therefore we used "Btn" instead of "Button"
 class IconBtn extends StatelessWidget {
   final VoidCallback? onPressed;
   final Widget? icon;
@@ -26,7 +26,9 @@ class IconBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: buttonsSpacing),
+      margin: EdgeInsets.symmetric(
+        horizontal: buttonsSpacing,
+      ),
       child: ConstrainedBox(
         constraints: BoxConstraints.tightFor(
           width: size,

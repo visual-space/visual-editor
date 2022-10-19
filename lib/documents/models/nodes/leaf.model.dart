@@ -31,6 +31,7 @@ abstract class LeafM extends NodeM {
 
   @override
   void applyStyle(StyleM value) {
+    // TODO DOC: Not sure why we need to check if all styles are of one scope or the other
     assert(
       value.isInline || value.isIgnored || value.isEmpty,
       'Unable to apply Style to leaf: $value',

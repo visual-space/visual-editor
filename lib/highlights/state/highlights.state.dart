@@ -1,50 +1,55 @@
-import 'dart:async';
+import 'package:collection/collection.dart';
 
 import '../models/highlight.model.dart';
 
 class HighlightsState {
-
   // === HIGHLIGHTS ===
 
   List<HighlightM> _highlights = [];
-  final _highlights$ = StreamController<List<HighlightM>>.broadcast();
 
   List<HighlightM> get highlights => _highlights;
 
-  Stream<List<HighlightM>> get highlights$ => _highlights$.stream;
-
   void setHighlights(List<HighlightM> highlights) {
     _highlights = highlights;
-    _highlights$.sink.add(highlights);
+  }
+
+  void addHighlight(HighlightM highlight) {
+    _highlights.add(highlight);
+  }
+
+  void removeHighlight(HighlightM highlight) {
+    _highlights.remove(highlight);
+  }
+
+  void removeAllHighlights() {
+    _highlights = [];
   }
 
   // === HOVERED HIGHLIGHTS ===
 
   final List<HighlightM> _hoveredHighlights = [];
-  final _hoveredHighlights$ = StreamController<List<HighlightM>>.broadcast();
 
   List<HighlightM> get hoveredHighlights => _hoveredHighlights;
 
-  Stream<List<HighlightM>> get hoveredHighlights$ => _hoveredHighlights$.stream;
+  // Pointer has entered one of the rectangles of a highlight
+  void enterHighlightById(String id) {
+    final highlight = _highlights.firstWhereOrNull(
+      (highlight) => highlight.id == id,
+    );
 
-  void setHoveredHighlights(List<HighlightM> highlights) {
-    _hoveredHighlights.clear();
-    _hoveredHighlights.addAll(highlights);
-    _hoveredHighlights$.sink.add(_hoveredHighlights);
+    if (highlight != null) {
+      _hoveredHighlights.add(highlight);
+    }
   }
 
-  void addHoveredHighlight(HighlightM highlight) {
-    _hoveredHighlights.add(highlight);
-    _hoveredHighlights$.sink.add(_hoveredHighlights);
-  }
+  // Pointer has exited the rectangles of a highlight
+  void exitHighlightById(String id) {
+    final highlight = _hoveredHighlights.firstWhereOrNull(
+      (highlight) => highlight.id == id,
+    );
 
-  void removeHoveredHighlights(List<HighlightM> highlights) {
-    highlights.forEach(_hoveredHighlights.remove);
-    _hoveredHighlights$.sink.add(_hoveredHighlights);
-  }
-
-  void clearHoveredHighlights() {
-    _hoveredHighlights.clear();
-    _hoveredHighlights$.sink.add(_hoveredHighlights);
+    if (highlight != null) {
+      _hoveredHighlights.remove(highlight);
+    }
   }
 }

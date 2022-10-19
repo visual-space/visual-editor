@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../../documents/models/attribute.model.dart';
+import '../../documents/models/attributes/attributes-aliases.model.dart';
+import '../../documents/models/attributes/attributes.model.dart';
 import '../../documents/models/nodes/block.model.dart';
 import '../../documents/models/nodes/line.model.dart';
 import '../../documents/services/delta.utils.dart';
+import '../../highlights/models/highlight.model.dart';
+import '../../markers/models/marker.model.dart';
 import '../../shared/state/editor.state.dart';
 import '../models/editor-styles.model.dart';
 import '../models/link-action.picker.type.dart';
@@ -19,6 +22,9 @@ class EditableTextBlock extends StatelessWidget {
   final TextDirection textDirection;
   final VerticalSpacing verticalSpacing;
   final TextSelection textSelection;
+  final List<HighlightM> highlights;
+  final List<HighlightM> hoveredHighlights;
+  final List<MarkerM> hoveredMarkers;
   final EditorStylesM? styles;
   final bool hasFocus;
   bool isCodeBlock = false;
@@ -39,6 +45,9 @@ class EditableTextBlock extends StatelessWidget {
     required this.textDirection,
     required this.verticalSpacing,
     required this.textSelection,
+    required this.highlights,
+    required this.hoveredHighlights,
+    required this.hoveredMarkers,
     required this.styles,
     required this.hasFocus,
     required this.isCodeBlock,
@@ -61,11 +70,8 @@ class EditableTextBlock extends StatelessWidget {
       block: block,
       textDirection: textDirection,
       padding: verticalSpacing,
-      decoration: _getDecorationForBlock(
-            block,
-            styles,
-          ) ??
-          const BoxDecoration(),
+      decoration:
+          _getDecorationForBlock(block, styles) ?? const BoxDecoration(),
       isCodeBlock: isCodeBlock,
       state: _state,
       children: _buildChildren(
@@ -81,11 +87,11 @@ class EditableTextBlock extends StatelessWidget {
   ) {
     final attrs = block.style.attributes;
 
-    if (attrs.containsKey(AttributeM.blockQuote.key)) {
+    if (attrs.containsKey(AttributesM.blockQuote.key)) {
       return defaultStyles!.quote!.decoration;
     }
 
-    if (attrs.containsKey(AttributeM.codeBlock.key)) {
+    if (attrs.containsKey(AttributesM.codeBlock.key)) {
       return defaultStyles!.code!.decoration;
     }
 
@@ -106,14 +112,14 @@ class EditableTextBlock extends StatelessWidget {
 
       final editableTextLine = EditableTextLine(
         line: line,
-        leading: _buildLeading(
+        leading: _lineLeadingWidget(
           context,
           line,
           index,
           indentLevelCounts,
           count,
         ),
-        body: TextLine(
+        underlyingText: TextLine(
           line: line,
           textDirection: textDirection,
           styles: styles,
@@ -129,6 +135,9 @@ class EditableTextBlock extends StatelessWidget {
         ),
         textDirection: textDirection,
         textSelection: textSelection,
+        highlights: highlights,
+        hoveredHighlights: hoveredHighlights,
+        hoveredMarkers: hoveredMarkers,
         hasFocus: hasFocus,
         devicePixelRatio: MediaQuery.of(context).devicePixelRatio,
         state: _state,
@@ -149,7 +158,8 @@ class EditableTextBlock extends StatelessWidget {
     );
   }
 
-  Widget? _buildLeading(
+  // Lines that are part of blocks might have also a dedicated content type
+  Widget? _lineLeadingWidget(
     BuildContext context,
     LineM line,
     int index,
@@ -159,7 +169,7 @@ class EditableTextBlock extends StatelessWidget {
     final styles = _state.styles.styles;
     final attrs = line.style.attributes;
 
-    if (attrs[AttributeM.list.key] == AttributeM.ol) {
+    if (attrs[AttributesM.list.key] == AttributesAliasesM.ol) {
       return NumberPoint(
         index: index,
         indentLevelCounts: indentLevelCounts,
@@ -171,7 +181,7 @@ class EditableTextBlock extends StatelessWidget {
       );
     }
 
-    if (attrs[AttributeM.list.key] == AttributeM.ul) {
+    if (attrs[AttributesM.list.key] == AttributesAliasesM.ul) {
       return BulletPoint(
         style: styles.leading!.style.copyWith(
           fontWeight: FontWeight.bold,
@@ -180,7 +190,7 @@ class EditableTextBlock extends StatelessWidget {
       );
     }
 
-    if (attrs[AttributeM.list.key] == AttributeM.checked) {
+    if (attrs[AttributesM.list.key] == AttributesAliasesM.checked) {
       return CheckboxPoint(
         size: 14,
         value: true,
@@ -190,7 +200,7 @@ class EditableTextBlock extends StatelessWidget {
       );
     }
 
-    if (attrs[AttributeM.list.key] == AttributeM.unchecked) {
+    if (attrs[AttributesM.list.key] == AttributesAliasesM.unchecked) {
       return CheckboxPoint(
         size: 14,
         value: false,
@@ -200,7 +210,7 @@ class EditableTextBlock extends StatelessWidget {
       );
     }
 
-    if (attrs.containsKey(AttributeM.codeBlock.key)) {
+    if (attrs.containsKey(AttributesM.codeBlock.key)) {
       return NumberPoint(
         index: index,
         indentLevelCounts: indentLevelCounts,
@@ -220,21 +230,21 @@ class EditableTextBlock extends StatelessWidget {
 
   double _getIndentWidth() {
     final attrs = block.style.attributes;
-    final indent = attrs[AttributeM.indent.key];
+    final indent = attrs[AttributesM.indent.key];
     var extraIndent = 0.0;
 
     if (indent != null && indent.value != null) {
       extraIndent = 16.0 * indent.value;
     }
 
-    if (attrs.containsKey(AttributeM.blockQuote.key)) {
+    if (attrs.containsKey(AttributesM.blockQuote.key)) {
       return 16.0 + extraIndent;
     }
 
     var baseIndent = 0.0;
 
-    if (attrs.containsKey(AttributeM.list.key) ||
-        attrs.containsKey(AttributeM.codeBlock.key)) {
+    if (attrs.containsKey(AttributesM.list.key) ||
+        attrs.containsKey(AttributesM.codeBlock.key)) {
       baseIndent = 32.0;
     }
 
@@ -250,8 +260,8 @@ class EditableTextBlock extends StatelessWidget {
     var top = 0.0, bottom = 0.0;
     final attrs = block.style.attributes;
 
-    if (attrs.containsKey(AttributeM.header.key)) {
-      final level = attrs[AttributeM.header.key]!.value;
+    if (attrs.containsKey(AttributesM.header.key)) {
+      final level = attrs[AttributesM.header.key]!.value;
 
       switch (level) {
         case 1:
@@ -274,15 +284,17 @@ class EditableTextBlock extends StatelessWidget {
       }
     } else {
       late VerticalSpacing lineSpacing;
-      if (attrs.containsKey(AttributeM.blockQuote.key)) {
+
+      // TODO Convert to switch
+      if (attrs.containsKey(AttributesM.blockQuote.key)) {
         lineSpacing = defaultStyles!.quote!.lineSpacing;
-      } else if (attrs.containsKey(AttributeM.indent.key)) {
+      } else if (attrs.containsKey(AttributesM.indent.key)) {
         lineSpacing = defaultStyles!.indent!.lineSpacing;
-      } else if (attrs.containsKey(AttributeM.list.key)) {
+      } else if (attrs.containsKey(AttributesM.list.key)) {
         lineSpacing = defaultStyles!.lists!.lineSpacing;
-      } else if (attrs.containsKey(AttributeM.codeBlock.key)) {
+      } else if (attrs.containsKey(AttributesM.codeBlock.key)) {
         lineSpacing = defaultStyles!.code!.lineSpacing;
-      } else if (attrs.containsKey(AttributeM.align.key)) {
+      } else if (attrs.containsKey(AttributesM.align.key)) {
         lineSpacing = defaultStyles!.align!.lineSpacing;
       }
 

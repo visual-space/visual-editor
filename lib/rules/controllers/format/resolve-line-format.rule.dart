@@ -1,6 +1,7 @@
 import '../../../documents/controllers/delta.iterator.dart';
 import '../../../documents/models/attribute-scope.enum.dart';
 import '../../../documents/models/attribute.model.dart';
+import '../../../documents/models/attributes/attributes-types.model.dart';
 import '../../../documents/models/delta/delta.model.dart';
 import '../../../documents/models/delta/operation.model.dart';
 import '../../models/format-rule.model.dart';
@@ -93,13 +94,13 @@ class ResolveLineFormatRule extends FormatRuleM {
     OperationM op,
   ) {
     // Enforce Block Format exclusivity by rule
-    if (!AttributeM.exclusiveBlockKeys.contains(attribute.key)) {
+    if (!AttributesTypesM.exclusiveBlockKeys.contains(attribute.key)) {
       return <MapEntry<String, dynamic>>[];
     }
 
     return op.attributes?.keys
             .where((key) =>
-                AttributeM.exclusiveBlockKeys.contains(key) &&
+                AttributesTypesM.exclusiveBlockKeys.contains(key) &&
                 attribute.key != key &&
                 attribute.value != null)
             .map((key) => MapEntry<String, dynamic>(key, null)) ??

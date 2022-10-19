@@ -12,6 +12,13 @@ import 'operation.model.dart';
 // Delta represents a document or a modification of a document as a sequence of insert, delete and retain operations.
 // Delta consisting of only "insert" operations is usually referred to as "document delta".
 // When delta includes also "retain" or "delete" operations it is a "change delta".
+//
+// DeltaM is a list of operations derived from the raw json data object.
+// The operations themselves are dynamic objects.
+// DeltaM later gets converted to Nodes which have the operation in strictly typed models.
+// Currently I'm not entirely sure why the DeltaM and NodeM are 2 distinct objects instead of one.
+// My only theory is that NodeM is a linked list thus more efficient for processing compared to DeltaM which is List.
+// Though I'm not sure at the moment that this is the main reason why DeltaM and NodeM are 2 distinct formats.
 class DeltaM {
   // Creates new empty DeltaM.
   factory DeltaM() => DeltaM._(<OperationM>[]);
@@ -32,12 +39,23 @@ class DeltaM {
     Map<String, dynamic>? b,
     bool priority,
   ) {
-    if (a == null) return b;
-    if (b == null) return null;
-    if (!priority) return b;
+    if (a == null) {
+      return b;
+    }
+
+    if (b == null) {
+      return null;
+    }
+
+    if (!priority) {
+      return b;
+    }
 
     final result = b.keys.fold<Map<String, dynamic>>({}, (attributes, key) {
-      if (!a.containsKey(key)) attributes[key] = b[key];
+      if (!a.containsKey(key)) {
+        attributes[key] = b[key];
+      }
+
       return attributes;
     });
 
@@ -77,6 +95,7 @@ class DeltaM {
       if (base![key] != attr![key] && attr.containsKey(key)) {
         memo[key] = base[key];
       }
+
       return memo;
     });
 
@@ -85,6 +104,7 @@ class DeltaM {
         if (base![key] != attr![key] && !base.containsKey(key)) {
           memo[key] = null;
         }
+
         return memo;
       }),
     );
@@ -162,8 +182,14 @@ class DeltaM {
 
   @override
   bool operator ==(dynamic other) {
-    if (identical(this, other)) return true;
-    if (other is! DeltaM) return false;
+    if (identical(this, other)) {
+      return true;
+    }
+
+    if (other is! DeltaM) {
+      return false;
+    }
+
     final typedOther = other;
     const comparator = ListEquality<OperationM>(
       DefaultEquality<OperationM>(),
@@ -178,7 +204,12 @@ class DeltaM {
   // Retain count of characters from current position.
   void retain(int count, [Map<String, dynamic>? attributes]) {
     assert(count >= 0);
-    if (count == 0) return; // No-op
+
+    // No-op
+    if (count == 0) {
+      return;
+    }
+
     push(OperationM.retain(count, attributes));
   }
 
@@ -191,7 +222,11 @@ class DeltaM {
   // Delete count characters from current position.
   void delete(int count) {
     assert(count >= 0);
-    if (count == 0) return;
+
+    if (count == 0) {
+      return;
+    }
+
     push(OperationM.delete(count));
   }
 
@@ -210,7 +245,12 @@ class DeltaM {
       index - 1,
       index,
       [
-        OperationM(operation.key, length, resultText, operation.attributes),
+        OperationM(
+          operation.key,
+          length,
+          resultText,
+          operation.attributes,
+        ),
       ],
     );
   }
@@ -234,8 +274,10 @@ class DeltaM {
       if (lastOp.isDelete && operation.isInsert) {
         index -= 1; // Always insert before deleting
         final nLastOp = (index > 0) ? _operations.elementAt(index - 1) : null;
+
         if (nLastOp == null) {
           _operations.insert(0, operation);
+
           return;
         }
       }
@@ -245,6 +287,7 @@ class DeltaM {
             operation.data is String &&
             lastOp.data is String) {
           _mergeWithTail(operation);
+
           return;
         }
       }
@@ -256,12 +299,14 @@ class DeltaM {
         }
       }
     }
+
     if (index == _operations.length) {
       _operations.add(operation);
     } else {
       final opAtIndex = _operations.elementAt(index);
       _operations.replaceRange(index, index + 1, [operation, opAtIndex]);
     }
+
     _modificationCount++;
   }
 
@@ -278,6 +323,7 @@ class DeltaM {
     final length = math.min(thisIter.peekLength(), otherIter.peekLength());
     final thisOp = thisIter.next(length);
     final otherOp = otherIter.next(length);
+
     assert(thisOp.length == otherOp.length);
 
     if (otherOp.isRetain) {
@@ -286,6 +332,7 @@ class DeltaM {
         otherOp.attributes,
         keepNull: thisOp.isRetain,
       );
+
       if (thisOp.isRetain) {
         return OperationM.retain(thisOp.length, attributes);
       } else if (thisOp.isInsert) {
@@ -296,6 +343,7 @@ class DeltaM {
     } else {
       // otherOp == delete && thisOp in [retain, insert]
       assert(otherOp.isDelete);
+
       if (thisOp.isRetain) return otherOp;
       assert(thisOp.isInsert);
       // otherOp(delete) + thisOp(insert) => null
@@ -313,7 +361,10 @@ class DeltaM {
 
     while (thisIter.hasNext || otherIter.hasNext) {
       final newOp = _composeOperation(thisIter, otherIter);
-      if (newOp != null) result.push(newOp);
+
+      if (newOp != null) {
+        result.push(newOp);
+      }
     }
 
     return result..trim();
@@ -348,7 +399,9 @@ class DeltaM {
       if (op.isInsert) {
         return op.data is String ? op.data : _kNullCharacter;
       }
+
       final prep = this == other ? 'on' : 'with';
+
       throw ArgumentError('diff() call $prep non-document');
     }).join();
 
@@ -356,7 +409,9 @@ class DeltaM {
       if (op.isInsert) {
         return op.data is String ? op.data : _kNullCharacter;
       }
+
       final prep = this == other ? 'on' : 'with';
+
       throw ArgumentError('diff() call $prep non-document');
     }).join();
 
@@ -372,18 +427,22 @@ class DeltaM {
 
     diffResult.forEach((component) {
       var length = component.text.length;
+
       while (length > 0) {
         var opLength = 0;
+
         switch (component.operation) {
           case dmp.DIFF_INSERT:
             opLength = math.min(otherIter.peekLength(), length);
             retDelta.push(otherIter.next(opLength));
             break;
+
           case dmp.DIFF_DELETE:
             opLength = math.min(length, thisIter.peekLength());
             thisIter.next(opLength);
             retDelta.delete(opLength);
             break;
+
           case dmp.DIFF_EQUAL:
             opLength = math.min(
               math.min(thisIter.peekLength(), otherIter.peekLength()),
@@ -391,6 +450,7 @@ class DeltaM {
             );
             final thisOp = thisIter.next(opLength);
             final otherOp = otherIter.next(opLength);
+
             if (thisOp.data == otherOp.data) {
               retDelta.retain(
                 opLength,
@@ -401,6 +461,7 @@ class DeltaM {
                 ..push(otherOp)
                 ..delete(opLength);
             }
+
             break;
         }
         length -= opLength;
@@ -426,6 +487,7 @@ class DeltaM {
     final length = math.min(thisIter.peekLength(), otherIter.peekLength());
     final thisOp = thisIter.next(length);
     final otherOp = otherIter.next(length);
+
     assert(thisOp.length == otherOp.length);
 
     // At this point only delete and retain operations are possible.
@@ -451,7 +513,10 @@ class DeltaM {
 
     while (thisIter.hasNext || otherIter.hasNext) {
       final newOp = _transformOperation(thisIter, otherIter, priority);
-      if (newOp != null) result.push(newOp);
+
+      if (newOp != null) {
+        result.push(newOp);
+      }
     }
 
     return result..trim();
@@ -461,7 +526,10 @@ class DeltaM {
   void trim() {
     if (isNotEmpty) {
       final last = _operations.last;
-      if (last.isRetain && last.isPlain) _operations.removeLast();
+
+      if (last.isRetain && last.isPlain) {
+        _operations.removeLast();
+      }
     }
   }
 
@@ -473,9 +541,12 @@ class DeltaM {
 
       if (lastOpData is String && lastOpData.endsWith('\n')) {
         _operations.removeLast();
+
         if (lastOpData.length > 1) {
-          insert(lastOpData.substring(0, lastOpData.length - 1),
-              lastOp.attributes);
+          insert(
+            lastOpData.substring(0, lastOpData.length - 1),
+            lastOp.attributes,
+          );
         }
       }
     }
@@ -535,6 +606,7 @@ class DeltaM {
         throw StateError('Unreachable');
       }
     }
+
     inverted.trim();
 
     return inverted;
@@ -550,12 +622,14 @@ class DeltaM {
 
     while (index < actualEnd && opIterator.hasNext) {
       OperationM op;
+
       if (index < start) {
         op = opIterator.next(start - index);
       } else {
         op = opIterator.next(actualEnd - index);
         delta.push(op);
       }
+
       index += op.length!;
     }
 
@@ -577,12 +651,14 @@ class DeltaM {
 
     while (iter.hasNext && offset <= index) {
       final op = iter.next();
+
       if (op.isDelete) {
         index -= math.min(op.length!, index - offset);
         continue;
       } else if (op.isInsert && (offset < index || force)) {
         index += op.length!;
       }
+
       offset += op.length!;
     }
 

@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:i18n_extension/i18n_widget.dart';
+
 import 'blocks/services/styles.utils.dart';
 import 'controller/controllers/editor-controller.dart';
 import 'controller/services/editor-text.service.dart';
@@ -73,7 +75,7 @@ import 'shared/state/editor.state.dart';
 class VisualEditor extends StatefulWidget with EditorStateReceiver {
   final EditorController controller;
   final FocusNode focusNode;
-  final ScrollController scrollController;
+  final ScrollController? scrollController;
   final EditorConfigM config;
 
   // Used internally to retrieve the state from the EditorController instance that is linked to this controller.
@@ -98,10 +100,14 @@ class VisualEditor extends StatefulWidget with EditorStateReceiver {
     // Avoids prop drilling or Providers.
     // Easy to trace, easy to mock for testing.
     _state.refs.setEditorController(controller);
-    _state.refs.setScrollController(scrollController);
+    _state.refs.setScrollController(scrollController ?? ScrollController());
     _state.refs.setFocusNode(focusNode);
     _state.editorConfig.setEditorConfig(config);
     _state.refs.setEditor(this);
+
+    // Beware that if you use the controller.toggleMarkers() and then you setState()
+    // on the parent component of the editor the config value will be used again.
+    _state.markersVisibility.toggleMarkers(config.markersVisibility ?? true);
   }
 
   // Quickly a basic Visual Editor using a basic configuration
@@ -177,6 +183,7 @@ class VisualEditorState extends State<VisualEditor>
     assert(debugCheckHasMediaQuery(context));
     super.build(context);
     _initStylesAndCursorOnlyOnce(context);
+    _callBuildCompleteCallback();
 
     // If doc is empty override with a placeholder
     final document = _documentService.getDocOrPlaceholder(widget._state);
@@ -192,6 +199,7 @@ class VisualEditorState extends State<VisualEditor>
                     child: _overlayTargetForMobileToolbar(
                       child: _editorRenderer(
                         document: document,
+                        // This is where the document elements are rendered
                         children: _documentService.documentBlocsAndLines(
                           state: widget._state,
                           document: document,
@@ -392,6 +400,14 @@ class VisualEditorState extends State<VisualEditor>
 
   // === PRIVATE ===
 
+  void _callBuildCompleteCallback() {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (widget.controller.onBuildComplete != null) {
+        widget.controller.onBuildComplete!();
+      }
+    });
+  }
+
   // TODO Find better solution.
   // The current setup is not able to deal with updated styles.
   // It's stuck on the initial set of styles.
@@ -522,6 +538,7 @@ class VisualEditorState extends State<VisualEditor>
         child: child,
       );
 
+  // TODO Rename to smth better
   // Used by the selection toolbar to position itself in the right location
   Widget _overlayTargetForMobileToolbar({required Widget child}) =>
       CompositedTransformTarget(
@@ -578,9 +595,8 @@ class VisualEditorState extends State<VisualEditor>
 
   // On init
   void _listenToScrollAndUpdateOverlayMenu() {
-    widget._state.refs.scrollController.addListener(
-      _updateSelectionOverlayOnScroll,
-    );
+    final _scrollController = widget._state.refs.scrollController;
+    _scrollController.addListener(_onScroll);
   }
 
   // On widget update
@@ -588,9 +604,11 @@ class VisualEditorState extends State<VisualEditor>
     final _scrollController = widget._state.refs.scrollController;
 
     if (widget.scrollController != _scrollController) {
-      _scrollController.removeListener(_updateSelectionOverlayOnScroll);
-      widget._state.refs.setScrollController(widget.scrollController);
-      _scrollController.addListener(_updateSelectionOverlayOnScroll);
+      _scrollController.removeListener(_onScroll);
+      widget._state.refs.setScrollController(
+        widget.scrollController ?? ScrollController(),
+      );
+      _scrollController.addListener(_onScroll);
     }
   }
 
@@ -600,7 +618,7 @@ class VisualEditorState extends State<VisualEditor>
     // In case this is called a second time because a new editor controller was provided.
     editorUpdatesListener?.cancel();
 
-    editorUpdatesListener = widget._state.refreshEditor.updateEditor$.listen(
+    editorUpdatesListener = widget._state.refreshEditor.refreshEditor$.listen(
       (_) {
         _textValueService.updateEditor(
           widget._state,
@@ -617,8 +635,19 @@ class VisualEditorState extends State<VisualEditor>
     widget._state.refs.setEditorState(this);
   }
 
+  void _onScroll() {
+    _updateSelectionOverlayOnScroll();
+    _callOnScrollCallback();
+  }
+
   void _updateSelectionOverlayOnScroll() {
     selectionActionsController?.updateOnScroll();
+  }
+
+  void _callOnScrollCallback() {
+    if (widget.controller.onScroll != null) {
+      widget.controller.onScroll!();
+    }
   }
 
   void _initFloatingCursorController() {

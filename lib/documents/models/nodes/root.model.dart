@@ -4,6 +4,7 @@ import 'line.model.dart';
 import 'node.model.dart';
 
 // Root node of document tree.
+// Delta operation (json data) are converted to Nodes (models)
 class RootM extends ContainerM<ContainerM<NodeM?>> {
   @override
   NodeM newInstance() => RootM();

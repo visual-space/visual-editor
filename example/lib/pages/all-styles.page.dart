@@ -21,7 +21,8 @@ class _AllStylesPageState extends State<AllStylesPage> {
   final _editorService = EditorService();
 
   EditorController? _controller;
-  final FocusNode _focusNode = FocusNode();
+  final _scrollController = ScrollController();
+  final _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -57,7 +58,7 @@ class _AllStylesPageState extends State<AllStylesPage> {
           ),
           child: VisualEditor(
             controller: _controller!,
-            scrollController: ScrollController(),
+            scrollController: _scrollController,
             focusNode: _focusNode,
             config: EditorConfigM(
               placeholder: 'Enter text',

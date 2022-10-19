@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
 
-import '../models/content-proxy-box-renderer.model.dart';
+import '../../shared/models/content-proxy-box-renderer.model.dart';
 import '../models/text-line-slot.enum.dart';
 import 'editable-text-line-renderer.dart';
 import 'editable-text-line.dart';
 
-class TextLineElementRenderer extends RenderObjectElement {
-  TextLineElementRenderer(EditableTextLine line) : super(line);
+// An element is an instantiation of a widget in the widget tree.
+// The editable text line elements hosts the leading widget (bullets, checkboxes)
+// and the underlying text widget (text spans).
+// Slots are used to identify the children cheaply when the framework runs the update cycle.
+class EditableTextLineElement extends RenderObjectElement {
+  EditableTextLineElement(EditableTextLine editableTextLine)
+      : super(editableTextLine);
 
   final Map<TextLineSlot, Element> _slotToChildren = <TextLineSlot, Element>{};
 
   @override
   EditableTextLine get widget => super.widget as EditableTextLine;
 
+  // aka editableTextLine
   @override
   EditableTextLineRenderer get renderObject =>
       super.renderObject as EditableTextLineRenderer;
@@ -35,7 +41,7 @@ class TextLineElementRenderer extends RenderObjectElement {
   void mount(Element? parent, dynamic newSlot) {
     super.mount(parent, newSlot);
     _mountChild(widget.leading, TextLineSlot.LEADING);
-    _mountChild(widget.body, TextLineSlot.BODY);
+    _mountChild(widget.underlyingText, TextLineSlot.UNDERLYING_TEXT);
   }
 
   @override
@@ -43,7 +49,7 @@ class TextLineElementRenderer extends RenderObjectElement {
     super.update(newWidget);
     assert(widget == newWidget);
     _updateChild(widget.leading, TextLineSlot.LEADING);
-    _updateChild(widget.body, TextLineSlot.BODY);
+    _updateChild(widget.underlyingText, TextLineSlot.UNDERLYING_TEXT);
   }
 
   @override
@@ -70,9 +76,11 @@ class TextLineElementRenderer extends RenderObjectElement {
   void _mountChild(Widget? widget, TextLineSlot slot) {
     final oldChild = _slotToChildren[slot];
     final newChild = updateChild(oldChild, widget, slot);
+
     if (oldChild != null) {
       _slotToChildren.remove(slot);
     }
+
     if (newChild != null) {
       _slotToChildren[slot] = newChild;
     }
@@ -83,7 +91,7 @@ class TextLineElementRenderer extends RenderObjectElement {
       case TextLineSlot.LEADING:
         renderObject.setLeading(child);
         break;
-      case TextLineSlot.BODY:
+      case TextLineSlot.UNDERLYING_TEXT:
         renderObject.setBody(child as RenderContentProxyBox?);
         break;
       default:
@@ -94,9 +102,11 @@ class TextLineElementRenderer extends RenderObjectElement {
   void _updateChild(Widget? widget, TextLineSlot slot) {
     final oldChild = _slotToChildren[slot];
     final newChild = updateChild(oldChild, widget, slot);
+
     if (oldChild != null) {
       _slotToChildren.remove(slot);
     }
+
     if (newChild != null) {
       _slotToChildren[slot] = newChild;
     }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../documents/models/attribute.model.dart';
+import '../../../documents/models/attributes/attributes.model.dart';
 import '../../const/arabian-roman-numbers.const.dart';
 import '../../const/roman-numbers.const.dart';
 
@@ -31,7 +32,7 @@ class NumberPoint extends StatelessWidget {
     var s = index.toString();
     int? level = 0;
 
-    if (!attrs.containsKey(AttributeM.indent.key) &&
+    if (!attrs.containsKey(AttributesM.indent.key) &&
         !indentLevelCounts.containsKey(1)) {
       indentLevelCounts.clear();
 
@@ -43,8 +44,8 @@ class NumberPoint extends StatelessWidget {
       );
     }
 
-    if (attrs.containsKey(AttributeM.indent.key)) {
-      level = attrs[AttributeM.indent.key]!.value;
+    if (attrs.containsKey(AttributesM.indent.key)) {
+      level = attrs[AttributesM.indent.key]!.value;
     } else {
       // first level but is back from previous indent level
       // supposed to be "2."

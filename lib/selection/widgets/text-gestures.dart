@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-import '../../highlights/services/highlights.service.dart';
+import '../../blocks/services/lines-blocks.service.dart';
+import '../../highlights/services/highlights-hover.service.dart';
+import '../../markers/services/markers-hover.service.dart';
 import '../../shared/state/editor.state.dart';
 import '../services/text-gestures.service.dart';
 import '../services/text-selection.service.dart';
@@ -41,7 +43,9 @@ class TextGestures extends StatefulWidget {
 class _TextGesturesState extends State<TextGestures> {
   final _textSelectionService = TextSelectionService();
   final _textGesturesService = TextGesturesService();
-  final _highlightsService = HighlightsService();
+  final _highlightsHoverService = HighlightsHoverService();
+  final _markersHoverService = MarkersHoverService();
+  final _linesBlocksService = LinesBlocksService();
 
   Timer? _doubleTapTimer;
   Offset? _lastTapOffset;
@@ -140,14 +144,12 @@ class _TextGesturesState extends State<TextGestures> {
   }
 
   void _handleHover(PointerHoverEvent event) {
-    _highlightsService.onHover(event, widget._state);
+    _highlightsHoverService.onHover(event, widget._state);
+    _markersHoverService.onHover(event, widget._state);
   }
 
   // The down handler is force-run on success of a single tap and optimistically run before a long press success.
-  void _handleTapDown(
-    TapDownDetails details,
-    EditorState state,
-  ) {
+  void _handleTapDown(TapDownDetails details, EditorState state) {
     final hasDoubleTapTolerance =
         _hasDoubleTapTolerance(details.globalPosition);
     _textGesturesService.onTapDown(details, state);
@@ -165,13 +167,20 @@ class _TextGesturesState extends State<TextGestures> {
     }
   }
 
-  void _handleTapUp(
-    TapUpDetails details,
-    EditorState state,
-  ) {
+  void _handleTapUp(TapUpDetails details, EditorState state) {
     if (!_isDoubleTap) {
+      // Controller callback
+      if (state.editorConfig.config.onTapUp != null &&
+          state.editorConfig.config.onTapUp!(
+            details,
+            _linesBlocksService.getPositionForOffset,
+          )) {
+        return;
+      }
+
       _textGesturesService.onSingleTapUp(details, _platform, state);
-      _highlightsService.onSingleTapUp(details, widget._state);
+      _highlightsHoverService.onSingleTapUp(details, state);
+      _markersHoverService.onSingleTapUp(details, state);
       _lastTapOffset = details.globalPosition;
       _doubleTapTimer = Timer(kDoubleTapTimeout, _doubleTapTimeout);
     }
@@ -204,6 +213,7 @@ class _TextGesturesState extends State<TextGestures> {
   // Drag updates are being throttled to avoid excessive text layouts in text fields.
   // The frequency of invocations is controlled by the constant [_kDragSelectionUpdateThrottle].
   // Once the drag gesture ends, any pending drag update will be fired immediately. See [_handleDragEnd].
+  // Once a selection is started then this callback is the one that keeps updating the text.
   void _handleDragUpdateThrottled() {
     assert(_lastDragStartDetails != null);
     assert(_lastDragUpdateDetails != null);

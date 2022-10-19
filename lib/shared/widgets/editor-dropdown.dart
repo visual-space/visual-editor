@@ -125,23 +125,26 @@ class _EditorDropdownState<T> extends State<EditorDropdown<T>> {
     }
   }
 
-  Widget _rectangleButton({required List<Widget> children}) => Material(
-        child: InkWell(
-          onTap: _displayOptionsMenu,
-          child: ConstrainedBox(
-            constraints: BoxConstraints.tightFor(
-              height: widget.iconSize * 1.81,
-            ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: children,
+  Widget _rectangleButton({required List<Widget> children}) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 2.5),
+    child: Material(
+          child: InkWell(
+            onTap: _displayOptionsMenu,
+            child: ConstrainedBox(
+              constraints: BoxConstraints.tightFor(
+                height: widget.iconSize * 1.75,
+              ),
+              child: Container(
+                padding: EdgeInsets.fromLTRB(8, 0, 8, 0),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: children,
+                ),
               ),
             ),
           ),
         ),
-      );
+  );
 
   Widget _textAndArrow() {
     final theme = Theme.of(context);
@@ -157,7 +160,7 @@ class _EditorDropdownState<T> extends State<EditorDropdown<T>> {
                 widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color,
           ),
         ),
-        const SizedBox(
+        SizedBox(
           width: 3,
         ),
         Icon(

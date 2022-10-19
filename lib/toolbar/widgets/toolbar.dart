@@ -508,7 +508,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
       initialLocale: locale,
       child: multiRowsDisplay
           ? Container(
-              padding: EdgeInsets.symmetric(vertical: 10),
+              padding: EdgeInsets.symmetric(horizontal: 10),
               child: Wrap(
                 alignment: toolbarIconAlignment,
                 runSpacing: 4,

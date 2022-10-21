@@ -84,8 +84,8 @@ class MarkersDropdown extends StatelessWidget with EditorStateReceiver {
     } else {
       _markersTypes = [
         DropDownOptionM(
-          name: defaultMarkerType.name,
-          value: defaultMarkerType.id,
+          name: DEFAULT_MARKER_TYPE.name,
+          value: DEFAULT_MARKER_TYPE.id,
         ),
       ];
     }

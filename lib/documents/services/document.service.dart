@@ -6,7 +6,7 @@ import 'package:flutter/scheduler.dart';
 
 import '../../blocks/services/lines-blocks.service.dart';
 import '../../blocks/widgets/editable-text-block.dart';
-import '../../blocks/widgets/editable-text-line.dart';
+import '../../blocks/widgets/editable-text-line-widget-renderer.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../shared/models/selection-rectangles.model.dart';
 import '../../shared/state/editor.state.dart';
@@ -37,7 +37,7 @@ class DocumentService {
     final indentLevelCounts = <int, int>{};
     final nodes = document.root.children;
 
-    final renderers = <EditableTextLine>[];
+    final renderers = <EditableTextLineWidgetRenderer>[];
 
     for (final node in nodes) {
       // Line
@@ -57,15 +57,18 @@ class DocumentService {
 
         // Block
       } else if (node is BlockM) {
+        final renderer = _editableTextBlock(
+          node,
+          node.style.attributes!,
+          indentLevelCounts,
+          state,
+        );
+
+        // TODO Unify duplicated code
         docWidgets.add(
           Directionality(
             textDirection: getDirectionOfNode(node),
-            child: _editableTextBlock(
-              node,
-              node.style.attributes!,
-              indentLevelCounts,
-              state,
-            ),
+            child: renderer,
           ),
         );
       }
@@ -103,6 +106,7 @@ class DocumentService {
 
   // === PRIVATE ===
 
+  // TODO Migrate to _linesBlocksService
   Widget _editableTextBlock(
     BlockM node,
     Map<String, AttributeM<dynamic>> attributes,
@@ -136,7 +140,7 @@ class DocumentService {
     );
   }
 
-  void _cacheMarkers(EditorState state, List<EditableTextLine> renderers) {
+  void _cacheMarkers(EditorState state, List<EditableTextLineWidgetRenderer> renderers) {
     // Clear the old markers
     state.markers.flushAllMarkers();
 
@@ -153,7 +157,7 @@ class DocumentService {
 
   // (!) For highlights that span multiple lines of text we are extracting from
   // each renderer only the rectangles belonging to that particular line.
-  void _cacheHighlights(EditorState state, List<EditableTextLine> renderers) {
+  void _cacheHighlights(EditorState state, List<EditableTextLineWidgetRenderer> renderers) {
     final highlights = <HighlightM>[];
 
     // Get Rectangles
@@ -184,7 +188,7 @@ class DocumentService {
   // (!) For a selection that span multiple lines of text we are extracting from
   // each renderer only the rectangles belonging to that particular line.
   void _cacheSelectionRectangles(
-      EditorState state, List<EditableTextLine> renderers) {
+      EditorState state, List<EditableTextLineWidgetRenderer> renderers) {
     // Get Rectangles
     final rectangles = <SelectionRectanglesM>[];
 
@@ -201,7 +205,7 @@ class DocumentService {
     state.selection.setSelectionRectangles(rectangles);
   }
 
-  void _cacheHeadings(EditorState state, List<EditableTextLine> renderers) {
+  void _cacheHeadings(EditorState state, List<EditableTextLineWidgetRenderer> renderers) {
     // Clear the old headings
     state.headings.removeAllHeadings();
 

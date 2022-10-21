@@ -27,6 +27,9 @@ class AttributesTypesM {
     AttributesM.direction.key,
   });
 
+  // Some rules apply to blocks only.
+  // For example, we an press enter twice and we need to exit the block.
+  // This list helps us detect lines of code belonging to one of the known block types.
   static final Set<String> blockKeysExceptHeader = LinkedHashSet.of({
     AttributesM.list.key,
     AttributesM.align.key,

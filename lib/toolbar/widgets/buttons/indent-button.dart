@@ -11,6 +11,7 @@ class IndentButton extends StatefulWidget {
   final IconData icon;
   final double iconSize;
   final EditorController controller;
+  // TODO enum
   final bool isIncrease;
   final EditorIconThemeM? iconTheme;
   final double buttonsSpacing;
@@ -60,6 +61,7 @@ class _IndentButtonState extends State<IndentButton> {
         .getSelectionStyle()
         .attributes?[AttributesM.indent.key];
 
+    // No Styling
     if (indent == null) {
       if (widget.isIncrease) {
         widget.controller.formatSelection(AttributesAliasesM.indentL1);
@@ -67,6 +69,7 @@ class _IndentButtonState extends State<IndentButton> {
       return;
     }
 
+    // Prevent decrease bellow 1
     if (indent.value == 1 && !widget.isIncrease) {
       widget.controller.formatSelection(
         AttributeUtils.clone(AttributesAliasesM.indentL1, null),
@@ -74,6 +77,7 @@ class _IndentButtonState extends State<IndentButton> {
       return;
     }
 
+    // Increase
     if (widget.isIncrease) {
       widget.controller.formatSelection(
         AttributeUtils.getIndentLevel(indent.value + 1),
@@ -81,6 +85,7 @@ class _IndentButtonState extends State<IndentButton> {
       return;
     }
 
+    // Decrease
     widget.controller.formatSelection(
       AttributeUtils.getIndentLevel(indent.value - 1),
     );

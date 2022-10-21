@@ -32,7 +32,7 @@ import '../services/text-lines.utils.dart';
 // - colored backgrounds for code blocks
 // - bullets for bullets lists
 // Additionally it renders as an overlay the text selection or highlights and markers boxes.
-class EditableTextLineRenderer extends EditableBoxRenderer {
+class EditableTextLineBoxRenderer extends EditableBoxRenderer {
   final _textSelectionUtils = TextSelectionUtils();
 
   RenderBox? _leading;
@@ -70,7 +70,7 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
   }
 
   // Creates new editable paragraph render box.
-  EditableTextLineRenderer({
+  EditableTextLineBoxRenderer({
     required this.line,
     required this.textDirection,
     required this.textSelection,
@@ -271,6 +271,18 @@ class EditableTextLineRenderer extends EditableBoxRenderer {
 
     line = _line;
     _containsCursor = null;
+    markNeedsLayout();
+  }
+
+  void setPadding(EdgeInsetsGeometry _padding) {
+    assert(_padding.isNonNegative);
+
+    if (padding == _padding) {
+      return;
+    }
+
+    padding = _padding;
+    _resolvedPadding = null;
     markNeedsLayout();
   }
 

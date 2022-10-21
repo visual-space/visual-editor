@@ -2,26 +2,31 @@ import 'package:flutter/material.dart';
 
 import '../../shared/models/content-proxy-box-renderer.model.dart';
 import '../models/text-line-slot.enum.dart';
-import 'editable-text-line-renderer.dart';
-import 'editable-text-line.dart';
+import 'editable-text-line-box-renderer.dart';
+import 'editable-text-line-widget-renderer.dart';
 
 // An element is an instantiation of a widget in the widget tree.
-// The editable text line elements hosts the leading widget (bullets, checkboxes)
+// The editable text line element hosts the leading widget (bullets, checkboxes)
 // and the underlying text widget (text spans).
+// This widget mounds the 2 parts of editable text line (leading and body) in the slots that are provided.
+// It also handles the change detection process for each of the slots as needed (leading or body, or both).
 // Slots are used to identify the children cheaply when the framework runs the update cycle.
-class EditableTextLineElement extends RenderObjectElement {
-  EditableTextLineElement(EditableTextLine editableTextLine)
-      : super(editableTextLine);
+class EditableTextLineLeadingAndBody extends RenderObjectElement {
+  EditableTextLineLeadingAndBody(
+    EditableTextLineWidgetRenderer editableTextLineRenderer,
+  ) : super(editableTextLineRenderer);
 
   final Map<TextLineSlot, Element> _slotToChildren = <TextLineSlot, Element>{};
 
+  // Nice wrapper method that retrieves the EditableTextLineWidgetRenderer from the RenderObjectElement (was passed via super() )
   @override
-  EditableTextLine get widget => super.widget as EditableTextLine;
+  EditableTextLineWidgetRenderer get widget =>
+      super.widget as EditableTextLineWidgetRenderer;
 
   // aka editableTextLine
   @override
-  EditableTextLineRenderer get renderObject =>
-      super.renderObject as EditableTextLineRenderer;
+  EditableTextLineBoxRenderer get renderObject =>
+      super.renderObject as EditableTextLineBoxRenderer;
 
   @override
   void visitChildren(ElementVisitor visitor) {
@@ -37,6 +42,7 @@ class EditableTextLineElement extends RenderObjectElement {
     super.forgetChild(child);
   }
 
+  // We mount the leading widget and the body widget (editable text line) as two children of this particular component.
   @override
   void mount(Element? parent, dynamic newSlot) {
     super.mount(parent, newSlot);
@@ -45,7 +51,7 @@ class EditableTextLineElement extends RenderObjectElement {
   }
 
   @override
-  void update(EditableTextLine newWidget) {
+  void update(EditableTextLineWidgetRenderer newWidget) {
     super.update(newWidget);
     assert(widget == newWidget);
     _updateChild(widget.leading, TextLineSlot.LEADING);
@@ -69,7 +75,10 @@ class EditableTextLineElement extends RenderObjectElement {
 
   @override
   void moveRenderObjectChild(
-      RenderObject child, dynamic oldSlot, dynamic newSlot) {
+    RenderObject child,
+    dynamic oldSlot,
+    dynamic newSlot,
+  ) {
     throw UnimplementedError();
   }
 

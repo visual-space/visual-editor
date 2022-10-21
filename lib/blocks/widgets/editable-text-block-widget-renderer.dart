@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import '../../documents/models/nodes/block.model.dart';
 import '../../shared/state/editor.state.dart';
 import '../models/vertical-spacing.model.dart';
-import 'editable-text-block-renderer.dart';
+import 'editable-text-block-box-renderer.dart';
 
 // ignore: must_be_immutable
-class EditableBlock extends MultiChildRenderObjectWidget {
+class EditableTextBlockWidgetRenderer extends MultiChildRenderObjectWidget {
   final BlockM block;
   final TextDirection textDirection;
   final VerticalSpacing padding;
@@ -21,7 +21,7 @@ class EditableBlock extends MultiChildRenderObjectWidget {
     _state = state;
   }
 
-  EditableBlock({
+  EditableTextBlockWidgetRenderer({
     required this.block,
     required this.textDirection,
     required this.padding,
@@ -43,8 +43,8 @@ class EditableBlock extends MultiChildRenderObjectWidget {
       );
 
   @override
-  EditableTextBlockRenderer createRenderObject(BuildContext context) {
-    return EditableTextBlockRenderer(
+  EditableTextBlockBoxRenderer createRenderObject(BuildContext context) {
+    return EditableTextBlockBoxRenderer(
       block: block,
       textDirection: textDirection,
       padding: _padding,
@@ -57,7 +57,7 @@ class EditableBlock extends MultiChildRenderObjectWidget {
   @override
   void updateRenderObject(
     BuildContext context,
-    covariant EditableTextBlockRenderer renderObject,
+    covariant EditableTextBlockBoxRenderer renderObject,
   ) {
     renderObject
       ..setContainer(block)

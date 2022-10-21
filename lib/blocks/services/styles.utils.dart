@@ -6,6 +6,9 @@ import '../models/inline-code-style.model.dart';
 import '../models/list-block-style.model.dart';
 import '../models/vertical-spacing.model.dart';
 
+const VERTICAL_SPACING_EMPTY = VerticalSpacing(top: 0, bottom: 0);
+const VERTICAL_BASE_SPACING = VerticalSpacing(top: 6, bottom: 0);
+
 EditorStylesM getDefaultStyles(BuildContext context) {
   final themeData = Theme.of(context);
   final defaultTextStyle = DefaultTextStyle.of(context);
@@ -13,7 +16,6 @@ EditorStylesM getDefaultStyles(BuildContext context) {
     fontSize: 16,
     height: 1.3,
   );
-  final baseSpacing = VerticalSpacing(top: 6, bottom: 0);
   String fontFamily;
 
   if (isAppleOS(themeData.platform)) {
@@ -37,7 +39,7 @@ EditorStylesM getDefaultStyles(BuildContext context) {
         fontWeight: FontWeight.w300,
       ),
       VerticalSpacing(top: 16, bottom: 0),
-      VerticalSpacing(top: 0, bottom: 0),
+      VERTICAL_SPACING_EMPTY,
       null,
     ),
     h2: TextBlockStyleM(
@@ -48,7 +50,7 @@ EditorStylesM getDefaultStyles(BuildContext context) {
         fontWeight: FontWeight.normal,
       ),
       VerticalSpacing(top: 8, bottom: 0),
-      VerticalSpacing(top: 0, bottom: 0),
+      VERTICAL_SPACING_EMPTY,
       null,
     ),
     h3: TextBlockStyleM(
@@ -59,13 +61,13 @@ EditorStylesM getDefaultStyles(BuildContext context) {
         fontWeight: FontWeight.w500,
       ),
       VerticalSpacing(top: 8, bottom: 0),
-      VerticalSpacing(top: 0, bottom: 0),
+      VERTICAL_SPACING_EMPTY,
       null,
     ),
     paragraph: TextBlockStyleM(
       baseStyle,
-      VerticalSpacing(top: 0, bottom: 0),
-      VerticalSpacing(top: 0, bottom: 0),
+      VERTICAL_SPACING_EMPTY,
+      VERTICAL_SPACING_EMPTY,
       null,
     ),
     bold: const TextStyle(
@@ -110,13 +112,13 @@ EditorStylesM getDefaultStyles(BuildContext context) {
         height: 1.5,
         color: Colors.grey.withOpacity(0.6),
       ),
-      VerticalSpacing(top: 0, bottom: 0),
-      VerticalSpacing(top: 0, bottom: 0),
+      VERTICAL_SPACING_EMPTY,
+      VERTICAL_SPACING_EMPTY,
       null,
     ),
     lists: ListBlockStyle(
       baseStyle,
-      baseSpacing,
+      VERTICAL_BASE_SPACING,
       VerticalSpacing(top: 0, bottom: 6),
       null,
       null,
@@ -125,7 +127,7 @@ EditorStylesM getDefaultStyles(BuildContext context) {
       TextStyle(
         color: baseStyle.color!.withOpacity(0.6),
       ),
-      baseSpacing,
+      VERTICAL_BASE_SPACING,
       VerticalSpacing(top: 6, bottom: 2),
       BoxDecoration(
         border: Border(
@@ -143,8 +145,8 @@ EditorStylesM getDefaultStyles(BuildContext context) {
         fontSize: 13,
         height: 1.15,
       ),
-      baseSpacing,
-      VerticalSpacing(top: 0, bottom: 0),
+      VERTICAL_BASE_SPACING,
+      VERTICAL_SPACING_EMPTY,
       BoxDecoration(
         color: Colors.grey.shade50,
         borderRadius: BorderRadius.circular(2),
@@ -152,20 +154,20 @@ EditorStylesM getDefaultStyles(BuildContext context) {
     ),
     indent: TextBlockStyleM(
       baseStyle,
-      baseSpacing,
+      VERTICAL_BASE_SPACING,
       VerticalSpacing(top: 0, bottom: 6),
       null,
     ),
     align: TextBlockStyleM(
       baseStyle,
-      VerticalSpacing(top: 0, bottom: 0),
-      VerticalSpacing(top: 0, bottom: 0),
+      VERTICAL_SPACING_EMPTY,
+      VERTICAL_SPACING_EMPTY,
       null,
     ),
     leading: TextBlockStyleM(
       baseStyle,
-      VerticalSpacing(top: 0, bottom: 0),
-      VerticalSpacing(top: 0, bottom: 0),
+      VERTICAL_SPACING_EMPTY,
+      VERTICAL_SPACING_EMPTY,
       null,
     ),
     sizeSmall: const TextStyle(

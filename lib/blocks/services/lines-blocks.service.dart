@@ -13,8 +13,8 @@ import '../../shared/state/editor.state.dart';
 import '../../visual-editor.dart';
 import '../models/link-action-menu.enum.dart';
 import '../models/vertical-spacing.model.dart';
-import '../widgets/editable-text-block-renderer.dart';
-import '../widgets/editable-text-line.dart';
+import '../widgets/editable-text-block-box-renderer.dart';
+import '../widgets/editable-text-line-widget-renderer.dart';
 import '../widgets/text-line.dart';
 
 class LinesBlocksService {
@@ -28,9 +28,10 @@ class LinesBlocksService {
   // Nodes are defined in the delta json using new line chars "\n"
   // An editable text line is composed of a underlying text line (text spans)
   // and the editable text line wrapper (which renders text selection, markers and highlights).
-  EditableTextLine getEditableTextLineFromNode(LineM node, EditorState state) {
+  EditableTextLineWidgetRenderer getEditableTextLineFromNode(LineM node, EditorState state) {
     final editor = state.refs.editorState;
 
+    // Text spans with text styling from flutter
     final textLine = TextLine(
       line: node,
       textDirection: editor.textDirection,
@@ -39,7 +40,9 @@ class LinesBlocksService {
       state: state,
     );
 
-    final editableTextLine = EditableTextLine(
+    // Rendering of selection, highlights, markers, etc
+    // Selections is custom rendered because we also handle edge cases such as code blocks that are not defined in flutter.
+    final editableTextLine = EditableTextLineWidgetRenderer(
       line: node,
       leading: null,
       underlyingText: textLine,
@@ -106,7 +109,7 @@ class LinesBlocksService {
   EditableBoxRenderer childAtPosition(
     TextPosition position,
     EditorState state, [
-    EditableTextBlockRenderer? blockRenderer,
+    EditableTextBlockBoxRenderer? blockRenderer,
   ]) {
     final renderer = blockRenderer ?? state.refs.renderer;
     assert(renderer.firstChild != null);
@@ -147,7 +150,7 @@ class LinesBlocksService {
   EditableBoxRenderer childAtOffset(
     Offset offset,
     EditorState state, [
-    EditableTextBlockRenderer? blockRenderer,
+    EditableTextBlockBoxRenderer? blockRenderer,
   ]) {
     final renderer = blockRenderer ?? state.refs.renderer;
     assert(renderer.firstChild != null);

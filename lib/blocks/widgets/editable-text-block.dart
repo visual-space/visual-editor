@@ -12,8 +12,8 @@ import '../models/editor-styles.model.dart';
 import '../models/link-action.picker.type.dart';
 import '../models/vertical-spacing.model.dart';
 import '../style-widgets.dart';
-import 'editable-block.dart';
-import 'editable-text-line.dart';
+import 'editable-text-block-widget-renderer.dart';
+import 'editable-text-line-widget-renderer.dart';
 import 'text-line.dart';
 
 // ignore: must_be_immutable
@@ -66,7 +66,7 @@ class EditableTextBlock extends StatelessWidget {
 
     final styles = _state.styles.styles;
 
-    return EditableBlock(
+    return EditableTextBlockWidgetRenderer(
       block: block,
       textDirection: textDirection,
       padding: verticalSpacing,
@@ -74,7 +74,7 @@ class EditableTextBlock extends StatelessWidget {
           _getDecorationForBlock(block, styles) ?? const BoxDecoration(),
       isCodeBlock: isCodeBlock,
       state: _state,
-      children: _buildChildren(
+      children: _blockLines(
         context,
         indentLevelCounts,
       ),
@@ -100,7 +100,7 @@ class EditableTextBlock extends StatelessWidget {
     return null;
   }
 
-  List<Widget> _buildChildren(
+  List<Widget> _blockLines(
     BuildContext context,
     Map<int, int> indentLevelCounts,
   ) {
@@ -112,7 +112,7 @@ class EditableTextBlock extends StatelessWidget {
     for (final line in Iterable.castFrom<dynamic, LineM>(block.children)) {
       index++;
 
-      final editableTextLine = EditableTextLine(
+      final editableTextLine = EditableTextLineWidgetRenderer(
         line: line,
         leading: _lineLeadingWidget(
           context,

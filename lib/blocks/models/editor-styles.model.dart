@@ -5,20 +5,32 @@ import 'list-block-style.model.dart';
 import 'text-block-style.model.dart';
 
 class EditorStylesM {
+  // Headings
   final TextBlockStyleM? h1;
   final TextBlockStyleM? h2;
   final TextBlockStyleM? h3;
+
+  // Paragraph
   final TextBlockStyleM? paragraph;
+
+  // Font Styles
   final TextStyle? bold;
   final TextStyle? italic;
   final TextStyle? small;
+
+
   final TextStyle? underline;
   final TextStyle? strikeThrough;
   final InlineCodeStyle? inlineCode;
+
+  // Font Sizes
   final TextStyle? sizeSmall;
   final TextStyle? sizeLarge;
   final TextStyle? sizeHuge;
+
+  // Link
   final TextStyle? link;
+
   final Color? color;
   final TextBlockStyleM? placeHolder;
   final ListBlockStyle? lists;
@@ -28,7 +40,7 @@ class EditorStylesM {
   final TextBlockStyleM? align;
   final TextBlockStyleM? leading;
 
-  EditorStylesM({
+  const EditorStylesM({
     this.h1,
     this.h2,
     this.h3,

@@ -4,7 +4,7 @@ import '../models/marker-type.model.dart';
 // Before initialising the editor we need to provide a list of markers types
 // that are available for insertion in the delta document.
 class MarkersTypesState {
-  List<MarkerTypeM> _types = [defaultMarkerType];
+  List<MarkerTypeM> _types = [DEFAULT_MARKER_TYPE];
 
   List<MarkerTypeM> get types => _types;
 

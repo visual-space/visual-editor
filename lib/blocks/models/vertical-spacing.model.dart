@@ -3,7 +3,7 @@ class VerticalSpacing {
   final double top;
   final double bottom;
 
-  VerticalSpacing({
+  const VerticalSpacing({
     required this.top,
     required this.bottom,
   });

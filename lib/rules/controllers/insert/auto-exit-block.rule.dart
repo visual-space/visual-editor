@@ -10,6 +10,9 @@ import '../../models/rules.utils.dart';
 // Heuristic rule to exit current block when user inserts two consecutive newlines.
 // This rule is only applied when the cursor is on the last line of a block.
 // When the cursor is in the middle of a block we allow adding empty lines and preserving the block's style.
+// For example, if you are in bullet list, pressing enter once will create a new bullet,
+// pressing enter twice will terminate the bullet list.
+// The same happens for any other block type (indents, code block, etc).
 class AutoExitBlockRule extends InsertRuleM {
   const AutoExitBlockRule();
 

@@ -7,7 +7,9 @@ import '../../shared/state/editor.state.dart';
 import '../../shared/widgets/multiline-text-area-renderer.dart';
 import '../services/lines-blocks.service.dart';
 
-class EditableTextBlockRenderer extends MultilineTextAreaRenderer
+// Handles the rendering of background areas such as the code block background.
+// Also contains helper methods for calculating the text selection.
+class EditableTextBlockBoxRenderer extends MultilineTextAreaRenderer
     implements EditableBoxRenderer {
   final _linesBlocksService = LinesBlocksService();
   final _textSelectionUtils = TextSelectionUtils();
@@ -49,7 +51,7 @@ class EditableTextBlockRenderer extends MultilineTextAreaRenderer
     markNeedsPaint();
   }
 
-  EditableTextBlockRenderer({
+  EditableTextBlockBoxRenderer({
     required BlockM block,
     required TextDirection textDirection,
     required EdgeInsetsGeometry padding,

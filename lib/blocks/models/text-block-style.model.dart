@@ -13,7 +13,7 @@ class TextBlockStyleM {
   // If present, is painted in the blocks area, excluding any [spacing].
   final BoxDecoration? decoration;
 
-  TextBlockStyleM(
+  const TextBlockStyleM(
     this.style,
     this.verticalSpacing,
     this.lineSpacing,

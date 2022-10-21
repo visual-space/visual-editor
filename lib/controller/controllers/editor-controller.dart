@@ -364,6 +364,7 @@ class EditorController {
   }
 
   // TODO Add comment
+  // Based on the executed change, we reset the text selection range (Ex: deleting text will decrease the text selection).
   void formatText(
     int index,
     int len,
@@ -528,7 +529,7 @@ class EditorController {
 
     final MarkerTypeM? markerType = markersTypes.firstWhere(
       (type) => type.id == markerTypeId,
-      orElse: () => defaultMarkerType,
+      orElse: () => DEFAULT_MARKER_TYPE,
     );
 
     var data;

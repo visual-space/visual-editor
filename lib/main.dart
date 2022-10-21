@@ -171,7 +171,7 @@ class VisualEditorState extends State<VisualEditor>
     super.initState();
     _cacheStateWidget();
     _listedToClipboardAndUpdateEditor();
-    _subscribeToEditorUpdates();
+    _subscribeToEditorUpdatesAndTriggerWidgetsBuild();
     _listenToScrollAndUpdateOverlayMenu();
     _initKeyboard();
     _listenToFocusAndUpdateCaretAndOverlayMenu();
@@ -243,7 +243,7 @@ class VisualEditorState extends State<VisualEditor>
     _reCacheStylesAndCursorOnlyOnce();
     _updateStateOnCursorController();
     cacheEditorRendererRef();
-    _subscribeToEditorUpdates();
+    _subscribeToEditorUpdatesAndTriggerWidgetsBuild();
     _initStyles();
     _initKeyboard();
   }
@@ -373,7 +373,10 @@ class VisualEditorState extends State<VisualEditor>
         widget._state,
       );
 
-  void refresh() => setState(() {});
+  // Once a new widget tree build is triggered via setState the entire list of document lines and blocks
+  // will check for changes in their own text and render these changes.
+  // From here on we no longer apply changes to the document, from here on we only render the changes.
+  void triggerBuild() => setState(() {});
 
   void safeUpdateKeepAlive() => updateKeepAlive();
 
@@ -617,9 +620,8 @@ class VisualEditorState extends State<VisualEditor>
     }
   }
 
-  // Several method hosted in the editor controller can trigger the update of the entire editor widget.
-  // This listener awaits a signal from one of these methods and executed the code to render such an update.
-  void _subscribeToEditorUpdates() {
+  // Several method hosted in the editor controller can trigger the update of the entire editor widget tree.
+  void _subscribeToEditorUpdatesAndTriggerWidgetsBuild() {
     // In case this is called a second time because a new editor controller was provided.
     editorUpdatesListener?.cancel();
 

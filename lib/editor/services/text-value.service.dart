@@ -43,10 +43,12 @@ class TextValueService {
     if (ignoreFocus || state.keyboardVisible.isVisible) {
       onChangeTextEditingValue(ignoreFocus, state);
     } else {
+      // Show software keyboard (on mobiles)
       _keyboardService.requestKeyboard(state);
 
+      // Trigger the build in editor (main.dart)
       if (state.refs.editorState.mounted) {
-        state.refs.editorState.refresh();
+        state.refs.editorState.triggerBuild();
       }
     }
 
@@ -93,7 +95,7 @@ class TextValueService {
 
     // Trigger the build() method in the editor to update the children widgets of the editor widget
     if (state.refs.editorState.mounted) {
-      state.refs.editorState.refresh();
+      state.refs.editorState.triggerBuild();
     }
   }
 }

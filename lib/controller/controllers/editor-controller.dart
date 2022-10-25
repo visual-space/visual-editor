@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
 import '../../documents/models/attribute-scope.enum.dart';
@@ -76,6 +77,9 @@ typedef SelectionChangedCallback = void Function(
 // Multiple operations can trigger this behavior: copy/paste, inserting embeds, etc.
 // onDelete - Callback executed after deleting characters.
 // onSelectionCompleted - Custom behavior to be executed after completing a text selection
+// TODO Move the callback in the editor. We are no longer constrained to call methods defined only in the controller.
+// Therefore we are better off having all callbacks on one object.
+// Since controllers can be swapped between editors it would be best to have all callbacks defined here.
 class EditorController {
   // Stores the entire state of an editor instance.
   // We create this in the controller to be able to pass the same
@@ -91,7 +95,13 @@ class EditorController {
   // Fires when characters are added or removed from the document.
   // (!) Does not fire on style changes.
   // Return false to ignore the event.
+  // Be aware that it emits way before any build() was completed.
+  // Therefore you wont have access to the latest rectangles for highlights and markers.
   ReplaceTextCallback? onReplaceText;
+
+  // Invoked when the document plain text has changed but timed to be triggered after the build,
+  // such that we can extract the latest rectangles as well.
+  void Function()? onReplaceTextCompleted;
   DeleteCallback? onDelete;
   SelectionChangedCallback? onSelectionChanged;
   SelectionCompleteCallback? onSelectionCompleted;
@@ -99,6 +109,9 @@ class EditorController {
   // Called each time when the editor is updated via the refreshEditor$ stream.
   // This signal can be used to update the placement of attachments using the latest rectangles data (after any text editing operation).
   // It happens after the build has completed to ensure that we have access to the latest rectangles.
+  // (!) Beware that this callback is invoked on every change, including style changes,
+  // hovering highlights/markers and changing the selection and possibly other reasons.
+  // Therefore, if you want to be notified only on character changes you are better off using onEditorUpdate.
   void Function()? onBuildComplete;
   void Function()? onScroll;
 
@@ -108,6 +121,8 @@ class EditorController {
   StyleM toggledStyle = StyleM();
 
   // Stream the changes of every document.
+  // Be aware that it emits way before any build() was completed.
+  // Therefore you wont have access to the latest rectangles for highlights and markers.
   Stream<DeltaChangeM> get changes => document.changes;
 
   // Clipboard for image url and its corresponding style item1 is url and item2 is style string.
@@ -140,6 +155,7 @@ class EditorController {
     this.markerTypes = const [],
     this.keepStyleOnNewLine = false,
     this.onReplaceText,
+    this.onReplaceTextCompleted,
     this.onDelete,
     this.onSelectionCompleted,
     this.onSelectionChanged,
@@ -225,7 +241,12 @@ class EditorController {
     );
   }
 
-  // Use ignoreFocus if you want to avoid the caret to be position and activated when changing the doc.
+  // Update the text of the document by replace
+  // index - At which character to start
+  // length - How many characters to replace
+  // length - Content to be inserted (text, embed)
+  // textSelection - Text selection after the update
+  // ignoreFocus - Avoid the caret to be position and activated when changing the doc.
   void replaceText(
     int index,
     int len,
@@ -307,8 +328,10 @@ class EditorController {
     _state.refreshEditor.refreshEditorWithoutCaretPlacement();
 
     if (textSelection != null) {
-      _selectionChangedCallback();
+      _invokeOnSelectionChanged();
     }
+
+    _invokeOnTextReplaceComplete();
   }
 
   void compose(
@@ -339,7 +362,7 @@ class EditorController {
     _state.refreshEditor.refreshEditor();
 
     if (!sameSelection) {
-      _selectionChangedCallback();
+      _invokeOnSelectionChanged();
     }
   }
 
@@ -396,7 +419,7 @@ class EditorController {
     _state.refreshEditor.refreshEditor();
 
     if (!sameSelection) {
-      _selectionChangedCallback();
+      _invokeOnSelectionChanged();
     }
   }
 
@@ -474,7 +497,7 @@ class EditorController {
   ) {
     _cacheSelection(textSelection, source);
     _state.refreshEditor.refreshEditor();
-    _selectionChangedCallback();
+    _invokeOnSelectionChanged();
   }
 
   // === NODES ===
@@ -651,10 +674,23 @@ class EditorController {
   // - Now that the build is complete and we have latest data, we call the selection callbacks
   //   that were defined in the original API, now including the rectangles data
   // It's possible that this pattern might change if we learn more after refactoring the selection handles code
-  void _selectionChangedCallback() {
+  void _invokeOnSelectionChanged() {
     if (onSelectionChanged != null) {
       final rectangles = _state.selection.selectionRectangles;
       onSelectionChanged!(selection, rectangles);
     }
+  }
+
+  // We need a callback for detecting when the document plain text has changed but timed to be triggered after the build.
+  // Such that we can extract the latest rectangles as well. the current callbacks don't work:
+  // onReplaceText() - Called way to early, even before the document.changes stream
+  // document.changes - The stream emits only changes (not complete docs) before the build is completed
+  // onBuildComplete() - This one emits way too often, on hovering highlights, on selection changes, etc
+  void _invokeOnTextReplaceComplete() {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (onReplaceTextCompleted != null) {
+        onReplaceTextCompleted!();
+      }
+    });
   }
 }

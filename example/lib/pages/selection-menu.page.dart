@@ -19,12 +19,13 @@ import '../widgets/selection-quick-menu.dart';
 // it is recommended to display additional attachments on tap, not on hover.
 // (!) Notice that we are synchronising the position of the quick menu with the scroll offset manually.
 // (!) Looking at the demo code one can believe that the current API for managing selection menu is rather complex.
-// However, our goal is not to provide a minified toolbars as the selection menu.
+// However, our goal is not to provide a minified toolbar as the selection menu.
 // Our goal is to provide an API that is versatile enough to be used for any menu,
 // in any position triggered by any conditions you can think of.
 // This gives maximum flexibility to implement any kind of UX interactions you might need for your particular app.
 // Even the positioning logic was left open for the client developers to best decide what fits them best.
 // If all you need is to setup a new button in the custom menu, then try using the custom controls option.
+// TODO Refactor so we don't use setState for visibility either. Has to be moved in the menu component.
 class SelectionMenuPage extends StatefulWidget {
   @override
   _SelectionMenuPageState createState() => _SelectionMenuPageState();
@@ -35,8 +36,11 @@ class _SelectionMenuPageState extends State<SelectionMenuPage> {
   final _focusNode = FocusNode();
   final _scrollController = ScrollController();
   var _isQuickMenuVisible = false;
-  var _cachedRectangle = TextBox.fromLTRBD(0, 0, 0, 0, TextDirection.ltr);
-  Offset? _cachedLineOffset = Offset.zero;
+
+  // Cache used to temporary store the rectangle and line offset as
+  // delivered by the editor while the scroll offset is changing.
+  var _rectangle = TextBox.fromLTRBD(0, 0, 0, 0, TextDirection.ltr);
+  Offset? _lineOffset = Offset.zero;
 
   // (!) This stream is extremely important for maintaining the page performance when updating the quick menu position.
   // The _positionQuickMenuAtRectangle() method will be called many times per second when scrolling.
@@ -132,7 +136,12 @@ class _SelectionMenuPageState extends State<SelectionMenuPage> {
             baseOffset: 30,
             extentOffset: 40,
           ),
-          onSingleTapUp: _displayQuickMenuOnHighlight,
+          onSingleTapUp: (highlight) => _displayQuickMenuOnHighlight(
+            highlight,
+            // If the editor is configured as non scrollable you can
+            // provide the parent scroll controller
+            _scrollController.offset,
+          ),
         )
       ],
       markerTypes: [
@@ -142,10 +151,13 @@ class _SelectionMenuPageState extends State<SelectionMenuPage> {
           color: Colors.amber.withOpacity(0.2),
           hoverColor: Colors.amber.withOpacity(0.4),
           onAddMarkerViaToolbar: (type) => 'fake-id-1',
-          onSingleTapUp: _displayQuickMenuOnMarker,
+          onSingleTapUp: (marker) => _displayQuickMenuOnMarker(
+            marker,
+            _scrollController.offset,
+          ),
         ),
       ],
-      onScroll: _updateQuickMenuPosition,
+      onScroll: () => _updateQuickMenuPositionAfterScroll(_scrollController.offset),
       onSelectionChanged: (selection, rectangles) {
         _hideQuickMenu();
       },
@@ -154,7 +166,7 @@ class _SelectionMenuPageState extends State<SelectionMenuPage> {
 
         // Don't render menu for selections that are collapsed (zero chars selected)
         if (!isCollapsed) {
-          _displayQuickMenuOnTextSelection(markers);
+          _displayQuickMenuOnTextSelection(markers, _scrollController.offset);
         }
       },
     );
@@ -166,34 +178,27 @@ class _SelectionMenuPageState extends State<SelectionMenuPage> {
   // (!) This logic could be expanded to include collision detection or
   // to position the attachment in any location desired.
 
-  void _hideQuickMenu() {
-    if (_isQuickMenuVisible != false) {
-      setState(() {
-        _isQuickMenuVisible = false;
-      });
-    }
-  }
-
-  void _displayQuickMenuOnHighlight(HighlightM highlight) {
+  void _displayQuickMenuOnHighlight(HighlightM highlight, double scrollOffset) {
     final rectangle = highlight.rectanglesByLines![0].rectangles[0];
     final lineOffset = highlight.rectanglesByLines![0].docRelPosition;
-    _cachedRectangle = rectangle;
-    _cachedLineOffset = lineOffset;
-    _positionQuickMenuAtRectangle(_cachedRectangle, _cachedLineOffset);
+    _rectangle = rectangle;
+    _lineOffset = lineOffset;
+    _positionQuickMenuAtRectangle(_rectangle, _lineOffset, scrollOffset);
     _displayQuickMenu();
   }
 
-  void _displayQuickMenuOnMarker(MarkerM marker) {
+  void _displayQuickMenuOnMarker(MarkerM marker, double scrollOffset) {
     final rectangle = marker.rectangles![0];
     final lineOffset = marker.docRelPosition;
-    _cachedRectangle = rectangle;
-    _cachedLineOffset = lineOffset;
-    _positionQuickMenuAtRectangle(_cachedRectangle, _cachedLineOffset);
+    _rectangle = rectangle;
+    _lineOffset = lineOffset;
+    _positionQuickMenuAtRectangle(_rectangle, _lineOffset, scrollOffset);
     _displayQuickMenu();
   }
 
   void _displayQuickMenuOnTextSelection(
     List<SelectionRectanglesM?> rectanglesByLines,
+    double scrollOffset,
   ) {
     final noLinesSelected = rectanglesByLines[0] == null;
     final rectanglesAreMissing = rectanglesByLines[0]!.rectangles.isEmpty;
@@ -206,9 +211,9 @@ class _SelectionMenuPageState extends State<SelectionMenuPage> {
     final rectangle = rectanglesByLines[0]!.rectangles[0];
     final lineOffset = rectanglesByLines[0]!.docRelPosition;
 
-    _cachedRectangle = rectangle;
-    _cachedLineOffset = lineOffset;
-    _positionQuickMenuAtRectangle(_cachedRectangle, _cachedLineOffset);
+    _rectangle = rectangle;
+    _lineOffset = lineOffset;
+    _positionQuickMenuAtRectangle(_rectangle, _lineOffset, scrollOffset);
     _displayQuickMenu();
   }
 
@@ -218,7 +223,26 @@ class _SelectionMenuPageState extends State<SelectionMenuPage> {
     });
   }
 
-  void _positionQuickMenuAtRectangle(TextBox rectangle, Offset? lineOffset) {
+  void _hideQuickMenu() {
+    if (_isQuickMenuVisible != false) {
+      setState(() {
+        _isQuickMenuVisible = false;
+      });
+    }
+  }
+
+  // Use the updated scroll offset and the existing cached rectangles
+  void _updateQuickMenuPositionAfterScroll(double scrollOffset) {
+    if (_isQuickMenuVisible) {
+      _positionQuickMenuAtRectangle(_rectangle, _lineOffset, scrollOffset);
+    }
+  }
+
+  void _positionQuickMenuAtRectangle(
+    TextBox rectangle,
+    Offset? lineOffset,
+    double scrollOffset,
+  ) {
     final hMidPoint = rectangle.left + (rectangle.right - rectangle.left) / 2;
     const menuHeight = 30;
     const menuHalfWidth = 33;
@@ -228,16 +252,10 @@ class _SelectionMenuPageState extends State<SelectionMenuPage> {
       hMidPoint - menuHalfWidth,
       (lineOffset?.dy ?? 0) +
           rectangle.top -
-          _scrollController.offset -
+          scrollOffset -
           menuHeight,
     );
     _quickMenuOffset = offset;
     _quickMenuOffset$.sink.add(offset);
-  }
-
-  void _updateQuickMenuPosition() {
-    if (_isQuickMenuVisible) {
-      _positionQuickMenuAtRectangle(_cachedRectangle, _cachedLineOffset);
-    }
   }
 }

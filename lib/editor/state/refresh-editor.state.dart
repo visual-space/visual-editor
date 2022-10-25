@@ -16,6 +16,7 @@ class RefreshEditorState {
 
   // After the desired changes have been made to the document now we are triggering a new build() cycle
   // to render the widgets in the state dictated by the document.
+  // TODO Rename to triggerDocumentRender
   void refreshEditor() {
     _refreshEditor$.sink.add(null);
   }

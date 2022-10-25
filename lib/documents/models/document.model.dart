@@ -65,7 +65,7 @@ class DocumentM {
     _rules.setCustomRules(customRules);
   }
 
-  final StreamController<DeltaChangeM> _observer = StreamController.broadcast();
+  final StreamController<DeltaChangeM> _changes = StreamController.broadcast();
 
   // TODO Better doc
   final HistoryM _history = HistoryM();
@@ -75,7 +75,7 @@ class DocumentM {
   bool get hasRedo => _history.hasRedo;
 
   // Stream of Changes applied to this document.
-  Stream<DeltaChangeM> get changes => _observer.stream;
+  Stream<DeltaChangeM> get changes => _changes.stream;
 
   // Inserts data in this document at specified index.
   // The `data` parameter can be either a String or an instance of Embeddable.
@@ -189,7 +189,7 @@ class DocumentM {
   // models semantics and can be composed with the current state of this document.
   // In case the change is invalid, behavior of this method is unspecified.
   void compose(DeltaM delta, ChangeSource changeSource) {
-    assert(!_observer.isClosed);
+    assert(!_changes.isClosed);
     delta.trim();
     assert(delta.isNotEmpty);
 
@@ -239,7 +239,7 @@ class DocumentM {
 
     final change = DeltaChangeM(originalDelta, delta, changeSource);
 
-    _observer.add(change);
+    _changes.add(change);
     _history.handleDocChange(change);
   }
 
@@ -252,7 +252,7 @@ class DocumentM {
   }
 
   void close() {
-    _observer.close();
+    _changes.close();
     _history.clear();
   }
 

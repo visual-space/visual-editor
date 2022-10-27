@@ -35,8 +35,13 @@ class _DemoScaffoldState extends State<DemoScaffold> {
           ),
           child: NavMenu(),
         ),
-        body: SafeArea(
-          child: widget.child,
+        body: Center(
+          child: Container(
+            width: 900,
+            child: SafeArea(
+              child: widget.child,
+            ),
+          ),
         ),
       );
 }

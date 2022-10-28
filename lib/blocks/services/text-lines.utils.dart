@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import '../../documents/models/attribute-scope.enum.dart';
@@ -38,14 +37,7 @@ class TextLinesUtils {
     EditorState state,
     RenderContentProxyBox underlyingText,
   ) {
-    // Highlight rectangles
     SelectionRectanglesM? rectangles;
-
-    // Scroll offset
-    var scrollOffset = 0.0;
-    if (state.editorConfig.config.scrollable == true) {
-      scrollOffset = state.refs.scrollController.offset;
-    }
 
     // Iterate trough all the children of a line.
     // Children are fragments containing a unique combination of attributes.
@@ -62,17 +54,14 @@ class TextLinesUtils {
         false,
       );
       final nodeRectangles = underlyingText.getBoxesForSelection(local);
-
-      final documentNodePos = underlyingText.localToGlobal(
-        // Regardless of the current state of the scroll we want the offset
-        // relative to the beginning of document.
-        Offset(0, scrollOffset),
+      final docRelPosition = underlyingText.localToGlobal(
+        const Offset(0, 0),
+        ancestor: state.refs.renderer,
       );
-
       rectangles = SelectionRectanglesM(
         textSelection: local,
         rectangles: nodeRectangles,
-        docRelPosition: documentNodePos,
+        docRelPosition: docRelPosition,
       );
     }
 
@@ -96,7 +85,6 @@ class TextLinesUtils {
     EditorState state,
     RenderContentProxyBox? underlyingText,
   ) {
-    // Markers List
     final allMarkers = <MarkerM>[];
 
     // Iterate trough all the children of a line.
@@ -117,16 +105,9 @@ class TextLinesUtils {
       // ignore: avoid_types_on_closure_parameters
       markers.forEach((marker) {
         final rectangles = getRectanglesFromNode(node, underlyingText);
-
-        var scrollOffset = 0.0;
-        if (state.editorConfig.config.scrollable == true) {
-          scrollOffset = state.refs.scrollController.offset;
-        }
-
-        final documentNodePos = underlyingText?.localToGlobal(
-          // Regardless of the current state of the scroll we want the offset
-          // relative to the beginning of document.
-          Offset(0, scrollOffset),
+        final docRelPosition = underlyingText?.localToGlobal(
+          const Offset(0, 0),
+          ancestor: state.refs.renderer,
         );
         final renderedMarker = marker.copyWith(
           // For markers that have been extracted at init we already have the text selection.
@@ -141,7 +122,7 @@ class TextLinesUtils {
             extentOffset: node.documentOffset + node.length,
           ),
           rectangles: rectangles,
-          docRelPosition: documentNodePos,
+          docRelPosition: docRelPosition,
         );
 
         // Collect markers and pixel coordinates
@@ -184,16 +165,9 @@ class TextLinesUtils {
         final heading = HeadingM(
           text: line.toPlainText(),
         );
-
-        var scrollOffset = 0.0;
-        if (state.editorConfig.config.scrollable == true) {
-          scrollOffset = state.refs.scrollController.offset;
-        }
-
-        final documentNodePos = underlyingText?.localToGlobal(
-          // Regardless off the current state of the scroll we want the offset
-          // relative to the beginning of document.
-          Offset(0, scrollOffset),
+        final docRelPosition = underlyingText?.localToGlobal(
+          const Offset(0, 0),
+          ancestor: state.refs.renderer,
         );
         final textSelection = TextSelection(
           baseOffset: line.documentOffset,
@@ -201,7 +175,7 @@ class TextLinesUtils {
         );
         final rectangles = underlyingText?.getBoxesForSelection(textSelection);
         final renderedHeading = heading.copyWith(
-          docRelPosition: documentNodePos,
+          docRelPosition: docRelPosition,
           rectangles: rectangles,
         );
 
@@ -315,9 +289,11 @@ class TextLinesUtils {
     return rectangles;
   }
 
-  bool isRectangleHovered(TextBox area, Offset pointer) {
-    final xHovered = area.left < pointer.dx && pointer.dx < area.right;
-    final yHovered = area.top < pointer.dy && pointer.dy < area.bottom;
+  bool isRectangleHovered(TextBox area, Offset pointer, Offset offset) {
+    final x = pointer.dx - offset.dx;
+    final y = pointer.dy - offset.dy;
+    final xHovered = area.left < x && x < area.right;
+    final yHovered = area.top < y && y < area.bottom;
     return xHovered && yHovered;
   }
 

@@ -14,6 +14,7 @@ import '../../visual-editor.dart';
 import '../models/link-action-menu.enum.dart';
 import '../models/vertical-spacing.model.dart';
 import '../widgets/editable-text-block-box-renderer.dart';
+import '../widgets/editable-text-block.dart';
 import '../widgets/editable-text-line-widget-renderer.dart';
 import '../widgets/text-line.dart';
 
@@ -36,7 +37,7 @@ class LinesBlocksService {
       line: node,
       textDirection: editor.textDirection,
       styles: state.styles.styles,
-      linkActionPicker: linkActionPicker,
+      linkActionPicker: _linkActionPicker,
       state: state,
     );
 
@@ -47,7 +48,7 @@ class LinesBlocksService {
       leading: null,
       underlyingText: textLine,
       indentWidth: 0,
-      verticalSpacing: getVerticalSpacingForLine(
+      verticalSpacing: _getVerticalSpacingForLine(
         node,
         state.styles.styles,
       ),
@@ -64,48 +65,40 @@ class LinesBlocksService {
     return editableTextLine;
   }
 
-  // Updates the checkbox positioned at [offset] in document by changing its attribute according to [value].
-  void handleCheckboxTap(int offset, bool value, EditorState state) {
-    if (!state.editorConfig.config.readOnly) {
-      state.scrollAnimation.disableAnimationOnce(true);
-      final attribute =
-          value ? AttributesAliasesM.checked : AttributesAliasesM.unchecked;
+  Widget getEditableTextBlockFromNode(
+      BlockM node,
+      Map<String, AttributeM<dynamic>> attributes,
+      Map<int, int> indentLevelCounts,
+      EditorState state,
+      ) {
+    final editor = state.refs.editorState;
 
-      state.refs.editorController.formatText(offset, 0, attribute);
-
-      // Checkbox tapping causes controller.selection to go to offset 0.
-      // Stop toggling those two buttons buttons.
-      state.refs.editorController.toolbarButtonToggler = {
-        AttributesM.list.key: attribute,
-        AttributesM.header.key: AttributesM.header
-      };
-
-      // Go back from offset 0 to current selection.
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        state.refs.editorController.updateSelection(
-          TextSelection.collapsed(offset: offset),
-          ChangeSource.LOCAL,
-        );
-      });
-    }
-  }
-
-  Future<LinkMenuAction> linkActionPicker(
-      NodeM linkNode, EditorState state) async {
-    final hasAttr = linkNode.style.attributes != null;
-    final link =
-        hasAttr ? linkNode.style.attributes![AttributesM.link.key]!.value! : '';
-    final linkDelegate = state.editorConfig.config.linkActionPickerDelegate ??
-        defaultLinkActionPickerDelegate;
-
-    return linkDelegate(
-      state.refs.editorState.context,
-      link,
-      linkNode,
+    return EditableTextBlock(
+      block: node,
+      textDirection: editor.textDirection,
+      verticalSpacing: _getVerticalSpacingForBlock(
+        node,
+        state.styles.styles,
+      ),
+      textSelection: state.refs.editorController.selection,
+      highlights: state.highlights.highlights,
+      hoveredHighlights: state.highlights.hoveredHighlights,
+      hoveredMarkers: state.markers.hoveredMarkers,
+      styles: state.styles.styles,
+      hasFocus: state.refs.focusNode.hasFocus,
+      isCodeBlock: attributes.containsKey(AttributesM.codeBlock.key),
+      linkActionPicker: _linkActionPicker,
+      indentLevelCounts: indentLevelCounts,
+      onCheckboxTap: (offset, value) => _handleCheckboxTap(
+        offset,
+        value,
+        state,
+      ),
+      state: state,
     );
   }
 
-  // If an EditableTextBlockRenderer is provided it uses it, otherwise it defaults to the EditorRenderer
+  // If an EditableTextBlockBoxRenderer is provided it uses it, otherwise it defaults to the EditorRenderer
   EditableBoxRenderer childAtPosition(
     TextPosition position,
     EditorState state, [
@@ -146,7 +139,7 @@ class LinesBlocksService {
   // Returns child of this container located at the specified local `offset`.
   // If `offset` is above this container (offset.dy is negative) returns the first child.
   // Likewise, if `offset` is below this container then returns the last child.
-  // If an EditableTextBlockRenderer is provided it uses it, otherwise it defaults to the EditorRenderer
+  // If an EditableTextBlockBoxRenderer is provided it uses it, otherwise it defaults to the EditorRenderer
   EditableBoxRenderer childAtOffset(
     Offset offset,
     EditorState state, [
@@ -207,7 +200,9 @@ class LinesBlocksService {
     );
   }
 
-  VerticalSpacing getVerticalSpacingForBlock(
+  // === PRIVATE ===
+
+  VerticalSpacing _getVerticalSpacingForBlock(
     BlockM node,
     EditorStylesM? defaultStyles,
   ) {
@@ -231,7 +226,7 @@ class LinesBlocksService {
     return VerticalSpacing(top: 0, bottom: 0);
   }
 
-  VerticalSpacing getVerticalSpacingForLine(
+  VerticalSpacing _getVerticalSpacingForLine(
     LineM line,
     EditorStylesM? defaultStyles,
   ) {
@@ -255,5 +250,46 @@ class LinesBlocksService {
     }
 
     return defaultStyles!.paragraph!.verticalSpacing;
+  }
+
+  // Updates the checkbox positioned at [offset] in document by changing its attribute according to [value].
+  void _handleCheckboxTap(int offset, bool value, EditorState state) {
+    if (!state.editorConfig.config.readOnly) {
+      state.scrollAnimation.disableAnimationOnce(true);
+      final attribute =
+      value ? AttributesAliasesM.checked : AttributesAliasesM.unchecked;
+
+      state.refs.editorController.formatText(offset, 0, attribute);
+
+      // Checkbox tapping causes controller.selection to go to offset 0.
+      // Stop toggling those two buttons buttons.
+      state.refs.editorController.toolbarButtonToggler = {
+        AttributesM.list.key: attribute,
+        AttributesM.header.key: AttributesM.header
+      };
+
+      // Go back from offset 0 to current selection.
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        state.refs.editorController.updateSelection(
+          TextSelection.collapsed(offset: offset),
+          ChangeSource.LOCAL,
+        );
+      });
+    }
+  }
+
+  Future<LinkMenuAction> _linkActionPicker(
+      NodeM linkNode, EditorState state) async {
+    final hasAttr = linkNode.style.attributes != null;
+    final link =
+    hasAttr ? linkNode.style.attributes![AttributesM.link.key]!.value! : '';
+    final linkDelegate = state.editorConfig.config.linkActionPickerDelegate ??
+        defaultLinkActionPickerDelegate;
+
+    return linkDelegate(
+      state.refs.editorState.context,
+      link,
+      linkNode,
+    );
   }
 }

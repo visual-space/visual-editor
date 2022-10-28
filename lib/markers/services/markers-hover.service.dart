@@ -138,22 +138,21 @@ class MarkersHoverService {
     );
 
     var isHovered = false;
-    var scrollOffset = 0.0;
-
-    // Scroll Offset
-    if (state.editorConfig.config.scrollable == true) {
-      scrollOffset = state.refs.scrollController.offset;
-    }
 
     // Sync Pointer To Lines
     final pointer = Offset(
       eventPos.dx - (marker.docRelPosition?.dx ?? 0),
-      eventPos.dy - (marker.docRelPosition?.dy ?? 0) + scrollOffset,
+      eventPos.dy - (marker.docRelPosition?.dy ?? 0),
     );
+    final editorOffset = state.refs.renderer.localToGlobal(Offset.zero);
 
     // Search For Hits
     for (final rectangle in marker.rectangles ?? []) {
-      isHovered = _textLinesUtils.isRectangleHovered(rectangle, pointer);
+      isHovered = _textLinesUtils.isRectangleHovered(
+        rectangle,
+        pointer,
+        editorOffset,
+      );
 
       // Exit search loop early as soon as the first hit is found (perf)
       if (isHovered) {

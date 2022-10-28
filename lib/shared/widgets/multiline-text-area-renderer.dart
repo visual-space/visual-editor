@@ -10,7 +10,7 @@ class EditableContainerParentData
 
 // Used by widgets that render multiline text in Visual Editor (the big editor and blocks of text).
 // Provides methods for computing the widget layout based on constraints from the parent.
-// Used/Extended by both the EditorRendererInner and the EditableTextBlockRenderer.
+// Used/Extended by both the EditorRendererInner and the EditableTextBlockBoxRenderer.
 // Same layout computing logic needed by both text renderers.
 class MultilineTextAreaRenderer extends RenderBox
     with

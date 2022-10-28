@@ -27,7 +27,6 @@ class DeleteMarkerSidebar extends StatefulWidget {
 
 class _DeleteMarkerSidebarState extends State<DeleteMarkerSidebar> {
   var _scrollOffset = 0.0;
-  final _topBarOffset = 60.0;
   late StreamSubscription _markerListener;
   var _marker = MarkerM(id: '', type: '');
 
@@ -75,8 +74,7 @@ class _DeleteMarkerSidebarState extends State<DeleteMarkerSidebar> {
 
     return (_marker.docRelPosition?.dy ?? 0) +
         (rectangle?.top ?? 0) -
-        _scrollOffset -
-        _topBarOffset;
+        _scrollOffset;
   }
 
   // Update the position of the marker every time when tha page is scrolled.

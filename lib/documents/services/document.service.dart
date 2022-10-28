@@ -5,13 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../blocks/services/lines-blocks.service.dart';
-import '../../blocks/widgets/editable-text-block.dart';
 import '../../blocks/widgets/editable-text-line-widget-renderer.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../shared/models/selection-rectangles.model.dart';
 import '../../shared/state/editor.state.dart';
-import '../models/attribute.model.dart';
-import '../models/attributes/attributes.model.dart';
 import '../models/document.model.dart';
 import '../models/nodes/block.model.dart';
 import '../models/nodes/line.model.dart';
@@ -36,7 +33,6 @@ class DocumentService {
     final docWidgets = <Widget>[];
     final indentLevelCounts = <int, int>{};
     final nodes = document.root.children;
-
     final renderers = <EditableTextLineWidgetRenderer>[];
 
     for (final node in nodes) {
@@ -57,7 +53,7 @@ class DocumentService {
 
         // Block
       } else if (node is BlockM) {
-        final renderer = _editableTextBlock(
+        final renderer = _linesBlocksService.getEditableTextBlockFromNode(
           node,
           node.style.attributes!,
           indentLevelCounts,
@@ -72,6 +68,7 @@ class DocumentService {
           ),
         );
       }
+
       // Fail
       else {
         throw StateError('Unreachable.');
@@ -89,8 +86,8 @@ class DocumentService {
     return docWidgets;
   }
 
-// Right before sending the document to the rendering layer, we want to check if the document is not empty.
-// If the document is empty, we replace it with placeholder content.
+  // Right before sending the document to the rendering layer, we want to check if the document is not empty.
+  // If the document is empty, we replace it with placeholder content.
   DocumentM getDocOrPlaceholder(EditorState state) =>
       state.document.document.isEmpty() &&
               state.editorConfig.config.placeholder != null
@@ -107,40 +104,9 @@ class DocumentService {
   // === PRIVATE ===
 
   // TODO Migrate to _linesBlocksService
-  Widget _editableTextBlock(
-    BlockM node,
-    Map<String, AttributeM<dynamic>> attributes,
-    Map<int, int> indentLevelCounts,
-    EditorState state,
-  ) {
-    final editor = state.refs.editorState;
 
-    return EditableTextBlock(
-      block: node,
-      textDirection: editor.textDirection,
-      verticalSpacing: _linesBlocksService.getVerticalSpacingForBlock(
-        node,
-        state.styles.styles,
-      ),
-      textSelection: state.refs.editorController.selection,
-      highlights: state.highlights.highlights,
-      hoveredHighlights: state.highlights.hoveredHighlights,
-      hoveredMarkers: state.markers.hoveredMarkers,
-      styles: state.styles.styles,
-      hasFocus: state.refs.focusNode.hasFocus,
-      isCodeBlock: attributes.containsKey(AttributesM.codeBlock.key),
-      linkActionPicker: _linesBlocksService.linkActionPicker,
-      indentLevelCounts: indentLevelCounts,
-      onCheckboxTap: (offset, value) => _linesBlocksService.handleCheckboxTap(
-        offset,
-        value,
-        state,
-      ),
-      state: state,
-    );
-  }
-
-  void _cacheMarkers(EditorState state, List<EditableTextLineWidgetRenderer> renderers) {
+  void _cacheMarkers(
+      EditorState state, List<EditableTextLineWidgetRenderer> renderers) {
     // Clear the old markers
     state.markers.flushAllMarkers();
 
@@ -157,7 +123,8 @@ class DocumentService {
 
   // (!) For highlights that span multiple lines of text we are extracting from
   // each renderer only the rectangles belonging to that particular line.
-  void _cacheHighlights(EditorState state, List<EditableTextLineWidgetRenderer> renderers) {
+  void _cacheHighlights(
+      EditorState state, List<EditableTextLineWidgetRenderer> renderers) {
     final highlights = <HighlightM>[];
 
     // Get Rectangles
@@ -205,7 +172,8 @@ class DocumentService {
     state.selection.setSelectionRectangles(rectangles);
   }
 
-  void _cacheHeadings(EditorState state, List<EditableTextLineWidgetRenderer> renderers) {
+  void _cacheHeadings(
+      EditorState state, List<EditableTextLineWidgetRenderer> renderers) {
     // Clear the old headings
     state.headings.removeAllHeadings();
 

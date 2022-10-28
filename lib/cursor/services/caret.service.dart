@@ -34,19 +34,19 @@ class CaretService {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       if (isScrollable || hasClients) {
         _showCaretOnScreenScheduled = false;
-        final renderer = state.refs.renderer;
 
         if (!state.refs.editorState.mounted) {
           return;
         }
 
-        final viewport = RenderAbstractViewport.of(renderer);
-        final editorOffset = renderer.localToGlobal(
+        final renderer = state.refs.renderer;
+        final editorRenderer = RenderAbstractViewport.of(renderer);
+        final offsetInsideEditor = renderer.localToGlobal(
           const Offset(0, 0),
-          ancestor: viewport,
+          ancestor: editorRenderer,
         );
         final offsetInViewport =
-            state.refs.scrollController.offset + editorOffset.dy;
+            state.refs.scrollController.offset + offsetInsideEditor.dy;
 
         final offset = getOffsetToRevealCursor(
           state.refs.scrollController.position.viewportDimension,

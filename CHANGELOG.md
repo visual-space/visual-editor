@@ -8,6 +8,7 @@ If you want to learn more about the specs, all tickets are available by followin
   * Implemented a scroll to feature. Tapping the headings will scroll ot the corresponding text.
 * Blocks - Indenting does not work properly. Fixed issue with indenting not updating the line padding. This was a small mistake from the refactoring process because we misunderstood the `updateRenderObject()` method on the `EditableTextLineWidgetRenderer` [#88](https://github.com/visual-space/visual-editor/issues/88)
 * Added `onReplaceTextComplete()` a callback for detecting when the document plain text has changed but timed to be triggered after the build. Such that we can extract the latest rectangles as well. [#155](https://github.com/visual-space/visual-editor/issues/155)
+* Markers - Fixed: Extracting markers on non-scrollable editor yields global position instead of document position for the text line. [#160](https://github.com/visual-space/visual-editor/issues/160)
 
 ## [0.5.0] Markers [#69](https://github.com/visual-space/visual-editor/issues/69)
 * Added custom markers. Multiple marker types can be defined. The client app can define callbacks for hovering the markers.

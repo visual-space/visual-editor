@@ -22,7 +22,6 @@ class MarkersAttachments extends StatefulWidget {
 class _MarkersAttachmentsState extends State<MarkersAttachments> {
   List<MarkerM> _markers = [];
   var _scrollOffset = 0.0;
-  final _topBarOffset = 60.0;
   late StreamSubscription _markersListener;
 
   @override
@@ -93,8 +92,7 @@ class _MarkersAttachmentsState extends State<MarkersAttachments> {
   double _getMarkerPosition(MarkerM marker, TextBox? rectangle) =>
       (marker.docRelPosition?.dy ?? 0) +
       (rectangle?.top ?? 0) -
-      _scrollOffset -
-      _topBarOffset;
+      _scrollOffset;
 
   void _subscribeToMarkers() {
     _markersListener = widget.markers$.stream.listen(

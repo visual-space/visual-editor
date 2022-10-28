@@ -21,7 +21,6 @@ class HeadingsPanel extends StatefulWidget {
 class _HeadingsPanelState extends State<HeadingsPanel> {
   List<HeadingM> _headings = [];
   late StreamSubscription _headingsListener;
-  final _topBarOffset = 60.0;
 
   @override
   void initState() {
@@ -64,7 +63,7 @@ class _HeadingsPanelState extends State<HeadingsPanel> {
       }).toList();
 
   void _scrollToTheHeadingPosition(HeadingM heading) {
-    final headingPosition = (heading.docRelPosition?.dy ?? 0) - _topBarOffset;
+    final headingPosition = heading.docRelPosition?.dy ?? 0;
 
     widget.scrollController?.animateTo(
       headingPosition,

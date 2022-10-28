@@ -8,8 +8,8 @@ import '../../shared/models/selection-rectangles.model.dart';
 import '../../shared/state/editor.state.dart';
 import '../models/vertical-spacing.model.dart';
 import '../services/styles.utils.dart';
-import 'editable-text-line-leading-and-body.dart';
 import 'editable-text-line-box-renderer.dart';
+import 'editable-text-line-leading-and-body.dart';
 
 // Receives as a child a regular life of text made of text spans.
 // Over the basic rich text made from spans it adds additional layouting or styling

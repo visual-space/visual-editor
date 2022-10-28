@@ -157,7 +157,8 @@ class _SelectionMenuPageState extends State<SelectionMenuPage> {
           ),
         ),
       ],
-      onScroll: () => _updateQuickMenuPositionAfterScroll(_scrollController.offset),
+      onScroll: () =>
+          _updateQuickMenuPositionAfterScroll(_scrollController.offset),
       onSelectionChanged: (selection, rectangles) {
         _hideQuickMenu();
       },
@@ -244,6 +245,7 @@ class _SelectionMenuPageState extends State<SelectionMenuPage> {
     double scrollOffset,
   ) {
     final hMidPoint = rectangle.left + (rectangle.right - rectangle.left) / 2;
+    const topBarHeight = 55;
     const menuHeight = 30;
     const menuHalfWidth = 33;
 
@@ -252,7 +254,8 @@ class _SelectionMenuPageState extends State<SelectionMenuPage> {
       hMidPoint - menuHalfWidth,
       (lineOffset?.dy ?? 0) +
           rectangle.top -
-          scrollOffset -
+          scrollOffset +
+          topBarHeight -
           menuHeight,
     );
     _quickMenuOffset = offset;

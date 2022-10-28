@@ -130,23 +130,20 @@ class HighlightsHoverService {
     );
 
     var highlightIsHovered = false;
-    var scrollOffset = 0.0;
-
-    // Scroll Offset
-    if (state.editorConfig.config.scrollable == true) {
-      scrollOffset = state.refs.scrollController.offset;
-    }
 
     for (final line in highlight.rectanglesByLines!) {
       final pointer = Offset(
         eventPos.dx - (line.docRelPosition.dx),
-        eventPos.dy - (line.docRelPosition.dy) + scrollOffset,
+        eventPos.dy - (line.docRelPosition.dy),
       );
+      final editorOffset = state.refs.renderer.localToGlobal(Offset.zero);
 
+      // Search For Hits
       for (final rectangle in line.rectangles) {
         final isHovered = _textLinesUtils.isRectangleHovered(
           rectangle,
           pointer,
+          editorOffset,
         );
 
         if (isHovered) {

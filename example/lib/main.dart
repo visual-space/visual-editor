@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'pages/all-styles.page.dart';
+import 'pages/custom-styles.page.dart';
 import 'pages/custom-toolbar.page.dart';
 import 'pages/delete-markers.page.dart';
 import 'pages/delta-sandbox.page.dart';
@@ -32,10 +33,10 @@ class DemoApp extends StatelessWidget {
       initialRoute: '/all-styles',
 
       // TODO Add examples for:
-      // Custom styles
       // Exposed utils
       routes: {
         '/all-styles': (context) => AllStylesPage(),
+        '/styles': (context) => CustomStylesPage(),
         '/read-only': (context) => ReadOnlyPage(),
         '/multiple-editors': (context) => MultipleEditorsPage(),
         '/custom-toolbar': (context) => CustomToolbarPage(),

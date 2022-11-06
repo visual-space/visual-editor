@@ -9,6 +9,7 @@ If you want to learn more about the specs, all tickets are available by followin
 * Headings - Added text selection for headers
 
 ## [0.6.0] Headings List [#140](https://github.com/visual-space/visual-editor/issues/140)
+* Created a new demo page for showcasing the custom styles. Demo custom styles can pe altered by modifying the parameters found in 'demo-custom-styles.const.dart'. [#95](https://github.com/visual-space/visual-editor/issues/95)
 * Exposed public method to access the headings after rendering headings from the document. The client code can read the text and the position (rectangles) of every heading. Similar to markers and highlights, we are storing this information in the internal state store after rendering. [#135](https://github.com/visual-space/visual-editor/issues/135)
   * Improved the null safety for the operation attributes. The getter was guaranteeing that the array will contain at least one AttributeM. Which is not true.
   * Added demo page to demonstrate how to render an index panel using the headings.

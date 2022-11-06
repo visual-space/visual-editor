@@ -9,6 +9,8 @@ import '../models/vertical-spacing.model.dart';
 const VERTICAL_SPACING_EMPTY = VerticalSpacing(top: 0, bottom: 0);
 const VERTICAL_BASE_SPACING = VerticalSpacing(top: 6, bottom: 0);
 
+// Defaults styles found in all the editors. Parameters from this style util
+// should only be altered if the style is applied to all editors.
 EditorStylesM getDefaultStyles(BuildContext context) {
   final themeData = Theme.of(context);
   final defaultTextStyle = DefaultTextStyle.of(context);

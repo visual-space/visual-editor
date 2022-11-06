@@ -41,7 +41,7 @@ This is a general overview of setting up a selection menu or custom widgets when
 ```dart
 Widget build(BuildContext context) => Stack(
   children: [
-    DemoScaffold(
+    DemoPageScaffold(
       child: _controller != null
           ? _col(
               children: [

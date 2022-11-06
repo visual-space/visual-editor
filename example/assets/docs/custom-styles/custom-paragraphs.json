@@ -1,0 +1,38 @@
+[
+  {
+    "insert": "Paragraphs and typography emphasis"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "header": 1
+    }
+  },
+  {
+    "insert": "Bold text\n",
+    "attributes": {
+      "bold": true
+    }
+  },
+  {
+    "insert": "Italic Text\n",
+    "attributes": {
+      "italic": true
+    }
+  },
+  {
+    "insert": "Underline Text\n",
+    "attributes": {
+      "underline": true
+    }
+  },
+  {
+    "insert": "Strike Through Text\n",
+    "attributes": {
+      "strike": true
+    }
+  },
+  {
+    "insert": "\n"
+  }
+]

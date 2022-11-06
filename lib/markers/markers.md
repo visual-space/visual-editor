@@ -239,7 +239,7 @@ This is a general overview of setting up a marker menu or custom widgets when th
 ```dart
 Widget build(BuildContext context) => Stack(
   children: [
-    DemoScaffold(
+    DemoPageScaffold(
       child: _controller != null
           ? _col(
         children: [

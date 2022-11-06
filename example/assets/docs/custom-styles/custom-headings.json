@@ -1,0 +1,38 @@
+[
+  {
+    "insert": "Headings"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "header": 1
+    }
+  },
+  {
+    "insert": "H1"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "header": 1
+    }
+  },
+  {
+    "insert": "H2"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "header": 2
+    }
+  },
+  {
+    "insert": "H3"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "header": 3
+    }
+  }
+]

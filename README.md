@@ -47,13 +47,9 @@ Column(
     EditorToolbar.basic(
       controller: _controller,
     ),
-    Expanded(
-      child: Container(
-        child: VisualEditor.basic(
-          controller: _controller,
-        ),
-      ),
-    )
+    VisualEditor(
+      controller: _controller,
+    ),
   ],
 )
 ```

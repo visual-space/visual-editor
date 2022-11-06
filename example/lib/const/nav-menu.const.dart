@@ -6,6 +6,10 @@ const List<NavMenuLinkM> NAV_MENU = [
     route: '/all-styles',
   ),
   NavMenuLinkM(
+    title: 'Custom styles',
+    route: '/styles',
+  ),
+  NavMenuLinkM(
     title: 'Read only',
     route: '/read-only',
   ),

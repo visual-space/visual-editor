@@ -90,7 +90,7 @@ class _AllStylesPageState extends State<AllStylesPage> {
     setState(() {
       _controller = EditorController(
         document: document,
-        highlights: SAMPLE_HIGHLIGHTS,
+        highlights:  SAMPLE_HIGHLIGHTS,
       );
     });
   }

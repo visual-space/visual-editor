@@ -30,7 +30,7 @@ class _HeadingsPageState extends State<HeadingsPage> {
 
   @override
   void initState() {
-    _loadDocument();
+    _loadDocumentAndInitController();
     super.initState();
   }
 
@@ -118,7 +118,7 @@ class _HeadingsPageState extends State<HeadingsPage> {
         ),
       );
 
-  Future<void> _loadDocument() async {
+  Future<void> _loadDocumentAndInitController() async {
     final result = await rootBundle.loadString(
       'assets/docs/headings.json',
     );

@@ -22,7 +22,7 @@ class _CustomToolbarPageState extends State<CustomToolbarPage> {
 
   @override
   void initState() {
-    _loadDocument();
+    _loadDocumentAndInitController();
     super.initState();
   }
 
@@ -124,7 +124,7 @@ class _CustomToolbarPageState extends State<CustomToolbarPage> {
         ),
       );
 
-  Future<void> _loadDocument() async {
+  Future<void> _loadDocumentAndInitController() async {
     final deltaJson = await rootBundle.loadString(
       'assets/docs/custom-toolbar.json',
     );

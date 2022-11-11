@@ -53,7 +53,7 @@ class _SelectionMenuPageState extends State<SelectionMenuPage> {
 
   @override
   void initState() {
-    _loadDocument();
+    _loadDocumentAndInitController();
     super.initState();
   }
 
@@ -114,7 +114,7 @@ class _SelectionMenuPageState extends State<SelectionMenuPage> {
 
   // === UTILS ===
 
-  Future<void> _loadDocument() async {
+  Future<void> _loadDocumentAndInitController() async {
     final result = await rootBundle.loadString(
       'assets/docs/selection-menu.json',
     );

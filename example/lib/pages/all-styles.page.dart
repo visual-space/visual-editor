@@ -26,7 +26,7 @@ class _AllStylesPageState extends State<AllStylesPage> {
 
   @override
   void initState() {
-    _loadDocument();
+    _loadDocumentAndInitController();
     super.initState();
   }
 
@@ -81,7 +81,7 @@ class _AllStylesPageState extends State<AllStylesPage> {
         multiRowsDisplay: false,
       );
 
-  Future<void> _loadDocument() async {
+  Future<void> _loadDocumentAndInitController() async {
     final deltaJson = await rootBundle.loadString(
       'assets/docs/all-styles.json',
     );

@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:visual_editor/shared/widgets/default-button.dart';
 import 'package:visual_editor/visual-editor.dart';
 
 import '../widgets/demo-scaffold.dart';
@@ -22,7 +23,7 @@ class _MarkersPageState extends State<MarkersPage> {
 
   @override
   void initState() {
-    _loadDocument();
+    _loadDocumentAndInitController();
     super.initState();
   }
 
@@ -31,7 +32,12 @@ class _MarkersPageState extends State<MarkersPage> {
         children: _controller != null
             ? [
                 _editor(),
-                _markersControls(),
+                _row(
+                  children: [
+                    _addMarkerButton(),
+                    _toggleMarkersButton(),
+                  ],
+                ),
                 _toolbar(),
               ]
             : [
@@ -66,24 +72,25 @@ class _MarkersPageState extends State<MarkersPage> {
         ),
       );
 
-  Widget _markersControls() => Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          OutlinedButton(
-            child: Text('Add Marker'),
-            onPressed: () {
-              _controller?.addMarker('expert');
-            },
-          ),
-          OutlinedButton(
-            child: Text('Toggle Markers'),
-            onPressed: () {
-              final visibility =
-                  !(_controller?.getMarkersVisibility() ?? false);
-              _controller?.toggleMarkers(visibility);
-            },
-          ),
-        ],
+  Widget _row({required List<Widget> children}) => Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: children,
+      );
+
+  Widget _addMarkerButton() => DefaultButton(
+        name: 'Add Marker',
+        onPressed: () {
+          _controller?.addMarker('expert');
+        },
+      );
+
+  Widget _toggleMarkersButton() => DefaultButton(
+        name: 'Toggle Markers',
+        onPressed: () {
+          final visibility = !(_controller?.getMarkersVisibility() ?? false);
+
+          _controller?.toggleMarkers(visibility);
+        },
       );
 
   Widget _toolbar() => Container(
@@ -98,7 +105,7 @@ class _MarkersPageState extends State<MarkersPage> {
         ),
       );
 
-  Future<void> _loadDocument() async {
+  Future<void> _loadDocumentAndInitController() async {
     final deltaJson = await rootBundle.loadString('assets/docs/markers.json');
     final document = DocumentM.fromJson(jsonDecode(deltaJson));
 

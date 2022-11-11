@@ -41,7 +41,7 @@ class _DeleteMarkersPageState extends State<DeleteMarkersPage> {
 
   @override
   void initState() {
-    _loadDocument();
+    _loadDocumentAndInitController();
     super.initState();
   }
 
@@ -120,7 +120,7 @@ class _DeleteMarkersPageState extends State<DeleteMarkersPage> {
 
   // === UTILS ===
 
-  Future<void> _loadDocument() async {
+  Future<void> _loadDocumentAndInitController() async {
     final deltaJson = await rootBundle.loadString(
       'assets/docs/delete-markers.json',
     );

@@ -5,6 +5,7 @@ import 'pages/custom-toolbar.page.dart';
 import 'pages/delete-markers.page.dart';
 import 'pages/delta-sandbox.page.dart';
 import 'pages/headings.page.dart';
+import 'pages/hide-markers-by-type.page.dart';
 import 'pages/highlights.page.dart';
 import 'pages/markers-attachments.page.dart';
 import 'pages/markers.page.dart';
@@ -43,6 +44,7 @@ class DemoApp extends StatelessWidget {
         '/highlights': (context) => HighlightsPage(),
         '/markers': (context) => MarkersPage(),
         '/markers-attachments': (context) => MarkersAttachmentsPage(),
+        '/hide-markers': (context) => HideMarkersByTypePage(),
         '/headings': (context) => HeadingsPage(),
         '/delete-markers': (context) => DeleteMarkersPage(),
         '/selection-menu': (context) => SelectionMenuPage(),

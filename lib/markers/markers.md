@@ -106,11 +106,13 @@ A marker defines it's type (class) and additional data. The "data" attribute sto
 On the other hand, if the dev knows that most of the markers will have few and unique attributes than he can store the attributes in the "data" attribute itself. The "data" attribute will be returned by the callbacks methods invoked on hover and tap. Multiple markers can use the same "data" values to trigger the same common behaviours. In essence there are many ways this attribute can be put to good use. It's also possible not to use it at all and just render highlights that don't have any unique data assigned.
 
 ## Hiding Markers
-Despite being part of the delta document the markers can be hidden on demand. Toggling markers from the editor controller can be useful for situations where the developers want to clear the text of any visual guides and show the pure rich text. Highlights can be toggled all at once via the controller. This might be useful if you want to render the text without any extra decorations.
+Despite being part of the delta document the markers can be hidden on demand. Toggling markers from the editor controller can be useful for situations where the developers want to clear the text of any visual guides and show the pure rich text. Highlights can be toggled all at once or just for certain types of markers via the controller. This might be useful if you want to render the text without any extra decorations.
 
 ```dart
 _controller.toggleMarkers(); // Enables or disables the visibility of all markers
 _controller.getMarkersVisibility(); // Query if markers are disabled
+_controller.toggleMarkersByTypes(); // Enables or disables the visibility of certain types of markers
+_controller.getMarkersVisibilityByTypes(); // Query if certain types of markers are disabled
 ```
 
 For certain scenarios it might be desired to init the editor with the markers turned off. Later the markers can be enabled using the editor controller API.
@@ -134,7 +136,7 @@ controller.deleteMarkerById(_marker.id);
 ```
 
 ## Markers Attachments
-Markers provide support for attachments by returning their pixel coordinates and dimensions for positioning in text. Based on this information any widget can be linked to a marker. Keep in mind that markers are not widgets, so a simple Overlay from Flutter wont do the trick. Markers are rendered as painted rectangles in a canvas on top of the text. Therefore the only way to simulate attached widgets is by positioning them to the exact coordinates. This page demonstrates such a setup. Attachments can be used render elements such as the markers options menu or delete button.
+Markers provide support for attachments by returning their pixel coordinates and dimensions for positioning in text. Based on this information any widget can be linked to a marker. Keep in mind that markers are not widgets, so a simple Overlay from Flutter wont do the trick. Markers are rendered as painted rectangles in a canvas on top of the text. Even if markers are hidden, marker attachments still work correctly. Therefore the only way to simulate attached widgets is by positioning them to the exact coordinates. This page demonstrates such a setup. Attachments can be used render elements such as the markers options menu or delete button.
 
 **How Markers Attachments Work And How To Use Them**
 

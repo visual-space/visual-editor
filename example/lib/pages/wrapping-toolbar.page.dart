@@ -24,7 +24,7 @@ class _WrappingToolbarPageState extends State<WrappingToolbarPage> {
 
   @override
   void initState() {
-    _loadDocument();
+    _loadDocumentAndInitController();
     super.initState();
   }
 
@@ -108,7 +108,7 @@ class _WrappingToolbarPageState extends State<WrappingToolbarPage> {
         multiRowsDisplay: true,
       );
 
-  Future<void> _loadDocument() async {
+  Future<void> _loadDocumentAndInitController() async {
     final result = await rootBundle.loadString(
       'assets/docs/wrapping-toolbar.json',
     );

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:visual_editor/headings/models/heading.model.dart';
 
-// Renders a column with all headings existent in the document
+// Renders a column with all headings existent in the document 
 // Headings are rendered in the same order as they are found in the doc.
 class HeadingsPanel extends StatefulWidget {
   final StreamController<List<HeadingM>> headings$;

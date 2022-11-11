@@ -1,6 +1,10 @@
 # Changelog
 If you want to learn more about the specs, all tickets are available by following the hashtag links.
 
+## [0.7.0] Custom Embeds
+* Markers - Added new method in the editor controller `toggleMarkersByTypes()`. It toggles just certain types of markers.
+  * Added new method in the editor controller `getMarkersVisibilityByTypes()`. It queries if certain types of markers are disabled [#120](https://github.com/visual-space/visual-editor/issues/120)
+
 ## [0.6.0] Headings List [#140](https://github.com/visual-space/visual-editor/issues/140)
 * Exposed public method to access the headings after rendering headings from the document. The client code can read the text and the position (rectangles) of every heading. Similar to markers and highlights, we are storing this information in the internal state store after rendering. [#135](https://github.com/visual-space/visual-editor/issues/135)
   * Improved the null safety for the operation attributes. The getter was guaranteeing that the array will contain at least one AttributeM. Which is not true.

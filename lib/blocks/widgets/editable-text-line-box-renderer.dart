@@ -114,14 +114,12 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
       final effectiveOffset = _cachedOffset + parentData.offset;
 
       // Markers
-      if (_state.markersVisibility.visibility == true) {
         markers = TextLinesUtils.getMarkersToRender(
           effectiveOffset,
           line,
           _state,
           _underlyingText,
         );
-      }
     }
 
     return markers;
@@ -691,13 +689,16 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
               ) !=
               null;
 
-          TextLinesUtils.drawRectangles(
-            marker.rectangles ?? [],
-            effectiveOffset,
-            context,
-            _getMarkerColor(isHovered, markerType),
-            Radius.zero,
-          );
+          if (!_state.markersVisibility.hiddenMarkersTypes
+              .contains(markerType?.id ?? '')) {
+            TextLinesUtils.drawRectangles(
+              marker.rectangles ?? [],
+              effectiveOffset,
+              context,
+              _getMarkerColor(isHovered, markerType),
+              Radius.zero,
+            );
+          }
         });
       }
 

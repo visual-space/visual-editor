@@ -21,7 +21,7 @@ class _ReadOnlyPageState extends State<ReadOnlyPage> {
 
   @override
   void initState() {
-    _loadDocument();
+    _loadDocumentAndInitController();
     super.initState();
   }
 
@@ -62,7 +62,7 @@ class _ReadOnlyPageState extends State<ReadOnlyPage> {
         ),
       );
 
-  Future<void> _loadDocument() async {
+  Future<void> _loadDocumentAndInitController() async {
     final deltaJson = await rootBundle.loadString('assets/docs/read-only.json');
     final document = DocumentM.fromJson(jsonDecode(deltaJson));
 

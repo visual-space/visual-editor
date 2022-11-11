@@ -29,7 +29,7 @@ class _HighlightsPageState extends State<HighlightsPage> {
 
   @override
   void initState() {
-    _loadDocument();
+    _loadDocumentAndInitController();
     super.initState();
   }
 
@@ -126,7 +126,7 @@ class _HighlightsPageState extends State<HighlightsPage> {
         ),
       );
 
-  Future<void> _loadDocument() async {
+  Future<void> _loadDocumentAndInitController() async {
     final deltaJson = await rootBundle.loadString('assets/docs/highlights.json');
     final document = DocumentM.fromJson(jsonDecode(deltaJson));
 

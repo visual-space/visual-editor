@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:visual_editor/shared/widgets/default-button.dart';
 import 'package:visual_editor/visual-editor.dart';
 
 import '../const/dimensions.const.dart';
@@ -10,24 +11,17 @@ import '../models/markers-and-scroll-offset.model.dart';
 import '../widgets/demo-scaffold.dart';
 import '../widgets/loading.dart';
 import '../widgets/markers-attachments.dart';
+import 'delete-markers.page.dart';
 
-// For smoke testing. You don't need this in your implementation.
-const SCROLLABLE = true;
-
-// Markers provide support for attachments by returning their pixel
-// coordinates and dimensions for positioning in text.
-// Based on this information any widget can be linked to a marker.
-// Keep in mind that markers are not widgets, so a simple Overlay from Flutter wont do the trick.
-// Markers are rendered as painted rectangles in a canvas on top of the text.
-// Therefore the only way to simulate attached widgets is by positioning them to the exact coordinates.
-// This page demonstrates such a setup.
-// Attachments can be used render elements such as the markers options menu or delete button.
-class MarkersAttachmentsPage extends StatefulWidget {
+// Markers rectangles can be hidden by type from the document.
+// Markers are not deleted so we still can use their information
+// i.e. even though the markers are hidden, markers attachments still works properly
+class HideMarkersByTypePage extends StatefulWidget {
   @override
-  _MarkersAttachmentsPageState createState() => _MarkersAttachmentsPageState();
+  _HideMarkersByTypePageState createState() => _HideMarkersByTypePageState();
 }
 
-class _MarkersAttachmentsPageState extends State<MarkersAttachmentsPage> {
+class _HideMarkersByTypePageState extends State<HideMarkersByTypePage> {
   EditorController? _controller;
   final _scrollController = ScrollController();
   final _focusNode = FocusNode();
@@ -57,6 +51,13 @@ class _MarkersAttachmentsPageState extends State<MarkersAttachmentsPage> {
                     _fillerToBalanceRow(),
                   ],
                 ),
+                _row(
+                  children: [
+                    _toggleReminders(),
+                    _toggleExpert(),
+                    _toggleExpertAndBeginner(),
+                  ],
+                ),
                 _toolbar(),
               ]
             : [
@@ -68,6 +69,20 @@ class _MarkersAttachmentsPageState extends State<MarkersAttachmentsPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: children,
+        ),
+      );
+
+  Widget _editor() => Flexible(
+        child: Container(
+          width: PAGE_WIDTH,
+          color: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 30),
+          child: VisualEditor(
+            controller: _controller!,
+            scrollController: _scrollController,
+            focusNode: _focusNode,
+            config: EditorConfigM(),
+          ),
         ),
       );
 
@@ -83,27 +98,50 @@ class _MarkersAttachmentsPageState extends State<MarkersAttachmentsPage> {
         markers$: _markers$,
       );
 
-  Widget _editor() => Flexible(
-        child: Container(
-          width: PAGE_WIDTH,
-          color: Colors.white,
-          padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
-          child: VisualEditor(
-            controller: _controller!,
-            // (!) Don't do this mistake.
-            // You will override the Scroll controller with a new instance and the scroll callback wont fire.
-            scrollController: SCROLLABLE ? _scrollController : null,
-            focusNode: _focusNode,
-            config: EditorConfigM(
-              // ignore: avoid_redundant_argument_values
-              scrollable: SCROLLABLE,
-            ),
-          ),
+  // Row is space in between, therefore we need on the right side an empty container to force the editor on the center.
+  Widget _fillerToBalanceRow() => Container(width: 0);
+
+  Widget _row({required List<Widget> children}) => Container(
+        margin: EdgeInsets.only(top: 15),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: children,
         ),
       );
 
-  // Row is space in between, therefore we need on the right side an empty container to force the editor on the center.
-  Widget _fillerToBalanceRow() => Container(width: 0);
+  Widget _toggleReminders() => DefaultButton(
+        name: 'Toggle Reminder Markers',
+        onPressed: () {
+          final visibility =
+              !(_controller?.isMarkerTypeVisible('reminder') ?? false);
+
+          _controller?.toggleMarkerByType('reminder', visibility);
+        },
+      );
+
+  Widget _toggleExpert() => DefaultButton(
+        name: 'Toggle Expert Markers',
+        padding: EdgeInsets.symmetric(horizontal: 25),
+        onPressed: () {
+          final visibility =
+              !(_controller?.isMarkerTypeVisible('expert') ?? false);
+
+          _controller?.toggleMarkerByType('expert', visibility);
+        },
+      );
+
+  Widget _toggleExpertAndBeginner() => DefaultButton(
+        name: 'Toggle Expert And Beginner Markers',
+        onPressed: () {
+          final expertVisibility =
+              !(_controller?.isMarkerTypeVisible('expert') ?? false);
+          final beginnerVisibility =
+              !(_controller?.isMarkerTypeVisible('beginner') ?? false);
+
+          _controller?.toggleMarkerByType('expert', expertVisibility);
+          _controller?.toggleMarkerByType('beginner', beginnerVisibility);
+        },
+      );
 
   Widget _toolbar() => Container(
         padding: EdgeInsets.symmetric(
@@ -117,11 +155,9 @@ class _MarkersAttachmentsPageState extends State<MarkersAttachmentsPage> {
         ),
       );
 
-  // === UTILS ===
-
   Future<void> _loadDocumentAndInitController() async {
     final deltaJson = await rootBundle.loadString(
-      'assets/docs/markers-attachments.json',
+      'assets/docs/hide-markers.json',
     );
     final document = DocumentM.fromJson(jsonDecode(deltaJson));
 
@@ -138,28 +174,16 @@ class _MarkersAttachmentsPageState extends State<MarkersAttachmentsPage> {
           id: 'expert',
           name: 'Expert',
           color: Colors.amber.withOpacity(0.2),
-          onAddMarkerViaToolbar: (_) => 'fake-id-1',
-          onSingleTapUp: (marker) {
-            print('Marker Tapped - ${marker.type}');
-          },
         ),
         MarkerTypeM(
           id: 'beginner',
           name: 'Beginner',
           color: Colors.blue.withOpacity(0.2),
-          onAddMarkerViaToolbar: (_) => 'fake-id-2',
-          onSingleTapUp: (marker) {
-            print('Marker Tapped - ${marker.type}');
-          },
         ),
         MarkerTypeM(
           id: 'reminder',
           name: 'Reminder',
           color: Colors.cyan.withOpacity(0.2),
-          onAddMarkerViaToolbar: (_) => 'fake-id-3',
-          onSingleTapUp: (marker) {
-            print('Marker Tapped - ${marker.type}');
-          },
         ),
       ],
       onBuildComplete: _updateMarkerAttachments,

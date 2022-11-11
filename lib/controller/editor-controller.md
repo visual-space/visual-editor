@@ -59,7 +59,9 @@ These methods are provided by the client developer.
 
 * `addMarker()` - Add marker of type
 * `toggleMarkers()` - Hide or show markers
+* `toggleMarkersByTypes()` - Hide or show just certain types of markers
 * `getMarkersVisibility()` - Query if markers are disabled
+* `getMarkersVisibilityByTypes()` - Query if certain types of markers are disabled
 * `getAllMarkers()` - Get a list of all markers. Each marker provides the position relative to text and the custom data.
 * `deleteMarkerById()` - Delete all markers with the same id from the document.
 

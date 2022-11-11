@@ -35,7 +35,7 @@ class _DeltaSandboxState extends State<DeltaSandbox> {
     _setupEditorController();
     _setupJsonInputController();
     _subscribeToJsonInputAndUpdateEditorDoc();
-    _loadDocument();
+    _loadDocumentAndInitController();
     super.initState();
   }
 
@@ -128,7 +128,7 @@ class _DeltaSandboxState extends State<DeltaSandbox> {
         ),
       );
 
-  Future<void> _loadDocument() async {
+  Future<void> _loadDocumentAndInitController() async {
     final doc = await rootBundle.loadString(
       'assets/docs/delta-sandbox.json',
     );

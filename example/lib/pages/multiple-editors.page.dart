@@ -26,7 +26,7 @@ class _MultipleEditorsPageState extends State<MultipleEditorsPage> {
 
   @override
   void initState() {
-    _loadDocument();
+    _loadDocumentAndInitController();
     super.initState();
   }
 
@@ -95,7 +95,7 @@ class _MultipleEditorsPageState extends State<MultipleEditorsPage> {
         ),
       );
 
-  Future<void> _loadDocument() async {
+  Future<void> _loadDocumentAndInitController() async {
     final deltaJson = await rootBundle.loadString(
       'assets/docs/multiple-editors.json',
     );

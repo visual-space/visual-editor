@@ -22,14 +22,14 @@ class _OverwriteControllerPageState extends State<OverwriteControllerPage> {
 
   @override
   void initState() {
-    _loadDocument();
+    _loadDocumentAndInitController();
 
     // (!) This is a counter example of what not to do.
     // Visual Editor was built to endure such an event.
     // However you will see the impact of performance.
     // Check the EditorController API to see how to
     // update the doc without using setState().
-    Timer(Duration(seconds: 3), _loadDocument);
+    Timer(Duration(seconds: 3), _loadDocumentAndInitController);
 
     super.initState();
   }
@@ -82,7 +82,7 @@ class _OverwriteControllerPageState extends State<OverwriteControllerPage> {
         ),
       );
 
-  Future<void> _loadDocument() async {
+  Future<void> _loadDocumentAndInitController() async {
     final deltaJson = await rootBundle.loadString(
       'assets/docs/overwrite-controller.json',
     );

@@ -429,7 +429,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
           ToggleStyleButton(
             attribute: AttributesM.codeBlock,
             controller: controller,
-            icon: Icons.code,
+            icon: Icons.data_object,
             buttonsSpacing: toolbarSectionSpacing,
             iconSize: toolbarIconSize,
             iconTheme: iconTheme,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-import '../../shared/utils/platform.utils.dart';
 import '../../visual-editor.dart';
 import '../models/inline-code-style.model.dart';
 import '../models/list-block-style.model.dart';
@@ -16,18 +16,11 @@ EditorStylesM getDefaultStyles(BuildContext context) {
     fontSize: 16,
     height: 1.3,
   );
-  String fontFamily;
 
-  if (isAppleOS(themeData.platform)) {
-    fontFamily = 'Menlo';
-  } else {
-    fontFamily = 'Roboto Mono';
-  }
-
-  final inlineCodeStyle = TextStyle(
-    fontSize: 14,
-    color: themeData.colorScheme.primary.withOpacity(0.8),
-    fontFamily: fontFamily,
+  final inlineCodeStyle = GoogleFonts.robotoMono(
+    color: Colors.blue.shade900.withOpacity(0.9),
+    fontSize: 13,
+    height: 1.15,
   );
 
   return EditorStylesM(
@@ -139,9 +132,8 @@ EditorStylesM getDefaultStyles(BuildContext context) {
       ),
     ),
     code: TextBlockStyleM(
-      TextStyle(
+      GoogleFonts.robotoMono(
         color: Colors.blue.shade900.withOpacity(0.9),
-        fontFamily: fontFamily,
         fontSize: 13,
         height: 1.15,
       ),

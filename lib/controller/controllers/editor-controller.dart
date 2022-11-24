@@ -612,11 +612,11 @@ class EditorController {
     _state.markersVisibility.toggleMarkers(areVisible);
   }
 
-  void toggleMarkerByType(
+  void toggleMarkerByTypeId(
     String markerType,
     bool isVisible,
   ) {
-    _state.markersVisibility.toggleMarkerByType(
+    _state.markersTypes.toggleMarkerByTypeId(
       markerType,
       isVisible,
     );
@@ -627,7 +627,7 @@ class EditorController {
   }
 
   bool isMarkerTypeVisible(String markerType) {
-    return _state.markersVisibility.isMarkerTypeVisible(markerType);
+    return _state.markersTypes.isMarkerTypeVisible(markerType);
   }
 
   List<MarkerM> getAllMarkers() {

@@ -115,7 +115,7 @@ class _HideMarkersByTypePageState extends State<HideMarkersByTypePage> {
           final visibility =
               !(_controller?.isMarkerTypeVisible('reminder') ?? false);
 
-          _controller?.toggleMarkerByType('reminder', visibility);
+          _controller?.toggleMarkerByTypeId('reminder', visibility);
         },
       );
 
@@ -126,7 +126,7 @@ class _HideMarkersByTypePageState extends State<HideMarkersByTypePage> {
           final visibility =
               !(_controller?.isMarkerTypeVisible('expert') ?? false);
 
-          _controller?.toggleMarkerByType('expert', visibility);
+          _controller?.toggleMarkerByTypeId('expert', visibility);
         },
       );
 
@@ -138,8 +138,8 @@ class _HideMarkersByTypePageState extends State<HideMarkersByTypePage> {
           final beginnerVisibility =
               !(_controller?.isMarkerTypeVisible('beginner') ?? false);
 
-          _controller?.toggleMarkerByType('expert', expertVisibility);
-          _controller?.toggleMarkerByType('beginner', beginnerVisibility);
+          _controller?.toggleMarkerByTypeId('expert', expertVisibility);
+          _controller?.toggleMarkerByTypeId('beginner', beginnerVisibility);
         },
       );
 

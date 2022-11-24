@@ -57,6 +57,7 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
   final Map<TextLineSlot, RenderBox> children = <TextLineSlot, RenderBox>{};
   late StreamSubscription _cursorStateListener;
   late StreamSubscription _toggleMarkersListener;
+  late StreamSubscription _toggleMarkersByTypesListener;
   Offset _cachedOffset = Offset(0, 0);
   void Function(List<MarkerM> markers)
       cacheRenderedMarkersCoordinatesInStateStore;
@@ -114,12 +115,12 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
       final effectiveOffset = _cachedOffset + parentData.offset;
 
       // Markers
-        markers = TextLinesUtils.getMarkersToRender(
-          effectiveOffset,
-          line,
-          _state,
-          _underlyingText,
-        );
+      markers = TextLinesUtils.getMarkersToRender(
+        effectiveOffset,
+        line,
+        _state,
+        _underlyingText,
+      );
     }
 
     return markers;
@@ -446,6 +447,11 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
         _state.markersVisibility.toggleMarkers$.listen((_) {
       markNeedsPaint();
     });
+
+    _toggleMarkersByTypesListener =
+        _state.markersTypes.toggleMarkersByTypes$.listen((_) {
+      markNeedsPaint();
+    });
   }
 
   @override
@@ -467,6 +473,7 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
     }
 
     _toggleMarkersListener.cancel();
+    _toggleMarkersByTypesListener.cancel();
   }
 
   @override
@@ -689,8 +696,7 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
               ) !=
               null;
 
-          if (!_state.markersVisibility.hiddenMarkersTypes
-              .contains(markerType?.id ?? '')) {
+          if (markerType?.isVisible == true) {
             TextLinesUtils.drawRectangles(
               marker.rectangles ?? [],
               effectiveOffset,

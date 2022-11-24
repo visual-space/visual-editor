@@ -12,12 +12,14 @@ const _HOVERED_MARKER_COLOR = Color.fromRGBO(0x84, 0xB, 0x9E, 0.3);
 // The markers are defined in the delta document using the marker attribute
 // (unlike highlights which are defined programmatically from the controller).
 // Callbacks can be defined to react to hovering and tapping.
+// Markers types can be arbitrary hidden at any time.
 @immutable
 class MarkerTypeM {
   final String id;
   final String name;
   final Color color;
   final Color hoverColor;
+  final bool isVisible;
   final Function(MarkerM marker)? onSingleTapUp;
   final Function(MarkerM marker)? onEnter;
   final Function(MarkerM marker)? onHover;
@@ -34,6 +36,7 @@ class MarkerTypeM {
     this.color = _DEFAULT_MARKER_COLOR,
     this.hoverColor = _HOVERED_MARKER_COLOR,
     this.onSingleTapUp,
+    this.isVisible = true,
     this.onEnter,
     this.onHover,
     this.onExit,
@@ -45,8 +48,32 @@ class MarkerTypeM {
     return 'MarkerTypeM('
         'id: $id, '
         'name: $name, '
+        'isVisible : $isVisible,'
         'color: $color, '
         'hoverColor: $hoverColor,'
         ')';
   }
+
+  MarkerTypeM copyWith({
+    String? id,
+    String? name,
+    Color? color,
+    Color? hoverColor,
+    bool? isVisible,
+    Function(MarkerM marker)? onSingleTapUp,
+    Function(MarkerM marker)? onEnter,
+    Function(MarkerM marker)? onHover,
+    Function(MarkerM marker)? onExit,
+  }) =>
+      MarkerTypeM(
+        id: id ?? this.id,
+        name: name ?? this.id,
+        color: color ?? this.color,
+        hoverColor: hoverColor ?? this.hoverColor,
+        isVisible: isVisible ?? this.isVisible,
+        onSingleTapUp: onSingleTapUp ?? this.onSingleTapUp,
+        onEnter: onEnter ?? this.onEnter,
+        onExit: onExit ?? this.onExit,
+        onHover: onHover ?? this.onHover,
+      );
 }

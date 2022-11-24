@@ -111,8 +111,8 @@ Despite being part of the delta document the markers can be hidden on demand. To
 ```dart
 _controller.toggleMarkers(); // Enables or disables the visibility of all markers
 _controller.getMarkersVisibility(); // Query if markers are disabled
-_controller.toggleMarkersByTypes(); // Enables or disables the visibility of certain types of markers
-_controller.getMarkersVisibilityByTypes(); // Query if certain types of markers are disabled
+_controller.toggleMarkerByTypeId(); // Enables or disables the visibility of certain type of markers
+_controller.isMarkerTypeVisible(); // Query if certain type of markers is disabled
 ```
 
 For certain scenarios it might be desired to init the editor with the markers turned off. Later the markers can be enabled using the editor controller API.
@@ -206,6 +206,30 @@ void _updateMarkerAttachments() {
   final markers = _controller?.getAllMarkers() ?? [];
   _markers$.sink.add(markers);
 }
+```
+
+**Using different markers type for different needs. Ex: one marker type could be used to render attachments**
+
+In some situations, we want to use one of the markers' types for rendering attachments only. We don't want to show them in the editor. Why would a developer need this? Say for example you have created a marker type to label spoiler content. And you also want to allow people to assign comments to that particular spoiler. However if you decide to remove the spoiler you don't want to lose the existing comments tied to that particular region. One way to avoid this scenario is to use two types of markers. One is used to label the spoiler and renders visible markers. The other is used to link comments to the text. They are both created at once when a text fragmnent is marked as spoiler. However these marker types can be removed one by one. Which means you can delete the spoiler and no longer show it on screen while keeping the comments still linked to the text.
+
+*json after implementation*
+```json
+ {
+        "insert": "Text\n",
+        "attributes": {
+          "markers": [
+            {
+              "id": "5471139741564000",
+              "type": "spoiler"
+            },
+            {
+              "id": "5456839741567000",
+              "type": "comments",
+              "data": "comments data or uuid"
+            }
+          ]
+        }
+      }
 ```
 
 ## Displaying A Custom Widget When Tapping A Marker

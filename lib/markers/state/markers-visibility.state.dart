@@ -10,8 +10,6 @@ class MarkersVisibilityState {
 
   bool get visibility => _visibility;
 
-  List<String> hiddenMarkersTypes = [];
-
   // Used to trigger markForPaint() in EditableTextLineRenderer (similar to how the cursor updates it's animated opacity).
   // We can't use _state.refreshEditor.refreshEditor() because there's no new content,
   // Therefore Flutter change detection will not find any change, so it wont trigger any repaint.
@@ -20,34 +18,8 @@ class MarkersVisibilityState {
   Stream<void> get toggleMarkers$ => _toggleMarkers$.stream;
 
   void toggleMarkers(bool areVisible) {
+    // Used to trigger rendering. Marker types values are read sync.
     _toggleMarkers$.sink.add(null);
     _visibility = areVisible;
-  }
-
-  bool isMarkerTypeVisible(String markerType) {
-    var isVisible = true;
-
-    if (hiddenMarkersTypes.contains(markerType)) {
-      isVisible = false;
-    }
-
-    return isVisible;
-  }
-
-  void toggleMarkerByType(
-    String markerType,
-    bool isVisible,
-  ) {
-    _toggleMarkers$.sink.add(null);
-
-    final isHidden = hiddenMarkersTypes.contains(markerType);
-
-    if (isHidden && isVisible) {
-      hiddenMarkersTypes.remove(markerType);
-    }
-
-    if (!isHidden && !isVisible) {
-      hiddenMarkersTypes.add(markerType);
-    }
   }
 }

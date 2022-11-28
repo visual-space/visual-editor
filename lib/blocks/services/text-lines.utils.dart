@@ -170,8 +170,8 @@ class TextLinesUtils {
           ancestor: state.refs.renderer,
         );
         final textSelection = TextSelection(
-          baseOffset: line.documentOffset,
-          extentOffset: line.documentOffset + line.length,
+          baseOffset: 0,
+          extentOffset: line.length,
         );
         final rectangles = underlyingText?.getBoxesForSelection(textSelection);
         final renderedHeading = heading.copyWith(

@@ -2,6 +2,8 @@ import 'embeddable.model.dart';
 
 // There are two built-in embed types supported by Quill documents, however the document models itself does not make
 // any assumptions about the types of embedded objects and allows users to define their own types.
+// TODO Explain that it requires changing the codebase.
+// TODO Explain why Block embed, are there other types of embeds? like inline?
 class BlockEmbedM extends EmbeddableM {
   const BlockEmbedM(String type, String data) : super(type, data);
 

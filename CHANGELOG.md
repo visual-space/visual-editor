@@ -2,10 +2,11 @@
 If you want to learn more about the specs, all tickets are available by following the hashtag links.
 
 ## [0.7.0] Custom Embeds
-* Headings - Added text selection for headers
 * Markers - Added new method in the editor controller `toggleMarkersByTypes()`. It toggles just certain types of markers.
   * Added new method in the editor controller `getMarkersVisibilityByTypes()`. It queries if certain types of markers are disabled [#120](https://github.com/visual-space/visual-editor/issues/120)
 * Demos - Delta Sandbox, Adaptive layout for maximum screen area on mobiles. [#128](https://github.com/visual-space/visual-editor/issues/128)
+* Demos - Aligned the navigation to the left, increased padding for better UI. [#162](https://github.com/visual-space/visual-editor/issues/162)
+* Headings - Added text selection for headers
 
 ## [0.6.0] Headings List [#140](https://github.com/visual-space/visual-editor/issues/140)
 * Exposed public method to access the headings after rendering headings from the document. The client code can read the text and the position (rectangles) of every heading. Similar to markers and highlights, we are storing this information in the internal state store after rendering. [#135](https://github.com/visual-space/visual-editor/issues/135)
@@ -40,7 +41,7 @@ If you want to learn more about the specs, all tickets are available by followin
   * Upgraded the highlights hovering service to use pixel coordinates instead of text position to detect the hovering.
   * Added a markers hovering service.
   * Added demo page to demonstrate how to attach menus or random widgets when tapping on highlights and markers or when changing the selection.
-  * Exported the rectangles data for the selection. Now we have to ways of attaching widgets to the text selection. Read [Selection](https://github.com/visual-space/visual-editor/blob/develop/lib/selection/selection.md) documentation for more details.
+  * Exported the rectangles data for the selection. Now we have two ways of attaching widgets to the text selection. Read [Selection](https://github.com/visual-space/visual-editor/blob/develop/lib/selection/selection.md) documentation for more details.
 * Documents - Delta Sandbox does not trigger update of the json input when changing styles. Fixed by using the newly added `onBuildComplete()` callback. The sandbox json preview now updates on any change including style changes and adding markers/highlights. [#93](https://github.com/visual-space/visual-editor/issues/93)
 * Added delete markers buttons. They are triggered by the tapping on a marker. All markers with the
   same id will be deleted. Markers can be hidden or deleted.

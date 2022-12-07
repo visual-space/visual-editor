@@ -6,7 +6,8 @@ If you want to learn more about the specs, all tickets are available by followin
   * Added new method in the editor controller `getMarkersVisibilityByTypes()`. It queries if certain types of markers are disabled [#120](https://github.com/visual-space/visual-editor/issues/120)
 * Demos - Delta Sandbox, Adaptive layout for maximum screen area on mobiles. [#128](https://github.com/visual-space/visual-editor/issues/128)
 * Demos - Aligned the navigation to the left, increased padding for better UI. [#162](https://github.com/visual-space/visual-editor/issues/162)
-* Headings - Added text selection for headers
+* Demos - Demo page for adding new items in document.
+* Headings - Added text selection for headers [#195](https://github.com/visual-space/visual-editor/issues/195)
 
 ## [0.6.0] Headings List [#140](https://github.com/visual-space/visual-editor/issues/140)
 * Created a new demo page for showcasing the custom styles. Demo custom styles can pe altered by modifying the parameters found in 'demo-custom-styles.const.dart'. [#95](https://github.com/visual-space/visual-editor/issues/95)
@@ -61,7 +62,7 @@ If you want to learn more about the specs, all tickets are available by followin
   * Fixed the scroll controller which overlays over the toolbar buttons.
   * Fixed the toolbar stretching and irregular distance between buttons.
 
-## [0.3.0] Architecture refactoring [#1](https://github.com/visual-space/visual-editor/issues/1)
+## [0.3.0] Architecture Refactoring [#1](https://github.com/visual-space/visual-editor/issues/1)
 * Cleaning up editor.dart
 * Improved docs [#2](https://github.com/visual-space/visual-editor/issues/2)
 * Break editor.dart in multiple files

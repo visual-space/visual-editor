@@ -22,10 +22,10 @@ class AttributesAliasesM {
   static AttributeM<String?> get justifyAlignment => AlignAttributeM('justify');
 
   // "attributes":{"list":"bullet"}
-  static AttributeM<String?> get ul => ListAttributeM('bullet');
+  static AttributeM<String?> get bulletList => ListAttributeM('bullet');
 
   // "attributes":{"list":"ordered"}
-  static AttributeM<String?> get ol => ListAttributeM('ordered');
+  static AttributeM<String?> get orderedList => ListAttributeM('ordered');
 
   // "attributes":{"list":"checked"}
   static AttributeM<String?> get checked => ListAttributeM('checked');

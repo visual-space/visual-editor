@@ -244,7 +244,7 @@ class EditorController {
   // Update the text of the document by replace
   // index - At which character to start
   // length - How many characters to replace
-  // length - Content to be inserted (text, embed)
+  // data - Content to be inserted (text, embed)
   // textSelection - Text selection after the update
   // ignoreFocus - Avoid the caret to be position and activated when changing the doc.
   void replaceText(
@@ -519,7 +519,7 @@ class EditorController {
     _state.refreshEditor.refreshEditor();
   }
 
-  void removeAllHighlights(HighlightM highlight) {
+  void removeAllHighlights() {
     _state.highlights.removeAllHighlights();
     _state.refreshEditor.refreshEditor();
   }

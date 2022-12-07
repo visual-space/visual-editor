@@ -403,7 +403,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
         if (showListNumbers)
           ToggleStyleButton(
             buttonsSpacing: toolbarSectionSpacing,
-            attribute: AttributesAliasesM.ol,
+            attribute: AttributesAliasesM.orderedList,
             controller: controller,
             icon: Icons.format_list_numbered,
             iconSize: toolbarIconSize,
@@ -411,7 +411,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
           ),
         if (showListBullets)
           ToggleStyleButton(
-            attribute: AttributesAliasesM.ul,
+            attribute: AttributesAliasesM.bulletList,
             controller: controller,
             icon: Icons.format_list_bulleted,
             buttonsSpacing: toolbarSectionSpacing,

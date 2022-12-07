@@ -173,7 +173,7 @@ class EditableTextBlock extends StatelessWidget {
     final hasAttrs = line.style.attributes != null;
 
     if (hasAttrs) {
-      if (attrs![AttributesM.list.key] == AttributesAliasesM.ol) {
+      if (attrs![AttributesM.list.key] == AttributesAliasesM.orderedList) {
         return NumberPoint(
           index: index,
           indentLevelCounts: indentLevelCounts,
@@ -185,7 +185,7 @@ class EditableTextBlock extends StatelessWidget {
         );
       }
 
-      if (attrs[AttributesM.list.key] == AttributesAliasesM.ul) {
+      if (attrs[AttributesM.list.key] == AttributesAliasesM.bulletList) {
         return BulletPoint(
           style: styles.leading!.style.copyWith(
             fontWeight: FontWeight.bold,

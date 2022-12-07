@@ -169,10 +169,14 @@ class TextLinesUtils {
           const Offset(0, 0),
           ancestor: state.refs.renderer,
         );
+
+        // Text selection in every line
         final textSelection = TextSelection(
           baseOffset: 0,
           extentOffset: line.length,
         );
+
+        // Text selection in the entire document
         final docTextSelection = TextSelection(
           baseOffset: line.documentOffset,
           extentOffset: line.documentOffset + line.length,

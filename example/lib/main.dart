@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'pages/add-elements.page.dart';
 import 'pages/all-styles.page.dart';
 import 'pages/custom-styles.page.dart';
 import 'pages/custom-toolbar.page.dart';
@@ -51,6 +52,7 @@ class DemoApp extends StatelessWidget {
         '/selection-menu': (context) => SelectionMenuPage(),
         '/delta-sandbox': (context) => DeltaSandbox(),
         '/overwrite-controller': (context) => OverwriteControllerPage(),
+        '/add-elements': (context) => AddElementsPage(),
       },
     );
   }

@@ -7,7 +7,7 @@ The editor controller is a class used to sync the state between the Editor input
 
 These methods are provided by the client developer.
 
-* `onReplaceText()` - Invoked each time a character is inserted or removed
+* `onReplaceText()` - Invoked each time a character is inserted or removed (it also can be used to insert new objects in the document if we replace the last character)
 * `onDelete()` - Invoked when characters are deleted
 * `onSelectionCompleted()` - Invoked after release the pointer when selecting text
 * `onSelectionChanged()` - Invoked when the selection is changed

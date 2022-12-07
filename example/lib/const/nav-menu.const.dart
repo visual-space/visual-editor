@@ -30,6 +30,10 @@ const List<NavMenuLinkM> NAV_MENU = [
     route: '/placeholder',
   ),
   NavMenuLinkM(
+    title: 'Add Elements',
+    route: '/add-elements',
+  ),
+  NavMenuLinkM(
     title: 'Highlights',
     route: '/highlights',
   ),

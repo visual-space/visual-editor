@@ -60,7 +60,7 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
   late StreamSubscription _toggleMarkersByTypesListener;
   Offset _cachedOffset = Offset(0, 0);
   void Function(List<MarkerM> markers)
-      cacheRenderedMarkersCoordinatesInStateStore;
+  cacheRenderedMarkersCoordinatesInStateStore;
 
   // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
   // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
@@ -311,30 +311,25 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
   bool containsCursor() {
     return _containsCursor ??= cursorController.isFloatingCursorActive
         ? line.containsOffset(
-            cursorController.floatingCursorTextPosition.value!.offset,
-          )
+      cursorController.floatingCursorTextPosition.value!.offset,
+    )
         : textSelection.isCollapsed &&
-            line.containsOffset(textSelection.baseOffset);
+        line.containsOffset(textSelection.baseOffset);
   }
 
   @override
-  TextSelectionPoint getBaseEndpointForSelection(
-    TextSelection textSelection,
-  ) {
+  TextSelectionPoint getBaseEndpointForSelection(TextSelection textSelection,) {
     return _getEndpointForSelection(textSelection, true);
   }
 
   @override
   TextSelectionPoint getExtentEndpointForSelection(
-    TextSelection textSelection,
-  ) {
+      TextSelection textSelection,) {
     return _getEndpointForSelection(textSelection, false);
   }
 
-  TextSelectionPoint _getEndpointForSelection(
-    TextSelection textSelection,
-    bool first,
-  ) {
+  TextSelectionPoint _getEndpointForSelection(TextSelection textSelection,
+      bool first,) {
     if (textSelection.isCollapsed) {
       return TextSelectionPoint(
         Offset(0, preferredLineHeight(textSelection.extent)) +
@@ -416,7 +411,7 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
 
   double get cursorHeight =>
       cursorController.style.height ??
-      preferredLineHeight(const TextPosition(offset: 0));
+          preferredLineHeight(const TextPosition(offset: 0));
 
   // === RENDER BOX OVERRIDES ===
 
@@ -445,13 +440,13 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
     // Toggle markers
     _toggleMarkersListener =
         _state.markersVisibility.toggleMarkers$.listen((_) {
-      markNeedsPaint();
-    });
+          markNeedsPaint();
+        });
 
     _toggleMarkersByTypesListener =
         _state.markersTypes.toggleMarkersByTypes$.listen((_) {
-      markNeedsPaint();
-    });
+          markNeedsPaint();
+        });
   }
 
   @override
@@ -517,10 +512,10 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
     final underlyingTextWidth = _underlyingText == null
         ? 0
         : _underlyingText!
-            .getMinIntrinsicWidth(
-              math.max(0, height - verticalPadding),
-            )
-            .ceil();
+        .getMinIntrinsicWidth(
+      math.max(0, height - verticalPadding),
+    )
+        .ceil();
 
     return horizontalPadding + leadingWidth + underlyingTextWidth;
   }
@@ -537,10 +532,10 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
     final underlyingTextWidth = _underlyingText == null
         ? 0
         : _underlyingText!
-            .getMaxIntrinsicWidth(
-              math.max(0, height - verticalPadding),
-            )
-            .ceil();
+        .getMaxIntrinsicWidth(
+      math.max(0, height - verticalPadding),
+    )
+        .ceil();
 
     return horizontalPadding + leadingWidth + underlyingTextWidth;
   }
@@ -554,8 +549,8 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
 
     if (_underlyingText != null) {
       return _underlyingText!.getMinIntrinsicHeight(
-            math.max(0, width - horizontalPadding),
-          ) +
+        math.max(0, width - horizontalPadding),
+      ) +
           verticalPadding;
     }
 
@@ -570,8 +565,8 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
 
     if (_underlyingText != null) {
       return _underlyingText!.getMaxIntrinsicHeight(
-            math.max(0, width - horizontalPadding),
-          ) +
+        math.max(0, width - horizontalPadding),
+      ) +
           verticalPadding;
     }
 
@@ -693,7 +688,7 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
 
           final isHovered = _state.markers.hoveredMarkers.firstWhereOrNull(
                 (_marker) => _marker.id == marker.id,
-              ) !=
+          ) !=
               null;
 
           if (markerType?.isVisible == true) {
@@ -757,7 +752,7 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
             false,
           );
           final _highlightedRects =
-              _underlyingText!.getBoxesForSelection(local);
+          _underlyingText!.getBoxesForSelection(local);
           _paintHighlights(
             highlight,
             _highlightedRects,
@@ -828,8 +823,8 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
   @override
   TextPosition globalToLocalPosition(TextPosition position) {
     assert(
-      container.containsOffset(position.offset),
-      'The provided text position is not in the current node',
+    container.containsOffset(position.offset),
+    'The provided text position is not in the current node',
     );
 
     return TextPosition(
@@ -855,12 +850,12 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
   // Once a marker is retrieved from the doc we check against the declared markers types.
   MarkerTypeM? _getMarkerType(marker) {
     assert(
-      _state.markersTypes.types.isNotEmpty,
-      'At least one marker type must be defined',
+    _state.markersTypes.types.isNotEmpty,
+    'At least one marker type must be defined',
     );
 
     final markerType = _state.markersTypes.types.firstWhereOrNull(
-      (markerType) => markerType.id == marker.type,
+          (markerType) => markerType.id == marker.type,
     );
 
     return markerType;
@@ -871,11 +866,9 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
         Colors.blue.withOpacity(0.1);
   }
 
-  RenderBox? _updateChild(
-    RenderBox? old,
-    RenderBox? newChild,
-    TextLineSlot slot,
-  ) {
+  RenderBox? _updateChild(RenderBox? old,
+      RenderBox? newChild,
+      TextLineSlot slot,) {
     if (old != null) {
       dropChild(old);
       children.remove(slot);
@@ -946,7 +939,8 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
     markNeedsPaint();
   }
 
-  CursorPainter get _cursorPainter => CursorPainter(
+  CursorPainter get _cursorPainter =>
+      CursorPainter(
         editable: _underlyingText,
         style: cursorController.style,
         prototype: _caretPrototype,
@@ -961,25 +955,22 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
         selection.start <= line.documentOffset + line.length - 1;
   }
 
-  void _paintSelection(
-    PaintingContext context,
-    Offset effectiveOffset,
-  ) {
+  void _paintSelection(PaintingContext context,
+      Offset effectiveOffset,) {
     assert(_selectedRects != null);
 
-    final paint = Paint()..color = _state.platformStyles.styles.selectionColor;
+    final paint = Paint()
+      ..color = _state.platformStyles.styles.selectionColor;
 
     for (final box in _selectedRects!) {
       context.canvas.drawRect(box.toRect().shift(effectiveOffset), paint);
     }
   }
 
-  void _paintHighlights(
-    HighlightM highlight,
-    List<TextBox> highlightedRects,
-    PaintingContext context,
-    Offset effectiveOffset,
-  ) {
+  void _paintHighlights(HighlightM highlight,
+      List<TextBox> highlightedRects,
+      PaintingContext context,
+      Offset effectiveOffset,) {
     assert(highlightedRects.isNotEmpty);
     final isHovered = _state.highlights.hoveredHighlights
         .map((_highlight) => _highlight.id)
@@ -995,22 +986,20 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
     }
   }
 
-  void _paintCursor(
-    PaintingContext context,
-    Offset effectiveOffset,
-    bool lineHasEmbed,
-  ) {
+  void _paintCursor(PaintingContext context,
+      Offset effectiveOffset,
+      bool lineHasEmbed,) {
     final position = cursorController.isFloatingCursorActive
         ? TextPosition(
-            offset: cursorController.floatingCursorTextPosition.value!.offset -
-                line.documentOffset,
-            affinity:
-                cursorController.floatingCursorTextPosition.value!.affinity,
-          )
+      offset: cursorController.floatingCursorTextPosition.value!.offset -
+          line.documentOffset,
+      affinity:
+      cursorController.floatingCursorTextPosition.value!.affinity,
+    )
         : TextPosition(
-            offset: textSelection.extentOffset - line.documentOffset,
-            affinity: textSelection.base.affinity,
-          );
+      offset: textSelection.extentOffset - line.documentOffset,
+      affinity: textSelection.base.affinity,
+    );
 
     _cursorPainter.paint(
       context.canvas,

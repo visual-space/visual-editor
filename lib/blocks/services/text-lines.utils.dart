@@ -173,10 +173,15 @@ class TextLinesUtils {
           baseOffset: 0,
           extentOffset: line.length,
         );
+        final docTextSelection = TextSelection(
+          baseOffset: line.documentOffset,
+          extentOffset: line.documentOffset + line.length,
+        );
         final rectangles = underlyingText?.getBoxesForSelection(textSelection);
         final renderedHeading = heading.copyWith(
           docRelPosition: docRelPosition,
           rectangles: rectangles,
+          selection: docTextSelection,
         );
 
         _heading = renderedHeading;

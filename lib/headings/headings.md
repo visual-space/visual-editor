@@ -8,10 +8,14 @@ All lines of text marked with first level header attribute, packed with their po
 class HeadingM {
   final String? text;
   final Offset? docRelPosition;
+  final List<TextBox>? rectangles;
+  final TextSelection? selection;
 
   const HeadingM({
     this.text,
     this.docRelPosition,
+    this.rectangles,
+    this.selection,
   });
 }
 ```

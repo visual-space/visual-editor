@@ -2,6 +2,7 @@
 If you want to learn more about the specs, all tickets are available by following the hashtag links.
 
 ## [0.7.0] Custom Embeds
+* Headings - Added text selection for headers
 * Markers - Added new method in the editor controller `toggleMarkersByTypes()`. It toggles just certain types of markers.
   * Added new method in the editor controller `getMarkersVisibilityByTypes()`. It queries if certain types of markers are disabled [#120](https://github.com/visual-space/visual-editor/issues/120)
 

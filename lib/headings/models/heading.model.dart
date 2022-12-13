@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 
 // Used to extract all headings of a document
-// For every heading we need the text and the position of
-// the heading in the document (to be used later for custom features)
+// For every heading we need the text, the position of
+// the heading in the document, including the text selection, and rectangles
+// (to be used later for custom features)
 class HeadingM {
   final String? text;
   final Offset? docRelPosition;
   final List<TextBox>? rectangles;
+  final TextSelection? selection;
 
   const HeadingM({
     this.text,
     this.docRelPosition,
     this.rectangles,
+    this.selection,
   });
 
   Map<String, dynamic> toJson() => {
@@ -24,6 +27,7 @@ class HeadingM {
         'text: $text, '
         'rectangles: $rectangles,'
         'docRelPosition: $docRelPosition,'
+        'selection: $selection,'
         ')';
   }
 
@@ -31,10 +35,12 @@ class HeadingM {
     String? text,
     Offset? docRelPosition,
     List<TextBox>? rectangles,
+    TextSelection? selection,
   }) =>
       HeadingM(
         text: text ?? this.text,
         docRelPosition: docRelPosition ?? this.docRelPosition,
         rectangles: rectangles ?? this.rectangles,
+        selection: selection ?? this.selection,
       );
 }

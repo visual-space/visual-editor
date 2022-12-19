@@ -7,7 +7,7 @@ import 'package:visual_editor/markers/models/marker.model.dart';
 import 'package:visual_editor/shared/models/selection-rectangles.model.dart';
 import 'package:visual_editor/visual-editor.dart';
 
-import '../widgets/demo-scaffold.dart';
+import '../widgets/demo-page-scaffold.dart';
 import '../widgets/loading.dart';
 import '../widgets/selection-quick-menu.dart';
 
@@ -60,7 +60,7 @@ class _SelectionMenuPageState extends State<SelectionMenuPage> {
   @override
   Widget build(BuildContext context) => Stack(
         children: [
-          DemoScaffold(
+          DemoPageScaffold(
             child: _controller != null
                 ? _col(
                     children: [

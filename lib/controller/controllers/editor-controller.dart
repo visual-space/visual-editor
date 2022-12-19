@@ -178,7 +178,7 @@ class EditorController {
   // Safely pass the state from the controller to the buttons without the public having access to the state.
   // Read more in EditorStateReceiver doc comment.
   void setStateInEditorStateReceiver(EditorStateReceiver receiver) {
-    receiver.setState(_state);
+    receiver.setState(_state.copy());
   }
 
   // === HISTORY ===

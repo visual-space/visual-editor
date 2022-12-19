@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:visual_editor/documents/models/attributes/attributes.model.dart';
 import 'package:visual_editor/visual-editor.dart';
 
-import '../widgets/demo-scaffold.dart';
+import '../widgets/demo-page-scaffold.dart';
 import '../widgets/loading.dart';
 
 // Custom toolbar made from a mix of buttons (library and custom made buttons).
@@ -40,7 +40,7 @@ class _CustomToolbarPageState extends State<CustomToolbarPage> {
       );
 
   Widget _scaffold({required List<Widget> children}) =>
-      DemoScaffold(
+      DemoPageScaffold(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: children,

@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:visual_editor/visual-editor.dart';
 
-import '../widgets/demo-scaffold.dart';
+import '../widgets/demo-page-scaffold.dart';
 
 // Demonstrates the placeholder functionality of the editor.
 // When a document is completely empty, the placeholder text is displayed.
@@ -31,7 +31,7 @@ class _PlaceholderPageState extends State<PlaceholderPage> {
         ],
       );
 
-  Widget _scaffold({required List<Widget> children}) => DemoScaffold(
+  Widget _scaffold({required List<Widget> children}) => DemoPageScaffold(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: children,

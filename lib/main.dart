@@ -438,7 +438,7 @@ class VisualEditorState extends State<VisualEditor>
     }
   }
 
-  // When a new controller/state store is created we need to cached these references again.
+  // When a new controller/state store is created we need to cache these references again.
   void _reCacheStylesAndCursorOnlyOnce() {
     widget._state.platformStyles.setPlatformStyles(_platformStyles);
     widget._state.refs.setCursorController(

@@ -9,7 +9,7 @@ import 'package:visual_editor/visual-editor.dart';
 import '../const/dimensions.const.dart';
 import '../models/markers-and-scroll-offset.model.dart';
 import '../widgets/delete-marker-sidebar.dart';
-import '../widgets/demo-scaffold.dart';
+import '../widgets/demo-page-scaffold.dart';
 import '../widgets/loading.dart';
 
 // For smoke testing. You don't need this in your implementation.
@@ -64,7 +64,7 @@ class _DeleteMarkersPageState extends State<DeleteMarkersPage> {
               ],
       );
 
-  Widget _scaffold({required List<Widget> children}) => DemoScaffold(
+  Widget _scaffold({required List<Widget> children}) => DemoPageScaffold(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: children,

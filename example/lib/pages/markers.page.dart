@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:visual_editor/shared/widgets/default-button.dart';
 import 'package:visual_editor/visual-editor.dart';
 
-import '../widgets/demo-scaffold.dart';
+import '../widgets/demo-page-scaffold.dart';
 import '../widgets/loading.dart';
 
 // Markers are highlights that are permanently defined in the documents.
@@ -45,7 +45,7 @@ class _MarkersPageState extends State<MarkersPage> {
               ],
       );
 
-  Widget _scaffold({required List<Widget> children}) => DemoScaffold(
+  Widget _scaffold({required List<Widget> children}) => DemoPageScaffold(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: children,

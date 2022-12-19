@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:visual_editor/visual-editor.dart';
 
-import '../widgets/demo-scaffold.dart';
+import '../widgets/demo-page-scaffold.dart';
 import '../widgets/loading.dart';
 
 // Horizontal toolbars can either scroll or wrap.
@@ -45,7 +45,7 @@ class _WrappingToolbarPageState extends State<WrappingToolbarPage> {
               ],
       );
 
-  Widget _scaffold({required List<Widget> children}) => DemoScaffold(
+  Widget _scaffold({required List<Widget> children}) => DemoPageScaffold(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: children,

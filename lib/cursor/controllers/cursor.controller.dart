@@ -5,8 +5,7 @@ import 'package:flutter/widgets.dart';
 import '../../shared/state/editor.state.dart';
 import '../models/cursor-style.model.dart';
 
-// Controls the cursor of an editable widget.
-// This class is a ChangeNotifier and allows to listen for updates on the cursor style.
+// Controls the cursor (style and color) of an editable widget.
 class CursorController {
   // The time it takes for the cursor to fade from fully opaque to fully transparent and vice versa.
   // A full cursor blink, from transparent to opaque to transparent, is twice this duration.
@@ -18,6 +17,7 @@ class CursorController {
   // This value is an eyeball estimation of the time it takes for the iOS cursor to ease in and out.
   static const Duration _fadeDuration = Duration(milliseconds: 250);
 
+  // TODO Get rid of these value notifiers. Move them to state. It's more complicated because we are in a controller...
   final ValueNotifier<bool> show;
   final ValueNotifier<Color> color;
   final ValueNotifier<bool> blink;

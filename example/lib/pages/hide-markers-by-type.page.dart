@@ -8,7 +8,7 @@ import 'package:visual_editor/visual-editor.dart';
 
 import '../const/dimensions.const.dart';
 import '../models/markers-and-scroll-offset.model.dart';
-import '../widgets/demo-scaffold.dart';
+import '../widgets/demo-page-scaffold.dart';
 import '../widgets/loading.dart';
 import '../widgets/markers-attachments.dart';
 import 'delete-markers.page.dart';
@@ -65,7 +65,7 @@ class _HideMarkersByTypePageState extends State<HideMarkersByTypePage> {
               ],
       );
 
-  Widget _scaffold({required List<Widget> children}) => DemoScaffold(
+  Widget _scaffold({required List<Widget> children}) => DemoPageScaffold(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: children,

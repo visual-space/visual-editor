@@ -8,7 +8,7 @@ import 'package:visual_editor/headings/models/heading.model.dart';
 import 'package:visual_editor/visual-editor.dart';
 
 import '../const/dimensions.const.dart';
-import '../widgets/demo-scaffold.dart';
+import '../widgets/demo-page-scaffold.dart';
 import '../widgets/headings-panel.dart';
 import '../widgets/loading.dart';
 
@@ -58,7 +58,7 @@ class _HeadingsPageState extends State<HeadingsPage> {
     );
   }
 
-  Widget _scaffold({required List<Widget> children}) => DemoScaffold(
+  Widget _scaffold({required List<Widget> children}) => DemoPageScaffold(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: children,

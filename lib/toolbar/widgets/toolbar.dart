@@ -128,6 +128,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
     bool showVideoButton = true,
     bool showCameraButton = true,
     bool showDirection = false,
+    Color? color,
 
     // Disabled by default because most apps wont need such functionality.
     // Enable it only if your app requires the authors to define the markers themselves.
@@ -200,6 +201,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
       buttonsSpacing: toolbarSectionSpacing,
       toolbarIconAlignment: toolbarIconAlignment,
       multiRowsDisplay: multiRowsDisplay,
+      color: color,
       customButtons: customIcons,
       locale: locale,
       children: [
@@ -509,6 +511,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
       child: multiRowsDisplay
           ? Container(
               padding: EdgeInsets.symmetric(horizontal: 10),
+              color: color ?? Theme.of(context).canvasColor,
               child: Wrap(
                 alignment: toolbarIconAlignment,
                 runSpacing: 4,

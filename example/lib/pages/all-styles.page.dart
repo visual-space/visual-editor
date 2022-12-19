@@ -8,7 +8,7 @@ import 'package:visual_editor/visual-editor.dart';
 
 import '../const/sample-highlights.const.dart';
 import '../services/editor.service.dart';
-import '../widgets/demo-scaffold.dart';
+import '../widgets/demo-page-scaffold.dart';
 import '../widgets/loading.dart';
 
 // Demo of all the styles that can be applied to a document.
@@ -42,7 +42,7 @@ class _AllStylesPageState extends State<AllStylesPage> {
               ],
       );
 
-  Widget _scaffold({required List<Widget> children}) => DemoScaffold(
+  Widget _scaffold({required List<Widget> children}) => DemoPageScaffold(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: children,

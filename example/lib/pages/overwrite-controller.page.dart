@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:visual_editor/visual-editor.dart';
 
-import '../widgets/demo-scaffold.dart';
+import '../widgets/demo-page-scaffold.dart';
 import '../widgets/loading.dart';
 
 // In case setState() is used by mistake the editor should be able to continue working.
@@ -46,14 +46,14 @@ class _OverwriteControllerPageState extends State<OverwriteControllerPage> {
               ],
       );
 
-  Widget _scaffold({required List<Widget> children}) => DemoScaffold(
+  Widget _scaffold({required List<Widget> children}) => DemoPageScaffold(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: children,
         ),
       );
 
-  Widget _editor() => Flexible(
+  Widget _editor() => Expanded(
         child: Container(
           color: Colors.white,
           padding: EdgeInsets.only(
@@ -65,6 +65,7 @@ class _OverwriteControllerPageState extends State<OverwriteControllerPage> {
             scrollController: _scrollController,
             focusNode: _focusNode,
             config: EditorConfigM(
+              expands: true,
               placeholder: 'Enter text',
             ),
           ),
@@ -74,7 +75,6 @@ class _OverwriteControllerPageState extends State<OverwriteControllerPage> {
   Widget _toolbar() => Container(
         padding: EdgeInsets.symmetric(
           vertical: 16,
-          horizontal: 8,
         ),
         child: EditorToolbar.basic(
           controller: _controller!,

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:visual_editor/visual-editor.dart';
 
-import '../widgets/demo-scaffold.dart';
+import '../widgets/demo-page-scaffold.dart';
 import '../widgets/loading.dart';
 
 // Multiple editors can be listed in a singles page, each one of them with their own controller.
@@ -54,7 +54,7 @@ class _MultipleEditorsPageState extends State<MultipleEditorsPage> {
               ],
       );
 
-  Widget _scaffold({required List<Widget> children}) => DemoScaffold(
+  Widget _scaffold({required List<Widget> children}) => DemoPageScaffold(
         child: SingleChildScrollView(
           controller: ScrollController(),
           child: Column(

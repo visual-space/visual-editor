@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:visual_editor/visual-editor.dart';
 
-import '../widgets/demo-scaffold.dart';
+import '../const/dimensions.const.dart';
+import '../widgets/demo-page-scaffold.dart';
 
 // Here you can test any change in the editor and see the delta document output that is generated.
 // Very useful for debugging or when adding new features or just for learning purposes.
-// (!) If you want to see some particular feature in isolation,
-// delete the demo content and insert whatever content you need.
+// (!) If you want to see some particular feature in isolation, delete the demo content and insert whatever content you need.
+// On mobiles the page displays sliding panels for the editor and json preview to enable the client devs
+// to preview either rich text or delta json within the maximum available screen area.
 // TODO Highlight changed text fragments between edits
 // TODO Use monospace font for the json preview
 class DeltaSandbox extends StatefulWidget {
@@ -25,6 +27,11 @@ class _DeltaSandboxState extends State<DeltaSandbox> {
   final _scrollController = ScrollController();
   late TextEditingController _jsonInputController;
   late final StreamSubscription _jsonInputListener;
+  bool _hasExpandedView = true;
+  bool _isMobile = false;
+  final double _expandedEditorHeight = 350;
+  final double _minimizedEditorHeight = 200;
+  double _width = 0;
 
   // We use the focus to check if editor or json input has triggered the change.
   // This is essential for preventing a circular update loop between editor and input.
@@ -47,71 +54,115 @@ class _DeltaSandboxState extends State<DeltaSandbox> {
   }
 
   @override
-  Widget build(BuildContext context) => _scaffoldRow(
-        children: [
-          _col(
-            children: [
-              _editor(),
-              _toolbar(),
-            ],
-          ),
-          _jsonPreview(),
-        ],
-      );
+  Widget build(BuildContext context) {
+    _width = MediaQuery.of(context).size.width;
+    _isMobile = _width < PAGE_WIDTH;
 
-  Widget _scaffoldRow({required List<Widget> children}) => DemoScaffold(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: children,
+    return _scaffoldCol(
+      actions: [
+        _toggleEditorJsonPreviewBtn(),
+      ],
+      children: [
+        _adaptiveColRow(
+          children: [
+            _editor(),
+            _jsonPreview(),
+          ],
         ),
-      );
+        _toolbar(),
+      ],
+    );
+  }
 
-  Widget _col({required List<Widget> children}) => Expanded(
+  Widget _scaffoldCol({
+    required List<Widget> actions,
+    required List<Widget> children,
+  }) =>
+      DemoPageScaffold(
+        pageWidth: PAGE_WIDTH,
+        actions: actions,
         child: Column(
           children: children,
         ),
       );
 
-  Widget _editor() => Expanded(
-        child: SingleChildScrollView(
-          child: Container(
-            color: Colors.white,
-            padding: const EdgeInsets.only(
-              left: 16,
-              right: 16,
-            ),
-            child: VisualEditor(
-              controller: _editorController,
-              scrollController: _scrollController,
-              focusNode: _focusNode,
-              config: EditorConfigM(
-                placeholder: 'Enter text',
+  Widget _toggleEditorJsonPreviewBtn() => _isMobile
+      ? Padding(
+          padding: EdgeInsets.only(right: 10),
+          child: IconButton(
+            onPressed: _toggleExpandedEditorView,
+            icon: _hasExpandedView
+                ? Icon(Icons.arrow_downward)
+                : Icon(Icons.arrow_upward),
+          ),
+        )
+      : SizedBox.shrink();
+
+  Widget _adaptiveColRow({required List<Widget> children}) => Expanded(
+        child: _isMobile
+            ? Column(
+                children: children,
+              )
+            : Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: children,
               ),
+      );
+
+  Widget _jsonPreview() => Expanded(
+        child: Container(
+          color: Colors.grey.shade300,
+          width: _isMobile ? _width : PAGE_WIDTH / 2,
+          padding: EdgeInsets.symmetric(horizontal: 15),
+          child: TextField(
+            controller: _jsonInputController,
+            maxLines: null,
+            minLines: 1,
+          ),
+        ),
+      );
+
+  Widget _editor() => AnimatedContainer(
+        width: _isMobile ? _width : PAGE_WIDTH / 2,
+        duration: Duration(milliseconds: 200),
+        height: _isMobile
+            ? _hasExpandedView
+                ? _minimizedEditorHeight
+                : _expandedEditorHeight
+            : 750,
+        color: Colors.white,
+        child: VisualEditor(
+          controller: _editorController,
+          scrollController: _scrollController,
+          focusNode: _focusNode,
+          config: EditorConfigM(
+            placeholder: 'Enter text',
+            padding: EdgeInsets.only(
+              left: 15,
+              right: 15,
             ),
           ),
         ),
       );
 
   Widget _toolbar() => EditorToolbar.basic(
+        color: Colors.white,
         controller: _editorController,
         showMarkers: true,
         multiRowsDisplay: false,
-      );
-
-  Widget _jsonPreview() => Expanded(
-        child: SingleChildScrollView(
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 15),
-            child: TextField(
-              controller: _jsonInputController,
-              maxLines: null,
-              minLines: 1,
-            ),
-          ),
+        iconTheme: EditorIconThemeM(
+          iconUnselectedFillColor: Colors.white,
         ),
       );
 
   // === UTILS ===
+
+  // Toggle the editor's visibility ratio for mobile, for better usability
+  void _toggleExpandedEditorView() {
+    setState(() {
+      _hasExpandedView = !_hasExpandedView;
+    });
+  }
 
   void _setupEditorController() {
     _editorController = EditorController(

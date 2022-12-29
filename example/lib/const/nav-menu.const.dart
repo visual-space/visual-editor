@@ -58,6 +58,10 @@ const List<NavMenuLinkM> NAV_MENU = [
     route: '/headings',
   ),
   NavMenuLinkM(
+    title: 'Limited Length Headings',
+    route: '/limited-length-headings',
+  ),
+  NavMenuLinkM(
     title: 'Selection Menu',
     route: '/selection-menu',
   ),

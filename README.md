@@ -1,29 +1,14 @@
 ![Visual-editor-teaser](https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/visual-editor-teaser.jpg)
 
-Visual Editor is a Rich Text editor for [Flutter] originally forked from [Flutter Quill]. The editor is built around the powerful [Quilljs Delta] document format originally developed by QuillJs. Delta documents can be easily converted to JSON, the encoding is easy to read and modify and offers many extensibility options.
+Visual Editor is a Rich Text editor for [Flutter] originally forked from [Flutter Quill]. The editor is built around the powerful [Quilljs Delta] document format originally developed by QuillJs. Delta documents can be easily converted to JSON, the encoding is easy to read and modify and offers many extensibility options. This document explains the reasons why we forked [why we forked Quill](https://github.com/visual-space/visual-editor/blob/develop/QUILL_FORK.md).
 
 <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/visual-editor-demo.gif"/>
 
-## Why Fork Flutter Quill?
-While building the [Visual Space] platform we begun using [Flutter Quill] to render text content for nextgen interactive tutorials and projects. Initially we attempted to extend Quill with additional features such as custom highlights. However, we had to deal with major issues such as opaque architecture, severe lack of documentation, lack of automatic testing and a complete lack of technical support from the maintainers. Therefore, we decided to fork Quill and improve it with additional features and a focus on higher quality standards. This [reddit post](https://www.reddit.com/r/FlutterDev/comments/uq340b/ive_decided_to_fork_flutter_quill_rich_text/) contains a detailed explanation. 
-
-## Major Improvements Compared To Quill
-Check out the [changelog](https://github.com/visual-space/visual-editor/blob/develop/CHANGELOG.md) for a detailed review of what was changed. Also there's a [migration](https://github.com/visual-space/visual-editor/blob/develop/MIGRATING.md) guide for users migrating from Quill.
-
-- **[Maintainable Architecture](https://github.com/visual-space/visual-editor/issues/1)** - Source code was split in modules. Files were split in smaller files. A distinct state management layer was introduced. Class names have been simplified. We replaced the `ChangedNotifiers` with standalone streams. We simplified the `build()` methods. We merged the `Editor` and `RawEditor` in one file.
-- **[Extended Documentation](https://github.com/visual-space/visual-editor/issues/2)** - We are continuously adding in depth documentation to make it easier for new contributors to extend the source code. Quill has very little documentation and it lacks in depth explanation over the architecture. Our goal is to cover both new features and the legacy ones in detailed documentation.
-- **[Demo Pages](https://github.com/visual-space/visual-editor/issues/63)** - We've provided simple, concise demo pages to exemplify how to use Visual Editor for the various tasks you have.
-- **[Automatic Testing](https://github.com/visual-space/visual-editor/issues/3)** - In Quill there's no automatic testing available. New contributions constantly break the legacy code. The PR's are not policed enough. We started by adding tests and we are slowly increasing the coverage of the tests.
-- **[Custom Highlights](https://github.com/visual-space/visual-editor/issues/4)** - Highlights custom regions of text that are sensitive to taps and hovering.
-- **[Custom Markers](https://github.com/visual-space/visual-editor/issues/69)** - Same as highlights but instead of being temporary in the controller they are permanent in the document.
-- **[Markers Attachments](https://github.com/visual-space/visual-editor/issues/117)** - Markers provide support for attachments by returning their pixel coordinates and dimensions for positioning in text. Based on this information any widget can be linked to a marker.
-- **[Active Discord Support Community](https://discord.gg/XpGygmXde4)** - You'll be able to get quick answers from the maintainers of the repo. We are available almost at all times to answer your questions. Including general Flutter and Dart questions.
-
 ## How To Start
 
-**Unstable Code, Under Refactoring**
+**Clone via Github**
 
-The current version is not stable enough to be reliable and to be published in pub.dev. Until then you can try it out by linking directly from Github:
+The current version is getting close to a clean state, ready to be published in pub.dev without major changes. Until published on pub dev you can try it out by linking directly from Github:
 
 **pubspec.yaml**
 
@@ -33,9 +18,9 @@ dependencies:
     git: https://github.com/visual-space/visual-editor.git
 ```
 
-**Minimal example**
+**Minimal Example**
 
-Make sure you don't overwrite the `EditorController` via `setState()`, otherwise you will lose the contents of the history. Which means no more undo, redo with the previous states. In general avoid using `setState()` to update the document. There are methods available in the `EditorController` for such tasks.
+You will need a controller that controllers an editor and an editor toolbar.
 
 ```dart
 final _controller = EditorController.basic();
@@ -54,12 +39,14 @@ Column(
 )
 ```
 
-**Saving a document**
+Make sure you don't overwrite the `EditorController` via `setState()`, otherwise you will lose the document's edit history. Which means no more undo, redo with the previous states. In general avoid using `setState()` to update the document. There are methods available in the `EditorController` for such tasks.
+
+**Saving a Document**
 ```dart
 final json = jsonEncode(_controller.document.toDelta().toJson());
 ```
 
-**Retrieving a document**
+**Retrieving a Document**
 ```dart
 const blogPost = jsonDecode(response);
 
@@ -68,9 +55,9 @@ final _controller = EditorController(
 );
 ```
 
-**Empty document**
+**Empty Document**
 
-When a document is empty a custom placeholder should be insert. An empty document looks like:
+For empty documents the editor can display a placeholder text. This is an empty document:
 ```json
 [
   {
@@ -79,15 +66,15 @@ When a document is empty a custom placeholder should be insert. An empty documen
 ] 
 ```
  
-For convenience you can use a constant: `const EMPTY_DELTA_DOC_JSON = '[{"insert":"\\n"}]'`
+For convenience you can import and use the `EMPTY_DELTA_DOC_JSON` constant.
 
-**Delta or plain text**
+**Delta Or Plain Text**
 
-Visual Editor uses [Delta] objects as an internal data format to describe the attributes of each fragment of text.
+Visual Editor uses [Delta] operations as an internal data format to describe the attributes of each fragment of text.
 
 ```dart
-_controller.document.toDelta(); // Extract the deltas
-_controller.document.toPlainText(); // Extract plain text
+_controller.document.toDelta();
+_controller.document.toPlainText();
 ```
 
 <table cellspacing="0" cellpadding="0" border="0" style="border: 0px; border-collapse:collapse; marin: 60px 0 60px 0">
@@ -118,8 +105,8 @@ In this repository you can also find a demo app with various pages that showcase
 ## Documentation
 Learn more about Visual Editor architecture and how to use the features.
 
-- **[Editor (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/editor/editor.md)** - Renders the document content as commanded by the `EditorController`.
-- **[Editor Controller (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/controller/editor-controller.md)** - Controls the editor, sync the toolbar, exposes useful callbacks.
+- **[Editor (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/editor/editor.md)** - The widget that renders the document content as commanded by the `EditorController`.
+- **[Editor Controller (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/controller/editor-controller.md)** - Controls the editor, and the editor toolbar, exposes useful callbacks.
 - **[Documents (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/documents/documents.md)** - Delta documents are used to store text edits and styling attributes.
 - **[Toolbar (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/toolbar/toolbar.md)** - Displays buttons used to edit the styling of the text.
 - **[Blocks (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/blocks/blocks.md)** - Documents templates are composed of lines of text and blocks of text.
@@ -131,20 +118,20 @@ Learn more about Visual Editor architecture and how to use the features.
 - **[Highlights](https://github.com/visual-space/visual-editor/blob/develop/lib/highlights/highlights.md)** - Renders temporary text markers sensitive to taps.
 - **[Markers](https://github.com/visual-space/visual-editor/blob/develop/lib/markers/markers.md)** - Renders permanent text markers sensitive to taps as part of the delta document.
 - **[Performance](https://github.com/visual-space/visual-editor/blob/develop/PERFORMANCE.md)** - Basic tips to follow in order to maintain the editor's performance.
+- **[Why Fork Quill](https://github.com/visual-space/visual-editor/blob/develop/CHANGELOG.md)** - Explains the reasons why we forked Quill.
 - **[Migration](https://github.com/visual-space/visual-editor/blob/develop/MIGRATING.md)** - A simple guide with instructions to migrate from Flutter Quill.
 - **[Changelog](https://github.com/visual-space/visual-editor/blob/develop/CHANGELOG.md)** - Journal of changes made to the visual editor.
   
 **For Contributors:**
 
-- **[State Store](https://github.com/visual-space/visual-editor/blob/develop/lib/shared/state-store.md)** - Explains the state store architecture and how to extend it.
-- **[Project Structure (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/shared/project-structure.md)** - How the codebase is structured and split in modules.
-- **[Guidelines](https://github.com/visual-space/visual-editor/blob/develop/GUIDELINES.md)** - Coding guidelines for improving code quality and architecture clarity.
+- **[State Store](https://github.com/visual-space/visual-editor/blob/develop/lib/shared/state-store.md)** - State store architecture decisions.
+- **[Project Structure (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/shared/project-structure.md)** - Overview of the major modules and modules folder structure.
+- **[Guidelines](https://github.com/visual-space/visual-editor/blob/develop/GUIDELINES.md)** - Coding guidelines for code quality and architecture.
+- **[Guidelines](https://github.com/visual-space/visual-editor/blob/develop/COOKBOOK.md)** - These are common API calls used to achieve document changes in the .
 
-## Who is using Visual Editor?
+## Who Is Using Visual Editor?
 
-- **[Visual Space]** - Next generation interactive tutorials and projects
-
-Send us a message on [Visual Editor Discord] if you want your app to be listed here.
+- **[Visual Space]** - Social media for engineers, innovators and online teams of enthusiasts.
 
 ## Useful Resources
 [QuillJs Delta](https://github.com/quilljs/delta) • 

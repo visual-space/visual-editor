@@ -1,6 +1,6 @@
 # Headings (WIP)
 All lines of text marked with first level header attribute, packed with their position in the document. They are extracted and stored in the state store and a customized behavior can be applied to them.
-
+ 
 ## Data Model
 **heading.model.dart**
 ```dart

@@ -89,7 +89,9 @@ class _HighlightsPageState extends State<HighlightsPage> {
             ),
             ElevatedButton(
               child: Text('Clear highlights'),
-              onPressed: () {},
+              onPressed: () {
+                _controller!.removeAllHighlights();
+              },
             ),
           ],
         ),

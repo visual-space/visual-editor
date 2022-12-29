@@ -9,6 +9,7 @@ import 'pages/delta-sandbox.page.dart';
 import 'pages/headings.page.dart';
 import 'pages/hide-markers-by-type.page.dart';
 import 'pages/highlights.page.dart';
+import 'pages/limited-length-headings.page.dart';
 import 'pages/markers-attachments.page.dart';
 import 'pages/markers.page.dart';
 import 'pages/multiple-editors.page.dart';
@@ -48,6 +49,7 @@ class DemoApp extends StatelessWidget {
         '/markers-attachments': (context) => MarkersAttachmentsPage(),
         '/hide-markers': (context) => HideMarkersByTypePage(),
         '/headings': (context) => HeadingsPage(),
+        '/limited-length-headings': (context) => LimitedLengthHeadingsPage(),
         '/delete-markers': (context) => DeleteMarkersPage(),
         '/selection-menu': (context) => SelectionMenuPage(),
         '/delta-sandbox': (context) => DeltaSandbox(),

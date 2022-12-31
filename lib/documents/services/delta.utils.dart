@@ -33,6 +33,7 @@ DiffM getDiff(
   return DiffM(start, deleted, inserted);
 }
 
+// TODO Doc user actual. What are these?
 int getPositionDelta(
   DeltaM user,
   DeltaM actual,

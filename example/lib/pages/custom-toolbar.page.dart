@@ -78,9 +78,9 @@ class _CustomToolbarPageState extends State<CustomToolbarPage> {
             EditorToolbar.basic(
               controller: _controller!,
               multiRowsDisplay: false,
-              customIcons: [
+              customButtons: [
                 // Custom icon
-                EditorCustomButtonM(
+                CustomToolbarButtonM(
                     icon: Icons.favorite,
                     onTap: () {}
                 ),

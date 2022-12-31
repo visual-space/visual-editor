@@ -1,0 +1,752 @@
+[
+  {
+    "insert": "Custom embeds"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "header": 1
+    }
+  },
+  {
+    "insert": "Embeds that are defined by the user and provided to the editor using "
+  },
+  {
+    "insert": "EditorConfigM",
+    "attributes": {
+      "code": true
+    }
+  },
+  {
+    "insert": " when creating "
+  },
+  {
+    "insert": "VisualEditor",
+    "attributes": {
+      "code": true
+    }
+  },
+  {
+    "insert": ". Multiple embed builders can be provided each handling a different kind of embeddable object. Consider looking into the "
+  },
+  {
+    "insert": "defaultEmbedBuilders",
+    "attributes": {
+      "code": true
+    }
+  },
+  {
+    "insert": " for additional examples.\n\n"
+  },
+  {
+    "insert": "You must provide an embed builder for each kind of embed present in the document.",
+    "attributes": {
+      "bold": true
+    }
+  },
+  {
+    "insert": "\n\nDefault embeds are provided for images and videos.\n\nBasic custom embed"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "header": 2
+    }
+  },
+  {
+    "insert": "To create a custom embed, a builder needs to be provided. The builder has to implement EmbedBuilderM. I.e.:\n\nclass BasicEmbedBuilderM implements EmbedBuilderM {"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "  const BasicEmbedBuilderM();"
+  },
+  {
+    "insert": "\n\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "  @override"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "  final String key = 'basicEmbed';    // <-- name of the embed key"
+  },
+  {
+    "insert": "\n\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "  @override"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "  Widget build(    // <-- called when building the embed"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "    BuildContext context,"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "    EditorController controller,"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "    EmbedNodeM node,"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "    bool readOnly,"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "  ) =>"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "      Container("
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "        height: 100,"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "        width: 300,"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "        color: Colors.amber,"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "        child: Center("
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "          child: Text("
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "            'Test demo custom embed',"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "          ),"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "        ),"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "      );"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "}"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "\nTo be able to paint this embed into the editor, the builder needs to be provided to the editor.\n\nVisualEditor("
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "          // additional setup"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "          config: EditorConfigM("
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "            // additional setup"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "            embedBuilders: ["
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "              ...defaultEmbedBuilders,"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "              BasicEmbedBuilderM(),    // <-- Your custom embed builder"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "            ],"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "          ),"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": ");"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "\nImplementing the above builder will yield the result below:\n\n"
+  },
+  {
+    "insert": {
+      "basicEmbed": ""
+    }
+  },
+  {
+    "insert": "\n\nWith the snippet of the embed is represented in Delta format:\n\n{"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "    \"insert\": {"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "      \"customWidget\": \"\""
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "    }"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "  }"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "\n"
+  },
+  {
+    "insert": "Note",
+    "attributes": {
+      "bold": true
+    }
+  },
+  {
+    "insert": " that the key of the embed is the same as the key in the custom embed builder implementation.\n\nThe example above is the basic version without custom data embedded into the document.\n\nTo insert this embed press the square with \"+\" inside from the toolbar.\n\nReading data from embeddable object"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "header": 2
+    }
+  },
+  {
+    "insert": "Custom data can be embedded in the document. The example below displays a custom 2x2 image grid with the image urls being embedded in the document.\n\n"
+  },
+  {
+    "insert": {
+      "album": [
+        "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg",
+        "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg",
+        "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg",
+        "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg"
+      ]
+    }
+  },
+  {
+    "insert": "\n\nWith the following delta embed:\n\n{"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "    \"insert\": {"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "      \"album\": ["
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "        \""
+  },
+  {
+    "insert": "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg\",",
+    "attributes": {
+      "link": "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg\","
+    }
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "        \""
+  },
+  {
+    "insert": "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg\",",
+    "attributes": {
+      "link": "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg\","
+    }
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "        \""
+  },
+  {
+    "insert": "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg\",",
+    "attributes": {
+      "link": "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg\","
+    }
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "        \""
+  },
+  {
+    "insert": "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg\"",
+    "attributes": {
+      "link": "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg\""
+    }
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "      ]"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "    }"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "  },"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "\nTo create this embed press the star shaped button on the tool bar.\n\nInserting custom embeds"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "header": 2
+    }
+  },
+  {
+    "insert": "Embeddable representations of the embeds have to be provided for each type of custom embed. Below the 2 embeds presented earlier:\n\nclass EmbeddableCustomWidgetM extends EmbedM {"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "  EmbeddableCustomWidgetM() : super(customWidgetKey, '');"
+  },
+  {
+    "insert": "\n\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "  static const String customWidgetKey = 'basicEmbed';  // <-- same as the key present in the delta and builder"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "}"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "\nclass AlbumEmbedM extends EmbedM {"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "  const AlbumEmbedM({required List<String> imageUrls})"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "      : super("
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "          albumKey,"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "          imageUrls,"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "        );"
+  },
+  {
+    "insert": "\n\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "  static const String albumKey = 'album';"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "}"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "\nThe second version has to have an payload to embed inside the document. The image URLs is that payload. To insert this an embeddable has to be created and then call the insert function with the embed as the data object. Example below:\n\nfinal embeddableWidget = EmbeddableCustomWidgetM();"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "final index = _editorController.selection.baseOffset;"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "final length = _editorController.selection.extentOffset - index;"
+  },
+  {
+    "insert": "\n\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "_editorController.replaceText("
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "  index,"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "  length,"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "  embeddableWidget,"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "  null,"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": ");"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "code-block": true
+    }
+  },
+  {
+    "insert": "\nAdditional info"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "header": 2
+    }
+  },
+  {
+    "insert": "To better understand embeds, please read about standard embeds in embeds.md and look into the example code provided.\n"
+  }
+]

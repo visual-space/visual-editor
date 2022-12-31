@@ -89,9 +89,9 @@ class _WrappingToolbarPageState extends State<WrappingToolbarPage> {
             EditorToolbar.basic(
               controller: _controller!,
               multiRowsDisplay: multiRowsDisplay,
-              customIcons: [
+              customButtons: [
                 // Custom icon
-                EditorCustomButtonM(icon: Icons.favorite, onTap: () {}),
+                CustomToolbarButtonM(icon: Icons.favorite, onTap: () {}),
               ],
             ),
           ],

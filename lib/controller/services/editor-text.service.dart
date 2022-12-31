@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../documents/models/change-source.enum.dart';
-import '../../documents/models/nodes/embed.model.dart';
+import '../../documents/models/nodes/embed-node.model.dart';
 import '../../documents/services/delta.utils.dart';
 import '../../shared/state/editor.state.dart';
 
@@ -75,14 +75,14 @@ class EditorTextService {
     // For clip from editor, it may contain image, a.k.a 65532 or '\uFFFC'.
     // For clip from browser, image is directly ignore.
     // Here we skip image when pasting.
-    if (!text.codeUnits.contains(EmbedM.kObjectReplacementInt)) {
+    if (!text.codeUnits.contains(EmbedNodeM.kObjectReplacementInt)) {
       return text;
     }
 
     final buffer = StringBuffer();
 
     for (var i = 0; i < text.length; i++) {
-      if (text.codeUnitAt(i) == EmbedM.kObjectReplacementInt) {
+      if (text.codeUnitAt(i) == EmbedNodeM.kObjectReplacementInt) {
         continue;
       }
 

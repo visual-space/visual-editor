@@ -51,7 +51,10 @@ class _ImageResizerState extends State<ImageResizer> {
   Widget _showMaterialMenu() {
     return Column(
       mainAxisSize: MainAxisSize.min,
-      children: [_widthSlider(), _heightSlider()],
+      children: [
+        _widthSlider(),
+        _heightSlider(),
+      ],
     );
   }
 
@@ -69,7 +72,11 @@ class _ImageResizerState extends State<ImageResizer> {
   }
 
   Widget _slider(
-      double value, double max, String label, ValueChanged<double> onChanged) {
+    double value,
+    double max,
+    String label,
+    ValueChanged<double> onChanged,
+  ) {
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Card(
@@ -91,7 +98,7 @@ class _ImageResizerState extends State<ImageResizer> {
   Widget _heightSlider() {
     return _slider(_height, widget.maxHeight, 'Height', (value) {
       _height = value;
-    });
+    },);
   }
 
   Widget _widthSlider() {

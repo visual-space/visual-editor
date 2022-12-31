@@ -1,5 +1,3 @@
-import 'package:flutter/cupertino.dart';
-
 import '../../documents/models/attributes/attributes.model.dart';
 
 Map<String, String> parseKeyValuePairs(String string, Set<String> targetKeys) {
@@ -55,42 +53,6 @@ String replaceStyleString(
   }
 
   return sb.toString();
-}
-
-Alignment getAlignment(String? string) {
-  const _defaultAlignment = Alignment.center;
-
-  if (string == null) {
-    return _defaultAlignment;
-  }
-
-  final _index = [
-    'topLeft',
-    'topCenter',
-    'topRight',
-    'centerLeft',
-    'center',
-    'centerRight',
-    'bottomLeft',
-    'bottomCenter',
-    'bottomRight'
-  ].indexOf(string);
-
-  if (_index < 0) {
-    return _defaultAlignment;
-  }
-
-  return [
-    Alignment.topLeft,
-    Alignment.topCenter,
-    Alignment.topRight,
-    Alignment.centerLeft,
-    Alignment.center,
-    Alignment.centerRight,
-    Alignment.bottomLeft,
-    Alignment.bottomCenter,
-    Alignment.bottomRight
-  ][_index];
 }
 
 // Just a word of caution: this does not rely on strong random data.

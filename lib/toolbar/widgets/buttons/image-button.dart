@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../controller/controllers/editor-controller.dart';
-import '../../../documents/models/nodes/block-embed.model.dart';
+import '../../../documents/models/nodes/embed.model.dart';
+import '../../../embeds/const/embeds.const.dart';
 import '../../../shared/models/editor-dialog-theme.model.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
 import '../../models/media-pick.enum.dart';
@@ -99,15 +100,15 @@ class ImageButton extends StatelessWidget {
     ).then(_linkSubmitted);
   }
 
-  void _linkSubmitted(String? value) {
-    if (value != null && value.isNotEmpty) {
+  void _linkSubmitted(String? imageUrl) {
+    if (imageUrl != null && imageUrl.isNotEmpty) {
       final index = controller.selection.baseOffset;
       final length = controller.selection.extentOffset - index;
 
       controller.replaceText(
         index,
         length,
-        BlockEmbedM.image(value),
+        EmbedM(IMAGE_EMBED_TYPE, imageUrl),
         null,
       );
     }

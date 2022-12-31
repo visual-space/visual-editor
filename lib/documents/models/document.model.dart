@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 
 import '../../controller/models/paste-style.model.dart';
+import '../../embeds/const/embeds.const.dart';
 import '../../markers/models/marker.model.dart';
 import '../../rules/controllers/rules.controller.dart';
 import '../../rules/models/rule-type.enum.dart';
@@ -14,10 +15,9 @@ import 'delta/delta-changes.model.dart';
 import 'delta/delta.model.dart';
 import 'delta/operation.model.dart';
 import 'history.model.dart';
-import 'nodes/block-embed.model.dart';
 import 'nodes/block.model.dart';
 import 'nodes/child-query.model.dart';
-import 'nodes/embeddable.model.dart';
+import 'nodes/embed.model.dart';
 import 'nodes/leaf.model.dart';
 import 'nodes/line.model.dart';
 import 'nodes/revert-operations.model.dart';
@@ -25,8 +25,17 @@ import 'nodes/root.model.dart';
 import 'nodes/segment-leaf-node.model.dart';
 import 'style.model.dart';
 
-// The rich text document
-// TODO Better doc comment
+// Document is a wrapper over DeltaM. DeltaM is the list of operations as stored in the json document.
+// When a document is initialised delta is converted to nodes which are inserted in the root.
+// Several steps are executed when converting from delta to nodes:
+// - adding style models to nodes, adding new line after videos, caching marker extents (for convenience)
+// The _delta and _root are both stored for convenience (for example to compare old delta and new delta).
+// _root contains the logic needed to executed changes at character level (char position in text).
+// _delta is just a representation of the content, it does not have any logic to enforce text editing heuristics.
+// .replace() is used to trigger under .insert() or .delete() + they return the delta of the change.
+// These methods in turn use compose() as the method that adds the changes to the _root nodes.
+// Additional util methods are available for operating changes over the document nodes: delete(), format(), etc.
+// The complete history of changes are stored in memory during the editing process.
 class DocumentM {
   // Creates new empty document.
   DocumentM() : _delta = DeltaM()..insert('\n') {
@@ -34,7 +43,8 @@ class DocumentM {
   }
 
   // Creates new document from provided JSON `data`.
-  DocumentM.fromJson(List data) : _delta = _transform(DeltaM.fromJson(data)) {
+  DocumentM.fromJson(List data)
+      : _delta = _addNewLineAfterVideoEmbed(DeltaM.fromJson(data)) {
     _initDocument(_delta);
   }
 
@@ -46,6 +56,7 @@ class DocumentM {
 
   // The root node of the document tree
   // Delta operation (json data) are converted to Nodes (models)
+  // The root node knows how to handle insertion and deletion operations at specific character indexes (insert, delete, retain).
   final RootM _root = RootM();
 
   RootM get root => _root;
@@ -84,9 +95,9 @@ class DocumentM {
   // Returns an instance of DeltaM actually composed into this document.
   DeltaM insert(int index, Object? data, {int replaceLength = 0}) {
     assert(index >= 0);
-    assert(data is String || data is EmbeddableM);
+    assert(data is String || data is EmbedM);
 
-    if (data is EmbeddableM) {
+    if (data is EmbedM) {
       data = data.toJson();
     } else if ((data as String).isEmpty) {
       return DeltaM();
@@ -132,7 +143,7 @@ class DocumentM {
   // Returns an instance of DeltaM actually composed into this document.
   DeltaM replace(int index, int len, Object? data) {
     assert(index >= 0);
-    assert(data is String || data is EmbeddableM);
+    assert(data is String || data is EmbedM);
 
     final dataIsNotEmpty = (data is String) ? data.isNotEmpty : true;
 
@@ -194,7 +205,7 @@ class DocumentM {
     assert(delta.isNotEmpty);
 
     var offset = 0;
-    delta = _transform(delta);
+    delta = _addNewLineAfterVideoEmbed(delta);
     final originalDelta = toDelta();
 
     for (final operation in delta.toList()) {
@@ -203,9 +214,7 @@ class DocumentM {
           : null;
 
       if (operation.isInsert) {
-        // Must normalize data before inserting into the document, makes sure
-        // that any embedded objects are converted into EmbeddableObject type.
-        _root.insert(offset, _normalize(operation.data), style);
+        _root.insert(offset, _convertEmbedsToModels(operation.data), style);
       } else if (operation.isDelete) {
         _root.delete(offset, operation.length);
       } else if (operation.attributes != null) {
@@ -339,6 +348,9 @@ class DocumentM {
 
   // Runs several validation checks.
   // Adds the nodes and styles to the root.
+  // Adds new line after video.
+  // Caches selection extend for markers (for convenience).
+  // Adds _delta nodes to _root.
   void _initDocument(DeltaM delta) {
     if (delta.isEmpty) {
       throw ArgumentError.value(delta, 'Document Delta cannot be empty.');
@@ -361,37 +373,21 @@ class DocumentM {
         );
       }
 
-      // Init styles
+      // Init styles (from generic delta to models)
       final style = operation.attributes != null
           ? StyleM.fromJson(operation.attributes)
           : null;
-      final data = _normalize(operation.data);
 
-      // Add base and extent for markers (needed for delete)
-      final hasMarkers =
-          style?.attributes?.keys.toList().contains(AttributesM.markers.key) ??
-              false;
+      // Embeds to models
+      final data = _convertEmbedsToModels(operation.data);
 
-      if (hasMarkers) {
-        final markers =
-            style!.attributes![AttributesM.markers.key]!.value as List<MarkerM>;
-        final _markers = markers
-            .map(
-              (marker) => marker.copyWith(
-                textSelection: TextSelection(
-                  baseOffset: offset,
-                  extentOffset: offset + (operation.length ?? 0),
-                ),
-              ),
-            )
-            .toList();
-
-        markers.clear();
-        markers.addAll(_markers);
-      }
+      // Markers length
+      _addBaseAndExtentToMarkers(style, offset, operation);
 
       // Add to root
       _root.insert(offset, data, style);
+
+      // Offset
       offset += operation.length!;
     }
 
@@ -405,35 +401,70 @@ class DocumentM {
       _root.remove(lastNode);
     }
   }
-
-  // Data is normalized (converted to models) before inserting into the document.
-  // Ensures that any embedded objects are converted into EmbeddableObject type when new content is added to the document.
-  Object _normalize(Object? data) {
+  // Ensures that any embedded objects are converted into EmbedM type when new content is added to the document.
+  // Used to be named as _normalise (as of Dec 2022). Again, a generic name similar to _transform that no longer caries the original meaning.
+  Object _convertEmbedsToModels(Object? data) {
     if (data is String) {
       return data;
-    }
-
-    if (data is EmbeddableM) {
+    } else if (data is EmbedM) {
       return data;
     }
 
-    return EmbeddableM.fromJson(data as Map<String, dynamic>);
+    return EmbedM.fromObject(data);
   }
 
-  static DeltaM _transform(DeltaM delta) {
+  // Add base and extent for markers (needed for delete)
+  // It's more convenient to cache the extent of markers here at document init
+  // rather than backtracking at runtime to retrieve the same values.
+  void _addBaseAndExtentToMarkers(StyleM? style, int offset, OperationM operation) {
+    final hasMarkers =
+        style?.attributes?.keys.toList().contains(AttributesM.markers.key) ??
+            false;
+
+    if (hasMarkers) {
+      final markers =
+      style!.attributes![AttributesM.markers.key]!.value as List<MarkerM>;
+      final _markers = markers
+          .map(
+            (marker) => marker.copyWith(
+          textSelection: TextSelection(
+            baseOffset: offset,
+            extentOffset: offset + (operation.length ?? 0),
+          ),
+        ),
+      )
+          .toList();
+
+      markers.clear();
+      markers.addAll(_markers);
+    }
+  }
+
+  // Maps to a new delta that has new lines after video embeds.
+  // It used to be named _transform.
+  // I believe the prev authors wanted this to be a place where multiple transforms could be added.
+  // Apparently it is used as of (Dec 2022) only for adding new line after video.
+  static DeltaM _addNewLineAfterVideoEmbed(DeltaM delta) {
     final res = DeltaM();
     final ops = delta.toList();
 
     for (var i = 0; i < ops.length; i++) {
       final op = ops[i];
       res.push(op);
-      _autoAppendNewlineAfterEmbeddable(i, ops, op, res, BlockEmbedM.videoType);
+      _autoAppendNewlineAfterEmbed(
+        i,
+        ops,
+        op,
+        res,
+        VIDEO_EMBED_TYPE,
+      );
     }
 
     return res;
   }
 
-  static void _autoAppendNewlineAfterEmbeddable(
+  // Appends new line after embeds of certain type as defined in params
+  static void _autoAppendNewlineAfterEmbed(
     int i,
     List<OperationM> ops,
     OperationM op,

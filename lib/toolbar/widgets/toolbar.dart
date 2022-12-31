@@ -8,7 +8,7 @@ import '../../shared/models/editor-dialog-theme.model.dart';
 import '../../shared/models/editor-icon-theme.model.dart';
 import '../../shared/widgets/arrow-scrollable-button-list.dart';
 import '../../shared/widgets/icon-button.dart';
-import '../models/editor-custom-icon.model.dart';
+import '../models/custom-toolbar-button.model.dart';
 import '../models/font-sizes.const.dart';
 import '../models/media-picker.type.dart';
 import 'buttons/camera-button.dart';
@@ -74,7 +74,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
   final Locale? locale;
 
   // Custom buttons can be appended to the end of the Toolbar buttons row.
-  final List<EditorCustomButtonM> customButtons;
+  final List<CustomToolbarButtonM> customButtons;
 
   @override
   Size get preferredSize => Size.fromHeight(toolbarHeight);
@@ -140,7 +140,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
     FilePickImpl? filePickImpl,
     WebImagePickImpl? webImagePickImpl,
     WebVideoPickImpl? webVideoPickImpl,
-    List<EditorCustomButtonM> customIcons = const [],
+    List<CustomToolbarButtonM> customButtons = const [],
 
     // Map of font sizes in int
     Map<String, int>? fontSizeValues,
@@ -202,7 +202,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
       toolbarIconAlignment: toolbarIconAlignment,
       multiRowsDisplay: multiRowsDisplay,
       color: color,
-      customButtons: customIcons,
+      customButtons: customButtons,
       locale: locale,
       children: [
         if (showUndo)
@@ -485,9 +485,9 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
             toolbarIconSize: toolbarIconSize,
             iconTheme: iconTheme,
           ),
-        if (customIcons.isNotEmpty)
+        if (customButtons.isNotEmpty)
           if (showDividers) _divider(),
-        for (var customIcon in customIcons)
+        for (var customIcon in customButtons)
           IconBtn(
             highlightElevation: 0,
             buttonsSpacing: toolbarSectionSpacing,

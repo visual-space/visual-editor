@@ -10,8 +10,8 @@ import '../delta/delta.model.dart';
 import '../style.model.dart';
 import 'block.model.dart';
 import 'container.model.dart';
+import 'embed-node.model.dart';
 import 'embed.model.dart';
-import 'embeddable.model.dart';
 import 'leaf.model.dart';
 import 'node.model.dart';
 import 'text.model.dart';
@@ -30,7 +30,7 @@ class LineM extends ContainerM<LeafM?> {
 
   // Returns `true` if this line contains an embedded object.
   bool get hasEmbed {
-    return children.any((child) => child is EmbedM);
+    return children.any((child) => child is EmbedNodeM);
   }
 
   // Returns next Line or `null` if this is the last line in the document.
@@ -82,9 +82,11 @@ class LineM extends ContainerM<LeafM?> {
     return '¶ $body ⏎$styleString';
   }
 
+  // Inserts characters in the existing list of line nodes.
+  // Characters are inserted at a certain index and the styles are applied conditionally.
   @override
   void insert(int index, Object data, StyleM? style) {
-    if (data is EmbeddableM) {
+    if (data is EmbedM) {
       // We do not check whether this line already has any children here as inserting an embed
       // into a line with other text is acceptable from the Delta format perspective.
       // We rely on heuristic rules to ensure that embeds occupy an entire line.
@@ -363,7 +365,7 @@ class LineM extends ContainerM<LeafM?> {
   ) {
     final text = node.toPlainText();
 
-    if (text == EmbedM.kObjectReplacementCharacter) {
+    if (text == EmbedNodeM.kObjectReplacementCharacter) {
       return remaining - node.length;
     }
 
@@ -503,6 +505,7 @@ class LineM extends ContainerM<LeafM?> {
     return line;
   }
 
+  // TODO Document
   void _insertSafe(int index, Object data, StyleM? style) {
     assert(index == 0 || (index > 0 && index < length));
 

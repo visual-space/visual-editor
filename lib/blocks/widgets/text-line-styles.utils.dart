@@ -238,7 +238,7 @@ class TextLineStyleUtils {
 
       if (attr != null) {
         // Custom Attribute
-        final customAttr = state.editorConfig.config.customStyleBuilder!.call(
+        final customAttr = state.editorConfig.config.customStyleBuilder!(
           attr,
         );
         textStyle = textStyle.merge(customAttr);

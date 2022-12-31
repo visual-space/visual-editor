@@ -73,4 +73,8 @@ const List<NavMenuLinkM> NAV_MENU = [
     title: 'Overwrite Controller',
     route: '/overwrite-controller',
   ),
+  NavMenuLinkM(
+    title: 'Custom embeds',
+    route: '/custom-embeds',
+  ),
 ];

@@ -2,8 +2,8 @@ import 'dart:math' as math;
 
 import '../delta/delta.model.dart';
 import '../style.model.dart';
+import 'embed-node.model.dart';
 import 'embed.model.dart';
-import 'embeddable.model.dart';
 import 'line.model.dart';
 import 'node.model.dart';
 import 'text.model.dart';
@@ -12,8 +12,8 @@ import 'text.model.dart';
 abstract class LeafM extends NodeM {
   // Creates a new [Leaf] with specified [data].
   factory LeafM(Object data) {
-    if (data is EmbeddableM) {
-      return EmbedM(data);
+    if (data is EmbedM) {
+      return EmbedNodeM(data);
     }
 
     final text = data as String;
@@ -44,8 +44,10 @@ abstract class LeafM extends NodeM {
 
   @override
   int get length {
-    if (_value is String) {
-      return (_value as String).length;
+    final val = _value;
+
+    if (val is String) {
+      return val.length;
     }
 
     // Return 1 for embedded object
@@ -54,10 +56,21 @@ abstract class LeafM extends NodeM {
 
   @override
   DeltaM toDelta() {
-    final data =
-        _value is EmbeddableM ? (_value as EmbeddableM).toJson() : _value;
+    final val = _value;
 
-    return DeltaM()..insert(data, style.toJson());
+    if (val is EmbedM) {
+      return DeltaM()
+        ..insert(
+          val.toJson(),
+          style.toJson(),
+        );
+    } else {
+      return DeltaM()
+        ..insert(
+          val,
+          style.toJson(),
+        );
+    }
   }
 
   @override
@@ -125,7 +138,7 @@ abstract class LeafM extends NodeM {
   // Adjust this text node by merging it with adjacent nodes if they share the same style.
   @override
   void adjust() {
-    if (this is EmbedM) {
+    if (this is EmbedNodeM) {
       // Embed nodes cannot be merged with text nor other embeds.
       // In fact, there could be no two adjacent embeds on the same line
       // since an embed occupies an entire line.

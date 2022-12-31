@@ -5,11 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../controller/controllers/editor-controller.dart';
-import '../../documents/models/nodes/block-embed.model.dart';
+import '../../documents/models/nodes/embed.model.dart';
 import '../../shared/translations/toolbar.i18n.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../../toolbar/models/media-pick.enum.dart';
 import '../../toolbar/models/media-picker.type.dart';
+import '../const/embeds.const.dart';
 
 class ImageVideoUtils {
   static Future<MediaPickSettingE?> selectMediaPickSetting(
@@ -55,8 +56,8 @@ class ImageVideoUtils {
   }) async {
     final index = controller.selection.baseOffset;
     final length = controller.selection.extentOffset - index;
-
     String? imageUrl;
+
     if (kIsWeb) {
       assert(
           webImagePickImpl != null,
@@ -78,7 +79,12 @@ class ImageVideoUtils {
     }
 
     if (imageUrl != null) {
-      controller.replaceText(index, length, BlockEmbedM.image(imageUrl), null);
+      controller.replaceText(
+        index,
+        length,
+        EmbedM(IMAGE_EMBED_TYPE, imageUrl),
+        null,
+      );
     }
   }
 
@@ -97,20 +103,31 @@ class ImageVideoUtils {
     String? videoUrl;
     if (kIsWeb) {
       assert(
-          webVideoPickImpl != null,
-          'Please provide webVideoPickImpl for Web '
-          '(check out example directory for how to do it)');
+        webVideoPickImpl != null,
+        'Please provide webVideoPickImpl for Web '
+        '(check out example directory for how to do it)',
+      );
+
       videoUrl = await webVideoPickImpl!(onVideoPickCallback);
     } else if (isMobile()) {
       videoUrl = await _pickVideo(videoSource, onVideoPickCallback);
     } else {
       assert(filePickImpl != null, 'Desktop must provide filePickImpl');
-      videoUrl =
-          await _pickVideoDesktop(context, filePickImpl!, onVideoPickCallback);
+
+      videoUrl = await _pickVideoDesktop(
+        context,
+        filePickImpl!,
+        onVideoPickCallback,
+      );
     }
 
     if (videoUrl != null) {
-      controller.replaceText(index, length, BlockEmbedM.video(videoUrl), null);
+      controller.replaceText(
+        index,
+        length,
+        EmbedM(VIDEO_EMBED_TYPE, videoUrl),
+        null,
+      );
     }
   }
 
@@ -121,6 +138,7 @@ class ImageVideoUtils {
     OnImagePickCallback onImagePickCallback,
   ) async {
     final pickedFile = await ImagePicker().pickImage(source: source);
+
     if (pickedFile == null) {
       return null;
     }
@@ -134,9 +152,13 @@ class ImageVideoUtils {
     OnImagePickCallback onImagePickCallback,
   ) async {
     final filePath = await filePickImpl(context);
-    if (filePath == null || filePath.isEmpty) return null;
+
+    if (filePath == null || filePath.isEmpty) {
+      return null;
+    }
 
     final file = File(filePath);
+
     return onImagePickCallback(file);
   }
 
@@ -145,6 +167,7 @@ class ImageVideoUtils {
     OnVideoPickCallback onVideoPickCallback,
   ) async {
     final pickedFile = await ImagePicker().pickVideo(source: source);
+
     if (pickedFile == null) {
       return null;
     }
@@ -158,9 +181,13 @@ class ImageVideoUtils {
     OnVideoPickCallback onVideoPickCallback,
   ) async {
     final filePath = await filePickImpl(context);
-    if (filePath == null || filePath.isEmpty) return null;
+
+    if (filePath == null || filePath.isEmpty) {
+      return null;
+    }
 
     final file = File(filePath);
+
     return onVideoPickCallback(file);
   }
 }

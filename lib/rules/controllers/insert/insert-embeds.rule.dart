@@ -1,7 +1,7 @@
 import '../../../documents/controllers/delta.iterator.dart';
 import '../../../documents/models/attribute.model.dart';
 import '../../../documents/models/delta/delta.model.dart';
-import '../../../documents/models/nodes/block-embed.model.dart';
+import '../../../embeds/const/embeds.const.dart';
 import '../../models/insert-rule.model.dart';
 
 // Handles all format operations which manipulate embeds.
@@ -23,7 +23,7 @@ class InsertEmbedsRule extends InsertRuleM {
 
     assert(data is Map);
 
-    if (!(data as Map).containsKey(BlockEmbedM.videoType)) {
+    if (!(data as Map).containsKey(VIDEO_EMBED_TYPE)) {
       return null;
     }
 

@@ -11,7 +11,7 @@ import '../../documents/models/change-source.enum.dart';
 import '../../documents/models/delta/delta-changes.model.dart';
 import '../../documents/models/delta/delta.model.dart';
 import '../../documents/models/document.model.dart';
-import '../../documents/models/nodes/embeddable.model.dart';
+import '../../documents/models/nodes/embed.model.dart';
 import '../../documents/models/nodes/leaf.model.dart';
 import '../../documents/models/style.model.dart';
 import '../../documents/services/attribute.utils.dart';
@@ -254,7 +254,7 @@ class EditorController {
     TextSelection? textSelection, {
     bool ignoreFocus = false,
   }) {
-    assert(data is String || data is EmbeddableM);
+    assert(data is String || data is EmbedM);
 
     if (onReplaceText != null && !onReplaceText!(index, len, data)) {
       return;

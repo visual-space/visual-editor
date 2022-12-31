@@ -99,7 +99,7 @@ abstract class ContainerM<T extends NodeM?> extends NodeM {
   @override
   String toPlainText() => children.map((child) => child.toPlainText()).join();
 
-  // Content length of this node's children.
+  // Content length of this node's children (ex: root.length is the total length of the document).
   // To get number of children in this node use childCount.
   @override
   int get length => _children.fold(0, (cur, node) => cur + node.length);

@@ -1,34 +1,36 @@
-import '../../../visual-editor.dart';
-import 'node.model.dart';
+// EmbedM is data which can be decoded or encoded into a delta document.
+// Provides a standard model to insert and retrieve embeddable data from the document.
+// Read EmbedNodeM comment for the whole explanation.
+class EmbedM {
+  // The type of this object.
+  final String type;
 
-// An embed node inside of a line in a Quill document.
-// Embed node is a leaf node similar to [Text].
-// It represents an arbitrary piece of non-textual blocks embedded into a document, such as, image,
-// horizontal rule, video, or any other object with defined structure, like a tweet, for instance.
-// Embed node's length is always `1` character and it is represented with
-// unicode object replacement character in the document text.
-// Any inline style can be applied to an embed, however this does not
-// necessarily mean the embed will look according to that style. For instance,
-// applying "bold" style to an image gives no effect, while adding a "link" to
-// an image actually makes the image react to user's action.
-class EmbedM extends LeafM {
+  // The data payload of this object.
+  final dynamic payload;
 
-  // Refer to https://www.fileformat.info/info/unicode/char/fffc/index.htm
-  static const kObjectReplacementCharacter = '\uFFFC';
-  static const kObjectReplacementInt = 65532;
-  
-  EmbedM(EmbeddableM data) : super.val(data);
+  const EmbedM(
+    this.type, [
+    this.payload = '',
+  ]);
 
-  @override
-  NodeM newInstance() => throw UnimplementedError();
+  // Used for explicit type conversion
+  factory EmbedM.fromObject(Object? obj) {
+    if (obj is Map<String, dynamic>) {
+      assert(obj.length == 1, 'Embeddable map must only have one key');
 
-  @override
-  EmbeddableM get value => super.value as EmbeddableM;
+      return EmbedM(
+        obj.keys.first,
+        obj.values.first,
+      );
+    } else {
+      throw UnimplementedError(
+        '$obj is not compatible with type of Map<String, dynamic>.'
+        'Cannot cast object $obj into EmbedM.',
+      );
+    }
+  }
 
-  // Embed nodes are represented as unicode object replacement character in plain text.
-  @override
-  String toPlainText() => kObjectReplacementCharacter;
-
-  @override
-  String toString() => '${super.toString()} ${value.type}';
+  Map<String, dynamic> toJson() => {
+        type: payload,
+      };
 }

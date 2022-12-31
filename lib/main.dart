@@ -25,6 +25,7 @@ import 'editor/widgets/editor-renderer-inner.dart';
 import 'editor/widgets/editor-renderer.dart';
 import 'editor/widgets/proxy/baseline-proxy.dart';
 import 'editor/widgets/scroll/editor-single-child-scroll-view.dart';
+import 'embeds/controllers/embed-builder.controller.dart';
 import 'inputs/services/clipboard.service.dart';
 import 'inputs/services/input-connection.service.dart';
 import 'inputs/services/keyboard-actions.service.dart';
@@ -176,6 +177,7 @@ class VisualEditorState extends State<VisualEditor>
     _initKeyboard();
     _listenToFocusAndUpdateCaretAndOverlayMenu();
     _initFloatingCursorController();
+    _cacheEmbedBuilderController();
   }
 
   @override
@@ -246,6 +248,7 @@ class VisualEditorState extends State<VisualEditor>
     _subscribeToEditorUpdatesAndTriggerWidgetsBuild();
     _initStyles();
     _initKeyboard();
+    _cacheEmbedBuilderController();
   }
 
   @override
@@ -660,6 +663,12 @@ class VisualEditorState extends State<VisualEditor>
   void _initFloatingCursorController() {
     _floatingCursorController = FloatingCursorController(
       widget._state,
+    );
+  }
+
+  void _cacheEmbedBuilderController() {
+    widget._state.refs.embedBuilderController = EmbedBuilderController(
+      builders: widget._state.editorConfig.config.embedBuilders,
     );
   }
 }

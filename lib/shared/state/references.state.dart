@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../controller/controllers/editor-controller.dart';
 import '../../cursor/controllers/cursor.controller.dart';
 import '../../editor/widgets/editor-renderer-inner.dart';
+import '../../embeds/controllers/embed-builder.controller.dart';
 import '../../main.dart';
 
 // References to the various widgets that compose the editor.
@@ -22,6 +23,14 @@ class ReferencesState {
     _editorController = controller;
   }
 
+  // === FOCUS NODE ===
+
+  late FocusNode _focusNode;
+
+  FocusNode get focusNode => _focusNode;
+
+  void setFocusNode(FocusNode node) => _focusNode = node;
+
   // === SCROLL CONTROLLER ===
 
   late ScrollController _scrollController;
@@ -31,6 +40,10 @@ class ReferencesState {
   void setScrollController(ScrollController controller) {
     _scrollController = controller;
   }
+
+  // === EMBED BUILDER CONTROLLER ===
+
+  late EmbedBuilderController embedBuilderController;
 
   // === CURSOR CONTROLLER ===
 
@@ -65,12 +78,4 @@ class ReferencesState {
   EditorRendererInner get renderer => _renderer;
 
   void setRenderer(EditorRendererInner renderer) => _renderer = renderer;
-
-  // === FOCUS NODE ===
-
-  late FocusNode _focusNode;
-
-  FocusNode get focusNode => _focusNode;
-
-  void setFocusNode(FocusNode node) => _focusNode = node;
 }

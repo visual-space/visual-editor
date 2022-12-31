@@ -6,16 +6,14 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../documents/models/attributes/attributes.model.dart';
-import '../../documents/models/nodes/embed.model.dart';
+import '../../documents/models/nodes/embed-node.model.dart';
 import '../../documents/models/nodes/line.model.dart';
 import '../../documents/models/nodes/node.model.dart';
 import '../../documents/models/nodes/text.model.dart';
 import '../../documents/models/style.model.dart';
 import '../../editor/widgets/proxy/embed-proxy.dart';
 import '../../editor/widgets/proxy/rich-text-proxy.dart';
-import '../../embeds/widgets/default-embed-builder.dart';
 import '../../shared/state/editor.state.dart';
-import '../models/custom-builders.type.dart';
 import '../models/editor-styles.model.dart';
 import '../models/link-action.picker.type.dart';
 import 'text-line-link.utils.dart';
@@ -68,14 +66,6 @@ class _TextLineState extends State<TextLine> {
   UniqueKey _richTextKey = UniqueKey();
   final _linkRecognizers = <NodeM, GestureRecognizer>{};
   StreamSubscription? _pressedKeysListener;
-  late EmbedBuilder _embedBuilder;
-
-  @override
-  void initState() {
-    _embedBuilder =
-        widget._state.editorConfig.config.embedBuilder ?? defaultEmbedBuilder;
-    super.initState();
-  }
 
   @override
   void dispose() {
@@ -104,11 +94,12 @@ class _TextLineState extends State<TextLine> {
   }
 
   EmbedProxy _embedProxy(BuildContext context) {
-    // For video, it is always single child
-    final embed = widget.line.children.single as EmbedM;
+    final embed = widget.line.children.single as EmbedNodeM;
+    final embedBuilder =
+        widget._state.refs.embedBuilderController.getBuilderByEmbed(embed);
 
     return EmbedProxy(
-      _embedBuilder(
+      embedBuilder(
         context,
         widget._state.refs.editorController,
         embed,
@@ -121,20 +112,22 @@ class _TextLineState extends State<TextLine> {
     final textSpan = _textSpanForWholeLine(context);
     final strutStyle = StrutStyle.fromTextStyle(textSpan.style!);
     final textAlign = _textLineStylesUtils.getTextAlign(widget.line);
+    final locale = Localizations.localeOf(context);
+    final textScale = MediaQuery.textScaleFactorOf(context);
 
     return RichTextProxy(
       textStyle: textSpan.style!,
       textAlign: textAlign,
       textDirection: widget.textDirection!,
       strutStyle: strutStyle,
-      locale: Localizations.localeOf(context),
+      locale: locale,
       child: RichText(
         key: _richTextKey,
         text: textSpan,
         textAlign: textAlign,
         textDirection: widget.textDirection,
         strutStyle: strutStyle,
-        textScaleFactor: MediaQuery.textScaleFactorOf(context),
+        textScaleFactor: textScale,
       ),
     );
   }
@@ -163,8 +156,8 @@ class _TextLineState extends State<TextLine> {
     var textNodes = LinkedList<NodeM>();
 
     for (final child in widget.line.children) {
-      // If child is embed run the logic to transform text and embeds in a seris of text spans
-      if (child is EmbedM) {
+      // If child is embed run the logic to transform text and embeds in a series of text spans
+      if (child is EmbedNodeM) {
         // Cache the text nodes from a text line that contains an embed
         if (textNodes.isNotEmpty) {
           // Convert to text spans and add to textspans cache
@@ -176,11 +169,16 @@ class _TextLineState extends State<TextLine> {
           textNodes = LinkedList<NodeM>();
         }
 
+        final embedBuilder =
+            widget._state.refs.embedBuilderController.getBuilderByEmbed(
+          child,
+        );
+
         // Build the embed as a widget span
         // TextSpan allow custom embeds inside the text.
         final embed = WidgetSpan(
           child: EmbedProxy(
-            _embedBuilder(
+            embedBuilder(
               context,
               widget._state.refs.editorController,
               child,

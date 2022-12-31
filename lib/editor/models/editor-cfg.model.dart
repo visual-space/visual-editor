@@ -1,11 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../../blocks/models/custom-builders.type.dart';
+import '../../blocks/models/custom-style-builder.typedef.dart';
 import '../../blocks/models/editor-styles.model.dart';
 import '../../blocks/models/link-action.picker.type.dart';
 import '../../blocks/services/default-link-action-picker-delegate.utils.dart';
-import '../../embeds/widgets/default-embed-builder.dart';
+import '../../embeds/models/embed-builder.model.dart';
+import '../../embeds/widgets/default-embed-builders.dart';
 import '../../shared/state/editor.state.dart';
 
 // When instantiating a new Visual Editor, developers can control several styling and behaviour options.
@@ -121,7 +122,7 @@ class EditorConfigM {
 
   // Renders custom content to be displayed as provided by the client apps.
   // Custom embeds don't work as editable text, they are standalone blocks of content that have their own internal behaviour.
-  final EmbedBuilder? embedBuilder;
+  final List<EmbedBuilderM> embedBuilders;
 
   // Styles can be provided to customize the look and feel of the Visual Editor using custom attributes.
   final CustomStyleBuilder? customStyleBuilder;
@@ -168,6 +169,7 @@ class EditorConfigM {
     this.textCapitalization = TextCapitalization.sentences,
     this.keyboardAppearance = Brightness.light,
     this.scrollPhysics,
+    this.embedBuilders = defaultEmbedBuilders,
     // TODO Why not have all of them in one place?
     this.onLaunchUrl,
     this.onTapDown,
@@ -175,7 +177,6 @@ class EditorConfigM {
     this.onSingleLongTapStart,
     this.onSingleLongTapMoveUpdate,
     this.onSingleLongTapEnd,
-    this.embedBuilder = defaultEmbedBuilder,
     this.linkActionPickerDelegate = defaultLinkActionPickerDelegate,
     this.customStyleBuilder,
     this.locale,

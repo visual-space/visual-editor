@@ -1,7 +1,18 @@
 # Changelog
 If you want to learn more about the specs, all tickets are available by following the hashtag links.
 
-## [0.7.0] Custom Embeds
+## [0.7.0] Custom Embeds [#157](https://github.com/visual-space/visual-editor/issues/157)
+* Demos - Demo page for adding new items in document.
+* Headings - Added text selection for headers [#195](https://github.com/visual-space/visual-editor/issues/195)
+* Embeds - Separated embed builders based on the type of embed.
+* Embeds - created `defaultEmbedBuilders` to supply standard embeds builders for images and videos, makes it easier to override standard embeds.
+* Embeds - Added custom embeds. [#157](https://github.com/visual-space/visual-editor/issues/157)
+  * Created `EmbedBuilderController` to handle selection of the embed builder.
+  * Removed `BlockEmbedM` and all block embed implementations.
+  * All embeddable objects now extend `EmbedM` unifying embed insertion into the document.
+  * Created standard embeddable objects for images (`ImageEmbedM`) and videos (`VideoEmbedM`).
+* Demos - Created `Custom Embeds Page`.
+  * Created `custom-embeds.json`. [#157](https://github.com/visual-space/visual-editor/issues/157)
 * Markers - Added new method in the editor controller `toggleMarkersByTypes()`. It toggles just certain types of markers.
   * Added new method in the editor controller `getMarkersVisibilityByTypes()`. It queries if certain types of markers are disabled [#120](https://github.com/visual-space/visual-editor/issues/120)
 * Demos - Delta Sandbox, Adaptive layout for maximum screen area on mobiles. [#128](https://github.com/visual-space/visual-editor/issues/128)

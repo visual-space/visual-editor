@@ -29,7 +29,8 @@ class LinesBlocksService {
   // Nodes are defined in the delta json using new line chars "\n"
   // An editable text line is composed of a underlying text line (text spans)
   // and the editable text line wrapper (which renders text selection, markers and highlights).
-  EditableTextLineWidgetRenderer getEditableTextLineFromNode(LineM node, EditorState state) {
+  EditableTextLineWidgetRenderer getEditableTextLineFromNode(
+      LineM node, EditorState state) {
     final editor = state.refs.editorState;
 
     // Text spans with text styling from flutter
@@ -66,11 +67,11 @@ class LinesBlocksService {
   }
 
   Widget getEditableTextBlockFromNode(
-      BlockM node,
-      Map<String, AttributeM<dynamic>> attributes,
-      Map<int, int> indentLevelCounts,
-      EditorState state,
-      ) {
+    BlockM node,
+    Map<String, AttributeM<dynamic>> attributes,
+    Map<int, int> indentLevelCounts,
+    EditorState state,
+  ) {
     final editor = state.refs.editorState;
 
     return EditableTextBlock(
@@ -257,7 +258,7 @@ class LinesBlocksService {
     if (!state.editorConfig.config.readOnly) {
       state.scrollAnimation.disableAnimationOnce(true);
       final attribute =
-      value ? AttributesAliasesM.checked : AttributesAliasesM.unchecked;
+          value ? AttributesAliasesM.checked : AttributesAliasesM.unchecked;
 
       state.refs.editorController.formatText(offset, 0, attribute);
 
@@ -282,7 +283,7 @@ class LinesBlocksService {
       NodeM linkNode, EditorState state) async {
     final hasAttr = linkNode.style.attributes != null;
     final link =
-    hasAttr ? linkNode.style.attributes![AttributesM.link.key]!.value! : '';
+        hasAttr ? linkNode.style.attributes![AttributesM.link.key]!.value! : '';
     final linkDelegate = state.editorConfig.config.linkActionPickerDelegate ??
         defaultLinkActionPickerDelegate;
 

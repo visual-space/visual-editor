@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 import '../../rules/controllers/rules.controller.dart';
 import '../../rules/models/rule-type.enum.dart';
 import '../../rules/models/rule.model.dart';
@@ -485,5 +487,63 @@ class DocumentController {
 
   void setCustomRules(List<RuleM> customRules) {
     _rulesController.setCustomRules(customRules);
+  }
+
+  List<TextSelection> getSearchMatches(String searchedText) {
+    final matches = <TextSelection>[];
+    var prevLineLength = 0;
+
+    for (final node in rootNode.children) {
+      if (node is LineM) {
+        _searchLine(
+          searchedText,
+          node,
+          prevLineLength,
+          matches,
+        );
+        prevLineLength += node.charsNum;
+      } else if (node is BlockM) {
+        for (final line in Iterable.castFrom<dynamic, LineM>(node.children)) {
+          _searchLine(
+            searchedText,
+            line,
+            prevLineLength,
+            matches,
+          );
+          prevLineLength += line.charsNum;
+        }
+      }
+    }
+
+    return matches;
+  }
+
+  void _searchLine(
+    String searchedText,
+    LineM line,
+    int prevLineLength,
+    List<TextSelection> matches,
+  ) {
+    var index = -1;
+    while (true) {
+      index = line.toPlainText().toLowerCase().indexOf(
+            RegExp(
+              searchedText,
+              caseSensitive: false,
+            ),
+            index + 1,
+          );
+
+      if (index < 0) {
+        break;
+      }
+
+      matches.add(
+        TextSelection(
+          baseOffset: prevLineLength + index,
+          extentOffset: prevLineLength + index + searchedText.length,
+        ),
+      );
+    }
   }
 }

@@ -6,6 +6,7 @@ import '../../document/models/attributes/attributes.model.dart';
 import '../../inputs/intents/apply-checklist.intent.dart';
 import '../../inputs/intents/apply-header.intent.dart';
 import '../../inputs/intents/indent-selection.intent.dart';
+import '../../inputs/intents/open-searchbar.intent.dart';
 import '../../inputs/intents/toggle-text-style.intent.dart';
 import '../../shared/utils/platform.utils.dart';
 
@@ -136,4 +137,11 @@ final Map<ShortcutActivator, Intent> shortcuts = {
     LogicalKeyboardKey.shift,
     LogicalKeyboardKey.keyL,
   ): const ApplyChecklistIntent(),
+
+  // === SEARCHBAR ===
+
+  LogicalKeySet(
+    _keyboardKeyByOs,
+    LogicalKeyboardKey.keyF,
+  ): OpenSearchbarIntent(),
 };

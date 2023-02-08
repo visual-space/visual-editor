@@ -19,17 +19,13 @@ class DemoPageScaffold extends StatelessWidget {
   Widget build(BuildContext context) => Scaffold(
         appBar: _appBar(
           title: _title(),
-          actions: actions,
         ),
         drawer: _navMenu(),
-        body: _centerSafeArea(
-          child: child,
-        ),
+        body: _centerSafeArea(),
       );
 
   AppBar _appBar({
     required Widget title,
-    required List<Widget>? actions,
   }) =>
       AppBar(
         backgroundColor: Colors.grey.shade800,
@@ -49,7 +45,7 @@ class DemoPageScaffold extends StatelessWidget {
         child: NavMenu(),
       );
 
-  Center _centerSafeArea({required Widget child}) {
+  Center _centerSafeArea() {
     return Center(
       child: Container(
         width: pageWidth ?? 900,

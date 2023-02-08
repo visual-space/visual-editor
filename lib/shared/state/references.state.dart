@@ -36,6 +36,8 @@ class ReferencesState {
   CursorController? oldCursorController;
   bool cursorControllerInitialised = false;
 
+  late OverlayEntry overlayEntry;
+
   // Mix
   late FocusNode focusNode;
   late VisualEditorState widget;

@@ -77,6 +77,7 @@ class _AllStylesPageState extends State<AllStylesPage> {
         // mediaPickSettingSelector: _runBuildService.selectMediaPickSettingE,
         showAlignmentButtons: true,
         multiRowsDisplay: false,
+        showSearch: true,
       );
 
   Future<void> _loadDocumentAndInitController() async {

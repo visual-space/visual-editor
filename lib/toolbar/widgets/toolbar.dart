@@ -18,6 +18,7 @@ import 'buttons/history-button.dart';
 import 'buttons/image-button.dart';
 import 'buttons/indent-button.dart';
 import 'buttons/link-style-button.dart';
+import 'buttons/search-button.dart';
 import 'buttons/select-alignment-buttons.dart';
 import 'buttons/select-header-style-buttons.dart';
 import 'buttons/toggle-check-list-button.dart';
@@ -128,6 +129,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
     bool showVideoButton = true,
     bool showCameraButton = true,
     bool showDirection = false,
+    bool showSearch = false,
     Color? color,
 
     // Disabled by default because most apps wont need such functionality.
@@ -484,6 +486,14 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
             buttonsSpacing: toolbarSectionSpacing,
             toolbarIconSize: toolbarIconSize,
             iconTheme: iconTheme,
+          ),
+        if (showSearch)
+          SearchButton(
+            controller: controller,
+            iconSize: toolbarIconSize,
+            buttonsSpacing: toolbarSectionSpacing,
+            iconTheme: iconTheme,
+            icon: Icons.search,
           ),
         if (customButtons.isNotEmpty)
           if (showDividers) _divider(),

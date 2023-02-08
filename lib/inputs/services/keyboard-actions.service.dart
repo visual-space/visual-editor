@@ -16,6 +16,7 @@ import '../actions/update-text-selection.action.dart';
 import '../intents/apply-checklist.intent.dart';
 import '../intents/apply-header.intent.dart';
 import '../intents/indent-selection.intent.dart';
+import '../intents/open-searchbar.intent.dart';
 import '../intents/toggle-text-style.intent.dart';
 import '../models/base/text-boundary.model.dart';
 import '../models/collapse-selection.boundary.model.dart';
@@ -68,6 +69,10 @@ class KeyboardActionsService {
         onInvoke: _updateSelection,
       ),
       DirectionalFocusIntent: DirectionalFocusAction.forTextField(),
+
+      OpenSearchbarIntent: CallbackAction<OpenSearchbarIntent>(
+        onInvoke: (_) => _displaySearchBar(context),
+      ),
 
       // === DELETE ===
 
@@ -237,6 +242,14 @@ class KeyboardActionsService {
     return Action<T>.overridable(
       context: context,
       defaultAction: defaultAction,
+    );
+  }
+
+  void _displaySearchBar(BuildContext context) {
+    final overlayState = Overlay.of(context);
+
+    overlayState.insert(
+      state.refs.overlayEntry,
     );
   }
 

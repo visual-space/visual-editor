@@ -1,3 +1,5 @@
+import 'package:visual_editor/search/state/search-state.dart';
+
 import '../../controller/state/paste.state.dart';
 import '../../cursor/state/cursor.state.dart';
 import '../../document/state/document.state.dart';
@@ -44,6 +46,9 @@ class EditorState {
   // Documents
   final document = DocumentState();
   final headings = HeadingsState();
+
+  // Search
+  final search = SearchState();
 
   // Editor
   late EditorConfigM config;

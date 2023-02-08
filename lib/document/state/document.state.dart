@@ -4,7 +4,7 @@ import '../models/delta/delta-changes.model.dart';
 import '../models/document.model.dart';
 
 // Stores the document as pure data.
-// Emits a stream of changes when the documetn is edited
+// Emits a stream of changes when the document is edited
 class DocumentState {
 
   // === DOCUMENT ===

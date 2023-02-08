@@ -1,12 +1,21 @@
 import 'dart:async';
 
-// Triggers repaint for the cursor in a text line.
 class CursorState {
-  final _updateCursor$ = StreamController<void>.broadcast();
 
-  Stream<void> get updateCursor$ => _updateCursor$.stream;
+  // === PAINT CURSOR ===
 
-  void updateCursor() {
-    _updateCursor$.sink.add(null);
+  // Triggers repaint for the cursor in a text line.
+  final _paintCursor$ = StreamController<void>.broadcast();
+
+  Stream<void> get paintCursor$ => _paintCursor$.stream;
+
+  void paintCursor() {
+    _paintCursor$.sink.add(null);
   }
+
+  // === SCHEDULE ===
+
+  // Since the caret needs the latest layout to animate we need to schedule a post build callback.
+  // To avoid triggering multiple such callbacks we use this variable as a locking mechanism.
+  bool showCaretOnScreenScheduled = false;
 }

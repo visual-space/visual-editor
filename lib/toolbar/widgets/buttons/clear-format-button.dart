@@ -1,39 +1,58 @@
 import 'package:flutter/material.dart';
 
 import '../../../controller/controllers/editor-controller.dart';
-import '../../../documents/models/attribute.model.dart';
-import '../../../documents/services/attribute.utils.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
+import '../../../shared/state/editor-state-receiver.dart';
+import '../../../shared/state/editor.state.dart';
+import '../../../styles/services/styles.service.dart';
 import '../toolbar.dart';
 
-class ClearFormatButton extends StatefulWidget {
+// Removes text formatting
+// ignore: must_be_immutable
+class ClearFormatButton extends StatefulWidget with EditorStateReceiver {
   final IconData icon;
   final double iconSize;
   final EditorController controller;
   final EditorIconThemeM? iconTheme;
   final double buttonsSpacing;
+  late EditorState _state;
 
-  const ClearFormatButton({
+  ClearFormatButton({
     required this.icon,
     required this.buttonsSpacing,
     required this.controller,
     this.iconSize = defaultIconSize,
     this.iconTheme,
     Key? key,
-  }) : super(key: key);
+  }) : super(key: key) {
+    controller.setStateInEditorStateReceiver(this);
+  }
 
   @override
   _ClearFormatButtonState createState() => _ClearFormatButtonState();
+
+  @override
+  void cacheStateStore(EditorState state) {
+    _state = state;
+  }
 }
 
 class _ClearFormatButtonState extends State<ClearFormatButton> {
+  late final StylesService _stylesService;
+
+  late Color _iconColor;
+  late Color _fillColor;
+
+  @override
+  void initState() {
+    _stylesService = StylesService(widget._state);
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final iconColor =
-        widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color;
-    final fillColor =
-        widget.iconTheme?.iconUnselectedFillColor ?? theme.canvasColor;
+    _cacheButtonsColors(theme);
 
     return IconBtn(
       highlightElevation: 0,
@@ -42,30 +61,18 @@ class _ClearFormatButtonState extends State<ClearFormatButton> {
       icon: Icon(
         widget.icon,
         size: widget.iconSize,
-        color: iconColor,
+        color: _iconColor,
       ),
       buttonsSpacing: widget.buttonsSpacing,
-      fillColor: fillColor,
+      fillColor: _fillColor,
       borderRadius: widget.iconTheme?.borderRadius ?? 2,
-      onPressed: _clearFormatting,
+      onPressed: _stylesService.clearSelectionFormatting,
     );
   }
 
-  void _clearFormatting() {
-    final attrs = <AttributeM>{};
-
-    for (final style in widget.controller.getAllSelectionStyles()) {
-      if (style.attributes != null) {
-        for (final attr in style.attributes!.values) {
-          attrs.add(attr);
-        }
-      }
-    }
-
-    for (final attr in attrs) {
-      widget.controller.formatSelection(
-        AttributeUtils.clone(attr, null),
-      );
-    }
+  void _cacheButtonsColors(ThemeData theme) {
+    _iconColor =
+        widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color!;
+    _fillColor = widget.iconTheme?.iconUnselectedFillColor ?? theme.canvasColor;
   }
 }

@@ -5,24 +5,18 @@ import '../models/highlight.model.dart';
 class HighlightsState {
   // === HIGHLIGHTS ===
 
-  List<HighlightM> _highlights = [];
-
-  List<HighlightM> get highlights => _highlights;
-
-  void setHighlights(List<HighlightM> highlights) {
-    _highlights = highlights;
-  }
+  List<HighlightM> highlights = [];
 
   void addHighlight(HighlightM highlight) {
-    _highlights.add(highlight);
+    highlights.add(highlight);
   }
 
   void removeHighlight(HighlightM highlight) {
-    _highlights.remove(highlight);
+    highlights.remove(highlight);
   }
 
   void removeAllHighlights() {
-    _highlights = [];
+    highlights = [];
   }
 
   // === HOVERED HIGHLIGHTS ===
@@ -33,7 +27,7 @@ class HighlightsState {
 
   // Pointer has entered one of the rectangles of a highlight
   void enterHighlightById(String id) {
-    final highlight = _highlights.firstWhereOrNull(
+    final highlight = highlights.firstWhereOrNull(
       (highlight) => highlight.id == id,
     );
 

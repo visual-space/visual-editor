@@ -1,13 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../../blocks/models/custom-style-builder.typedef.dart';
-import '../../blocks/models/editor-styles.model.dart';
-import '../../blocks/models/link-action.picker.type.dart';
-import '../../blocks/services/default-link-action-picker-delegate.utils.dart';
+import '../../controller/models/controller-callbacks.model.dart';
+import '../../embeds/models/default-embed-builders.model.dart';
 import '../../embeds/models/embed-builder.model.dart';
-import '../../embeds/widgets/default-embed-builders.dart';
-import '../../shared/state/editor.state.dart';
+import '../../highlights/models/highlight.model.dart';
+import '../../links/models/link-action.picker.type.dart';
+import '../../links/services/default-link-action-picker-delegate.utils.dart';
+import '../../markers/models/marker-type.model.dart';
+import '../../styles/models/cfg/custom-style-builder.typedef.dart';
+import '../../styles/models/cfg/editor-styles.model.dart';
 
 // When instantiating a new Visual Editor, developers can control several styling and behaviour options.
 // They are all defined here in this model for the sake of clear separation of code.
@@ -17,16 +19,16 @@ import '../../shared/state/editor.state.dart';
 // Note that the editor and scroll controllers are passed at the top level not here in the config.
 @immutable
 class EditorConfigM {
-  // Whether the editor should create a scrollable container for its blocks.
+  // Whether the editor should create a scrollable container for its doc-tree.
   // When set to `true` the editor's height can be controlled by minHeight, maxHeight and expands properties.
-  // When set to `false` the editor always expands to fit the entire blocks of the document and
-  // should be placed as a child of another scrollable widget, otherwise the blocks may be clipped.
+  // When set to `false` the editor always expands to fit the entire doc-tree of the document and
+  // should be placed as a child of another scrollable widget, otherwise the doc-tree may be clipped.
   final bool scrollable;
 
   // TODO DOC (currently not sure why this is defined)
   final double scrollBottomInset;
 
-  // Additional space around the blocks of this editor.
+  // Additional space around the doc-tree of this editor.
   final EdgeInsetsGeometry padding;
 
   // Whether this editor should focus itself if nothing else is already focused.
@@ -87,42 +89,15 @@ class EditorConfigM {
   // If not specified, it will behave according to the current platform.
   final ScrollPhysics? scrollPhysics;
 
-  // Callback to invoke when user wants to launch a URL.
-  final ValueChanged<String>? onLaunchUrl;
+  // Whether the styles of the text will be applied to the next line of text after splitting in two lines.
+  final bool keepStyleOnNewLine;
 
-  // Returns whether gesture is handled
-  final bool Function(
-    TapDownDetails details,
-    TextPosition Function(Offset offset, EditorState state),
-  )? onTapDown;
-
-  // Returns whether gesture is handled
-  final bool Function(
-    TapUpDetails details,
-    TextPosition Function(Offset offset, EditorState state),
-  )? onTapUp;
-
-  // Returns whether gesture is handled
-  final bool Function(
-    LongPressStartDetails details,
-    TextPosition Function(Offset offset, EditorState state),
-  )? onSingleLongTapStart;
-
-  // Returns whether gesture is handled
-  final bool Function(
-    LongPressMoveUpdateDetails details,
-    TextPosition Function(Offset offset, EditorState state),
-  )? onSingleLongTapMoveUpdate;
-
-  // Returns whether gesture is handled
-  final bool Function(
-    LongPressEndDetails details,
-    TextPosition Function(Offset offset, EditorState state),
-  )? onSingleLongTapEnd;
+  // Overrides all internal default builders with custom implementations.
+  final DefaultEmbedBuilders? overrideEmbedBuilders;
 
   // Renders custom content to be displayed as provided by the client apps.
-  // Custom embeds don't work as editable text, they are standalone blocks of content that have their own internal behaviour.
-  final List<EmbedBuilderM> embedBuilders;
+  // Custom embeds don't work as editable text, they are standalone doc-tree of content that have their own internal behaviour.
+  final List<EmbedBuilderM> customEmbedBuilders;
 
   // Styles can be provided to customize the look and feel of the Visual Editor using custom attributes.
   final CustomStyleBuilder? customStyleBuilder;
@@ -143,16 +118,74 @@ class EditorConfigM {
   // If force press is enable, long tap on words selects the word.
   final bool forcePressEnabled;
 
+  // The initial text selection when the editor is rendered.
+  // Defaults to none
+  final TextSelection? selection;
+
   // Custom GUI for text selection controls
   final TextSelectionControls? textSelectionControls;
+
+  // Highlights are ranges of text that are temporarily labeled in a distinct color.
+  final List<HighlightM> highlights;
+
+  // Markers are permanent highlights that are stored in the document.
+  final List<MarkerTypeM> markerTypes;
 
   // Controls the initial markers visibility.
   // For certain scenarios it might be desired to init the editor with the markers turned off.
   // Later the markers can be enabled using: _controller.toggleMarkers()
   final bool? markersVisibility;
 
+  // === CALLBACKS ===
+
+  // Returns whether gesture is handled
+  final TapDownCallback? onTapDown;
+
+  // Returns whether gesture is handled
+  final TapUpCallback? onTapUp;
+
+  // Returns whether gesture is handled
+  final SingleLongTapStartCallback? onSingleLongTapStart;
+
+  // Returns whether gesture is handled
+  final SingleLongTapMoveCallback? onSingleLongTapMoveUpdate;
+
+  // Returns whether gesture is handled
+  final SingleLongTapCallback? onSingleLongTapEnd;
+
+  // Fires when characters are added or removed from the document.
+  // (!) Does not fire on style changes.
+  // Return false to ignore the event.
+  // Be aware that it emits way before any build() was completed.
+  // Therefore you wont have access to the latest rectangles for highlights and markers.
+  final ReplaceTextCallback? onReplaceText;
+
+  // Invoked when the document plain text has changed but timed to be triggered after the build,
+  // such that we can extract the latest rectangles as well.
+  final void Function()? onReplaceTextCompleted;
+
+  final DeleteCallback? onDelete;
+
+  final OnSelectionChangedCallback? onSelectionChanged;
+
+  // When this callback is invoked we still don't have the latest rendered rectangles.
+  // Use onBuildComplete to access the latest selection rectangles.
+  final SelectionCompleteCallback? onSelectionCompleted;
+
+  // Called each time when the editor is updated via the runBuild$ stream.
+  // This signal can be used to update the placement of text attachments using the latest rectangles data (after any text editing operation).
+  // It happens after the build has completed to ensure that we have access to the latest rectangles.
+  // (!) Beware that this callback is invoked on every change, including style changes,
+  // hovering highlights/markers and changing the selection and possibly other reasons.
+  // Therefore, if you want to be notified only on character changes you are better off using onReplaceText.
+  final void Function()? onBuildComplete;
+  final void Function()? onScroll;
+
+  // Callback to invoke when user wants to launch a URL.
+  final ValueChanged<String>? onLaunchUrl;
+
   // Customize any of the settings available  in VisualEditor
-  const EditorConfigM({
+  EditorConfigM({
     this.scrollable = true,
     this.padding = EdgeInsets.zero,
     this.autoFocus = false,
@@ -169,23 +202,38 @@ class EditorConfigM {
     this.textCapitalization = TextCapitalization.sentences,
     this.keyboardAppearance = Brightness.light,
     this.scrollPhysics,
-    this.embedBuilders = defaultEmbedBuilders,
-    // TODO Why not have all of them in one place?
-    this.onLaunchUrl,
-    this.onTapDown,
-    this.onTapUp,
-    this.onSingleLongTapStart,
-    this.onSingleLongTapMoveUpdate,
-    this.onSingleLongTapEnd,
+    this.keepStyleOnNewLine = false,
+    this.overrideEmbedBuilders,
+    this.customEmbedBuilders = const [],
     this.linkActionPickerDelegate = defaultLinkActionPickerDelegate,
     this.customStyleBuilder,
     this.locale,
     this.floatingCursorDisabled = false,
     this.forcePressEnabled = false,
+    this.selection,
     this.textSelectionControls,
+    this.highlights = const [],
+    this.markerTypes = const [],
     this.markersVisibility = true,
+
+    // Callbacks
+    this.onTapDown,
+    this.onTapUp,
+    this.onSingleLongTapStart,
+    this.onSingleLongTapMoveUpdate,
+    this.onSingleLongTapEnd,
+    this.onReplaceText,
+    this.onReplaceTextCompleted,
+    this.onDelete,
+    this.onSelectionChanged,
+    this.onSelectionCompleted,
+    this.onBuildComplete,
+    this.onScroll,
+    this.onLaunchUrl,
   })  : assert(maxHeight == null || maxHeight > 0, 'maxHeight cannot be null'),
         assert(minHeight == null || minHeight >= 0, 'minHeight cannot be null'),
-        assert(maxHeight == null || minHeight == null || maxHeight >= minHeight,
-            'maxHeight cannot be null');
+        assert(
+          maxHeight == null || minHeight == null || maxHeight >= minHeight,
+          'maxHeight cannot be null',
+        );
 }

@@ -8,20 +8,13 @@ const Radius _kFloatingCaretRadius = Radius.circular(1);
 // Floating painter responsible for painting the floating cursor when floating mode is activated
 class FloatingCursorPainter {
   Rect? floatingCursorRect;
-
-  // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
-  // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
   late EditorState _state;
-
-  void setState(EditorState state) {
-    _state = state;
-  }
 
   FloatingCursorPainter({
     required this.floatingCursorRect,
     required EditorState state,
   }) {
-    setState(state);
+    _cacheStateStore(state);
   }
 
   final Paint floatingCursorPaint = Paint();
@@ -38,5 +31,9 @@ class FloatingCursorPainter {
       RRect.fromRectAndRadius(floatingCursorRect, _kFloatingCaretRadius),
       floatingCursorPaint..color = floatingCursorColor,
     );
+  }
+
+  void _cacheStateStore(EditorState state) {
+    _state = state;
   }
 }

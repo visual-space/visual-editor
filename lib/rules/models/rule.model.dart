@@ -1,10 +1,10 @@
-import '../../documents/models/attribute.model.dart';
-import '../../documents/models/delta/delta.model.dart';
+import '../../document/models/attributes/attribute.model.dart';
+import '../../document/models/delta/delta.model.dart';
 import 'rule-type.enum.dart';
 
 // Visual Editor (as in Quill) has a list of rules that are executed after each document change
 // Rules are contain logic to be executed once a certain trigger/condition is fulfilled.
-// For ex: One rule is to break out of blocks when 2 new white lines are inserted.
+// For ex: One rule is to break out of doc-tree when 2 new white lines are inserted.
 //   Such a rule will attempt to go trough the entire document and scan for lines of text
 //   that match the condition: 2 white lines one after the other.
 //   Once such a pair is detected, then we modify the second line styling to remove the block attribute.
@@ -20,8 +20,9 @@ abstract class RuleM {
   const RuleM();
 
   DeltaM? apply(
-    DeltaM document,
+    DeltaM docDelta,
     int index, {
+    required String plainText,
     int? len,
     Object? data,
     AttributeM? attribute,
@@ -29,11 +30,12 @@ abstract class RuleM {
     validateArgs(len, data, attribute);
 
     return applyRule(
-      document,
+      docDelta,
       index,
       len: len,
       data: data,
       attribute: attribute,
+      plainText: plainText,
     );
   }
 
@@ -45,8 +47,9 @@ abstract class RuleM {
 
   // Applies heuristic rule to an operation on a [document] and returns resulting [DeltaM].
   DeltaM? applyRule(
-    DeltaM document,
+    DeltaM docDelta,
     int index, {
+    required String plainText,
     int? len,
     Object? data,
     AttributeM? attribute,

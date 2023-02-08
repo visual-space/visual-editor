@@ -37,49 +37,49 @@ class _LinkStyleDialogState extends State<LinkStyleDialog> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: widget.dialogTheme?.dialogBackgroundColor,
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 8),
-          TextField(
-            keyboardType: TextInputType.multiline,
-            style: widget.dialogTheme?.inputTextStyle,
-            decoration: InputDecoration(
-                labelText: 'Text'.i18n,
-                labelStyle: widget.dialogTheme?.labelTextStyle,
-                floatingLabelStyle: widget.dialogTheme?.labelTextStyle),
-            autofocus: true,
-            onChanged: _textChanged,
-            controller: _textController,
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            keyboardType: TextInputType.multiline,
-            style: widget.dialogTheme?.inputTextStyle,
-            decoration: InputDecoration(
-                labelText: 'Link'.i18n,
-                labelStyle: widget.dialogTheme?.labelTextStyle,
-                floatingLabelStyle: widget.dialogTheme?.labelTextStyle),
-            autofocus: true,
-            onChanged: _linkChanged,
-            controller: _linkController,
+  Widget build(BuildContext context) => AlertDialog(
+        backgroundColor: widget.dialogTheme?.dialogBackgroundColor,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            TextField(
+              keyboardType: TextInputType.multiline,
+              style: widget.dialogTheme?.inputTextStyle,
+              decoration: InputDecoration(
+                  labelText: 'Text'.i18n,
+                  labelStyle: widget.dialogTheme?.labelTextStyle,
+                  floatingLabelStyle: widget.dialogTheme?.labelTextStyle),
+              autofocus: true,
+              onChanged: _textChanged,
+              controller: _textController,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              keyboardType: TextInputType.multiline,
+              style: widget.dialogTheme?.inputTextStyle,
+              decoration: InputDecoration(
+                  labelText: 'Link'.i18n,
+                  labelStyle: widget.dialogTheme?.labelTextStyle,
+                  floatingLabelStyle: widget.dialogTheme?.labelTextStyle),
+              autofocus: true,
+              onChanged: _linkChanged,
+              controller: _linkController,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: _canPress() ? _applyLink : null,
+            child: Text(
+              'Ok'.i18n,
+              style: widget.dialogTheme?.labelTextStyle,
+            ),
           ),
         ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: _canPress() ? _applyLink : null,
-          child: Text(
-            'Ok'.i18n,
-            style: widget.dialogTheme?.labelTextStyle,
-          ),
-        ),
-      ],
-    );
-  }
+      );
+
+  // === UTILS ===
 
   bool _canPress() {
     if (_text.isEmpty || _link.isEmpty) {

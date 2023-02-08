@@ -7,6 +7,7 @@ import '../models/marker.model.dart';
 // This cache is used for convenience here to help with the rendering of markers in text.
 // This means we can't add a marker here and expect to see it in the delta document.
 // For this to happen we need to use controller.addMarker().
+// (!) Derived from the document at each build (not the source of truth)
 class MarkersState {
   List<MarkerM> _markers = [];
 

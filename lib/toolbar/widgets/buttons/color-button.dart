@@ -4,19 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 import '../../../controller/controllers/editor-controller.dart';
-import '../../../documents/models/attribute.model.dart';
-import '../../../documents/models/attributes/attributes.model.dart';
-import '../../../documents/models/attributes/styling-attributes.dart';
-import '../../../documents/models/style.model.dart';
+import '../../../document/models/attributes/attribute.model.dart';
+import '../../../editor/services/run-build.service.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
 import '../../../shared/state/editor-state-receiver.dart';
 import '../../../shared/state/editor.state.dart';
 import '../../../shared/translations/toolbar.i18n.dart';
 import '../../../shared/utils/color.utils.dart';
+import '../../../styles/services/styles.service.dart';
 import '../toolbar.dart';
 
-// Controls color styles.
-// When pressed, this button displays overlay buttons with buttons for each color.
+// Controls color styles (text color and text background).
+// When pressed, a color palette modal is displayed.
 // ignore: must_be_immutable
 class ColorButton extends StatefulWidget with EditorStateReceiver {
   final IconData icon;
@@ -25,15 +24,7 @@ class ColorButton extends StatefulWidget with EditorStateReceiver {
   final EditorController controller;
   final EditorIconThemeM? iconTheme;
   final double buttonsSpacing;
-
-  // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
-  // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
   late EditorState _state;
-
-  @override
-  void setState(EditorState state) {
-    _state = state;
-  }
 
   ColorButton({
     required this.icon,
@@ -49,67 +40,46 @@ class ColorButton extends StatefulWidget with EditorStateReceiver {
 
   @override
   _ColorButtonState createState() => _ColorButtonState();
+
+  @override
+  void cacheStateStore(EditorState state) {
+    _state = state;
+  }
 }
 
 class _ColorButtonState extends State<ColorButton> {
+  late final RunBuildService _runBuildService;
+  late final StylesService _stylesService;
+
   late bool _isToggledColor;
   late bool _isToggledBackground;
   late bool _isWhite;
   late bool _isWhiteBackground;
-  StreamSubscription? _refreshListener;
-
-  StyleM get _selectionStyle => widget.controller.getSelectionStyle();
+  late Color _iconColorBgr;
+  late Color _iconColor;
+  late Color _fillColorBgr;
+  late Color _fillColor;
+  StreamSubscription? _runBuild$L;
 
   @override
   void initState() {
+    _runBuildService = RunBuildService(widget._state);
+    _stylesService = StylesService(widget._state);
+
     super.initState();
-
-    if (_selectionStyle.attributes != null) {
-      _isToggledColor = _getIsToggledColor(_selectionStyle.attributes!);
-      _isToggledBackground =
-          _getIsToggledBackground(_selectionStyle.attributes!);
-      _isWhite = _isToggledColor &&
-          _selectionStyle.attributes!['color']!.value == '#ffffff';
-      _isWhiteBackground = _isToggledBackground &&
-          _selectionStyle.attributes!['background']!.value == '#ffffff';
-    }
-
-    _subscribeToRefreshListener();
-  }
-
-  bool _getIsToggledColor(Map<String, AttributeM> attrs) {
-    return attrs.containsKey(AttributesM.color.key);
-  }
-
-  bool _getIsToggledBackground(Map<String, AttributeM> attrs) {
-    return attrs.containsKey(AttributesM.background.key);
+    _cacheToggledColors();
+    _subscribeToRunBuild();
   }
 
   @override
   void dispose() {
-    _refreshListener?.cancel();
+    _runBuild$L?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final iconColor = _isToggledColor && !widget.background && !_isWhite
-        ? stringToColor(_selectionStyle.attributes?['color']!.value)
-        : (widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color);
-
-    final iconColorBackground =
-        _isToggledBackground && widget.background && !_isWhiteBackground
-            ? stringToColor(_selectionStyle.attributes?['background']!.value)
-            : (widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color);
-
-    final fillColor = _isToggledColor && !widget.background && _isWhite
-        ? stringToColor('#ffffff')
-        : (widget.iconTheme?.iconUnselectedFillColor ?? theme.canvasColor);
-    final fillColorBackground =
-        _isToggledBackground && widget.background && _isWhiteBackground
-            ? stringToColor('#ffffff')
-            : (widget.iconTheme?.iconUnselectedFillColor ?? theme.canvasColor);
+    _cacheButtonsColors();
 
     return IconBtn(
       highlightElevation: 0,
@@ -119,9 +89,9 @@ class _ColorButtonState extends State<ColorButton> {
       icon: Icon(
         widget.icon,
         size: widget.iconSize,
-        color: widget.background ? iconColorBackground : iconColor,
+        color: widget.background ? _iconColorBgr : _iconColor,
       ),
-      fillColor: widget.background ? fillColorBackground : fillColor,
+      fillColor: widget.background ? _fillColorBgr : _fillColor,
       borderRadius: widget.iconTheme?.borderRadius ?? 2,
       onPressed: _showColorPicker,
     );
@@ -134,54 +104,52 @@ class _ColorButtonState extends State<ColorButton> {
     // If a new controller was generated by setState() in the parent
     // we need to subscribe to the new state store.
     if (oldWidget.controller != widget.controller) {
-      _refreshListener?.cancel();
+      _runBuild$L?.cancel();
       widget.controller.setStateInEditorStateReceiver(widget);
-      _subscribeToRefreshListener();
-      _isToggledColor = _getIsToggledColor(_selectionStyle.attributes!);
-      _isToggledBackground =
-          _getIsToggledBackground(_selectionStyle.attributes!);
-      _isWhite = _isToggledColor &&
-          _selectionStyle.attributes?['color']!.value == '#ffffff';
-      _isWhiteBackground = _isToggledBackground &&
-          _selectionStyle.attributes?['background']!.value == '#ffffff';
+      _subscribeToRunBuild();
+      _cacheToggledColors();
     }
   }
 
-  // === PRIVATE ===
+  // === UTILS ===
 
-  void _subscribeToRefreshListener() {
-    _refreshListener = widget._state.refreshEditor.refreshEditor$.listen(
-      (_) => _didChangeEditingValue(),
-    );
+  void _subscribeToRunBuild() {
+    _runBuild$L =
+        _runBuildService.runBuild$.listen((_) => setState(_cacheToggledColors));
   }
 
-  void _didChangeEditingValue() {
-    setState(() {
-      _isToggledColor = _getIsToggledColor(
-        widget.controller.getSelectionStyle().attributes!,
-      );
-      _isToggledBackground = _getIsToggledBackground(
-        widget.controller.getSelectionStyle().attributes!,
-      );
-      _isWhite = _isToggledColor &&
-          _selectionStyle.attributes?['color']!.value == '#ffffff';
-      _isWhiteBackground = _isToggledBackground &&
-          _selectionStyle.attributes?['background']!.value == '#ffffff';
-    });
-  }
+  Map<String, AttributeM>? get _attributes =>
+      _stylesService.getSelectionStyle().attributes;
 
-  void _changeColor(BuildContext context, Color color) {
-    var hex = color.value.toRadixString(16);
-
-    if (hex.startsWith('ff')) {
-      hex = hex.substring(2);
+  void _cacheToggledColors() {
+    if (_attributes == null) {
+      return;
     }
 
-    hex = '#$hex';
-    widget.controller.formatSelection(
-      widget.background ? BackgroundAttributeM(hex) : ColorAttributeM(hex),
-    );
-    Navigator.of(context).pop();
+    _isToggledColor = _stylesService.getIsToggledColor(_attributes!);
+    _isToggledBackground = _stylesService.getIsToggledBackground(_attributes!);
+    _isWhite = _isToggledColor && _attributes?['color']!.value == '#ffffff';
+    _isWhiteBackground =
+        _isToggledBackground && _attributes?['background']!.value == '#ffffff';
+  }
+
+  void _cacheButtonsColors() {
+    final theme = Theme.of(context);
+
+    _iconColor = _isToggledColor && !widget.background && !_isWhite
+        ? stringToColor(_attributes?['color']!.value)
+        : (widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color)!;
+    _iconColorBgr =
+        _isToggledBackground && widget.background && !_isWhiteBackground
+            ? stringToColor(_attributes?['background']!.value)
+            : (widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color)!;
+    _fillColor = _isToggledColor && !widget.background && _isWhite
+        ? stringToColor('#ffffff')
+        : (widget.iconTheme?.iconUnselectedFillColor ?? theme.canvasColor);
+    _fillColorBgr =
+        _isToggledBackground && widget.background && _isWhiteBackground
+            ? stringToColor('#ffffff')
+            : (widget.iconTheme?.iconUnselectedFillColor ?? theme.canvasColor);
   }
 
   void _showColorPicker() {
@@ -193,7 +161,10 @@ class _ColorButtonState extends State<ColorButton> {
         content: SingleChildScrollView(
           child: MaterialPicker(
             pickerColor: const Color(0x00000000),
-            onColorChanged: (color) => _changeColor(context, color),
+            onColorChanged: (color) {
+              _stylesService.changeSelectionColor(color, widget.background);
+              Navigator.of(context).pop();
+            },
           ),
         ),
       ),

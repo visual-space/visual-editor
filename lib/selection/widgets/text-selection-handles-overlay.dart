@@ -4,8 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-import '../../blocks/services/lines-blocks.service.dart';
-import '../../editor/widgets/editor-renderer-inner.dart';
+import '../../doc-tree/services/coordinates.service.dart';
+import '../../editor/widgets/editor-textarea-renderer.dart';
 import '../../shared/state/editor.state.dart';
 import '../models/text-selection-handle-position.enum.dart';
 
@@ -15,19 +15,12 @@ import '../models/text-selection-handle-position.enum.dart';
 class TextSelectionHandleOverlay extends StatefulWidget {
   final TextSelection selection;
   final TextSelectionHandlePosition position;
-  final EditorRendererInner renderObject;
+  final EditorTextAreaRenderer renderObject;
   final ValueChanged<TextSelection?> onSelectionHandleChanged;
   final VoidCallback? onSelectionHandleTapped;
   final TextSelectionControls textSelectionControls;
   final DragStartBehavior dragStartBehavior;
-
-  // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
-  // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
   late EditorState _state;
-
-  void setState(EditorState state) {
-    _state = state;
-  }
 
   TextSelectionHandleOverlay({
     required this.selection,
@@ -40,7 +33,7 @@ class TextSelectionHandleOverlay extends StatefulWidget {
     this.dragStartBehavior = DragStartBehavior.start,
     Key? key,
   }) : super(key: key) {
-    setState(state);
+    _cacheStateStore(state);
   }
 
   @override
@@ -57,11 +50,15 @@ class TextSelectionHandleOverlay extends StatefulWidget {
         throw 'Invalid position';
     }
   }
+
+  void _cacheStateStore(EditorState state) {
+    _state = state;
+  }
 }
 
 class TextSelectionHandleOverlayState extends State<TextSelectionHandleOverlay>
     with SingleTickerProviderStateMixin {
-  final _linesBlocksService = LinesBlocksService();
+  late final CoordinatesService _coordinatesService;
 
   // ignore: unused_field
   late Offset _dragPosition;
@@ -73,6 +70,7 @@ class TextSelectionHandleOverlayState extends State<TextSelectionHandleOverlay>
   @override
   void initState() {
     super.initState();
+    _coordinatesService = CoordinatesService(widget._state);
 
     _controller = AnimationController(
       duration: const Duration(milliseconds: 150),
@@ -110,19 +108,15 @@ class TextSelectionHandleOverlayState extends State<TextSelectionHandleOverlay>
     final textPosition = widget.position == TextSelectionHandlePosition.START
         ? widget.selection.base
         : widget.selection.extent;
-    final lineHeight = _linesBlocksService.preferredLineHeight(
-      textPosition,
-      widget._state,
-    );
+    final lineHeight = _coordinatesService.preferredLineHeight(textPosition);
     final handleSize = widget.textSelectionControls.getHandleSize(lineHeight);
     _dragPosition = details.globalPosition + Offset(0, -handleSize.height);
   }
 
   void _handleDragUpdate(DragUpdateDetails details) {
     _dragPosition += details.delta;
-    final position = _linesBlocksService.getPositionForOffset(
+    final position = _coordinatesService.getPositionForOffset(
       details.globalPosition,
-      widget._state,
     );
 
     if (widget.selection.isCollapsed) {
@@ -208,10 +202,7 @@ class TextSelectionHandleOverlayState extends State<TextSelectionHandleOverlay>
     final textPosition = widget.position == TextSelectionHandlePosition.START
         ? widget.selection.base
         : widget.selection.extent;
-    final lineHeight = _linesBlocksService.preferredLineHeight(
-      textPosition,
-      widget._state,
-    );
+    final lineHeight = _coordinatesService.preferredLineHeight(textPosition);
     final handleAnchor = widget.textSelectionControls.getHandleAnchor(
       type!,
       lineHeight,

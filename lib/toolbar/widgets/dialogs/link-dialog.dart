@@ -32,36 +32,34 @@ class LinkDialogState extends State<LinkDialog> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: widget.dialogTheme?.dialogBackgroundColor,
-      content: TextField(
-        keyboardType: TextInputType.multiline,
-        maxLines: null,
-        style: widget.dialogTheme?.inputTextStyle,
-        decoration: InputDecoration(
-          labelText: 'Paste a link'.i18n,
-          labelStyle: widget.dialogTheme?.labelTextStyle,
-          floatingLabelStyle: widget.dialogTheme?.labelTextStyle,
-        ),
-        autofocus: true,
-        onChanged: _linkChanged,
-        controller: _controller,
-      ),
-      actions: [
-        TextButton(
-          onPressed: _link.isNotEmpty &&
-                  AutoFormatMultipleLinksRule.linkRegExp.hasMatch(_link)
-              ? _applyLink
-              : null,
-          child: Text(
-            'Ok'.i18n,
-            style: widget.dialogTheme?.labelTextStyle,
+  Widget build(BuildContext context) => AlertDialog(
+        backgroundColor: widget.dialogTheme?.dialogBackgroundColor,
+        content: TextField(
+          keyboardType: TextInputType.multiline,
+          maxLines: null,
+          style: widget.dialogTheme?.inputTextStyle,
+          decoration: InputDecoration(
+            labelText: 'Paste a link'.i18n,
+            labelStyle: widget.dialogTheme?.labelTextStyle,
+            floatingLabelStyle: widget.dialogTheme?.labelTextStyle,
           ),
+          autofocus: true,
+          onChanged: _linkChanged,
+          controller: _controller,
         ),
-      ],
-    );
-  }
+        actions: [
+          TextButton(
+            onPressed: _link.isNotEmpty &&
+                    AutoFormatMultipleLinksRule.linkRegExp.hasMatch(_link)
+                ? _applyLink
+                : null,
+            child: Text(
+              'Ok'.i18n,
+              style: widget.dialogTheme?.labelTextStyle,
+            ),
+          ),
+        ],
+      );
 
   void _linkChanged(String value) {
     setState(() {

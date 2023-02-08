@@ -1,26 +1,28 @@
 import 'package:flutter/material.dart';
 
 import '../../editor/models/boundaries/character-boundary.model.dart';
+import '../../editor/services/editor.service.dart';
 import '../../shared/state/editor.state.dart';
 import '../models/base/text-boundary.model.dart';
 
 class DeleteTextAction<T extends DirectionalTextEditingIntent>
     extends ContextAction<T> {
+  late final EditorService _editorService;
+
   final EditorState state;
-  final TextBoundaryM Function(
-    T intent,
-    EditorState state,
-  ) getTextBoundariesForIntent;
+  final TextBoundaryM Function(T intent) getTextBoundariesForIntent;
 
   DeleteTextAction(
     this.getTextBoundariesForIntent,
     this.state,
-  );
+  ) {
+    _editorService = EditorService(state);
+  }
 
   @override
   Object? invoke(T intent, [BuildContext? context]) {
-    final selection =
-        state.refs.editorController.plainTextEditingValue.selection;
+    final plainText = _editorService.plainText;
+    final selection = plainText.selection;
 
     assert(selection.isValid);
 
@@ -28,7 +30,7 @@ class DeleteTextAction<T extends DirectionalTextEditingIntent>
       return Actions.invoke(
         context!,
         ReplaceTextIntent(
-          state.refs.editorController.plainTextEditingValue,
+          plainText,
           '',
           _expandNonCollapsedRange(),
           SelectionChangedCause.keyboard,
@@ -36,17 +38,17 @@ class DeleteTextAction<T extends DirectionalTextEditingIntent>
       );
     }
 
-    final textBoundary = getTextBoundariesForIntent(intent, state);
+    final textBoundary = getTextBoundariesForIntent(intent);
 
-    if (!textBoundary.textEditingValue.selection.isValid) {
+    if (!textBoundary.plainText.selection.isValid) {
       return null;
     }
 
-    if (!textBoundary.textEditingValue.selection.isCollapsed) {
+    if (!textBoundary.plainText.selection.isCollapsed) {
       return Actions.invoke(
         context!,
         ReplaceTextIntent(
-          state.refs.editorController.plainTextEditingValue,
+          plainText,
           '',
           _expandNonCollapsedRange(),
           SelectionChangedCause.keyboard,
@@ -57,10 +59,10 @@ class DeleteTextAction<T extends DirectionalTextEditingIntent>
     return Actions.invoke(
       context!,
       ReplaceTextIntent(
-        textBoundary.textEditingValue,
+        textBoundary.plainText,
         '',
         textBoundary.getTextBoundaryAt(
-          textBoundary.textEditingValue.selection.base,
+          textBoundary.plainText.selection.base,
         ),
         SelectionChangedCause.keyboard,
       ),
@@ -68,15 +70,15 @@ class DeleteTextAction<T extends DirectionalTextEditingIntent>
   }
 
   @override
-  bool get isActionEnabled =>
-      !state.editorConfig.config.readOnly &&
-      state.refs.editorController.plainTextEditingValue.selection.isValid;
+  bool get isActionEnabled {
+    final plainText = _editorService.plainText;
+    return !state.config.readOnly && plainText.selection.isValid;
+  }
 
   // === PRIVATE ===
 
   TextRange _expandNonCollapsedRange() {
-    final TextRange selection =
-        state.refs.editorController.plainTextEditingValue.selection;
+    final TextRange selection = _editorService.plainText.selection;
 
     assert(selection.isValid);
     assert(!selection.isCollapsed);

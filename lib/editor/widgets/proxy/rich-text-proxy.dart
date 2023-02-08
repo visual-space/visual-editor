@@ -10,7 +10,7 @@ import 'paragraph-proxy-renderer.dart';
 // A TextLine proxy uses the known styles of text to approximate the sizes of all render objects.
 // Once these sizes are known Flutter can compute the correct position of the visible widgets on screen.
 // The scroll position will be computed correctly and only the widgets expected to be visible are rendered in full.
-// This greatly improves scroll performance even for large documents (Similar to how listview works).
+// This greatly improves scroll performance even for large document (Similar to how listview works).
 class RichTextProxy extends SingleChildRenderObjectWidget {
   // Child argument should be an instance of RichText widget.
   const RichTextProxy({

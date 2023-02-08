@@ -1,22 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:gallery_saver/gallery_saver.dart';
 
+import '../../shared/state/editor.state.dart';
 import '../../shared/translations/toolbar.i18n.dart';
-import '../services/image.utils.dart';
+import '../services/media-loader.service.dart';
 import 'image-tap-wrapper.dart';
 import 'simple-dialog-item.dart';
 
 // TODO: TEST ON MOBILE
 // Dialog for image read only that can save the image or zoom on the image.
 class OptionMenuForReadOnlyImage extends StatelessWidget {
+  late final MediaLoaderService _mediaLoaderService;
+
   final String imageUrl;
   final Widget child;
 
-  const OptionMenuForReadOnlyImage({
+  OptionMenuForReadOnlyImage({
+    required EditorState state,
     required this.imageUrl,
     required this.child,
     Key? key,
-  }) : super(key: key);
+  }) : super(key: key) {
+    _mediaLoaderService = MediaLoaderService(state);
+  }
 
   @override
   Widget build(BuildContext context) => GestureDetector(
@@ -49,9 +55,7 @@ class OptionMenuForReadOnlyImage extends StatelessWidget {
         color: Colors.greenAccent,
         text: 'Save'.i18n,
         onPressed: () {
-          final _imageUtils = ImageUtils();
-
-          final _imageUrl = _imageUtils.appendFileExtensionToImageUrl(
+          final _imageUrl = _mediaLoaderService.appendFileExtensionToImageUrl(
             imageUrl,
           );
           GallerySaver.saveImage(_imageUrl).then(

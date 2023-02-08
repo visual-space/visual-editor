@@ -29,4 +29,11 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
-    - assets/docs/
+    - lib/controller/assets/
+    - lib/developer/assets/
+    - lib/embeds/assets/
+    - lib/interactions/assets/
+    - lib/markers/assets/
+    - lib/styles/assets/
+    - lib/styles/assets/custom-styles/
+    - lib/toolbar/assets/

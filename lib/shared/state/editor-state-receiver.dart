@@ -13,5 +13,5 @@ import 'editor.state.dart';
 // By creating this abstract class we ensure that the EditorController can pass the state only to EditorStateReceivers (buttons).
 // Therefore direct reckless access to the state is secured without completely eliminating the possibility of passing the state.
 abstract class EditorStateReceiver {
-  void setState(EditorState state);
+  void cacheStateStore(EditorState state);
 }

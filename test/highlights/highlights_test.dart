@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:visual_editor/documents/models/document.model.dart';
+import 'package:visual_editor/document/models/document.model.dart';
 
 var SIMPLE_TEXT_MOCK = '''[
   {

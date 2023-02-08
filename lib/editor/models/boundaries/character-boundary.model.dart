@@ -4,29 +4,37 @@ import 'package:flutter/material.dart';
 
 import '../../../inputs/models/base/text-boundary.model.dart';
 import '../../../shared/state/editor.state.dart';
+import '../../services/editor.service.dart';
 
 // Most apps delete the entire grapheme when the backspace key is pressed.
 // Also always put the new caret location to character boundaries to avoid
 // sending malformed UTF-16 code units to the paragraph builder.
+// TODO Review, this is not a model
 class CharacterBoundary extends TextBoundaryM {
+  late final EditorService _editorService;
+
   CharacterBoundary(EditorState state) {
-    textEditingValue = state.refs.editorController.plainTextEditingValue;
+    _editorService = EditorService(state);
+
+    plainText = _editorService.plainText;
   }
 
   @override
-  late TextEditingValue textEditingValue;
+  late TextEditingValue plainText;
 
   @override
   TextPosition getLeadingTextBoundaryAt(TextPosition position) {
     final int endOffset = math.min(
       position.offset + 1,
-      textEditingValue.text.length,
+      plainText.text.length,
     );
 
     return TextPosition(
-      offset:
-          CharacterRange.at(textEditingValue.text, position.offset, endOffset)
-              .stringBeforeLength,
+      offset: CharacterRange.at(
+        plainText.text,
+        position.offset,
+        endOffset,
+      ).stringBeforeLength,
     );
   }
 
@@ -34,17 +42,17 @@ class CharacterBoundary extends TextBoundaryM {
   TextPosition getTrailingTextBoundaryAt(TextPosition position) {
     final int endOffset = math.min(
       position.offset + 1,
-      textEditingValue.text.length,
+      plainText.text.length,
     );
 
     final range = CharacterRange.at(
-      textEditingValue.text,
+      plainText.text,
       position.offset,
       endOffset,
     );
 
     return TextPosition(
-      offset: textEditingValue.text.length - range.stringAfterLength,
+      offset: plainText.text.length - range.stringAfterLength,
     );
   }
 
@@ -52,18 +60,18 @@ class CharacterBoundary extends TextBoundaryM {
   TextRange getTextBoundaryAt(TextPosition position) {
     final int endOffset = math.min(
       position.offset + 1,
-      textEditingValue.text.length,
+      plainText.text.length,
     );
 
     final range = CharacterRange.at(
-      textEditingValue.text,
+      plainText.text,
       position.offset,
       endOffset,
     );
 
     return TextRange(
       start: range.stringBeforeLength,
-      end: textEditingValue.text.length - range.stringAfterLength,
+      end: plainText.text.length - range.stringAfterLength,
     );
   }
 }

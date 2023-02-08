@@ -14,13 +14,11 @@ class DefaultButton extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: padding,
-      child: OutlinedButton(
-        onPressed: onPressed,
-        child: Text(name),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Container(
+        padding: padding,
+        child: OutlinedButton(
+          onPressed: onPressed,
+          child: Text(name),
+        ),
+      );
 }

@@ -1,28 +1,32 @@
-import '../../../documents/controllers/delta.iterator.dart';
-import '../../../documents/models/attribute.model.dart';
-import '../../../documents/models/attributes/attributes.model.dart';
-import '../../../documents/models/delta/delta.model.dart';
+import '../../../document/controllers/delta.iterator.dart';
+import '../../../document/models/attributes/attribute.model.dart';
+import '../../../document/models/attributes/attributes.model.dart';
+import '../../../document/models/delta/delta.model.dart';
+import '../../../document/services/delta.utils.dart';
 import '../../models/format-rule.model.dart';
 
 // Allows updating link format with collapsed selection.
 class FormatLinkAtCaretPositionRule extends FormatRuleM {
-  const FormatLinkAtCaretPositionRule();
+  final _du = DeltaUtils();
+
+  FormatLinkAtCaretPositionRule();
 
   @override
   DeltaM? applyRule(
-    DeltaM document,
+    DeltaM docDelta,
     int index, {
     int? len,
     Object? data,
     AttributeM? attribute,
+    String plainText = '',
   }) {
     if (attribute!.key != AttributesM.link.key || len! > 0) {
       return null;
     }
 
-    final delta = DeltaM();
-    final itr = DeltaIterator(document);
-    final before = itr.skip(index), after = itr.next();
+    final changeDelta = DeltaM();
+    final currItr = DeltaIterator(docDelta);
+    final before = currItr.skip(index), after = currItr.next();
     int? beg = index, retain = 0;
 
     if (before != null && before.hasAttribute(attribute.key)) {
@@ -31,17 +35,18 @@ class FormatLinkAtCaretPositionRule extends FormatRuleM {
     }
 
     if (after.hasAttribute(attribute.key)) {
-      if (retain != null) retain += after.length!;
+      if (retain != null) {
+        retain += after.length!;
+      }
     }
 
     if (retain == 0) {
       return null;
     }
 
-    delta
-      ..retain(beg)
-      ..retain(retain!, attribute.toJson());
+    _du.retain(changeDelta, beg);
+    _du.retain(changeDelta, retain!, attribute.toJson());
 
-    return delta;
+    return changeDelta;
   }
 }

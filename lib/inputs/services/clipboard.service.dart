@@ -2,43 +2,41 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../controller/services/editor-text.service.dart';
-import '../../cursor/services/cursor.service.dart';
-import '../../documents/models/attributes/styling-attributes.dart';
+import '../../cursor/services/caret.service.dart';
+import '../../document/models/attributes/styling-attributes.dart';
+import '../../document/models/nodes/embed.model.dart';
+import '../../editor/services/editor.service.dart';
 import '../../embeds/const/embeds.const.dart';
-import '../../embeds/services/embed.utils.dart';
-import '../../selection/services/selection-actions.service.dart';
+import '../../embeds/models/image.model.dart';
+import '../../embeds/services/embeds.service.dart';
+import '../../selection/services/selection-handles.service.dart';
 import '../../shared/state/editor.state.dart';
-import '../../visual-editor.dart';
+import '../../styles/services/styles.service.dart';
 
 // Handles all the clipboard operations, cut, copy, paste
 class ClipboardService {
-  final _selectionActionsService = SelectionActionsService();
-  final _editorTextService = EditorTextService();
-  final _cursorService = CursorService();
-  final _embedUtils = EmbedUtils();
+  late final EditorService _editorService;
+  late final StylesService _stylesService;
+  late final CaretService _caretService;
+  late final EmbedsService _embedsService;
 
-  static final _instance = ClipboardService._privateConstructor();
+  final EditorState state;
 
-  factory ClipboardService() => _instance;
+  ClipboardService(this.state) {
+    _editorService = EditorService(state);
+    _stylesService = StylesService(state);
+    _caretService = CaretService(state);
+    _embedsService = EmbedsService(state);
+  }
 
-  ClipboardService._privateConstructor();
+  void copySelection(SelectionChangedCause cause) {
+    state.paste.copiedImageUrl = null;
+    // TODO This code must be double checked and restored. We need to restore copy paste to preserver markers.
+    state.paste.plainText = _editorService.getSelectionPlainText();
+    state.paste.styles = _stylesService.getAllIndividualSelectionStyles();
 
-  void copySelection(
-    SelectionChangedCause cause,
-    EditorState state,
-  ) {
-    final controller = state.refs.editorController;
-
-    controller.copiedImageUrl = null;
-    state.paste.setPastePlainText(controller.getPlainText());
-    state.paste.setPasteStyle(
-      controller.getAllIndividualSelectionStyles(),
-    );
-
-    final selection =
-        state.refs.editorController.plainTextEditingValue.selection;
-    final text = state.refs.editorController.plainTextEditingValue.text;
+    final plainText = _editorService.plainText;
+    final selection = plainText.selection;
 
     if (selection.isCollapsed) {
       return;
@@ -46,118 +44,89 @@ class ClipboardService {
 
     Clipboard.setData(
       ClipboardData(
-        text: selection.textInside(text),
+        text: selection.textInside(plainText.text),
       ),
     );
 
     if (cause == SelectionChangedCause.toolbar) {
-      _cursorService.bringIntoView(
-        state.refs.editorController.plainTextEditingValue.selection.extent,
-        state,
-      );
+      _caretService.bringIntoView(selection.extent);
 
       // Collapse the selection and hide the buttons and handles.
-      _editorTextService.userUpdateTextEditingValue(
+      _editorService.removeSpecialCharsAndUpdateDocTextAndStyle(
         TextEditingValue(
-          text: state.refs.editorController.plainTextEditingValue.text,
+          text: plainText.text,
           selection: TextSelection.collapsed(
-            offset:
-                state.refs.editorController.plainTextEditingValue.selection.end,
+            offset: selection.end,
           ),
         ),
         SelectionChangedCause.toolbar,
-        state,
       );
     }
   }
 
   void cutSelection(
     SelectionChangedCause cause,
-    EditorState state,
+    HideToolbarCallback hideToolbar,
   ) {
-    final controller = state.refs.editorController;
+    // TODO This code must be double checked and restored. We need to restore copy paste to preserver markers.
+    state.paste.plainText = _editorService.getSelectionPlainText();
+    state.paste.styles = _stylesService.getAllIndividualSelectionStyles();
+    state.paste.copiedImageUrl = null;
 
-    controller.copiedImageUrl = null;
-    state.paste.setPastePlainText(controller.getPlainText());
-    state.paste.setPasteStyle(
-      controller.getAllIndividualSelectionStyles(),
-    );
-
-    if (state.editorConfig.config.readOnly) {
+    if (state.config.readOnly) {
       return;
     }
 
-    final selection =
-        state.refs.editorController.plainTextEditingValue.selection;
-    final text = state.refs.editorController.plainTextEditingValue.text;
+    final plainText = _editorService.plainText;
+    final selection = plainText.selection;
 
     if (selection.isCollapsed) {
       return;
     }
 
-    Clipboard.setData(ClipboardData(text: selection.textInside(text)));
-    replaceText(
-      ReplaceTextIntent(
-        state.refs.editorController.plainTextEditingValue,
-        '',
-        selection,
-        cause,
-      ),
-      state,
+    Clipboard.setData(ClipboardData(
+      text: selection.textInside(plainText.text),
+    ));
+    removeSpecialCharsAndUpdateDocTextAndStyle(
+      ReplaceTextIntent(plainText, '', selection, cause),
     );
 
     if (cause == SelectionChangedCause.toolbar) {
-      _cursorService.bringIntoView(
-        state.refs.editorController.plainTextEditingValue.selection.extent,
-        state,
-      );
-      _selectionActionsService.hideToolbar(state);
+      _caretService.bringIntoView(selection.extent);
+      hideToolbar();
     }
   }
 
-  Future<void> pasteText(
-    SelectionChangedCause cause,
-    EditorState state,
-  ) async {
-    if (state.editorConfig.config.readOnly) {
+  Future<void> pasteText(SelectionChangedCause cause) async {
+    if (state.config.readOnly) {
       return;
     }
 
-    final controller = state.refs.editorController;
+    final plainText = _editorService.plainText;
+    final selection = plainText.selection;
 
-    if (controller.copiedImageUrl != null) {
-      final index = state
-          .refs.editorController.plainTextEditingValue.selection.baseOffset;
-      final length = state.refs.editorController.plainTextEditingValue.selection
-              .extentOffset -
-          index;
-      final copied = controller.copiedImageUrl!;
+    if (state.paste.copiedImageUrl != null) {
+      final index = selection.baseOffset;
+      final length = selection.extentOffset - index;
+      final copied = state.paste.copiedImageUrl!;
+      final imgEmbed = EmbedM(IMAGE_EMBED_TYPE, copied.imageUrl);
 
-      controller.replaceText(
-        index,
-        length,
-        EmbedM(IMAGE_EMBED_TYPE, copied.imageUrl),
-        null,
-      );
+      _editorService.replaceText(index, length, imgEmbed, null);
 
       if (copied.style.isNotEmpty) {
-        controller.formatText(
-          _embedUtils.getEmbedOffset(controller: controller).offset,
-          1,
-          StyleAttributeM(copied.style),
-        );
+        final offset = _embedsService.getEmbedOffset().offset;
+        final newStyle = StyleAttributeM(copied.style);
+
+        _stylesService.formatSelectedText(offset, 1, newStyle);
       }
 
-      controller.copiedImageUrl = null;
+      state.paste.copiedImageUrl = null;
       await Clipboard.setData(
         const ClipboardData(text: ''),
       );
 
       return;
     }
-
-    final selection =
-        state.refs.editorController.plainTextEditingValue.selection;
 
     if (!selection.isValid) {
       return;
@@ -171,37 +140,26 @@ class ClipboardService {
       return;
     }
 
-    replaceText(
-      ReplaceTextIntent(
-        state.refs.editorController.plainTextEditingValue,
-        data.text!,
-        selection,
-        cause,
-      ),
-      state,
+    removeSpecialCharsAndUpdateDocTextAndStyle(
+      ReplaceTextIntent(plainText, data.text!, selection, cause),
     );
 
-    _cursorService.bringIntoView(
-      state.refs.editorController.plainTextEditingValue.selection.extent,
-      state,
-    );
+    _caretService.bringIntoView(selection.extent);
 
     // Collapse the selection and hide the buttons and handles.
-    _editorTextService.userUpdateTextEditingValue(
+    _editorService.removeSpecialCharsAndUpdateDocTextAndStyle(
       TextEditingValue(
-        text: state.refs.editorController.plainTextEditingValue.text,
+        text: plainText.text,
         selection: TextSelection.collapsed(
-          offset:
-              state.refs.editorController.plainTextEditingValue.selection.end,
+          offset: selection.end,
         ),
       ),
       cause,
-      state,
     );
   }
 
-  ToolbarOptions toolbarOptions(EditorState state) {
-    final enable = state.editorConfig.config.enableInteractiveSelection;
+  ToolbarOptions toolbarOptions() {
+    final enable = state.config.enableInteractiveSelection;
 
     return ToolbarOptions(
       copy: enable,
@@ -211,22 +169,29 @@ class ClipboardService {
     );
   }
 
-  bool cutEnabled(EditorState state) =>
-      toolbarOptions(state).cut && !state.editorConfig.config.readOnly;
+  bool cutEnabled() {
+    return toolbarOptions().cut && !state.config.readOnly;
+  }
 
-  bool copyEnabled(EditorState state) => toolbarOptions(state).copy;
+  bool copyEnabled() {
+    return toolbarOptions().copy;
+  }
 
-  bool pasteEnabled(EditorState state) =>
-      toolbarOptions(state).paste && !state.editorConfig.config.readOnly;
+  bool pasteEnabled() {
+    return toolbarOptions().paste && !state.config.readOnly;
+  }
 
-  void replaceText(ReplaceTextIntent intent, EditorState state) {
-    _editorTextService.userUpdateTextEditingValue(
+  void removeSpecialCharsAndUpdateDocTextAndStyle(ReplaceTextIntent intent) {
+    _editorService.removeSpecialCharsAndUpdateDocTextAndStyle(
       intent.currentTextEditingValue.replaced(
         intent.replacementRange,
         intent.replacementText,
       ),
       intent.cause,
-      state,
     );
+  }
+
+  void setCopiedImageUrl(ImageM image) {
+    state.paste.copiedImageUrl = image;
   }
 }

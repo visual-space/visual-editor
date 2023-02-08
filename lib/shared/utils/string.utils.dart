@@ -1,4 +1,4 @@
-import '../../documents/models/attributes/attributes.model.dart';
+import '../../document/models/attributes/attributes.model.dart';
 
 Map<String, String> parseKeyValuePairs(String string, Set<String> targetKeys) {
   final result = <String, String>{};

@@ -3,42 +3,39 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:i18n_extension/i18n_widget.dart';
 
-import 'blocks/services/styles.utils.dart';
 import 'controller/controllers/editor-controller.dart';
-import 'controller/services/editor-text.service.dart';
 import 'cursor/controllers/cursor.controller.dart';
 import 'cursor/controllers/floating-cursor.controller.dart';
-import 'cursor/services/cursor.service.dart';
-import 'documents/models/document.model.dart';
-import 'documents/services/document.service.dart';
+import 'cursor/services/caret.service.dart';
+import 'doc-tree/services/doc-tree.service.dart';
+import 'document/controllers/document.controller.dart';
+import 'document/models/document.model.dart';
 import 'editor/models/editor-cfg.model.dart';
 import 'editor/models/platform-dependent-styles.model.dart';
 import 'editor/services/editor.service.dart';
-import 'editor/services/styles.service.dart';
-import 'editor/services/text-value.service.dart';
-import 'editor/widgets/editor-renderer-inner.dart';
-import 'editor/widgets/editor-renderer.dart';
+import 'editor/services/gui.service.dart';
+import 'editor/services/run-build.service.dart';
+import 'editor/widgets/editor-textarea-renderer.dart';
+import 'editor/widgets/editor-widget-renderer.dart';
 import 'editor/widgets/proxy/baseline-proxy.dart';
 import 'editor/widgets/scroll/editor-single-child-scroll-view.dart';
-import 'embeds/controllers/embed-builder.controller.dart';
+import 'embeds/services/embeds.service.dart';
 import 'inputs/services/clipboard.service.dart';
 import 'inputs/services/input-connection.service.dart';
 import 'inputs/services/keyboard-actions.service.dart';
 import 'inputs/services/keyboard.service.dart';
-import 'inputs/widgets/editor-keyboard-listener.dart';
-import 'selection/controllers/selection-actions.controller.dart';
-import 'selection/services/selection-actions.service.dart';
-import 'selection/services/text-selection.service.dart';
-import 'selection/widgets/text-gestures.dart';
+import 'inputs/widgets/text-gestures.dart';
+import 'selection/controllers/selection-handles.controller.dart';
+import 'selection/services/selection-handles.service.dart';
+import 'selection/services/selection.service.dart';
 import 'shared/state/editor-state-receiver.dart';
 import 'shared/state/editor.state.dart';
+import 'styles/services/styles-cfg.service.dart';
 
-// This is the main class of the Visual Editor.
 // There are 2 constructors available, one for controlling all the settings of the editor in precise detail.
 // The other one is the basic init that will spare you the pain of having to comb trough all the props.
 // The default settings are carefully chosen to satisfy the basic needs of any app that needs rich text editing.
@@ -50,16 +47,10 @@ import 'shared/state/editor.state.dart';
 //
 // Custom embeds
 // Besides the existing styled text options the editor can also render custom embeds such as video players
-// or whatever else the client apps desire to render in the documents.
+// or whatever else the client apps desire to render in the document.
 // Any kind of widget can be provided to be displayed in the middle of the document text.
 //
-// Callbacks
-// Several callbacks are available to be used when interacting with the editor:
-// - onTapDown()
-// - onTapUp()
-// - onSingleLongTapStart()
-// - onSingleLongTapMoveUpdate()
-// - onSingleLongTapEnd()
+// Multiple callbacks are available to be used when interacting with the editor
 //
 // Controller
 // Each instance of the editor will need an EditorController.
@@ -83,53 +74,37 @@ class VisualEditor extends StatefulWidget with EditorStateReceiver {
   // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
   late EditorState _state;
 
-  @override
-  void setState(EditorState state) {
-    _state = state;
-  }
-
   VisualEditor({
     required this.controller,
-    required this.scrollController,
     required this.focusNode,
     required this.config,
+    this.scrollController,
     Key? key,
   }) : super(key: key) {
     controller.setStateInEditorStateReceiver(this);
 
     // Singleton caches.
-    // Avoids prop drilling or Providers.
-    // Easy to trace, easy to mock for testing.
-    _state.refs.setEditorController(controller);
-    _state.refs.setScrollController(scrollController ?? ScrollController());
-    _state.refs.setFocusNode(focusNode);
-    _state.editorConfig.setEditorConfig(config);
-    _state.refs.setEditor(this);
+    // Avoids prop drilling or Providers (unlike Quill).
+    // Easy to read the call stack, easy to mock for testing.
+    _state.refs.controller = controller;
+    _state.refs.scrollController = scrollController ?? ScrollController();
+    _state.refs.focusNode = focusNode;
+    _state.config = config;
 
     // Beware that if you use the controller.toggleMarkers() and then you setState()
-    // on the parent component of the editor the config value will be used again.
+    // on the parent component of the editor this config value will be used again.
     _state.markersVisibility.toggleMarkers(config.markersVisibility ?? true);
+    _state.markersTypes.markersTypes = [...config.markerTypes];
+    _state.highlights.highlights = [...config.highlights];
   }
-
-  // Quickly a basic Visual Editor using a basic configuration
-  factory VisualEditor.basic({
-    required EditorController controller,
-    required bool readOnly,
-    Brightness? keyboardAppearance,
-  }) =>
-      VisualEditor(
-        controller: controller,
-        scrollController: ScrollController(),
-        focusNode: FocusNode(),
-        config: EditorConfigM(
-          autoFocus: true,
-          readOnly: readOnly,
-          keyboardAppearance: keyboardAppearance ?? Brightness.light,
-        ),
-      );
 
   @override
   VisualEditorState createState() => VisualEditorState();
+
+  @override
+  void cacheStateStore(EditorState state) {
+    _state = state;
+  }
 }
 
 class VisualEditorState extends State<VisualEditor>
@@ -138,46 +113,61 @@ class VisualEditorState extends State<VisualEditor>
         WidgetsBindingObserver,
         TickerProviderStateMixin<VisualEditor>
     implements TextSelectionDelegate, TextInputClient {
-  final _selectionActionsService = SelectionActionsService();
-  final _textSelectionService = TextSelectionService();
-  final _editorTextService = EditorTextService();
-  final _cursorService = CursorService();
-  final _clipboardService = ClipboardService();
-  final _textConnectionService = InputConnectionService();
-  final _keyboardService = KeyboardService();
-  final _keyboardActionsService = KeyboardActionsService();
-  final _editorService = EditorService();
-  final _documentService = DocumentService();
-  final _stylesService = StylesService();
-  final _textValueService = TextValueService();
+  late final EditorService _editorService;
+  late final SelectionHandlesService _selectionHandlesService;
+  late final SelectionService _selectionService;
+  late final CaretService _caretService;
+  late final ClipboardService _clipboardService;
+  late final InputConnectionService _inputConnectionService;
+  late final KeyboardService _keyboardService;
+  late final KeyboardActionsService _keyboardActionsService;
+  late final RunBuildService _runBuildService;
+  late final DocTreeService _docTreeService;
+  late final StylesCfgService _stylesCfgService;
+  late final GuiService _guiService;
+  late final EmbedsService _embedsService;
 
-  SelectionActionsController? selectionActionsController;
+  // Controllers
+  SelectionHandlesController? selectionHandlesController;
+  KeyboardVisibilityController? kbVisibCtrl;
   late FloatingCursorController _floatingCursorController;
-  final _editorKey = GlobalKey<State<VisualEditor>>();
-  final _editorRendererKey = GlobalKey();
-  KeyboardVisibilityController? keyboardVisibilityCtrl;
-  StreamSubscription<bool>? keyboardVisibilitySub;
-  bool _didAutoFocus = false;
+  late CursorController _cursorController;
+  late DocumentController _documentController;
+
   final ClipboardStatusNotifier clipboardStatus = ClipboardStatusNotifier();
+  final _editorRendererKey = GlobalKey();
+  bool _didAutoFocus = false;
   ViewportOffset? _offset;
-  StreamSubscription? editorUpdatesListener;
   bool _stylesInitialised = false;
   late PlatformDependentStylesM _platformStyles;
-  late CursorController _cursorController;
-
-  TextDirection get textDirection => Directionality.of(context);
+  StreamSubscription<bool>? kbVisib$L;
+  StreamSubscription? runBuild$L;
 
   @override
   void initState() {
+    _editorService = EditorService(state);
+    _selectionHandlesService = SelectionHandlesService(state);
+    _selectionService = SelectionService(state);
+    _caretService = CaretService(state);
+    _clipboardService = ClipboardService(state);
+    _inputConnectionService = InputConnectionService(state);
+    _keyboardService = KeyboardService(state);
+    _keyboardActionsService = KeyboardActionsService(state);
+    _runBuildService = RunBuildService(state);
+    _docTreeService = DocTreeService(state);
+    _stylesCfgService = StylesCfgService(state);
+    _guiService = GuiService(state);
+    _embedsService = EmbedsService(state);
+
     super.initState();
-    _cacheStateWidget();
-    _listedToClipboardAndUpdateEditor();
-    _subscribeToEditorUpdatesAndTriggerWidgetsBuild();
+    _cacheWidgetRef();
+    _initControllersAndCacheControllersRefs();
+    _listenToClipboardAndRunBuild();
+    _subscribeToRunBuildAndReqKbUpdGuiElems();
     _listenToScrollAndUpdateOverlayMenu();
-    _initKeyboard();
+    _subscribeToKeyboardVisibilityAndRunBuild();
     _listenToFocusAndUpdateCaretAndOverlayMenu();
-    _initFloatingCursorController();
-    _cacheEmbedBuilderController();
+    _subscribeToKeystrokes();
   }
 
   @override
@@ -187,24 +177,21 @@ class VisualEditorState extends State<VisualEditor>
     _initStylesAndCursorOnlyOnce(context);
 
     // If doc is empty override with a placeholder
-    final document = _documentService.getDocOrPlaceholder(widget._state);
+    final document = _docTreeService.getDocOrPlaceholder();
 
     final editorTree = _conditionalPreventKeyPropagationToParentIfWeb(
       child: _i18n(
         child: _textGestures(
           child: _hotkeysActions(
             child: _focusField(
-              child: _keyboardListener(
-                child: _constrainedBox(
-                  child: _conditionalScrollable(
-                    child: _overlayTargetForMobileToolbar(
-                      child: _editorRenderer(
+              child: _constrainedBox(
+                child: _conditionalScrollable(
+                  child: _selectionToolbarTarget(
+                    child: _editorRenderer(
+                      document: document,
+                      // This is where the document elements are rendered
+                      children: _docTreeService.getDocumentTree(
                         document: document,
-                        // This is where the document elements are rendered
-                        children: _documentService.documentBlocsAndLines(
-                          state: widget._state,
-                          document: document,
-                        ),
                       ),
                     ),
                   ),
@@ -218,7 +205,7 @@ class VisualEditorState extends State<VisualEditor>
 
     // (!) Calling after the widget tree is built ensures that we schedule the
     // onBuildComplete callback as the last addPostFrameCallback() to execute.
-    _callBuildCompleteCallback();
+    _runBuildService.callBuildCompleteCallback();
 
     return editorTree;
   }
@@ -241,19 +228,34 @@ class VisualEditorState extends State<VisualEditor>
     super.didUpdateWidget(oldWidget);
     _resubscribeToScrollController();
     _resubscribeToFocusNode(oldWidget);
-    _cacheStateWidget();
+    _cacheWidgetRef();
+    _cacheEditorRendererRef();
+    _reCacheControllersRefs();
     _reCacheStylesAndCursorOnlyOnce();
     _updateStateOnCursorController();
-    cacheEditorRendererRef();
-    _subscribeToEditorUpdatesAndTriggerWidgetsBuild();
+    _subscribeToRunBuildAndReqKbUpdGuiElems();
     _initStyles();
-    _initKeyboard();
-    _cacheEmbedBuilderController();
+    _subscribeToKeyboardVisibilityAndRunBuild();
   }
 
   @override
   void dispose() {
-    _editorService.disposeEditor(widget._state);
+    _inputConnectionService.closeConnectionIfNeeded();
+    kbVisib$L?.cancel();
+    HardwareKeyboard.instance.removeHandler(
+      updGuiAndBuildViaHardwareKbEvent,
+    );
+    selectionHandlesController?.dispose();
+    selectionHandlesController = null;
+    runBuild$L?.cancel();
+    state.refs.focusNode.removeListener(_updateGuiElemsAfterFocus);
+    if (state.refs.oldCursorController != null) {
+      state.refs.oldCursorController?.dispose();
+    }
+    clipboardStatus
+      ..removeListener(_runBuild)
+      ..dispose();
+    _unsubscribeFromKeystrokes();
     super.dispose();
   }
 
@@ -261,27 +263,33 @@ class VisualEditorState extends State<VisualEditor>
 
   @override
   void copySelection(SelectionChangedCause cause) {
-    _clipboardService.copySelection(cause, widget._state);
+    _clipboardService.copySelection(cause);
   }
 
   @override
   void cutSelection(SelectionChangedCause cause) {
-    _clipboardService.cutSelection(cause, widget._state);
+    _clipboardService.cutSelection(
+      cause,
+      _selectionHandlesService.hideToolbar,
+    );
   }
 
   @override
   Future<void> pasteText(SelectionChangedCause cause) async =>
-      _clipboardService.pasteText(cause, widget._state);
+      _clipboardService.pasteText(cause);
 
   @override
   void selectAll(SelectionChangedCause cause) {
-    _textSelectionService.selectAll(cause, widget._state);
+    _selectionService.selectAll(
+      cause,
+      _editorService.removeSpecialCharsAndUpdateDocTextAndStyle,
+    );
   }
 
   // === INPUT CLIENT OVERRIDES ===
 
   @override
-  bool get wantKeepAlive => widget._state.refs.focusNode.hasFocus;
+  bool get wantKeepAlive => state.refs.focusNode.hasFocus;
 
   // Not implemented
   @override
@@ -301,22 +309,50 @@ class VisualEditorState extends State<VisualEditor>
 
   // Autofill is not needed
   @override
-  AutofillScope? get currentAutofillScope => null;
+  AutofillScope? get currentAutofillScope {
+    return null;
+  }
 
   // Not implemented
   @override
-  void showAutocorrectionPromptRect(int start, int end) =>
-      throw UnimplementedError();
+  void showAutocorrectionPromptRect(int start, int end) {
+    throw UnimplementedError();
+  }
 
   @override
-  TextEditingValue? get currentTextEditingValue =>
-      _textConnectionService.currentTextEditingValue;
+  TextEditingValue? get currentTextEditingValue {
+    return _inputConnectionService.currentTextEditingValue;
+  }
 
-  // The new characters are inserted by the remote input when keys are pressed.
-  // The remote input is the input used by the system.
+  // When a user start typing, new characters are inserted by the remote input.
+  // The remote input is the input used by the system to synchronize the content of the input
+  // with the state of the software keyboard or other input devices.
+  // The remote input stores only plain text.
+  // The actual rich text is stored in the editor state store as a DocumentM.
   @override
-  void updateEditingValue(TextEditingValue value) {
-    _textConnectionService.updateEditingValue(value, widget._state);
+  void updateEditingValue(TextEditingValue plainText) {
+    _inputConnectionService.diffPlainTextAndUpdateDocumentModel(
+      plainText,
+      _selectionService.cacheSelectionAndRunBuild,
+      _editorService.replaceText,
+    );
+  }
+
+  // TODO better document this path on mobile. Also we need to port copy paste styles on web.
+  @override
+  void userUpdateTextEditingValue(
+    TextEditingValue plainText,
+    SelectionChangedCause cause,
+  ) {
+    _editorService.removeSpecialCharsAndUpdateDocTextAndStyle(
+      plainText,
+      cause,
+    );
+  }
+
+  @override
+  TextEditingValue get textEditingValue {
+    return _editorService.plainText;
   }
 
   @override
@@ -325,148 +361,56 @@ class VisualEditorState extends State<VisualEditor>
   }
 
   @override
-  void connectionClosed() => _textConnectionService.connectionClosed();
+  void connectionClosed() {
+    _inputConnectionService.connectionClosed();
+  }
 
   // === TEXT SELECTION OVERRIDES ===
 
   @override
-  bool showToolbar() => _selectionActionsService.showToolbar(widget._state);
-
-  @override
-  void hideToolbar([bool hideHandles = true]) {
-    _selectionActionsService.hideToolbar(widget._state, hideHandles);
+  bool showToolbar() {
+    return _selectionHandlesService.showToolbar();
   }
 
   @override
-  TextEditingValue get textEditingValue =>
-      widget._state.refs.editorController.plainTextEditingValue;
-
-  @override
-  void userUpdateTextEditingValue(
-    TextEditingValue value,
-    SelectionChangedCause cause,
-  ) {
-    _editorTextService.userUpdateTextEditingValue(value, cause, widget._state);
+  void hideToolbar([bool hideHandles = true]) {
+    _selectionHandlesService.hideToolbar(hideHandles);
   }
 
   @override
   void bringIntoView(TextPosition position) {
-    _cursorService.bringIntoView(position, widget._state);
+    _caretService.bringIntoView(position);
   }
 
   @override
-  bool get cutEnabled => _clipboardService.cutEnabled(widget._state);
+  bool get cutEnabled {
+    return _clipboardService.cutEnabled();
+  }
 
   @override
-  bool get copyEnabled => _clipboardService.copyEnabled(widget._state);
+  bool get copyEnabled {
+    return _clipboardService.copyEnabled();
+  }
 
   @override
-  bool get pasteEnabled => _clipboardService.pasteEnabled(widget._state);
+  bool get pasteEnabled {
+    return _clipboardService.pasteEnabled();
+  }
 
   @override
-  bool get selectAllEnabled => _textSelectionService.selectAllEnabled(
-        widget._state,
-      );
+  bool get selectAllEnabled {
+    return _clipboardService.toolbarOptions().selectAll;
+  }
 
   // Required to avoid circular reference between EditorService and KeyboardService.
   // Ugly solution but it works.
-  bool hardwareKeyboardEvent(KeyEvent _) =>
-      _keyboardService.hardwareKeyboardEvent(
-        _textValueService,
-        widget._state,
+  bool updGuiAndBuildViaHardwareKbEvent(_) =>
+      _keyboardService.updGuiAndBuildViaHardwareKeyboardEvent(
+        _guiService,
+        _runBuild,
       );
-
-  // Once a new widget tree build is triggered via setState the entire list of document lines and blocks
-  // will check for changes in their own text and render these changes.
-  // From here on we no longer apply changes to the document, from here on we only render the changes.
-  void triggerBuild() => setState(() {});
-
-  void safeUpdateKeepAlive() => updateKeepAlive();
-
-  // When a new widget tree is generated we need to find the new renderer class.
-  // A new widget tree is usually created because of using setState in the client code.
-  void cacheEditorRendererRef() {
-    final renderer = _editorRendererKey.currentContext?.findRenderObject()
-        as EditorRendererInner?;
-
-    if (renderer != null) {
-      widget._state.refs.setRenderer(renderer);
-    }
-  }
-
-  void handleFocusChanged() {
-    _editorService.handleFocusChanged(widget._state);
-  }
-
-  void onChangedClipboardStatus() {
-    if (!mounted) {
-      return;
-    }
-
-    setState(() {
-      // Inform the widget that the value of clipboardStatus has changed.
-      // Trigger build and updateChildren.
-    });
-  }
 
   // === PRIVATE ===
-
-  void _callBuildCompleteCallback() {
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      if (widget.controller.onBuildComplete != null) {
-        widget.controller.onBuildComplete!();
-      }
-    });
-  }
-
-  // TODO Find better solution.
-  // The current setup is not able to deal with updated styles.
-  // It's stuck on the initial set of styles.
-  // In the original Quill repo they used the additional widget RawEditor as a means of getting the BuildContext.
-  // After we merged the Editor and RawEditor in one widget we no longer have convenient
-  // access to the context from outside of the build method.
-  // Therefore we need to highjack the editor build() for getting the current theme.
-  // The solution would be to improve the condition from onlyOnce to onlyOnStyleChange.
-  void _initStylesAndCursorOnlyOnce(BuildContext context) {
-    if (!_stylesInitialised) {
-      _initStyles();
-      _platformStyles = _stylesService.initAndCachePlatformStyles(
-        context,
-        widget._state,
-      );
-      _cursorController = _stylesService.initAndCacheCursorController(
-        widget._state,
-      );
-      _stylesInitialised = true;
-    }
-  }
-
-  // When a new controller/state store is created we need to cache these references again.
-  void _reCacheStylesAndCursorOnlyOnce() {
-    widget._state.platformStyles.setPlatformStyles(_platformStyles);
-    widget._state.refs.setCursorController(
-      _cursorController,
-    );
-  }
-
-  void _initStyles() {
-    var styles = getDefaultStyles(context);
-
-    if (widget._state.editorConfig.config.customStyles != null) {
-      styles = styles.merge(widget._state.editorConfig.config.customStyles!);
-    }
-
-    widget._state.styles.setStyles(styles);
-  }
-
-  void _autoFocus() {
-    if (!_didAutoFocus && widget._state.editorConfig.config.autoFocus) {
-      FocusScope.of(context).autofocus(widget._state.refs.focusNode);
-      _didAutoFocus = true;
-    }
-  }
-
-  GlobalKey<State<VisualEditor>> get editableTextKey => _editorKey;
 
   Widget _i18n({required Widget child}) => I18n(
         initialLocale: widget.config.locale,
@@ -475,7 +419,7 @@ class VisualEditorState extends State<VisualEditor>
 
   Widget _textGestures({required Widget child}) => TextGestures(
         behavior: HitTestBehavior.translucent,
-        state: widget._state,
+        state: state,
         child: child,
       );
 
@@ -496,20 +440,12 @@ class VisualEditorState extends State<VisualEditor>
           : child;
 
   Widget _hotkeysActions({required Widget child}) => Actions(
-        actions: _keyboardActionsService.getActions(
-          context,
-          widget._state,
-        ),
+        actions: _keyboardActionsService.getActions(context),
         child: child,
       );
 
   Widget _focusField({required Widget child}) => Focus(
-        focusNode: widget._state.refs.focusNode,
-        child: child,
-      );
-
-  Widget _keyboardListener({required Widget child}) => EditorKeyboardListener(
-        state: widget._state,
+        focusNode: state.refs.focusNode,
         child: child,
       );
 
@@ -518,16 +454,17 @@ class VisualEditorState extends State<VisualEditor>
   // To address this issue we wrap the scroll view with BaselineProxy which mimics the editor's baseline.
   // This implies that the first line has no styles applied to it.
   Widget _conditionalScrollable({required Widget child}) {
-    final styles = widget._state.styles.styles;
+    final styles = state.styles.styles;
+    final scrollable = state.config.scrollable;
 
-    return widget._state.editorConfig.config.scrollable
+    return scrollable
         ? BaselineProxy(
             textStyle: styles.paragraph!.style,
             padding: EdgeInsets.only(
               top: styles.paragraph!.verticalSpacing.top,
             ),
             child: EditorSingleChildScrollView(
-              state: widget._state,
+              state: state,
               viewportBuilder: (_, offset) {
                 _offset = offset;
 
@@ -538,22 +475,24 @@ class VisualEditorState extends State<VisualEditor>
         : child;
   }
 
-  Widget _constrainedBox({required Widget child}) => Container(
-        constraints: widget._state.editorConfig.config.expands
-            ? const BoxConstraints.expand()
-            : BoxConstraints(
-                minHeight: widget._state.editorConfig.config.minHeight ?? 0.0,
-                maxHeight: widget._state.editorConfig.config.maxHeight ??
-                    double.infinity,
-              ),
-        child: child,
-      );
+  Widget _constrainedBox({required Widget child}) {
+    final config = state.config;
 
-  // TODO Rename to smth better
-  // Used by the selection toolbar to position itself in the right location
-  Widget _overlayTargetForMobileToolbar({required Widget child}) =>
+    return Container(
+      constraints: config.expands
+          ? const BoxConstraints.expand()
+          : BoxConstraints(
+              minHeight: config.minHeight ?? 0.0,
+              maxHeight: config.maxHeight ?? double.infinity,
+            ),
+      child: child,
+    );
+  }
+
+  // Used by the selection toolbar/controls to position itself in the right location
+  Widget _selectionToolbarTarget({required Widget child}) =>
       CompositedTransformTarget(
-        link: widget._state.selectionLayers.toolbarLayerLink,
+        link: state.selectionLayers.toolbarLayerLink,
         child: child,
       );
 
@@ -565,110 +504,231 @@ class VisualEditorState extends State<VisualEditor>
     required List<Widget> children,
   }) =>
       Semantics(
-        child: EditorRenderer(
+        child: EditorWidgetRenderer(
           offset: _offset,
           document: document,
           textDirection: textDirection,
-          state: widget._state,
+          state: state,
           key: _editorRendererKey,
           children: children,
         ),
       );
 
-  // On init
-  void _listenToFocusAndUpdateCaretAndOverlayMenu() {
-    widget._state.refs.focusNode.addListener(
-      handleFocusChanged,
-    );
+  // === UTILS ===
+
+  EditorState get state {
+    return widget._state;
   }
 
-  // On widget update
-  void _resubscribeToFocusNode(VisualEditor oldWidget) {
-    if (widget.focusNode != oldWidget.focusNode) {
-      oldWidget.focusNode.removeListener(handleFocusChanged);
-      widget._state.refs.setFocusNode(widget.focusNode);
-      widget.focusNode.addListener(handleFocusChanged);
-      updateKeepAlive();
+  TextDirection get textDirection {
+    return Directionality.of(context);
+  }
+
+  void callUpdateKeepAlive() => updateKeepAlive();
+
+  // === PRIVATE - INIT ===
+
+  void _initControllersAndCacheControllersRefs() {
+    // Document
+    _documentController = DocumentController(
+      state.document.document,
+      state.document.emitChange,
+      _editorService.composeCacheSelectionAndRunBuild,
+    );
+    state.refs.documentController = _documentController;
+
+    // History Controller
+    state.refs.historyController = _documentController.historyController;
+
+    // Embed Builders
+    _embedsService.initAndCacheEmbedBuilderController();
+
+    // Floating Cursor
+    _floatingCursorController = FloatingCursorController(state);
+  }
+
+  // TODO Find better solution.
+  // The current setup is not able to deal with updated styles.
+  // It's stuck on the initial set of styles.
+  // In the original Quill repo they used the additional widget RawEditor as a means of getting the BuildContext.
+  // After we merged the Editor and RawEditor in one widget we no longer have convenient
+  // access to the context from outside of the build method.
+  // Therefore we need to highjack the editor build() for getting the current theme.
+  // The solution would be to improve the condition from onlyOnce to onlyOnStyleChange.
+  void _initStylesAndCursorOnlyOnce(BuildContext context) {
+    if (!_stylesInitialised) {
+      _initStyles();
+      _platformStyles = _stylesCfgService.initAndCachePlatformStyles(context);
+      _cursorController = _stylesCfgService.initAndCacheCursorController();
+      _stylesInitialised = true;
     }
   }
 
-  void _initKeyboard() {
-    _keyboardService.initKeyboard(_textValueService, widget._state);
+  void _initStyles() {
+    var styles = _stylesCfgService.getDefaultStyles(context);
+
+    if (state.config.customStyles != null) {
+      styles = styles.merge(state.config.customStyles!);
+    }
+
+    state.styles.setStyles(styles);
   }
+
+  // === CACHE REFS ===
 
   // Required if host code uses setState() for whatever reason and rebuilds the EditorController.
   // If the EditorController is rebuilt that means a new state store.
   // Since the CursorController is initialised only once, we need to make sure it gets
   // the latest state store object from the new EditorController.
   void _updateStateOnCursorController() {
-    widget._state.refs.cursorController.setState(widget._state);
+    state.refs.cursorController.cacheStateStore(state);
+  }
+
+  // When a new widget tree is generated we need to find the new renderer class.
+  // A new widget tree is usually created because of using setState in the client code.
+  void _cacheEditorRendererRef() {
+    final renderer = _editorRendererKey.currentContext?.findRenderObject()
+        as EditorTextAreaRenderer?;
+
+    if (renderer != null) {
+      state.refs.renderer = renderer;
+    }
+  }
+
+  // When a new controller/state store is created we need to cache these references again.
+  void _reCacheStylesAndCursorOnlyOnce() {
+    state.platformStyles.styles = _platformStyles;
+    state.refs.cursorController = _cursorController;
+  }
+
+  void _cacheWidgetRef() {
+    state.refs.widget = this;
+  }
+
+  void _reCacheControllersRefs() {
+    state.refs.documentController = _documentController;
+    state.refs.historyController = _documentController.historyController;
+  }
+
+  // === BUILD & SYNC GUI ===
+
+  // Once a new widget tree build is triggered via setState the entire list of document lines and doc-tree
+  // will check for changes in their own text and render these changes.
+  // From here on we no longer apply changes to the document, from here on we only render the changes.
+  void _runBuild() {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {});
+  }
+
+  void _listenToClipboardAndRunBuild() {
+    clipboardStatus.addListener(_runBuild);
+  }
+
+  void _updateGuiElemsAfterFocus() {
+    _guiService.updateGuiElemsAfterFocus();
+  }
+
+  void _updateSelectionHandlesLocation() {
+    selectionHandlesController?.updateSelectionHandlesLocation();
+    _callOnScrollCallback();
+  }
+
+  void _autoFocus() {
+    final autoFocus = state.config.autoFocus;
+
+    if (!_didAutoFocus && autoFocus) {
+      FocusScope.of(context).autofocus(state.refs.focusNode);
+      _didAutoFocus = true;
+    }
+  }
+
+  // === SUBSCRIPTIONS ===
+
+  // All changes in the editor text or toolbar will trigger the update of the entire editor widget tree.
+  // From here on no more data model / document changes are executed, only widget tree updates following the updated document.
+  // On each build, before the document tree (text widgets) is updated several pre build steps are executed.
+  void _subscribeToRunBuildAndReqKbUpdGuiElems() {
+    // In case this is called a second time because a new editor controller was provided.
+    runBuild$L?.cancel();
+
+    // Run Build
+    runBuild$L = _runBuildService.runBuild$.listen((_) {
+      _guiService.reqKbUpdateGuiElemsAndBuild(_runBuild);
+    });
+  }
+
+  void _listenToFocusAndUpdateCaretAndOverlayMenu() {
+    state.refs.focusNode.addListener(_updateGuiElemsAfterFocus);
+  }
+
+  void _resubscribeToFocusNode(VisualEditor oldWidget) {
+    if (widget.focusNode != oldWidget.focusNode) {
+      oldWidget.focusNode.removeListener(_updateGuiElemsAfterFocus);
+      state.refs.focusNode = widget.focusNode;
+      widget.focusNode.addListener(_updateGuiElemsAfterFocus);
+      updateKeepAlive();
+    }
+  }
+
+  void _subscribeToKeyboardVisibilityAndRunBuild() {
+    _keyboardService.subscribeToKeyboardVisibilityAndRunBuild(
+      _guiService,
+      _runBuild,
+    );
   }
 
   // On init
   void _listenToScrollAndUpdateOverlayMenu() {
-    final _scrollController = widget._state.refs.scrollController;
-    _scrollController.addListener(_onScroll);
+    final _scrollController = state.refs.scrollController;
+    _scrollController.addListener(_updateSelectionHandlesLocation);
   }
 
   // On widget update
   void _resubscribeToScrollController() {
-    final _scrollController = widget._state.refs.scrollController;
+    final _scrollController = state.refs.scrollController;
 
     if (widget.scrollController != _scrollController) {
-      _scrollController.removeListener(_onScroll);
-      widget._state.refs.setScrollController(
-        widget.scrollController ?? ScrollController(),
-      );
-      _scrollController.addListener(_onScroll);
+      _scrollController.removeListener(_updateSelectionHandlesLocation);
+      state.refs.scrollController =
+          widget.scrollController ?? ScrollController();
+      _scrollController.addListener(_updateSelectionHandlesLocation);
     }
   }
 
-  // Several method hosted in the editor controller can trigger the update of the entire editor widget tree.
-  void _subscribeToEditorUpdatesAndTriggerWidgetsBuild() {
-    // In case this is called a second time because a new editor controller was provided.
-    editorUpdatesListener?.cancel();
+  // === CACHE KEYSTROKES ===
 
-    editorUpdatesListener = widget._state.refreshEditor.refreshEditor$.listen(
-      (_) {
-        _textValueService.updateEditor(
-          widget._state,
-        );
-      },
+  // TODO call from didUpdateWidget.
+  // If the controller gets swapped then caching keys will no longer work.
+  // Pay attention to properly implement disconnect and reconnect (look at the other examples).
+  // Right now this is not so urgent since we don't use cached keys at all for now.
+  // But we will need them soon when implementing typing shortcuts.
+  void _subscribeToKeystrokes() {
+    HardwareKeyboard.instance.addHandler(_cachePressedKeys);
+  }
+
+  void _unsubscribeFromKeystrokes() {
+    HardwareKeyboard.instance.removeHandler(_cachePressedKeys);
+  }
+
+  // Cache the pressed keys in the state store for later reads.
+  bool _cachePressedKeys(_) {
+    _keyboardService.setPressedKeys(
+      HardwareKeyboard.instance.logicalKeysPressed,
     );
+
+    return false;
   }
 
-  void _listedToClipboardAndUpdateEditor() {
-    clipboardStatus.addListener(onChangedClipboardStatus);
-  }
-
-  void _cacheStateWidget() {
-    widget._state.refs.setEditorState(this);
-  }
-
-  void _onScroll() {
-    _updateSelectionOverlayOnScroll();
-    _callOnScrollCallback();
-  }
-
-  void _updateSelectionOverlayOnScroll() {
-    selectionActionsController?.updateOnScroll();
-  }
+  // === CALLBACKS ===
 
   void _callOnScrollCallback() {
-    if (widget.controller.onScroll != null) {
-      widget.controller.onScroll!();
+    final onScroll = state.config.onScroll;
+
+    if (onScroll != null) {
+      onScroll();
     }
-  }
-
-  void _initFloatingCursorController() {
-    _floatingCursorController = FloatingCursorController(
-      widget._state,
-    );
-  }
-
-  void _cacheEmbedBuilderController() {
-    widget._state.refs.embedBuilderController = EmbedBuilderController(
-      builders: widget._state.editorConfig.config.embedBuilders,
-    );
   }
 }

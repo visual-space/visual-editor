@@ -1,24 +1,28 @@
 import 'package:flutter/material.dart';
 
+import '../../editor/services/editor.service.dart';
 import '../../shared/state/editor.state.dart';
 
 class SelectAllAction extends ContextAction<SelectAllTextIntent> {
+  late final EditorService _editorService;
+
   final EditorState state;
 
-  SelectAllAction(
-    this.state,
-  );
+  SelectAllAction(this.state) {
+    _editorService = EditorService(state);
+  }
 
   @override
   Object? invoke(SelectAllTextIntent intent, [BuildContext? context]) {
+    final plainText = _editorService.plainText;
+
     return Actions.invoke(
       context!,
       UpdateSelectionIntent(
-        state.refs.editorController.plainTextEditingValue,
+        plainText,
         TextSelection(
           baseOffset: 0,
-          extentOffset:
-              state.refs.editorController.plainTextEditingValue.text.length,
+          extentOffset: plainText.text.length,
         ),
         intent.cause,
       ),
@@ -26,6 +30,5 @@ class SelectAllAction extends ContextAction<SelectAllTextIntent> {
   }
 
   @override
-  bool get isActionEnabled =>
-      state.editorConfig.config.enableInteractiveSelection;
+  bool get isActionEnabled => state.config.enableInteractiveSelection;
 }

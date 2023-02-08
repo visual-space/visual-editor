@@ -17,3 +17,5 @@ const Map<String, int> FONT_SIZES = {
   '32': 32,
   '48': 48
 };
+
+const INITIAL_FONT_SIZE = 11;

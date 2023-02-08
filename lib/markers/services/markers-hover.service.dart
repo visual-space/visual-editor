@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/gestures.dart';
 
-import '../../blocks/services/text-lines.utils.dart';
+import '../../doc-tree/services/rectangles.service.dart';
 import '../../shared/state/editor.state.dart';
 import '../models/marker-type.model.dart';
 import '../models/marker.model.dart';
@@ -21,32 +21,32 @@ import '../models/marker.model.dart';
 // Once one or many markers are matched we then cache the ids.
 // On every single hover event we compare if new ids have been added or removed.
 // For each added or removed marker we run the corresponding callbacks defined by the marker type.
-// Then we cache the new hovered markers in the state store and trigger a new editor refresh (build cycle).
+// Then we cache the new hovered markers in the state store and trigger a new editor build (layout update).
 // When the editor is running the build cycle each line will check again for markers that it has to draw and
 // will apply the hovering color according to the hovered markers from the state stare.
 class MarkersHoverService {
-  final _textLinesUtils = TextLinesUtils();
+  late final RectanglesService _rectanglesService;
 
+  // No need to move to state since this service is initialised only once in TextGestures widget (no duplicated state).
   final List<String> _hoveredMarkersIds = [];
   final List<String> _prevHoveredMarkersIds = [];
+  final EditorState state;
 
-  factory MarkersHoverService() => _instance;
-
-  static final _instance = MarkersHoverService._privateConstructor();
-
-  MarkersHoverService._privateConstructor();
+  MarkersHoverService(this.state) {
+    _rectanglesService = RectanglesService(state);
+  }
 
   // Multiple overlapping highlights can be intersected at the same time.
   // Intersecting all highlights avoids "masking" highlights and making them inaccessible.
   // If you need only the highlight hovering highest on top, you'll need to implement
   // custom logic on the client side to select the preferred highlight.
-  void onHover(PointerHoverEvent event, EditorState state) {
+  void onHover(PointerHoverEvent event) {
     _hoveredMarkersIds.clear();
 
     // Detect Hovering
     // Multiple markers can overlap, we can't end the search eagerly
     state.markers.markers.forEach((marker) {
-      final isHovered = _isMarkerHovered(event.position, marker, state);
+      final isHovered = _isMarkerHovered(event.position, marker);
 
       if (isHovered) {
         _hoveredMarkersIds.add(marker.id);
@@ -69,7 +69,7 @@ class MarkersHoverService {
       final addedMarker = state.markers.markers.firstWhere(
         (marker) => marker.id == id,
       );
-      _enterMarker(addedMarker, state);
+      _enterMarker(addedMarker);
     });
 
     // On Hover
@@ -77,7 +77,7 @@ class MarkersHoverService {
       final marker = state.markers.markers.firstWhere(
         (_marker) => _marker.id == id,
       );
-      final type = _getMarkerTypeById(marker.type, state);
+      final type = _getMarkerTypeById(marker.type);
 
       if (type?.onHover != null) {
         type?.onHover!(marker);
@@ -89,7 +89,7 @@ class MarkersHoverService {
       final removedMarker = state.markers.markers.firstWhere(
         (_marker) => _marker.id == id,
       );
-      _exitMarker(removedMarker, state);
+      _exitMarker(removedMarker);
     });
 
     // Prev Hovered Markers
@@ -98,39 +98,35 @@ class MarkersHoverService {
       ..addAll(_hoveredMarkersIds);
   }
 
-  void onSingleTapUp(TapUpDetails details, EditorState state) {
-    _detectTapOnMarker(details, state);
+  void onSingleTapUp(TapUpDetails details) {
+    _detectTapOnMarker(details);
   }
 
   // === PRIVATE ===
 
-  void _enterMarker(MarkerM marker, EditorState state) {
-    final type = _getMarkerTypeById(marker.type, state);
+  void _enterMarker(MarkerM marker) {
+    final type = _getMarkerTypeById(marker.type);
 
     if (type?.onEnter != null) {
       type?.onEnter!(marker);
     }
 
     state.markers.enterMarkerById(marker.id);
-    state.refreshEditor.refreshEditorWithoutCaretPlacement();
+    state.runBuild.runBuildWithoutCaretPlacement();
   }
 
-  void _exitMarker(MarkerM marker, EditorState state) {
-    final type = _getMarkerTypeById(marker.type, state);
+  void _exitMarker(MarkerM marker) {
+    final type = _getMarkerTypeById(marker.type);
 
     if (type?.onExit != null) {
       type?.onExit!(marker);
     }
 
     state.markers.exitMarkerById(marker.id);
-    state.refreshEditor.refreshEditorWithoutCaretPlacement();
+    state.runBuild.runBuildWithoutCaretPlacement();
   }
 
-  bool _isMarkerHovered(
-    Offset eventPos,
-    MarkerM marker,
-    EditorState state,
-  ) {
+  bool _isMarkerHovered(Offset eventPos, MarkerM marker) {
     assert(
       marker.rectangles != null,
       'Attempting to hover over a marker that was not yet rendered.'
@@ -148,7 +144,7 @@ class MarkersHoverService {
 
     // Search For Hits
     for (final rectangle in marker.rectangles ?? []) {
-      isHovered = _textLinesUtils.isRectangleHovered(
+      isHovered = _rectanglesService.isRectangleHovered(
         rectangle,
         pointer,
         editorOffset,
@@ -163,20 +159,20 @@ class MarkersHoverService {
     return isHovered;
   }
 
-  MarkerTypeM? _getMarkerTypeById(String markerType, EditorState state) {
-    return state.markersTypes.types.firstWhereOrNull(
+  MarkerTypeM? _getMarkerTypeById(String markerType) {
+    return state.markersTypes.markersTypes.firstWhereOrNull(
       (type) => type.id == markerType,
     );
   }
 
-  void _detectTapOnMarker(TapUpDetails details, EditorState state) {
+  void _detectTapOnMarker(TapUpDetails details) {
     // Search For Hits
     // Multiple markers can overlap, we can't end the search eagerly
     for (final marker in state.markers.markers) {
-      final isHovered = _isMarkerHovered(details.globalPosition, marker, state);
+      final isHovered = _isMarkerHovered(details.globalPosition, marker);
 
       if (isHovered) {
-        final type = _getMarkerTypeById(marker.type, state);
+        final type = _getMarkerTypeById(marker.type);
 
         if (type?.onSingleTapUp != null) {
           type?.onSingleTapUp!(marker);

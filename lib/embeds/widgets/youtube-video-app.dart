@@ -3,14 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
-import '../../blocks/services/styles.utils.dart';
+import '../../shared/state/editor.state.dart';
+import '../../styles/services/styles-cfg.service.dart';
 
 class YoutubeVideoApp extends StatefulWidget {
-  const YoutubeVideoApp({
+  late final EditorState _state;
+
+  YoutubeVideoApp({
     required this.videoUrl,
     required this.context,
     required this.readOnly,
-  });
+    required EditorState state,
+  }) {
+    _state = state;
+  }
 
   final String videoUrl;
   final BuildContext context;
@@ -21,10 +27,14 @@ class YoutubeVideoApp extends StatefulWidget {
 }
 
 class _YoutubeVideoAppState extends State<YoutubeVideoApp> {
+  late final StylesCfgService _stylesCfgService;
+
   var _youtubeController;
 
   @override
   void initState() {
+    _stylesCfgService = StylesCfgService(widget._state);
+
     super.initState();
     final videoId = YoutubePlayer.convertUrlToId(widget.videoUrl);
 
@@ -40,7 +50,8 @@ class _YoutubeVideoAppState extends State<YoutubeVideoApp> {
 
   @override
   Widget build(BuildContext context) {
-    final defaultStyles = getDefaultStyles(context); // TODO Use from state
+    // TODO Use from state
+    final defaultStyles = _stylesCfgService.getDefaultStyles(context);
 
     if (_youtubeController == null) {
       if (widget.readOnly) {

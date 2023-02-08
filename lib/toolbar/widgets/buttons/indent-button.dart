@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
 
 import '../../../controller/controllers/editor-controller.dart';
-import '../../../documents/models/attributes/attributes-aliases.model.dart';
-import '../../../documents/models/attributes/attributes.model.dart';
-import '../../../documents/services/attribute.utils.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
+import '../../../shared/state/editor-state-receiver.dart';
+import '../../../shared/state/editor.state.dart';
+import '../../../styles/services/styles.service.dart';
 import '../toolbar.dart';
 
-class IndentButton extends StatefulWidget {
+// Moves text to the right or to the left
+// ignore: must_be_immutable
+class IndentButton extends StatefulWidget with EditorStateReceiver {
   final IconData icon;
   final double iconSize;
   final EditorController controller;
-  // TODO enum
   final bool isIncrease;
   final EditorIconThemeM? iconTheme;
   final double buttonsSpacing;
+  late EditorState _state;
 
-  const IndentButton({
+  IndentButton({
     required this.icon,
     required this.controller,
     required this.buttonsSpacing,
@@ -24,13 +26,28 @@ class IndentButton extends StatefulWidget {
     this.iconSize = defaultIconSize,
     this.iconTheme,
     Key? key,
-  }) : super(key: key);
+  }) : super(key: key) {
+    controller.setStateInEditorStateReceiver(this);
+  }
 
   @override
   _IndentButtonState createState() => _IndentButtonState();
+
+  @override
+  void cacheStateStore(EditorState state) {
+    _state = state;
+  }
 }
 
 class _IndentButtonState extends State<IndentButton> {
+  late final StylesService _stylesService;
+
+  @override
+  void initState() {
+    _stylesService = StylesService(widget._state);
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -52,42 +69,7 @@ class _IndentButtonState extends State<IndentButton> {
       buttonsSpacing: widget.buttonsSpacing,
       fillColor: iconFillColor,
       borderRadius: widget.iconTheme?.borderRadius ?? 2,
-      onPressed: _indent,
-    );
-  }
-
-  void _indent() {
-    final indent = widget.controller
-        .getSelectionStyle()
-        .attributes?[AttributesM.indent.key];
-
-    // No Styling
-    if (indent == null) {
-      if (widget.isIncrease) {
-        widget.controller.formatSelection(AttributesAliasesM.indentL1);
-      }
-      return;
-    }
-
-    // Prevent decrease bellow 1
-    if (indent.value == 1 && !widget.isIncrease) {
-      widget.controller.formatSelection(
-        AttributeUtils.clone(AttributesAliasesM.indentL1, null),
-      );
-      return;
-    }
-
-    // Increase
-    if (widget.isIncrease) {
-      widget.controller.formatSelection(
-        AttributeUtils.getIndentLevel(indent.value + 1),
-      );
-      return;
-    }
-
-    // Decrease
-    widget.controller.formatSelection(
-      AttributeUtils.getIndentLevel(indent.value - 1),
+      onPressed: () => _stylesService.indentSelection(widget.isIncrease),
     );
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/gestures.dart';
 
-import '../../blocks/services/text-lines.utils.dart';
+import '../../doc-tree/services/rectangles.service.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../shared/state/editor.state.dart';
 
@@ -19,32 +19,32 @@ import '../../shared/state/editor.state.dart';
 // Once one or many highlights are matched we then cache the ids.
 // On every single hover event we compare if new ids have been added or removed.
 // For each added or removed highlight we run the corresponding callbacks.
-// Then we cache the new hovered highlights in the state store and trigger a new editor refresh (build cycle).
+// Then we cache the new hovered highlights in the state store and trigger a new editor build (layout update).
 // When the editor is running the build cycle each line will check again for highlights that it has to draw and
 // will apply the hovering color according to the hovered highlights from the state stare.
 class HighlightsHoverService {
-  final _textLinesUtils = TextLinesUtils();
+  late final RectanglesService _rectanglesService;
 
+  // No need to move to state since this service is initialised only once in TextGestures widget (no duplicated state).
   final List<String> _hoveredHighlightsIds = [];
   final List<String> _prevHoveredHighlightsIds = [];
+  final EditorState state;
 
-  factory HighlightsHoverService() => _instance;
-
-  static final _instance = HighlightsHoverService._privateConstructor();
-
-  HighlightsHoverService._privateConstructor();
+  HighlightsHoverService(this.state) {
+    _rectanglesService = RectanglesService(state);
+  }
 
   // Multiple overlapping highlights can be intersected at the same time.
   // Intersecting all highlights avoids "masking" highlights and making them inaccessible.
   // If you need only the highlight hovering highest on top, you'll need to implement
   // custom logic on the client side to select the preferred highlight.
-  void onHover(PointerHoverEvent event, EditorState state) {
+  void onHover(PointerHoverEvent event) {
     _hoveredHighlightsIds.clear();
 
     // Detect Hovering
     // Multiple highlights can overlap, we can't end the search eagerly
     state.highlights.highlights.forEach((highlight) {
-      final isHovered = _isHighlightHovered(event.position, highlight, state);
+      final isHovered = _isHighlightHovered(event.position, highlight);
 
       if (isHovered) {
         _hoveredHighlightsIds.add(highlight.id);
@@ -66,7 +66,7 @@ class HighlightsHoverService {
     addedIds.forEach((id) {
       final addedHighlight = state.highlights.highlights
           .firstWhere((highlight) => highlight.id == id);
-      _enterHighlight(addedHighlight, state);
+      _enterHighlight(addedHighlight);
     });
 
     // On Hover
@@ -85,7 +85,7 @@ class HighlightsHoverService {
       final removeHighlight = state.highlights.highlights.firstWhere(
         (highlight) => highlight.id == id,
       );
-      _exitHighlight(removeHighlight, state);
+      _exitHighlight(removeHighlight);
     });
 
     // Prev Hovered Highlights
@@ -94,35 +94,31 @@ class HighlightsHoverService {
       ..addAll(_hoveredHighlightsIds);
   }
 
-  void onSingleTapUp(TapUpDetails details, EditorState state) {
-    _detectTapOnHighlight(details, state);
+  void onSingleTapUp(TapUpDetails details) {
+    _detectTapOnHighlight(details);
   }
 
   // === PRIVATE ===
 
-  void _enterHighlight(HighlightM highlight, EditorState state) {
+  void _enterHighlight(HighlightM highlight) {
     if (highlight.onEnter != null) {
       highlight.onEnter!(highlight);
     }
 
     state.highlights.enterHighlightById(highlight.id);
-    state.refreshEditor.refreshEditorWithoutCaretPlacement();
+    state.runBuild.runBuildWithoutCaretPlacement();
   }
 
-  void _exitHighlight(HighlightM highlight, EditorState state) {
+  void _exitHighlight(HighlightM highlight) {
     if (highlight.onExit != null) {
       highlight.onExit!(highlight);
     }
 
     state.highlights.exitHighlightById(highlight.id);
-    state.refreshEditor.refreshEditorWithoutCaretPlacement();
+    state.runBuild.runBuildWithoutCaretPlacement();
   }
 
-  bool _isHighlightHovered(
-    Offset eventPos,
-    HighlightM highlight,
-    EditorState state,
-  ) {
+  bool _isHighlightHovered(Offset eventPos, HighlightM highlight) {
     assert(
       highlight.rectanglesByLines != null,
       'Attempting to hover over a highlight that was not yet rendered.'
@@ -140,7 +136,7 @@ class HighlightsHoverService {
 
       // Search For Hits
       for (final rectangle in line.rectangles) {
-        final isHovered = _textLinesUtils.isRectangleHovered(
+        final isHovered = _rectanglesService.isRectangleHovered(
           rectangle,
           pointer,
           editorOffset,
@@ -161,14 +157,13 @@ class HighlightsHoverService {
     return highlightIsHovered;
   }
 
-  void _detectTapOnHighlight(TapUpDetails details, EditorState state) {
+  void _detectTapOnHighlight(TapUpDetails details) {
     // Search For Hits
     // Multiple markers can overlap, we can't end the search eagerly
     for (final highlight in state.highlights.highlights) {
       final isHovered = _isHighlightHovered(
         details.globalPosition,
         highlight,
-        state,
       );
 
       if (isHovered && highlight.onSingleTapUp != null) {

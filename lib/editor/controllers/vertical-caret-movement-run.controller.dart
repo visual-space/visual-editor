@@ -2,8 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-import '../widgets/editor-renderer-inner.dart';
+import '../widgets/editor-textarea-renderer.dart';
 
+// Handles the movement of the caret up and down the document.
+// TODO Currently the motion is completely broken. Needs review (check if Quill has the same issue).
 class VerticalCaretMovementRunController
     extends BidirectionalIterator<TextPosition> {
   VerticalCaretMovementRunController(
@@ -13,7 +15,7 @@ class VerticalCaretMovementRunController
 
   TextPosition _currentTextPosition;
 
-  final EditorRendererInner _renderer;
+  final EditorTextAreaRenderer _renderer;
 
   @override
   TextPosition get current {

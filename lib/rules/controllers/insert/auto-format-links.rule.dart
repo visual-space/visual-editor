@@ -1,28 +1,32 @@
-import '../../../documents/controllers/delta.iterator.dart';
-import '../../../documents/models/attribute.model.dart';
-import '../../../documents/models/attributes/attributes.model.dart';
-import '../../../documents/models/attributes/styling-attributes.dart';
-import '../../../documents/models/delta/delta.model.dart';
+import '../../../document/controllers/delta.iterator.dart';
+import '../../../document/models/attributes/attribute.model.dart';
+import '../../../document/models/attributes/attributes.model.dart';
+import '../../../document/models/attributes/styling-attributes.dart';
+import '../../../document/models/delta/delta.model.dart';
+import '../../../document/services/delta.utils.dart';
 import '../../models/insert-rule.model.dart';
 
 // Applies link format to text segment (which looks like a link) when user inserts space character after it.
 class AutoFormatLinksRule extends InsertRuleM {
-  const AutoFormatLinksRule();
+  final _du = DeltaUtils();
+
+  AutoFormatLinksRule();
 
   @override
   DeltaM? applyRule(
-    DeltaM document,
+    DeltaM docDelta,
     int index, {
     int? len,
     Object? data,
     AttributeM? attribute,
+    String plainText = '',
   }) {
     if (data is! String || data != ' ') {
       return null;
     }
 
-    final itr = DeltaIterator(document);
-    final prev = itr.skip(index);
+    final currItr = DeltaIterator(docDelta);
+    final prev = currItr.skip(index);
 
     if (prev == null || prev.data is! String) {
       return null;
@@ -44,10 +48,13 @@ class AutoFormatLinksRule extends InsertRuleM {
 
       attributes.addAll(LinkAttributeM(link.toString()).toJson());
 
-      return DeltaM()
-        ..retain(index + (len ?? 0) - cand.length)
-        ..retain(cand.length, attributes)
-        ..insert(data, prev.attributes);
+      final changeDelta = DeltaM();
+
+      _du.retain(changeDelta, index + (len ?? 0) - cand.length);
+      _du.retain(changeDelta, cand.length, attributes);
+      _du.insert(changeDelta, data, prev.attributes);
+
+      return changeDelta;
     } on FormatException {
       return null;
     }

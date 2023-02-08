@@ -8,26 +8,20 @@ import '../models/marker-type.model.dart';
 // Controls also the visibility of every marker type.
 class MarkersTypesState {
   final _toggleMarkersByTypes$ = StreamController<void>.broadcast();
-  List<MarkerTypeM> _types = [DEFAULT_MARKER_TYPE];
-
-  List<MarkerTypeM> get types => _types;
+  List<MarkerTypeM> markersTypes = [DEFAULT_MARKER_TYPE];
 
   Stream<void> get toggleMarkersByTypes$ => _toggleMarkersByTypes$.stream;
 
-  void setMarkersTypes(List<MarkerTypeM> types) {
-    _types = types;
-  }
-
   void addMarkerType(MarkerTypeM type) {
-    _types.add(type);
+    markersTypes.add(type);
   }
 
   void removeMarkerType(MarkerTypeM type) {
-    _types.remove(type);
+    markersTypes.remove(type);
   }
 
   void removeAllMarkersTypes() {
-    _types = [];
+    markersTypes = [];
   }
 
   // Shows/hides markers by type.
@@ -36,9 +30,9 @@ class MarkersTypesState {
     bool isVisible,
   ) {
     final markerType = _getMarkerTypeById(markerTypeId);
-    final markerTypeIndex = _types.indexOf(markerType);
+    final markerTypeIndex = markersTypes.indexOf(markerType);
 
-    _types[markerTypeIndex] = markerType.copyWith(
+    markersTypes[markerTypeIndex] = markerType.copyWith(
       isVisible: isVisible,
     );
 
@@ -55,6 +49,6 @@ class MarkersTypesState {
   // === PRIVATE ===
 
   MarkerTypeM _getMarkerTypeById(String markerTypeId) {
-    return _types.firstWhere((type) => type.id == markerTypeId);
+    return markersTypes.firstWhere((type) => type.id == markerTypeId);
   }
 }

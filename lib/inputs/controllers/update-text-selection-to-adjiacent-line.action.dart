@@ -1,20 +1,30 @@
 import 'package:flutter/material.dart';
 
 import '../../editor/controllers/vertical-caret-movement-run.controller.dart';
+import '../../editor/services/editor.service.dart';
 import '../../shared/state/editor.state.dart';
 
+// TODO Document. At the moment it's quite unclear what this action does.
+//   Seems to be in charge of deciding where the cursor lands next when moving it up or down.
+//   It's unclear how or when it runs if at all.
+//   Seems to be activated when long tap is used to select text on mobiles.
+//
+// Used on mobiles only.
 class UpdateTextSelectionToAdjacentLineAction<
     T extends DirectionalCaretMovementIntent> extends ContextAction<T> {
+  late final EditorService _editorService;
+
   final EditorState state;
 
-  UpdateTextSelectionToAdjacentLineAction(
-    this.state,
-  );
+  UpdateTextSelectionToAdjacentLineAction(this.state) {
+    _editorService = EditorService(state);
+  }
 
   VerticalCaretMovementRunController? _verticalMovementRun;
   TextSelection? _runSelection;
 
   void stopCurrentVerticalRunIfSelectionChanges() {
+    final selection = _editorService.plainText.selection;
     final prevRunSelection = _runSelection;
 
     if (prevRunSelection == null) {
@@ -22,8 +32,8 @@ class UpdateTextSelectionToAdjacentLineAction<
       return;
     }
 
-    _runSelection = state.refs.editorController.plainTextEditingValue.selection;
-    final currentSelection = state.refs.editorController.selection;
+    _runSelection = selection;
+    final currentSelection = state.selection.selection;
     final continueCurrentRun = currentSelection.isValid &&
         currentSelection.isCollapsed &&
         currentSelection.baseOffset == prevRunSelection.baseOffset &&
@@ -37,19 +47,20 @@ class UpdateTextSelectionToAdjacentLineAction<
 
   @override
   void invoke(T intent, [BuildContext? context]) {
-    assert(state.refs.editorController.plainTextEditingValue.selection.isValid);
+    final plainText = _editorService.plainText;
+    final selection = plainText.selection;
+    assert(selection.isValid);
 
-    final collapseSelection = intent.collapseSelection ||
-        state.editorConfig.config.enableInteractiveSelection;
-    final value = state.refs.editorController.plainTextEditingValue;
+    final collapseSelection =
+        intent.collapseSelection || state.config.enableInteractiveSelection;
 
-    if (!value.selection.isValid) {
+    if (!selection.isValid) {
       return;
     }
 
     final currentRun = _verticalMovementRun ??
         state.refs.renderer.startVerticalCaretMovement(
-          state.refs.editorController.selection.extent,
+          state.selection.selection.extent,
         );
 
     final shouldMove =
@@ -57,32 +68,27 @@ class UpdateTextSelectionToAdjacentLineAction<
     final newExtent = shouldMove
         ? currentRun.current
         : (intent.forward
-            ? TextPosition(
-                offset: state
-                    .refs.editorController.plainTextEditingValue.text.length,
-              )
+            ? TextPosition(offset: plainText.text.length)
             : const TextPosition(offset: 0));
     final newSelection = collapseSelection
         ? TextSelection.fromPosition(newExtent)
-        : value.selection.extendTo(newExtent);
+        : selection.extendTo(newExtent);
 
     Actions.invoke(
       context!,
       UpdateSelectionIntent(
-        value,
+        plainText,
         newSelection,
         SelectionChangedCause.keyboard,
       ),
     );
 
-    if (state.refs.editorController.plainTextEditingValue.selection ==
-        newSelection) {
+    if (selection == newSelection) {
       _verticalMovementRun = currentRun;
       _runSelection = newSelection;
     }
   }
 
   @override
-  bool get isActionEnabled =>
-      state.refs.editorController.plainTextEditingValue.selection.isValid;
+  bool get isActionEnabled => _editorService.plainText.selection.isValid;
 }

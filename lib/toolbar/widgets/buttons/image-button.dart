@@ -2,16 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../controller/controllers/editor-controller.dart';
-import '../../../documents/models/nodes/embed.model.dart';
-import '../../../embeds/const/embeds.const.dart';
+import '../../../embeds/services/embeds.service.dart';
 import '../../../shared/models/editor-dialog-theme.model.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
+import '../../../shared/state/editor-state-receiver.dart';
+import '../../../shared/state/editor.state.dart';
 import '../../models/media-pick.enum.dart';
 import '../../models/media-picker.type.dart';
 import '../dialogs/link-dialog.dart';
 import '../toolbar.dart';
 
-class ImageButton extends StatelessWidget {
+// Adds an image.
+// ignore: must_be_immutable
+class ImageButton extends StatelessWidget with EditorStateReceiver {
+  late final EmbedsService _embedsService;
+  late final MediaLoaderService _imageVideoUtils;
+
   final IconData icon;
   final double iconSize;
   final Color? fillColor;
@@ -23,8 +29,9 @@ class ImageButton extends StatelessWidget {
   final EditorIconThemeM? iconTheme;
   final EditorDialogThemeM? dialogTheme;
   final double buttonsSpacing;
+  late EditorState _state;
 
-  const ImageButton({
+  ImageButton({
     required this.icon,
     required this.controller,
     required this.buttonsSpacing,
@@ -37,7 +44,16 @@ class ImageButton extends StatelessWidget {
     this.iconTheme,
     this.dialogTheme,
     Key? key,
-  }) : super(key: key);
+  }) : super(key: key) {
+    controller.setStateInEditorStateReceiver(this);
+    _embedsService = EmbedsService(_state);
+    _imageVideoUtils = MediaLoaderService(_state);
+  }
+
+  @override
+  void cacheStateStore(EditorState state) {
+    _state = state;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,17 +75,18 @@ class ImageButton extends StatelessWidget {
       size: iconSize * 1.77,
       fillColor: iconFillColor,
       borderRadius: iconTheme?.borderRadius ?? 2,
-      onPressed: () => _onPressedHandler(context),
+      onPressed: () => _insertImage(context),
     );
   }
 
   // === PRIVATE ===
 
-  Future<void> _onPressedHandler(BuildContext context) async {
+  Future<void> _insertImage(BuildContext context) async {
     if (onImagePickCallback != null) {
       final selector =
-          mediaPickSettingSelector ?? ImageVideoUtils.selectMediaPickSetting;
+          mediaPickSettingSelector ?? _imageVideoUtils.selectMediaPickSetting;
       final source = await selector(context);
+
       if (source != null) {
         if (source == MediaPickSettingE.Gallery) {
           _pickImage(context);
@@ -82,9 +99,8 @@ class ImageButton extends StatelessWidget {
     }
   }
 
-  void _pickImage(BuildContext context) => ImageVideoUtils.handleImageButtonTap(
+  void _pickImage(BuildContext context) => _imageVideoUtils.pickImage(
         context,
-        controller,
         ImageSource.gallery,
         onImagePickCallback!,
         filePickImpl: filePickImpl,
@@ -97,20 +113,6 @@ class ImageButton extends StatelessWidget {
       builder: (_) => LinkDialog(
         dialogTheme: dialogTheme,
       ),
-    ).then(_linkSubmitted);
-  }
-
-  void _linkSubmitted(String? imageUrl) {
-    if (imageUrl != null && imageUrl.isNotEmpty) {
-      final index = controller.selection.baseOffset;
-      final length = controller.selection.extentOffset - index;
-
-      controller.replaceText(
-        index,
-        length,
-        EmbedM(IMAGE_EMBED_TYPE, imageUrl),
-        null,
-      );
-    }
+    ).then(_embedsService.insertInSelectionImageViaUrl);
   }
 }

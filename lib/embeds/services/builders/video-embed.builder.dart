@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../controller/controllers/editor-controller.dart';
-import '../../../documents/models/nodes/embed-node.model.dart';
+import '../../../document/models/nodes/embed-node.model.dart';
+import '../../../shared/state/editor.state.dart';
 import '../../const/embeds.const.dart';
 import '../../models/embed-builder.model.dart';
 import '../../widgets/video-app.dart';
@@ -11,7 +12,9 @@ import '../../widgets/youtube-video-app.dart';
 // Note there are 2 types of video players:
 // youtube video player and an all purpose video player
 class VideoEmbedBuilder implements EmbedBuilderM {
-  const VideoEmbedBuilder();
+  final EditorState _state;
+
+  const VideoEmbedBuilder(this._state);
 
   @override
   final String type = VIDEO_EMBED_TYPE;
@@ -32,6 +35,7 @@ class VideoEmbedBuilder implements EmbedBuilderM {
         videoUrl: _videoUrl,
         context: context,
         readOnly: readOnly,
+        state: _state,
       );
     }
 
@@ -39,6 +43,7 @@ class VideoEmbedBuilder implements EmbedBuilderM {
       videoUrl: _videoUrl,
       context: context,
       readOnly: readOnly,
+      state: _state,
     );
   }
 }

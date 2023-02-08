@@ -1,5 +1,5 @@
-import '../../documents/controllers/delta.iterator.dart';
-import '../../documents/models/delta/operation.model.dart';
+import '../../document/controllers/delta.iterator.dart';
+import '../../document/models/delta/operation.model.dart';
 import 'new-operartion.model.dart';
 
 NewOperationM getNextNewLine(DeltaIterator iterator) {

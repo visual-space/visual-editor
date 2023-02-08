@@ -1,10 +1,13 @@
-import '../../../documents/controllers/delta.iterator.dart';
-import '../../../documents/models/attribute.model.dart';
-import '../../../documents/models/attributes/attributes.model.dart';
-import '../../../documents/models/delta/delta.model.dart';
-import '../../../documents/models/style.model.dart';
+import '../../../document/controllers/delta.iterator.dart';
+import '../../../document/models/attributes/attribute.model.dart';
+import '../../../document/models/attributes/attributes.model.dart';
+import '../../../document/models/delta/delta.model.dart';
+import '../../../document/services/delta.utils.dart';
+import '../../../document/services/nodes/styles.utils.dart';
 import '../../models/insert-rule.model.dart';
 import '../../models/rules.utils.dart';
+
+final _stylesUtils = StylesUtils();
 
 // Preserves block style when user inserts text containing newlines.
 // This rule handles:
@@ -12,29 +15,32 @@ import '../../models/rules.utils.dart';
 //   * pasting text containing multiple lines of text in a block
 // This rule may also be activated for changes triggered by auto-correct.
 class PreserveBlockStyleOnInsertRule extends InsertRuleM {
-  const PreserveBlockStyleOnInsertRule();
+  final _du = DeltaUtils();
+
+  PreserveBlockStyleOnInsertRule();
 
   @override
   DeltaM? applyRule(
-    DeltaM document,
+    DeltaM docDelta,
     int index, {
     int? len,
     Object? data,
     AttributeM? attribute,
+    String plainText = '',
   }) {
     if (data is! String || !data.contains('\n')) {
       // Only interested in text containing at least one newline character.
       return null;
     }
 
-    final itr = DeltaIterator(document)..skip(index);
+    final currItr = DeltaIterator(docDelta)..skip(index);
 
     // Look for the next newline.
-    final nextNewLine = getNextNewLine(itr);
-    final lineStyle = StyleM.fromJson(
+    final nextNewLine = getNextNewLine(currItr);
+    final lineStyle = _stylesUtils.fromJson(
       nextNewLine.operation?.attributes ?? <String, dynamic>{},
     );
-    final blockStyle = lineStyle.getBlocksExceptHeader();
+    final blockStyle = _stylesUtils.getBlocksExceptHeader(lineStyle);
 
     // Are we currently in a block? If not then ignore.
     if (blockStyle.isEmpty) {
@@ -53,18 +59,19 @@ class PreserveBlockStyleOnInsertRule extends InsertRuleM {
 
     // Go over each inserted line and ensure block style is applied.
     final lines = data.split('\n');
-    final delta = DeltaM()..retain(index + (len ?? 0));
+    final changeDelta = DeltaM();
+    _du.retain(changeDelta, index + (len ?? 0));
 
     for (var i = 0; i < lines.length; i++) {
       final line = lines[i];
 
       if (line.isNotEmpty) {
-        delta.insert(line);
+        _du.insert(changeDelta, line);
       }
 
       if (i == 0) {
         // The first line should inherit the lineStyle entirely.
-        delta.insert('\n', lineStyle.toJson());
+        _du.insert(changeDelta, '\n', lineStyle.toJson());
       } else if (i < lines.length - 1) {
         // We don't want to insert a newline after the last chunk of text, so -1
         final blockAttributes = blockStyle.isEmpty
@@ -73,18 +80,20 @@ class PreserveBlockStyleOnInsertRule extends InsertRuleM {
                 (_, attribute) =>
                     MapEntry<String, dynamic>(attribute.key, attribute.value),
               );
-        delta.insert('\n', blockAttributes);
+        _du.insert(changeDelta, '\n', blockAttributes);
       }
     }
 
     // Reset style of the original newline character if needed.
     if (resetStyle.isNotEmpty) {
-      delta
-        ..retain(nextNewLine.offset!)
-        ..retain((nextNewLine.operation!.data as String).indexOf('\n'))
-        ..retain(1, resetStyle);
+      _du.retain(changeDelta, nextNewLine.offset!);
+      _du.retain(
+        changeDelta,
+        (nextNewLine.operation!.data as String).indexOf('\n'),
+      );
+      _du.retain(changeDelta, 1, resetStyle);
     }
 
-    return delta;
+    return changeDelta;
   }
 }

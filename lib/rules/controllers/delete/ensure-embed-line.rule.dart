@@ -1,29 +1,33 @@
-import '../../../documents/controllers/delta.iterator.dart';
-import '../../../documents/models/attribute.model.dart';
-import '../../../documents/models/delta/delta.model.dart';
+import '../../../document/controllers/delta.iterator.dart';
+import '../../../document/models/attributes/attribute.model.dart';
+import '../../../document/models/delta/delta.model.dart';
+import '../../../document/services/delta.utils.dart';
 import '../../models/delete-rule.model.dart';
 
 // Prevents user from merging a line containing an embed with other lines.
 class EnsureEmbedLineRule extends DeleteRuleM {
-  const EnsureEmbedLineRule();
+  final _du = DeltaUtils();
+
+  EnsureEmbedLineRule();
 
   @override
   DeltaM? applyRule(
-    DeltaM document,
+    DeltaM docDelta,
     int index, {
     int? len,
     Object? data,
     AttributeM? attribute,
+    String plainText = '',
   }) {
-    final itr = DeltaIterator(document);
-    var op = itr.skip(index);
+    final currItr = DeltaIterator(docDelta);
+    var operation = currItr.skip(index);
     int? indexDelta = 0, lengthDelta = 0, remain = len;
-    var embedFound = op != null && op.data is! String;
-    final hasLineBreakBefore =
-        !embedFound && (op == null || (op.data as String).endsWith('\n'));
+    var embedFound = operation != null && operation.data is! String;
+    final hasLineBreakBefore = !embedFound &&
+        (operation == null || (operation.data as String).endsWith('\n'));
 
     if (embedFound) {
-      var candidate = itr.next(1);
+      var candidate = currItr.next(1);
 
       if (remain != null) {
         remain--;
@@ -32,8 +36,9 @@ class EnsureEmbedLineRule extends DeleteRuleM {
           indexDelta++;
           lengthDelta--;
 
-          candidate = itr.next(1);
+          candidate = currItr.next(1);
           remain--;
+
           if (candidate.data == '\n') {
             lengthDelta++;
           }
@@ -41,11 +46,13 @@ class EnsureEmbedLineRule extends DeleteRuleM {
       }
     }
 
-    op = itr.skip(remain!);
+    operation = currItr.skip(remain!);
 
-    if (op != null &&
-        (op.data is String ? op.data as String? : '')!.endsWith('\n')) {
-      final candidate = itr.next(1);
+    // TODO Alias
+    if (operation != null &&
+        (operation.data is String ? operation.data as String? : '')!
+            .endsWith('\n')) {
+      final candidate = currItr.next(1);
 
       if (candidate.data is! String && !hasLineBreakBefore) {
         embedFound = true;
@@ -57,8 +64,11 @@ class EnsureEmbedLineRule extends DeleteRuleM {
       return null;
     }
 
-    return DeltaM()
-      ..retain(index + indexDelta)
-      ..delete(len! + lengthDelta);
+    final changeDelta = DeltaM();
+
+    _du.retain(changeDelta, index + indexDelta);
+    _du.delete(changeDelta, len! + lengthDelta);
+
+    return changeDelta;
   }
 }

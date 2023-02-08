@@ -6,13 +6,13 @@ import 'base/text-boundary.model.dart';
 class WordBoundary extends TextBoundaryM {
   const WordBoundary(
     this.textLayout,
-    this.textEditingValue,
+    this.plainText,
   );
 
   final TextLayoutMetrics textLayout;
 
   @override
-  final TextEditingValue textEditingValue;
+  final TextEditingValue plainText;
 
   @override
   TextPosition getLeadingTextBoundaryAt(TextPosition position) {

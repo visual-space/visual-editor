@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
-import '../../controller/services/editor-text.service.dart';
 import '../../editor/models/boundaries/character-boundary.model.dart';
+import '../../editor/services/editor.service.dart';
 import '../../shared/state/editor.state.dart';
 import '../controllers/copy-selection.action.dart';
 import '../controllers/delete-text.action.dart';
@@ -19,15 +19,18 @@ import '../models/whitespace-boundary.model.dart';
 import '../models/word-boundary.model.dart';
 import 'clipboard.service.dart';
 
+// Recognizes standard keyboard interactions and triggers document changes accordingly.
+// (change selection, copy, paste etc)
 class KeyboardActionsService {
-  final _editorTextService = EditorTextService();
-  final _clipboardService = ClipboardService();
+  late final EditorService _editorService;
+  late final ClipboardService _clipboardService;
 
-  static final _instance = KeyboardActionsService._privateConstructor();
+  final EditorState state;
 
-  factory KeyboardActionsService() => _instance;
-
-  KeyboardActionsService._privateConstructor();
+  KeyboardActionsService(this.state) {
+    _editorService = EditorService(state);
+    _clipboardService = ClipboardService(state);
+  }
 
   // The method returns a map of intents and actions.
   // This system is built in Flutter to facilitate handling of text fields.
@@ -40,140 +43,131 @@ class KeyboardActionsService {
   // Also it contains a lot of if branches.
   // I'm thinking some of this code overlaps partly and can be isolated in
   // unique classes for a simpler code architecture.
-  Map<Type, Action<Intent>> getActions(
-    BuildContext context,
-    EditorState state,
-  ) =>
-      <Type, Action<Intent>>{
-        // === VARIOUS ===
+  Map<Type, Action<Intent>> getActions(BuildContext context) {
+    _initAndCacheAdjacentLineAction();
+    final plainText = _editorService.plainText;
 
-        DoNothingAndStopPropagationTextIntent: DoNothingAction(
-          consumesKey: false,
-        ),
-        ReplaceTextIntent: CallbackAction<ReplaceTextIntent>(
-          onInvoke: (intent) => _clipboardService.replaceText(intent, state),
-        ),
-        UpdateSelectionIntent: CallbackAction<UpdateSelectionIntent>(
-          onInvoke: (intent) => _updateSelection(intent, state),
-        ),
-        DirectionalFocusIntent: DirectionalFocusAction.forTextField(),
+    return <Type, Action<Intent>>{
+      // === VARIOUS ===
 
-        // === DELETE ===
+      DoNothingAndStopPropagationTextIntent: DoNothingAction(
+        consumesKey: false,
+      ),
+      ReplaceTextIntent: CallbackAction<ReplaceTextIntent>(
+        onInvoke: _clipboardService.removeSpecialCharsAndUpdateDocTextAndStyle,
+      ),
+      UpdateSelectionIntent: CallbackAction<UpdateSelectionIntent>(
+        onInvoke: _updateSelection,
+      ),
+      DirectionalFocusIntent: DirectionalFocusAction.forTextField(),
 
-        DeleteCharacterIntent: _makeOverridable(
-          DeleteTextAction<DeleteCharacterIntent>(_characterBoundary, state),
-          context,
-        ),
-        DeleteToNextWordBoundaryIntent: _makeOverridable(
-          DeleteTextAction<DeleteToNextWordBoundaryIntent>(
-            _nextWordBoundary,
-            state,
-          ),
-          context,
-        ),
-        DeleteToLineBreakIntent: _makeOverridable(
-          DeleteTextAction<DeleteToLineBreakIntent>(_linebreak, state),
-          context,
-        ),
+      // === DELETE ===
 
-        // === EXTEND/MOVE SELECTION ===
+      DeleteCharacterIntent: _makeOverridable(
+        DeleteTextAction<DeleteCharacterIntent>(_characterBoundary, state),
+        context,
+      ),
+      DeleteToNextWordBoundaryIntent: _makeOverridable(
+        DeleteTextAction<DeleteToNextWordBoundaryIntent>(
+          _nextWordBoundary,
+          state,
+        ),
+        context,
+      ),
+      DeleteToLineBreakIntent: _makeOverridable(
+        DeleteTextAction<DeleteToLineBreakIntent>(_linebreak, state),
+        context,
+      ),
 
-        ExtendSelectionByCharacterIntent: _makeOverridable(
-          UpdateTextSelectionAction<ExtendSelectionByCharacterIntent>(
-            false,
-            _characterBoundary,
-            state,
-          ),
-          context,
-        ),
-        ExtendSelectionToNextWordBoundaryIntent: _makeOverridable(
-          UpdateTextSelectionAction<ExtendSelectionToNextWordBoundaryIntent>(
-            true,
-            _nextWordBoundary,
-            state,
-          ),
-          context,
-        ),
-        ExtendSelectionToLineBreakIntent: _makeOverridable(
-          UpdateTextSelectionAction<ExtendSelectionToLineBreakIntent>(
-            true,
-            _linebreak,
-            state,
-          ),
-          context,
-        ),
-        ExtendSelectionVerticallyToAdjacentLineIntent: _makeOverridable(
-          UpdateTextSelectionToAdjacentLineAction<
-              ExtendSelectionVerticallyToAdjacentLineIntent>(state),
-          context,
-        ),
-        ExtendSelectionToDocumentBoundaryIntent: _makeOverridable(
-          UpdateTextSelectionAction<ExtendSelectionToDocumentBoundaryIntent>(
-            true,
-            (intent, state) => DocumentBoundary(
-              state.refs.editorController.plainTextEditingValue,
-            ),
-            state,
-          ),
-          context,
-        ),
-        ExtendSelectionToNextWordBoundaryOrCaretLocationIntent:
-            _makeOverridable(
-          ExtendSelectionOrCaretPositionAction(
-            _nextWordBoundary,
-            state,
-          ),
-          context,
-        ),
+      // === EXTEND/MOVE SELECTION ===
 
-        // === COPY PASTE ===
+      ExtendSelectionByCharacterIntent: _makeOverridable(
+        UpdateTextSelectionAction<ExtendSelectionByCharacterIntent>(
+          false,
+          _characterBoundary,
+          state,
+        ),
+        context,
+      ),
+      ExtendSelectionToNextWordBoundaryIntent: _makeOverridable(
+        UpdateTextSelectionAction<ExtendSelectionToNextWordBoundaryIntent>(
+          true,
+          _nextWordBoundary,
+          state,
+        ),
+        context,
+      ),
+      ExtendSelectionToLineBreakIntent: _makeOverridable(
+        UpdateTextSelectionAction<ExtendSelectionToLineBreakIntent>(
+          true,
+          _linebreak,
+          state,
+        ),
+        context,
+      ),
+      ExtendSelectionVerticallyToAdjacentLineIntent: _makeOverridable(
+        state.refs.adjacentLineAction!,
+        context,
+      ),
+      ExtendSelectionToDocumentBoundaryIntent: _makeOverridable(
+        UpdateTextSelectionAction<ExtendSelectionToDocumentBoundaryIntent>(
+          true,
+          (intent) => DocumentBoundary(plainText),
+          state,
+        ),
+        context,
+      ),
+      ExtendSelectionToNextWordBoundaryOrCaretLocationIntent: _makeOverridable(
+        ExtendSelectionOrCaretPositionAction(
+          _nextWordBoundary,
+          state,
+        ),
+        context,
+      ),
 
-        SelectAllTextIntent: _makeOverridable(
-          SelectAllAction(state),
-          context,
+      // === COPY PASTE ===
+
+      SelectAllTextIntent: _makeOverridable(
+        SelectAllAction(state),
+        context,
+      ),
+      CopySelectionTextIntent: _makeOverridable(
+        CopySelectionAction(state),
+        context,
+      ),
+      PasteTextIntent: _makeOverridable(
+        CallbackAction<PasteTextIntent>(
+          onInvoke: (intent) => _clipboardService.pasteText(intent.cause),
         ),
-        CopySelectionTextIntent: _makeOverridable(
-          CopySelectionAction(state),
-          context,
-        ),
-        PasteTextIntent: _makeOverridable(
-          CallbackAction<PasteTextIntent>(
-            onInvoke: (intent) => _clipboardService.pasteText(
-              intent.cause,
-              state,
-            ),
-          ),
-          context,
-        ),
-      };
+        context,
+      ),
+    };
+  }
 
   // === PRIVATE ===
 
-  TextBoundaryM _characterBoundary(
-    DirectionalTextEditingIntent intent,
-    EditorState state,
-  ) {
+  void _initAndCacheAdjacentLineAction() {
+    state.refs.adjacentLineAction ??= UpdateTextSelectionToAdjacentLineAction<
+        ExtendSelectionVerticallyToAdjacentLineIntent>(state);
+  }
+
+  TextBoundaryM _characterBoundary(DirectionalTextEditingIntent intent) {
     final TextBoundaryM atomicTextBoundary = CharacterBoundary(state);
 
     return CollapsedSelectionBoundary(atomicTextBoundary, intent.forward);
   }
 
-  TextBoundaryM _nextWordBoundary(
-    DirectionalTextEditingIntent intent,
-    EditorState state,
-  ) {
+  TextBoundaryM _nextWordBoundary(DirectionalTextEditingIntent intent) {
     final TextBoundaryM atomicTextBoundary;
     final TextBoundaryM boundary;
+    final plainText = _editorService.plainText;
 
     atomicTextBoundary = CharacterBoundary(state);
 
     // This isn't enough. Newline characters.
     boundary = ExpandedTextBoundary(
-      WhitespaceBoundary(state.refs.editorController.plainTextEditingValue),
-      WordBoundary(
-        state.refs.renderer,
-        state.refs.editorController.plainTextEditingValue,
-      ),
+      WhitespaceBoundary(plainText),
+      WordBoundary(state.refs.renderer, plainText),
     );
 
     final mixedBoundary = intent.forward
@@ -184,36 +178,25 @@ class KeyboardActionsService {
     return CollapsedSelectionBoundary(mixedBoundary, intent.forward);
   }
 
-  TextBoundaryM _linebreak(
-    DirectionalTextEditingIntent intent,
-    EditorState state,
-  ) {
+  TextBoundaryM _linebreak(DirectionalTextEditingIntent intent) {
     final TextBoundaryM atomicTextBoundary;
     final TextBoundaryM boundary;
+    final plainText = _editorService.plainText;
 
     atomicTextBoundary = CharacterBoundary(state);
-    boundary = LineBreak(
-      state.refs.renderer,
-      state.refs.editorController.plainTextEditingValue,
-    );
+    boundary = LineBreak(state.refs.renderer, plainText);
 
     // The _MixedBoundary is to make sure we don't leave invalid code units in the field after deletion.
     // `boundary` doesn't need to be wrapped in a _CollapsedSelectionBoundary,
     // since the document boundary is unique and the linebreak boundary is already caret-location based.
     return intent.forward
         ? MixedBoundary(
-            CollapsedSelectionBoundary(
-              atomicTextBoundary,
-              true,
-            ),
+            CollapsedSelectionBoundary(atomicTextBoundary, true),
             boundary,
           )
         : MixedBoundary(
             boundary,
-            CollapsedSelectionBoundary(
-              atomicTextBoundary,
-              false,
-            ),
+            CollapsedSelectionBoundary(atomicTextBoundary, false),
           );
   }
 
@@ -230,23 +213,17 @@ class KeyboardActionsService {
     );
   }
 
-  void _updateSelection(
-    UpdateSelectionIntent intent,
-    EditorState state,
-  ) {
-    _editorTextService.userUpdateTextEditingValue(
+  void _updateSelection(UpdateSelectionIntent intent) {
+    _editorService.removeSpecialCharsAndUpdateDocTextAndStyle(
       intent.currentTextEditingValue.copyWith(
         selection: intent.newSelection,
       ),
       intent.cause,
-      state,
     );
   }
 
   UpdateTextSelectionToAdjacentLineAction<
-      ExtendSelectionVerticallyToAdjacentLineIntent> getAdjacentLineAction(
-    EditorState state,
-  ) =>
-      UpdateTextSelectionToAdjacentLineAction<
+          ExtendSelectionVerticallyToAdjacentLineIntent>
+      getAdjacentLineAction() => UpdateTextSelectionToAdjacentLineAction<
           ExtendSelectionVerticallyToAdjacentLineIntent>(state);
 }

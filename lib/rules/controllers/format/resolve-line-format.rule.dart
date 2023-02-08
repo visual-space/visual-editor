@@ -1,62 +1,77 @@
-import '../../../documents/controllers/delta.iterator.dart';
-import '../../../documents/models/attribute-scope.enum.dart';
-import '../../../documents/models/attribute.model.dart';
-import '../../../documents/models/attributes/attributes-types.model.dart';
-import '../../../documents/models/delta/delta.model.dart';
-import '../../../documents/models/delta/operation.model.dart';
+import '../../../document/controllers/delta.iterator.dart';
+import '../../../document/models/attributes/attribute-scope.enum.dart';
+import '../../../document/models/attributes/attribute.model.dart';
+import '../../../document/models/attributes/attributes-types.model.dart';
+import '../../../document/models/delta/delta.model.dart';
+import '../../../document/models/delta/operation.model.dart';
+import '../../../document/services/delta.utils.dart';
 import '../../models/format-rule.model.dart';
 
 // Produces Delta with line-level attributes applied strictly to newline characters.
 class ResolveLineFormatRule extends FormatRuleM {
-  const ResolveLineFormatRule();
+  final _du = DeltaUtils();
+
+  ResolveLineFormatRule();
 
   @override
   DeltaM? applyRule(
-    DeltaM document,
+    DeltaM docDelta,
     int index, {
     int? len,
     Object? data,
     AttributeM? attribute,
+    String plainText = '',
   }) {
     if (attribute!.scope != AttributeScope.BLOCK) {
       return null;
     }
 
     // Apply line styles to all newline characters within range of this retain operation.
-    var result = DeltaM()..retain(index);
-    final itr = DeltaIterator(document)..skip(index);
-    OperationM op;
+    var changeDelta = DeltaM();
 
-    for (var cur = 0; cur < len! && itr.hasNext; cur += op.length!) {
-      op = itr.next(len - cur);
-      final opText = op.data is String ? op.data as String : '';
+    _du.retain(changeDelta, index);
+
+    final currItr = DeltaIterator(docDelta)..skip(index);
+    OperationM operation;
+
+    for (var cur = 0; cur < len! && currItr.hasNext; cur += operation.length!) {
+      operation = currItr.next(len - cur);
+      final opText = operation.data is String ? operation.data as String : '';
 
       if (!opText.contains('\n')) {
-        result.retain(op.length!);
+        _du.retain(changeDelta, operation.length!);
+
         continue;
       }
 
-      final delta = _applyAttribute(opText, op, attribute);
-      result = result.concat(delta);
+      final attrDelta = _applyAttribute(opText, operation, attribute);
+      changeDelta = _du.concat(changeDelta, attrDelta);
     }
 
     // And include extra newline after retain
-    while (itr.hasNext) {
-      op = itr.next();
-      final opText = op.data is String ? op.data as String : '';
+    while (currItr.hasNext) {
+      operation = currItr.next();
+      final opText = operation.data is String ? operation.data as String : '';
       final lf = opText.indexOf('\n');
 
       if (lf < 0) {
-        result.retain(op.length!);
+        _du.retain(changeDelta, operation.length!);
+
         continue;
       }
 
-      final delta = _applyAttribute(opText, op, attribute, firstOnly: true);
-      result = result.concat(delta);
+      final attrDelta = _applyAttribute(
+        opText,
+        operation,
+        attribute,
+        firstOnly: true,
+      );
+      changeDelta = _du.concat(changeDelta, attrDelta);
+
       break;
     }
 
-    return result;
+    return changeDelta;
   }
 
   DeltaM _applyAttribute(
@@ -65,40 +80,41 @@ class ResolveLineFormatRule extends FormatRuleM {
     AttributeM attribute, {
     bool firstOnly = false,
   }) {
-    final result = DeltaM();
+    final changeDelta = DeltaM();
     var offset = 0;
     var lf = text.indexOf('\n');
     final removedBlocks = _getRemovedBlocks(attribute, op);
 
     while (lf >= 0) {
       final actualStyle = attribute.toJson()..addEntries(removedBlocks);
-      result
-        ..retain(lf - offset)
-        ..retain(1, actualStyle);
+
+      _du.retain(changeDelta, lf - offset);
+      _du.retain(changeDelta, 1, actualStyle);
 
       if (firstOnly) {
-        return result;
+        return changeDelta;
       }
 
       offset = lf + 1;
       lf = text.indexOf('\n', offset);
     }
-    // Retain any remaining characters in text
-    result.retain(text.length - offset);
 
-    return result;
+    // Retain any remaining characters in text
+    _du.retain(changeDelta, text.length - offset);
+
+    return changeDelta;
   }
 
   Iterable<MapEntry<String, dynamic>> _getRemovedBlocks(
     AttributeM<dynamic> attribute,
-    OperationM op,
+    OperationM operation,
   ) {
     // Enforce Block Format exclusivity by rule
     if (!AttributesTypesM.exclusiveBlockKeys.contains(attribute.key)) {
       return <MapEntry<String, dynamic>>[];
     }
 
-    return op.attributes?.keys
+    return operation.attributes?.keys
             .where((key) =>
                 AttributesTypesM.exclusiveBlockKeys.contains(key) &&
                 attribute.key != key &&

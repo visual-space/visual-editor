@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-// Used to render permanent highlights on top of documents.
+// Used to render permanent highlights on top of document.
 // Added manually via the toolbar and programmatically via the controller.
 // Removed manually using an attached widget or programmatically via the controller.
 // Widget attachments can be linked to the position of a widget using the pixel coordinates data.

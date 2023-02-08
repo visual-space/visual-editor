@@ -2,16 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../controller/controllers/editor-controller.dart';
-import '../../../documents/models/nodes/embed.model.dart';
-import '../../../embeds/const/embeds.const.dart';
+import '../../../embeds/services/embeds.service.dart';
 import '../../../shared/models/editor-dialog-theme.model.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
+import '../../../shared/state/editor-state-receiver.dart';
+import '../../../shared/state/editor.state.dart';
 import '../../models/media-pick.enum.dart';
 import '../../models/media-picker.type.dart';
 import '../dialogs/link-dialog.dart';
 import '../toolbar.dart';
 
-class VideoButton extends StatelessWidget {
+// Adds video in the document.
+// ignore: must_be_immutable
+class VideoButton extends StatelessWidget with EditorStateReceiver {
+  late final EmbedsService _embedsService;
+  late final MediaLoaderService _imageVideoUtils;
+
   final IconData icon;
   final double iconSize;
   final Color? fillColor;
@@ -23,8 +29,9 @@ class VideoButton extends StatelessWidget {
   final EditorIconThemeM? iconTheme;
   final EditorDialogThemeM? dialogTheme;
   final double buttonsSpacing;
+  late EditorState _state;
 
-  const VideoButton({
+  VideoButton({
     required this.icon,
     required this.controller,
     required this.buttonsSpacing,
@@ -37,7 +44,16 @@ class VideoButton extends StatelessWidget {
     this.iconTheme,
     this.dialogTheme,
     Key? key,
-  }) : super(key: key);
+  }) : super(key: key) {
+    controller.setStateInEditorStateReceiver(this);
+    _embedsService = EmbedsService(_state);
+    _imageVideoUtils = MediaLoaderService(_state);
+  }
+
+  @override
+  void cacheStateStore(EditorState state) {
+    _state = state;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,17 +75,18 @@ class VideoButton extends StatelessWidget {
       size: iconSize * 1.77,
       fillColor: iconFillColor,
       borderRadius: iconTheme?.borderRadius ?? 2,
-      onPressed: () => _onPressedHandler(context),
+      onPressed: () => _insertVideo(context),
     );
   }
 
   // === PRIVATE ===
 
-  Future<void> _onPressedHandler(BuildContext context) async {
+  Future<void> _insertVideo(BuildContext context) async {
     if (onVideoPickCallback != null) {
       final selector =
-          mediaPickSettingSelector ?? ImageVideoUtils.selectMediaPickSetting;
+          mediaPickSettingSelector ?? _imageVideoUtils.selectMediaPickSetting;
       final source = await selector(context);
+
       if (source != null) {
         if (source == MediaPickSettingE.Gallery) {
           _pickVideo(context);
@@ -82,9 +99,9 @@ class VideoButton extends StatelessWidget {
     }
   }
 
-  void _pickVideo(BuildContext context) => ImageVideoUtils.handleVideoButtonTap(
+  void _pickVideo(BuildContext context) =>
+      _imageVideoUtils.insertVideo(
         context,
-        controller,
         ImageSource.gallery,
         onVideoPickCallback!,
         filePickImpl: filePickImpl,
@@ -97,20 +114,6 @@ class VideoButton extends StatelessWidget {
       builder: (_) => LinkDialog(
         dialogTheme: dialogTheme,
       ),
-    ).then(_linkSubmitted);
-  }
-
-  void _linkSubmitted(String? videoUrl) {
-    if (videoUrl != null && videoUrl.isNotEmpty) {
-      final index = controller.selection.baseOffset;
-      final length = controller.selection.extentOffset - index;
-
-      controller.replaceText(
-        index,
-        length,
-        EmbedM(VIDEO_EMBED_TYPE, videoUrl),
-        null,
-      );
-    }
+    ).then(_embedsService.insertInSelectionVideoViaUrl);
   }
 }

@@ -12,10 +12,6 @@ class EditorSingleChildScrollView extends StatelessWidget {
   // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
   late EditorState _state;
 
-  void setState(EditorState state) {
-    _state = state;
-  }
-
   // Creates a box in which a single widget can be scrolled.
   EditorSingleChildScrollView({
     required this.viewportBuilder,
@@ -23,7 +19,7 @@ class EditorSingleChildScrollView extends StatelessWidget {
     Key? key,
     this.restorationId,
   }) : super(key: key) {
-    setState(state);
+    _cacheStateStore(state);
   }
 
   // {@macro flutter.widgets.scrollable.restorationId}
@@ -45,7 +41,7 @@ class EditorSingleChildScrollView extends StatelessWidget {
     final scrollable = Scrollable(
       axisDirection: axisDirection,
       controller: _state.refs.scrollController,
-      physics: _state.editorConfig.config.scrollPhysics,
+      physics: _state.config.scrollPhysics,
       restorationId: restorationId,
       viewportBuilder: (context, offset) {
         return SingleChildViewport(
@@ -56,5 +52,9 @@ class EditorSingleChildScrollView extends StatelessWidget {
     );
 
     return scrollable;
+  }
+
+  void _cacheStateStore(EditorState state) {
+    _state = state;
   }
 }

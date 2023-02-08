@@ -1,55 +1,62 @@
-import '../../../documents/controllers/delta.iterator.dart';
-import '../../../documents/models/attribute-scope.enum.dart';
-import '../../../documents/models/attribute.model.dart';
-import '../../../documents/models/delta/delta.model.dart';
-import '../../../documents/models/delta/operation.model.dart';
+import '../../../document/controllers/delta.iterator.dart';
+import '../../../document/models/attributes/attribute-scope.enum.dart';
+import '../../../document/models/attributes/attribute.model.dart';
+import '../../../document/models/delta/delta.model.dart';
+import '../../../document/models/delta/operation.model.dart';
+import '../../../document/services/delta.utils.dart';
 import '../../models/format-rule.model.dart';
 
 // Produces Delta with inline-level attributes applied to all characters except newlines.
 class ResolveInlineFormatRule extends FormatRuleM {
-  const ResolveInlineFormatRule();
+  final _du = DeltaUtils();
+
+  ResolveInlineFormatRule();
 
   @override
   DeltaM? applyRule(
-    DeltaM document,
+    DeltaM docDelta,
     int index, {
     int? len,
     Object? data,
     AttributeM? attribute,
+    String plainText = '',
   }) {
     if (attribute!.scope != AttributeScope.INLINE) {
       return null;
     }
 
-    final delta = DeltaM()..retain(index);
-    final itr = DeltaIterator(document)..skip(index);
-    OperationM op;
+    final changeDelta = DeltaM();
 
-    for (var cur = 0; cur < len! && itr.hasNext; cur += op.length!) {
-      op = itr.next(len - cur);
-      final text = op.data is String ? (op.data as String?)! : '';
+    _du.retain(changeDelta, index);
+
+    final currItr = DeltaIterator(docDelta)..skip(index);
+    OperationM operation;
+
+    for (var cur = 0; cur < len! && currItr.hasNext; cur += operation.length!) {
+      operation = currItr.next(len - cur);
+      final text = operation.data is String ? (operation.data as String?)! : '';
       var lineBreak = text.indexOf('\n');
 
       if (lineBreak < 0) {
-        delta.retain(op.length!, attribute.toJson());
+        _du.retain(changeDelta, operation.length!, attribute.toJson());
+
         continue;
       }
 
       var pos = 0;
 
       while (lineBreak >= 0) {
-        delta
-          ..retain(lineBreak - pos, attribute.toJson())
-          ..retain(1);
+        _du.retain(changeDelta, lineBreak - pos, attribute.toJson());
+        _du.retain(changeDelta, 1);
         pos = lineBreak + 1;
         lineBreak = text.indexOf('\n', pos);
       }
 
-      if (pos < op.length!) {
-        delta.retain(op.length! - pos, attribute.toJson());
+      if (pos < operation.length!) {
+        _du.retain(changeDelta, operation.length! - pos, attribute.toJson());
       }
     }
 
-    return delta;
+    return changeDelta;
   }
 }

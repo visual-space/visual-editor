@@ -7,17 +7,17 @@ import 'base/text-boundary.model.dart';
 // a part of the next word in the search direction.
 class WhitespaceBoundary extends TextBoundaryM {
   const WhitespaceBoundary(
-    this.textEditingValue,
+    this.plainText,
   );
 
   @override
-  final TextEditingValue textEditingValue;
+  final TextEditingValue plainText;
 
   @override
   TextPosition getLeadingTextBoundaryAt(TextPosition position) {
     for (var index = position.offset; index >= 0; index -= 1) {
       if (!TextLayoutMetrics.isWhitespace(
-          textEditingValue.text.codeUnitAt(index))) {
+          plainText.text.codeUnitAt(index))) {
         return TextPosition(offset: index);
       }
     }
@@ -28,15 +28,15 @@ class WhitespaceBoundary extends TextBoundaryM {
   @override
   TextPosition getTrailingTextBoundaryAt(TextPosition position) {
     for (var index = position.offset;
-        index < textEditingValue.text.length;
+        index < plainText.text.length;
         index += 1) {
       if (!TextLayoutMetrics.isWhitespace(
-        textEditingValue.text.codeUnitAt(index),
+        plainText.text.codeUnitAt(index),
       )) {
         return TextPosition(offset: index + 1);
       }
     }
 
-    return TextPosition(offset: textEditingValue.text.length);
+    return TextPosition(offset: plainText.text.length);
   }
 }

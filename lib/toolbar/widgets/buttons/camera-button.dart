@@ -3,10 +3,16 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../controller/controllers/editor-controller.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
+import '../../../shared/state/editor-state-receiver.dart';
+import '../../../shared/state/editor.state.dart';
 import '../../models/media-picker.type.dart';
 import '../toolbar.dart';
 
-class CameraButton extends StatelessWidget {
+// Insert in the document images capture via the camera.
+// ignore: must_be_immutable
+class CameraButton extends StatelessWidget with EditorStateReceiver {
+  late final MediaLoaderService _imageVideoUtils;
+
   final IconData icon;
   final double iconSize;
   final Color? fillColor;
@@ -18,8 +24,9 @@ class CameraButton extends StatelessWidget {
   final FilePickImpl? filePickImpl;
   final EditorIconThemeM? iconTheme;
   final double buttonsSpacing;
+  late EditorState _state;
 
-  const CameraButton({
+  CameraButton({
     required this.icon,
     required this.controller,
     required this.buttonsSpacing,
@@ -32,7 +39,15 @@ class CameraButton extends StatelessWidget {
     this.webVideoPickImpl,
     this.iconTheme,
     Key? key,
-  }) : super(key: key);
+  }) : super(key: key) {
+    controller.setStateInEditorStateReceiver(this);
+    _imageVideoUtils = MediaLoaderService(_state);
+  }
+
+  @override
+  void cacheStateStore(EditorState state) {
+    _state = state;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,9 +108,8 @@ class CameraButton extends StatelessWidget {
                     ),
                     label: const Text('Photo'),
                     onPressed: () {
-                      ImageVideoUtils.handleImageButtonTap(
+                      _imageVideoUtils.pickImage(
                         context,
-                        controller,
                         ImageSource.camera,
                         onImagePickCallback,
                         filePickImpl: filePickImpl,
@@ -110,9 +124,8 @@ class CameraButton extends StatelessWidget {
                     ),
                     label: const Text('Video'),
                     onPressed: () {
-                      ImageVideoUtils.handleVideoButtonTap(
+                      _imageVideoUtils.insertVideo(
                         context,
-                        controller,
                         ImageSource.camera,
                         onVideoPickCallback,
                         filePickImpl: filePickImpl,
@@ -127,9 +140,8 @@ class CameraButton extends StatelessWidget {
     }
 
     if (onImagePickCallback != null) {
-      return ImageVideoUtils.handleImageButtonTap(
+      return _imageVideoUtils.pickImage(
         context,
-        controller,
         ImageSource.camera,
         onImagePickCallback,
         filePickImpl: filePickImpl,
@@ -138,9 +150,8 @@ class CameraButton extends StatelessWidget {
     }
 
     assert(onVideoPickCallback != null, 'onVideoPickCallback must not be null');
-    return ImageVideoUtils.handleVideoButtonTap(
+    return _imageVideoUtils.insertVideo(
       context,
-      controller,
       ImageSource.camera,
       onVideoPickCallback!,
       filePickImpl: filePickImpl,

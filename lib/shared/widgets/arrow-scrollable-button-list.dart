@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-/// Scrollable list with arrow indicators.
-/// The arrow indicators are automatically hidden if the list is not scrollable in the direction of the respective arrow.
+// Scrollable list with arrow indicators.
+// The arrow indicators are automatically hidden if the list is not scrollable in the direction of the respective arrow.
 class ArrowScrollableButtonList extends StatefulWidget {
   final List<Widget> buttons;
 
@@ -40,15 +40,15 @@ class _ArrowScrollableButtonListState extends State<ArrowScrollableButtonList>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: <Widget>[
-        _leftArrow(),
-        _scrollableList(),
-        _rightArrow(),
-      ],
-    );
-  }
+  Widget build(BuildContext context) => _row(
+        children: [
+          _leftArrow(),
+          _scrollableList(
+            child: _buttons(),
+          ),
+          _rightArrow(),
+        ],
+      );
 
   @override
   void didChangeMetrics() => _handleScroll();
@@ -60,6 +60,73 @@ class _ArrowScrollableButtonListState extends State<ArrowScrollableButtonList>
     super.dispose();
   }
 
+  Row _row({required List<Widget> children}) => Row(
+        children: children,
+      );
+
+  Widget _leftArrow() => SizedBox(
+        width: 8,
+        child: Transform.translate(
+          // Move the icon a few pixels to center it
+          offset: Offset(-5, -3),
+          child: _showLeftArrow
+              ? const Icon(
+                  Icons.arrow_left,
+                  size: 18,
+                )
+              : null,
+        ),
+      );
+
+  Widget _scrollableList({required Widget child}) => Expanded(
+        child: Listener(
+          onPointerSignal: (pointerSignal) {
+            if (pointerSignal is PointerScrollEvent) {
+              _computeScroll(pointerSignal);
+            }
+          },
+          child: ScrollConfiguration(
+            // Remove the glowing effect, as we already have the arrow indicators
+            behavior: _ScrollBehavior(),
+
+            // The CustomScrollView is necessary so that the children are not stretched to the height of the buttons,
+            // https://bit.ly/3uC3bjI
+            child: CustomScrollView(
+              scrollDirection: Axis.horizontal,
+              controller: _controller,
+              physics: const ClampingScrollPhysics(),
+              slivers: [
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: child,
+                )
+              ],
+            ),
+          ),
+        ),
+      );
+
+  Row _buttons() => Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: widget.buttons,
+      );
+
+  Widget _rightArrow() => SizedBox(
+        width: 8,
+        child: Transform.translate(
+          // Move the icon a few pixels to center it
+          offset: Offset(-5, -3),
+          child: _showRightArrow
+              ? const Icon(
+                  Icons.arrow_right,
+                  size: 18,
+                )
+              : null,
+        ),
+      );
+
+  // === UTILS ===
+
   void _handleScroll() {
     if (!mounted) return;
 
@@ -69,71 +136,6 @@ class _ArrowScrollableButtonListState extends State<ArrowScrollableButtonList>
       _showRightArrow =
           _controller.position.maxScrollExtent != _controller.position.pixels;
     });
-  }
-
-  Widget _leftArrow() {
-    return SizedBox(
-      width: 8,
-      child: Transform.translate(
-        // Move the icon a few pixels to center it
-        offset: Offset(-5, -3),
-        child: _showLeftArrow
-            ? const Icon(
-                Icons.arrow_left,
-                size: 18,
-              )
-            : null,
-      ),
-    );
-  }
-
-  Widget _scrollableList() {
-    return Expanded(
-      child: Listener(
-        onPointerSignal: (pointerSignal) {
-          if (pointerSignal is PointerScrollEvent) {
-            _computeScroll(pointerSignal);
-          }
-        },
-        child: ScrollConfiguration(
-          // Remove the glowing effect, as we already have the arrow indicators
-          behavior: _ScrollBehavior(),
-
-          // The CustomScrollView is necessary so that the children are not stretched to the height of the buttons,
-          // https://bit.ly/3uC3bjI
-          child: CustomScrollView(
-            scrollDirection: Axis.horizontal,
-            controller: _controller,
-            physics: const ClampingScrollPhysics(),
-            slivers: [
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: widget.buttons,
-                ),
-              )
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _rightArrow() {
-    return SizedBox(
-      width: 8,
-      child: Transform.translate(
-        // Move the icon a few pixels to center it
-        offset: Offset(-5, -3),
-        child: _showRightArrow
-            ? const Icon(
-                Icons.arrow_right,
-                size: 18,
-              )
-            : null,
-      ),
-    );
   }
 
   // Horizontal scroll does not respond to the mouse wheel since the last flutter update

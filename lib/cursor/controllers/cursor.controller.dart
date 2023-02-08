@@ -41,20 +41,13 @@ class CursorController {
   set style(CursorStyle value) {
     if (_style == value) return;
     _style = value;
-    _state.cursor.updateCursor();
+    _state.cursor.paintCursor();
   }
 
   // True when this CursorCont instance has been disposed.
   // A safety mechanism to prevent the value of a disposed controller from getting set.
   bool _isDisposed = false;
-
-  // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
-  // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
   late EditorState _state;
-
-  void setState(EditorState state) {
-    _state = state;
-  }
 
   CursorController({
     required this.show,
@@ -64,7 +57,7 @@ class CursorController {
   })  : _style = style,
         blink = ValueNotifier(false),
         color = ValueNotifier(style.color) {
-    setState(state);
+    cacheStateStore(state);
     _blinkOpacityController = AnimationController(
       vsync: tickerProvider,
       duration: _fadeDuration,
@@ -125,6 +118,10 @@ class CursorController {
         (!_state.refs.focusNode.hasFocus || !selection.isCollapsed)) {
       stopCursorTimer();
     }
+  }
+
+  void cacheStateStore(EditorState state) {
+    _state = state;
   }
 
   // === PRIVATE ===

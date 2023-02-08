@@ -14,7 +14,7 @@ class CollapsedSelectionBoundary extends TextBoundaryM {
   final bool isForward;
 
   @override
-  TextEditingValue get textEditingValue => innerTextBoundary.textEditingValue;
+  TextEditingValue get plainText => innerTextBoundary.plainText;
 
   @override
   TextPosition getLeadingTextBoundaryAt(TextPosition position) {

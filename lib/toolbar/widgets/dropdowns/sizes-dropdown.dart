@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 
 import '../../../controller/controllers/editor-controller.dart';
-import '../../../documents/models/attributes/attributes.model.dart';
-import '../../../documents/services/attribute.utils.dart';
+import '../../../document/models/attributes/attributes.model.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
+import '../../../shared/state/editor-state-receiver.dart';
+import '../../../shared/state/editor.state.dart';
 import '../../../shared/widgets/editor-dropdown.dart';
+import '../../../styles/services/styles.service.dart';
 import '../../models/dropdown-option.model.dart';
+import '../../models/font-sizes.const.dart';
 
 // Controls the size of the currently selected text
 // ignore: must_be_immutable
-class SizesDropdown extends StatelessWidget {
+class SizesDropdown extends StatelessWidget with EditorStateReceiver {
+  late final StylesService _stylesService;
+
   final Map<String, int> fontSizes;
   final double iconSize;
   final EditorIconThemeM? iconTheme;
@@ -17,6 +22,7 @@ class SizesDropdown extends StatelessWidget {
   final EditorController controller;
   int initialFontSizeValue;
   late List<DropDownOptionM<int>> options;
+  late EditorState _state;
 
   SizesDropdown({
     required this.fontSizes,
@@ -27,27 +33,37 @@ class SizesDropdown extends StatelessWidget {
     this.iconTheme,
     Key? key,
   }) : super(key: key) {
+    controller.setStateInEditorStateReceiver(this);
+    _stylesService = StylesService(_state);
+
     options = _mapSizesToDropdownOptions(fontSizes);
   }
 
   @override
-  Widget build(BuildContext context) {
-    return EditorDropdown<int>(
-      iconTheme: iconTheme,
-      iconSize: toolbarIconSize,
-      attribute: AttributesM.size,
-      controller: controller,
-      options: options,
-      initialValue: _getInitialSize(),
-      onSelected: _selectSize,
-    );
+  void cacheStateStore(EditorState state) {
+    _state = state;
   }
 
-  List<DropDownOptionM<int>> _getInitialSize() {
+  @override
+  Widget build(BuildContext context) => EditorDropdown<int>(
+        iconTheme: iconTheme,
+        iconSize: toolbarIconSize,
+        attribute: AttributesM.size,
+        controller: controller,
+        options: options,
+        initialValue: _safelyGetInitialFontSize(),
+        onSelected: (size) => _stylesService.updateSelectionFontSize(
+          size.value,
+        ),
+      );
+
+  // If the custom initial size exceeds the available font size
+  // we default ot the default initial font size
+  List<DropDownOptionM<int>> _safelyGetInitialFontSize() {
     return [
       initialFontSizeValue <= fontSizes.length - 1
           ? options.firstWhere((option) => option.value == initialFontSizeValue)
-          : options.firstWhere((option) => option.value == 11),
+          : options.firstWhere((option) => option.value == INITIAL_FONT_SIZE),
     ];
   }
 
@@ -62,24 +78,4 @@ class SizesDropdown extends StatelessWidget {
             ),
           )
           .toList();
-
-  void _selectSize(DropDownOptionM<int> newSize) {
-    // Fail safe
-    if (newSize.value <= 0) {
-      return;
-    }
-
-    // Default text size removes the attribute from the text.
-    if (newSize.value == 11) {
-      controller.formatSelection(
-        AttributeUtils.fromKeyValue('size', null),
-      );
-
-      // Apply new size
-    } else {
-      controller.formatSelection(
-        AttributeUtils.fromKeyValue('size', newSize.value),
-      );
-    }
-  }
 }

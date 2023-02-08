@@ -5,16 +5,22 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../blocks/services/styles.utils.dart';
+import '../../shared/state/editor.state.dart';
+import '../../styles/services/styles-cfg.service.dart';
 
 // Widget for playing back video
 // Refer to https://github.com/flutter/plugins/tree/master/packages/video_player/video_player
 class VideoApp extends StatefulWidget {
-  const VideoApp({
+  late final EditorState _state;
+
+  VideoApp({
     required this.videoUrl,
     required this.context,
     required this.readOnly,
-  });
+    required EditorState state,
+  }) {
+    _state = state;
+  }
 
   final String videoUrl;
   final BuildContext context;
@@ -25,10 +31,14 @@ class VideoApp extends StatefulWidget {
 }
 
 class _VideoAppState extends State<VideoApp> {
+  late final StylesCfgService _stylesCfgService;
+
   late VideoPlayerController _controller;
 
   @override
   void initState() {
+    _stylesCfgService = StylesCfgService(widget._state);
+
     super.initState();
 
     _controller = widget.videoUrl.startsWith('http')
@@ -45,7 +55,8 @@ class _VideoAppState extends State<VideoApp> {
 
   @override
   Widget build(BuildContext context) {
-    final defaultStyles = getDefaultStyles(context); // TODO Use from state
+    // TODO Use from state
+    final defaultStyles = _stylesCfgService.getDefaultStyles(context);
 
     if (_controller.value.hasError) {
       if (widget.readOnly) {

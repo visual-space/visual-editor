@@ -1,16 +1,71 @@
 ![Visual-editor-teaser](https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/visual-editor-teaser.jpg)
 
-Visual Editor is a Rich Text editor for [Flutter] originally forked from [Flutter Quill]. The editor is built around the powerful [Quilljs Delta] document format originally developed by QuillJs. Delta documents can be easily converted to JSON, the encoding is easy to read and modify and offers many extensibility options. This document explains the reasons why we forked [why we forked Quill](https://github.com/visual-space/visual-editor/blob/develop/QUILL_FORK.md).
+Visual Editor is a Rich Text editor for [Flutter] originally forked from [Flutter Quill]. The editor is built around the powerful [Quilljs Delta] document format originally developed by QuillJs. Delta documents can be easily converted to JSON, the encoding is easy to read and modify and offers many extensibility options. This document explains the reasons [why we forked Quill](https://github.com/visual-space/visual-editor/blob/develop/QUILL_FORK.md) and the improvements that were made.
+<p align="center">
+  <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/visual-editor-demo.gif"/>
+</p>
 
-<img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/visual-editor-demo.gif"/>
+## Highlights
 
-## How To Start
+Highlight custom regions of text with temporary markers that are sensitive to taps and hovering. Highlights are not stored in the delta document. Useful when you want to temporarily showcase a particular range of text. Check out the [highlights docs](https://github.com/visual-space/visual-editor/blob/develop/lib/highlights/highlights.md).
 
-**Clone via Github**
+<p align="center">
+  <img src="https://github.com/visual-space/visual-editor/blob/feature/174-sys-improve-file-folders-structure/example/assets/github/highlights.gif"/>
+</p>
 
-The current version is getting close to a clean state, ready to be published in pub.dev without major changes. Until published on pub dev you can try it out by linking directly from Github:
+## Markers
+Markers have similar mechanics as highlights but instead of being stored temporarily in the controller they are stored permanently in the document. Markers can be enabled or disabled on demand. Check out the [markers docs](https://github.com/visual-space/visual-editor/blob/develop/lib/markers/markers.md).
 
-**pubspec.yaml**
+<p align="center">
+  <img src="https://github.com/visual-space/visual-editor/blob/feature/174-sys-improve-file-folders-structure/example/assets/github/markers.gif"/>
+</p>
+
+## Markers Attachments
+Markers can have attachments assigned to them. Custom data can be stored in the attachments. Visual Editor exposes the necessary hooks to implement markers attachments. You can easily customize all the behaviours/rendering. Check out the [markers docs](https://github.com/visual-space/visual-editor/blob/develop/lib/markers/markers.md).
+
+<p align="center">
+  <img src="https://github.com/visual-space/visual-editor/blob/feature/174-sys-improve-file-folders-structure/example/assets/github/markers-attachments.gif"/>
+</p>
+
+## Quick Menu
+A quick menu can be displayed on top of the current text selection, on top of highlights or markers, or any arbitrary region of text. Visual Editor exposes the necessary hooks to implement custom menus. You can easily customize all the behaviours/rendering.
+
+<p align="center">
+  <img src="https://github.com/visual-space/visual-editor/blob/feature/174-sys-improve-file-folders-structure/example/assets/github/quick-menu.gif"/>
+</p>
+
+## Jump To Heading
+A document index can be displayed. Tapping the headings will scroll the document to the correct position. Visual Editor exposes the necessary hooks to implement custom menus. You can easily customize all the behaviours/rendering.
+
+<p align="center">
+  <img src="https://github.com/visual-space/visual-editor/blob/feature/174-sys-improve-file-folders-structure/example/assets/github/headings-index.gif"/>
+</p>
+
+## Headings Validation
+Fancy behaviours such as custom validation of heading lengths can be implemented. We extract a list of headings, we check against custom validation rules and we display highlights where we spot problems. This is by no means a standard feature in rich text editors, therefore we expose the hooks needed to implement it. You can easily customize all the behaviours/rendering.
+
+<p align="center">
+  <img src="https://github.com/visual-space/visual-editor/blob/feature/174-sys-improve-file-folders-structure/example/assets/github/headings-validation.gif"/>
+</p>
+
+## Custom Embeds
+Inside of delta document you can inject any type of custom embed. Custom embeds store the data necessary to init the embed. In order to render custom embeds client apps need to provide the custom embed builders. Visual Editor exposes the necessary hooks to implement custom menus. You can easily customize all the behaviours/rendering. Check out the [custom embeds docs](https://github.com/visual-space/visual-editor/blob/develop/lib/embeds/embeds.md).
+
+<p align="center">
+  <img src="https://github.com/visual-space/visual-editor/blob/feature/174-sys-improve-file-folders-structure/example/assets/github/custom-embeds.gif"/>
+</p>
+
+## Planned Features
+- Better links editing UI
+- Hashtags
+- At notation
+- Slash commands
+- Coop editing
+- Math formulas
+
+## Getting Started
+
+The current version is getting close to a clean state. Visual Editor will soon be ready to be published in pub.dev without major changes. Until then you can use it by linking directly from Github:
 
 ```
 dependencies:
@@ -18,9 +73,7 @@ dependencies:
     git: https://github.com/visual-space/visual-editor.git
 ```
 
-**Minimal Example**
-
-You will need a controller that controllers an editor and an editor toolbar.
+**Minimal Example** - You will need an editor, a toolbar and a controller to link them together.
 
 ```dart
 final _controller = EditorController.basic();
@@ -39,7 +92,7 @@ Column(
 )
 ```
 
-Make sure you don't overwrite the `EditorController` via `setState()`, otherwise you will lose the document's edit history. Which means no more undo, redo with the previous states. In general avoid using `setState()` to update the document. There are methods available in the `EditorController` for such tasks.
+Make sure you don't create a new `EditorController` instance on `setState()`. This mistake degrades performance and you will lose the document's edit history. You can update or change the document directly from the [controller](https://github.com/visual-space/visual-editor/blob/develop/lib/controller/controller.md). We have a dedicated page for [performance](https://github.com/visual-space/visual-editor/blob/develop/PERFORMANCE.md) tips and tricks.
 
 **Saving a Document**
 ```dart
@@ -103,18 +156,18 @@ In this repository you can also find a demo app with various pages that showcase
 - Soon we will have a website with the same demo pages so you don't have to run the samples locally.
 
 ## Documentation
-Learn more about Visual Editor architecture and how to use the features.
+For a detailed overview of the public API and the code architecture check out our documentation:
 
-- **[Editor (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/editor/editor.md)** - The widget that renders the document content as commanded by the `EditorController`.
-- **[Editor Controller (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/controller/editor-controller.md)** - Controls the editor, and the editor toolbar, exposes useful callbacks.
-- **[Documents (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/documents/documents.md)** - Delta documents are used to store text edits and styling attributes.
-- **[Toolbar (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/toolbar/toolbar.md)** - Displays buttons used to edit the styling of the text.
-- **[Blocks (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/blocks/blocks.md)** - Documents templates are composed of lines of text and blocks of text.
-- **[Embeds (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/embeds/embeds.md)** - Visual Editor can display any custom component inside of the documents.
-- **[Cursor (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/cursor/cursor.md)** - Indicates the position where new characters will be inserted.
-- **[Inputs (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/inputs/inputs.md)** - Hardware Keyboard and Software keyboard.
-- **[Rules (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/rules/rules.md)** - Rules execute behavior when certain condition are met.
-- **[Selection (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/selection/selection.md)** - Handles the rendering of text selection handles and toolbar.
+- **[Editor](https://github.com/visual-space/visual-editor/blob/develop/lib/editor/editor.md)** - The widget that renders the document content as commanded by the `EditorController`.
+- **[Controller](https://github.com/visual-space/visual-editor/blob/develop/lib/controller/controller.md)** - Controls the editor, and the editor toolbar, exposes useful callbacks.
+- **[Documents](https://github.com/visual-space/visual-editor/blob/develop/lib/document/document.md)** - Delta documents are used to store text edits and styling attributes.
+- **[Toolbar](https://github.com/visual-space/visual-editor/blob/develop/lib/toolbar/toolbar.md)** - Displays buttons used to edit the styling of the text.
+- **[Document Tree](https://github.com/visual-space/visual-editor/blob/develop/lib/doc-tree/doc-tree.md)** - Documents templates are composed of lines of text and blocks of text.
+- **[Embeds](https://github.com/visual-space/visual-editor/blob/develop/lib/embeds/embeds.md)** - Visual Editor can display any custom component inside of the documents.
+- **[Cursor](https://github.com/visual-space/visual-editor/blob/develop/lib/cursor/cursor.md)** - Indicates the position where new characters will be inserted.
+- **[Inputs](https://github.com/visual-space/visual-editor/blob/develop/lib/inputs/inputs.md)** - Hardware Keyboard and Software keyboard.
+- **[Rules](https://github.com/visual-space/visual-editor/blob/develop/lib/rules/rules.md)** - Rules execute behavior when certain condition are met.
+- **[Selection](https://github.com/visual-space/visual-editor/blob/develop/lib/selection/selection.md)** - Handles the rendering of text selection handles and toolbar.
 - **[Highlights](https://github.com/visual-space/visual-editor/blob/develop/lib/highlights/highlights.md)** - Renders temporary text markers sensitive to taps.
 - **[Markers](https://github.com/visual-space/visual-editor/blob/develop/lib/markers/markers.md)** - Renders permanent text markers sensitive to taps as part of the delta document.
 - **[Performance](https://github.com/visual-space/visual-editor/blob/develop/PERFORMANCE.md)** - Basic tips to follow in order to maintain the editor's performance.
@@ -125,9 +178,9 @@ Learn more about Visual Editor architecture and how to use the features.
 **For Contributors:**
 
 - **[State Store](https://github.com/visual-space/visual-editor/blob/develop/lib/shared/state-store.md)** - State store architecture decisions.
-- **[Project Structure (WIP)](https://github.com/visual-space/visual-editor/blob/develop/lib/shared/project-structure.md)** - Overview of the major modules and modules folder structure.
+- **[Project Structure](https://github.com/visual-space/visual-editor/blob/develop/lib/shared/project-structure.md)** - Overview of the major modules and modules folder structure.
 - **[Guidelines](https://github.com/visual-space/visual-editor/blob/develop/GUIDELINES.md)** - Coding guidelines for code quality and architecture.
-- **[Guidelines](https://github.com/visual-space/visual-editor/blob/develop/COOKBOOK.md)** - These are common API calls used to achieve document changes in the .
+- **[Cookbook](https://github.com/visual-space/visual-editor/blob/develop/COOKBOOK.md)** - These are common API calls used to process documents via the controller or editor.
 
 ## Who Is Using Visual Editor?
 

@@ -1,4 +1,4 @@
-import '../../documents/models/delta/operation.model.dart';
+import '../../document/models/delta/operation.model.dart';
 
 class NewOperationM {
   final OperationM? operation;

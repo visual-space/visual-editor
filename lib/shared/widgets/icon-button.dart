@@ -24,29 +24,27 @@ class IconBtn extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.symmetric(
-        horizontal: buttonsSpacing,
-      ),
-      child: ConstrainedBox(
-        constraints: BoxConstraints.tightFor(
-          width: size,
-          height: size,
+  Widget build(BuildContext context) => Container(
+        margin: EdgeInsets.symmetric(
+          horizontal: buttonsSpacing,
         ),
-        child: RawMaterialButton(
-          visualDensity: VisualDensity.compact,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(borderRadius),
+        child: ConstrainedBox(
+          constraints: BoxConstraints.tightFor(
+            width: size,
+            height: size,
           ),
-          fillColor: fillColor,
-          elevation: 0,
-          hoverElevation: hoverElevation,
-          highlightElevation: hoverElevation,
-          onPressed: onPressed,
-          child: icon,
+          child: RawMaterialButton(
+            visualDensity: VisualDensity.compact,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(borderRadius),
+            ),
+            fillColor: fillColor,
+            elevation: 0,
+            hoverElevation: hoverElevation,
+            highlightElevation: hoverElevation,
+            onPressed: onPressed,
+            child: icon,
+          ),
         ),
-      ),
-    );
-  }
+      );
 }

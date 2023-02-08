@@ -14,10 +14,10 @@ class MixedBoundary extends TextBoundaryM {
   final TextBoundaryM trailingTextBoundary;
 
   @override
-  TextEditingValue get textEditingValue {
-    assert(leadingTextBoundary.textEditingValue ==
-        trailingTextBoundary.textEditingValue);
-    return leadingTextBoundary.textEditingValue;
+  TextEditingValue get plainText {
+    assert(leadingTextBoundary.plainText ==
+        trailingTextBoundary.plainText);
+    return leadingTextBoundary.plainText;
   }
 
   @override

@@ -5,11 +5,11 @@ import 'base/text-boundary.model.dart';
 // The document boundary is unique and is a constant function of the input position.
 class DocumentBoundary extends TextBoundaryM {
   const DocumentBoundary(
-    this.textEditingValue,
+    this.plainText,
   );
 
   @override
-  final TextEditingValue textEditingValue;
+  final TextEditingValue plainText;
 
   @override
   TextPosition getLeadingTextBoundaryAt(TextPosition position) =>
@@ -17,7 +17,7 @@ class DocumentBoundary extends TextBoundaryM {
 
   @override
   TextPosition getTrailingTextBoundaryAt(TextPosition position) => TextPosition(
-        offset: textEditingValue.text.length,
+        offset: plainText.text.length,
         affinity: TextAffinity.upstream,
       );
 }

@@ -1,6 +1,13 @@
 # Changelog
 If you want to learn more about the specs, all tickets are available by following the hashtag links.
 
+## [0.8.0] Improved file/folders structure [#174](https://github.com/visual-space/visual-editor/issues/174)
+- Sys - Improve file/folders structure
+- Improve Readme.md, added screen captures of the new features
+- Grouped demo pages navigation menu in categories
+- Grouped demo pages into modules
+- Removed `defaultToggleStyleButtonBuilder` from `ToggleStyleButton` and from `ToggleCheckListButton`
+
 ## [0.7.0] Custom Embeds [#157](https://github.com/visual-space/visual-editor/issues/157)
 * Demos - Demo page for adding new items in document.
 * Headings - Added text selection for headers [#195](https://github.com/visual-space/visual-editor/issues/195)

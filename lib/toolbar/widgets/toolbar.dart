@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:i18n_extension/i18n_widget.dart';
 
 import '../../controller/controllers/editor-controller.dart';
-import '../../documents/models/attributes/attributes-aliases.model.dart';
-import '../../documents/models/attributes/attributes.model.dart';
+import '../../document/models/attributes/attributes-aliases.model.dart';
+import '../../document/models/attributes/attributes.model.dart';
 import '../../shared/models/editor-dialog-theme.model.dart';
 import '../../shared/models/editor-icon-theme.model.dart';
 import '../../shared/widgets/arrow-scrollable-button-list.dart';
@@ -18,15 +18,15 @@ import 'buttons/history-button.dart';
 import 'buttons/image-button.dart';
 import 'buttons/indent-button.dart';
 import 'buttons/link-style-button.dart';
-import 'buttons/select-alignment-button.dart';
-import 'buttons/select-header-style-button.dart';
+import 'buttons/select-alignment-buttons.dart';
+import 'buttons/select-header-style-buttons.dart';
 import 'buttons/toggle-check-list-button.dart';
 import 'buttons/toggle-style-button.dart';
 import 'buttons/video-button.dart';
 import 'dropdowns/markers-dropdown.dart';
 import 'dropdowns/sizes-dropdown.dart';
 
-export '../../embeds/services/image-video.utils.dart';
+export '../../embeds/services/media-loader.service.dart';
 export '../../shared/widgets/icon-button.dart';
 export 'buttons/clear-format-button.dart';
 export 'buttons/color-button.dart';
@@ -34,8 +34,8 @@ export 'buttons/history-button.dart';
 export 'buttons/image-button.dart';
 export 'buttons/indent-button.dart';
 export 'buttons/link-style-button.dart';
-export 'buttons/select-alignment-button.dart';
-export 'buttons/select-header-style-button.dart';
+export 'buttons/select-alignment-buttons.dart';
+export 'buttons/select-header-style-buttons.dart';
 export 'buttons/toggle-check-list-button.dart';
 export 'buttons/toggle-style-button.dart';
 export 'buttons/video-button.dart';
@@ -79,7 +79,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => Size.fromHeight(toolbarHeight);
 
-  const EditorToolbar({
+  EditorToolbar({
     required this.children,
     this.toolbarHeight = 36,
     this.toolbarIconAlignment = WrapAlignment.center,
@@ -146,7 +146,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
     Map<String, int>? fontSizeValues,
     int? initialFontSizeValue,
 
-    // The theme to use for the icons in the buttons, uses type EditorIconThemeM
+    // The theme to use for the icons in the buttons
     EditorIconThemeM? iconTheme,
 
     // The theme to use for the theming of the LinkDialog(), shown when embedding an image, for example
@@ -211,7 +211,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
             iconSize: toolbarIconSize,
             controller: controller,
             buttonsSpacing: toolbarSectionSpacing,
-            undo: true,
+            isUndo: true,
             iconTheme: iconTheme,
           ),
         if (showRedo)
@@ -220,7 +220,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
             iconSize: toolbarIconSize,
             controller: controller,
             buttonsSpacing: toolbarSectionSpacing,
-            undo: false,
+            isUndo: false,
             iconTheme: iconTheme,
           ),
         if (showFontSize)
@@ -229,7 +229,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
             controller: controller,
             toolbarIconSize: toolbarIconSize,
             iconTheme: iconTheme,
-            initialFontSizeValue: initialFontSizeValue ?? 11,
+            initialFontSizeValue: initialFontSizeValue ?? INITIAL_FONT_SIZE,
           ),
         if (showBoldButton)
           ToggleStyleButton(
@@ -360,7 +360,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
                 isButtonGroupShown[5]))
           _divider(),
         if (showAlignmentButtons)
-          SelectAlignmentButton(
+          SelectAlignmentButtons(
             controller: controller,
             iconSize: toolbarIconSize,
             iconTheme: iconTheme,
@@ -387,7 +387,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
                 isButtonGroupShown[5]))
           _divider(),
         if (showHeaderStyle)
-          SelectHeaderStyleButton(
+          SelectHeaderStyleButtons(
             controller: controller,
             buttonsSpacing: toolbarSectionSpacing,
             iconSize: toolbarIconSize,
@@ -505,28 +505,26 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return I18n(
-      initialLocale: locale,
-      child: multiRowsDisplay
-          ? Container(
-              padding: EdgeInsets.symmetric(horizontal: 10),
-              color: color ?? Theme.of(context).canvasColor,
-              child: Wrap(
-                alignment: toolbarIconAlignment,
-                runSpacing: 4,
-                children: children,
+  Widget build(BuildContext context) => I18n(
+        initialLocale: locale,
+        child: multiRowsDisplay
+            ? Container(
+                padding: EdgeInsets.symmetric(horizontal: 10),
+                color: color ?? Theme.of(context).canvasColor,
+                child: Wrap(
+                  alignment: toolbarIconAlignment,
+                  runSpacing: 4,
+                  children: children,
+                ),
+              )
+            : Container(
+                constraints: BoxConstraints.tightFor(
+                  height: preferredSize.height,
+                ),
+                color: color ?? Theme.of(context).canvasColor,
+                child: ArrowScrollableButtonList(
+                  buttons: children,
+                ),
               ),
-            )
-          : Container(
-              constraints: BoxConstraints.tightFor(
-                height: preferredSize.height,
-              ),
-              color: color ?? Theme.of(context).canvasColor,
-              child: ArrowScrollableButtonList(
-                buttons: children,
-              ),
-            ),
-    );
-  }
+      );
 }

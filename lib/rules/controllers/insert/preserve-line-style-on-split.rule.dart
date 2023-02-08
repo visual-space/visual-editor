@@ -1,6 +1,7 @@
-import '../../../documents/controllers/delta.iterator.dart';
-import '../../../documents/models/attribute.model.dart';
-import '../../../documents/models/delta/delta.model.dart';
+import '../../../document/controllers/delta.iterator.dart';
+import '../../../document/models/attributes/attribute.model.dart';
+import '../../../document/models/delta/delta.model.dart';
+import '../../../document/services/delta.utils.dart';
 import '../../models/insert-rule.model.dart';
 import '../../models/rules.utils.dart';
 
@@ -8,22 +9,25 @@ import '../../models/rules.utils.dart';
 // This rule ignores scenarios when the line is split on its edge,
 // meaning a newline is inserted at the beginning or the end of a line.
 class PreserveLineStyleOnSplitRule extends InsertRuleM {
-  const PreserveLineStyleOnSplitRule();
+  final _du = DeltaUtils();
+
+  PreserveLineStyleOnSplitRule();
 
   @override
   DeltaM? applyRule(
-    DeltaM document,
+    DeltaM docDelta,
     int index, {
     int? len,
     Object? data,
     AttributeM? attribute,
+    String plainText = '',
   }) {
     if (data is! String || data != '\n') {
       return null;
     }
 
-    final itr = DeltaIterator(document);
-    final before = itr.skip(index);
+    final currItr = DeltaIterator(docDelta);
+    final before = currItr.skip(index);
 
     if (before == null ||
         before.data is! String ||
@@ -31,24 +35,27 @@ class PreserveLineStyleOnSplitRule extends InsertRuleM {
       return null;
     }
 
-    final after = itr.next();
+    final after = currItr.next();
 
     if (after.data is! String || (after.data as String).startsWith('\n')) {
       return null;
     }
 
     final text = after.data as String;
-    final delta = DeltaM()..retain(index + (len ?? 0));
+    final changeDelta = DeltaM();
+    _du.retain(changeDelta, index + (len ?? 0));
 
     if (text.contains('\n')) {
       assert(after.isPlain);
-      delta.insert('\n');
-      return delta;
+      _du.insert(changeDelta, '\n');
+      return changeDelta;
     }
 
-    final nextNewLine = getNextNewLine(itr);
+    final nextNewLine = getNextNewLine(currItr);
     final attributes = nextNewLine.operation?.attributes;
 
-    return delta..insert('\n', attributes);
+    _du.insert(changeDelta, '\n', attributes);
+
+    return changeDelta;
   }
 }

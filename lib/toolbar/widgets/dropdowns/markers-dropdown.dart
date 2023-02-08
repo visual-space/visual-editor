@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../controller/controllers/editor-controller.dart';
-import '../../../documents/models/attributes/attributes.model.dart';
+import '../../../document/models/attributes/attributes.model.dart';
 import '../../../markers/const/default-marker-type.const.dart';
+import '../../../markers/services/markers.service.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
 import '../../../shared/state/editor-state-receiver.dart';
 import '../../../shared/state/editor.state.dart';
@@ -22,21 +23,15 @@ import '../../models/dropdown-option.model.dart';
 // Applies one of the available marker types.
 // ignore: must_be_immutable
 class MarkersDropdown extends StatelessWidget with EditorStateReceiver {
+  late final MarkersService _markersService;
+
   final double iconSize;
   final EditorIconThemeM? iconTheme;
   final double toolbarIconSize;
   final EditorController controller;
   final double buttonsSpacing;
   late List<DropDownOptionM<String>> _markersTypes;
-
-  // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
-  // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
   late EditorState _state;
-
-  @override
-  void setState(EditorState state) {
-    _state = state;
-  }
 
   MarkersDropdown({
     required this.toolbarIconSize,
@@ -47,7 +42,13 @@ class MarkersDropdown extends StatelessWidget with EditorStateReceiver {
     Key? key,
   }) : super(key: key) {
     controller.setStateInEditorStateReceiver(this);
+    _markersService = MarkersService(_state);
     _initMarkersTypes();
+  }
+
+  @override
+  void cacheStateStore(EditorState state) {
+    _state = state;
   }
 
   @override
@@ -69,7 +70,7 @@ class MarkersDropdown extends StatelessWidget with EditorStateReceiver {
 
   // Initialises the dropdown options with the markers types as defined in the controller (or uses a default).
   void _initMarkersTypes() {
-    final markersTypes = _state.markersTypes.types;
+    final markersTypes = _state.markersTypes.markersTypes;
 
     // Custom markers types
     if (markersTypes.isNotEmpty) {
@@ -146,6 +147,6 @@ class MarkersDropdown extends StatelessWidget with EditorStateReceiver {
 
   // The logic used to add new markers on top of existing ones or from scratch.
   void _selectMarker(DropDownOptionM<String> markerOption) {
-    controller.addMarker(markerOption.value);
+    _markersService.addMarker(markerOption.value);
   }
 }

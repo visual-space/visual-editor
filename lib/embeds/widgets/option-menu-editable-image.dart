@@ -2,29 +2,51 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../controller/controllers/editor-controller.dart';
-import '../../documents/models/attributes/styling-attributes.dart';
+import '../../document/models/attributes/styling-attributes.dart';
+import '../../editor/services/editor.service.dart';
+import '../../inputs/services/clipboard.service.dart';
+import '../../shared/state/editor-state-receiver.dart';
+import '../../shared/state/editor.state.dart';
 import '../../shared/translations/toolbar.i18n.dart';
 import '../../shared/utils/string.utils.dart';
+import '../../styles/services/styles.service.dart';
 import '../models/content-size.model.dart';
 import '../models/image.model.dart';
-import '../services/embed.utils.dart';
-import '../services/image.utils.dart';
+import '../services/embeds.service.dart';
+import '../services/media-loader.service.dart';
 import 'image-resizer.dart';
 import 'simple-dialog-item.dart';
 
 // Option menu for editable images that can: resize, copy or remove the image
-class OptionMenuEditableImage extends StatelessWidget {
-  final _imageUtils = ImageUtils();
-  final _embedUtils = EmbedUtils();
+// ignore: must_be_immutable
+class OptionMenuEditableImage extends StatelessWidget with EditorStateReceiver {
+  late final EditorService _editorService;
+  late final ClipboardService _clipboardService;
+  late final StylesService _stylesService;
+  late final MediaLoaderService _mediaLoaderService;
+  late final EmbedsService _embedsService;
 
   final EditorController controller;
   final Widget child;
+  late EditorState _state;
 
   OptionMenuEditableImage({
     required this.controller,
     required this.child,
     Key? key,
-  }) : super(key: key);
+  }) : super(key: key) {
+    controller.setStateInEditorStateReceiver(this);
+    _editorService = EditorService(_state);
+    _clipboardService = ClipboardService(_state);
+    _stylesService = StylesService(_state);
+    _mediaLoaderService = MediaLoaderService(_state);
+    _embedsService = EmbedsService(_state);
+  }
+
+  @override
+  void cacheStateStore(EditorState state) {
+    _state = state;
+  }
 
   @override
   Widget build(BuildContext context) => GestureDetector(
@@ -64,19 +86,15 @@ class OptionMenuEditableImage extends StatelessWidget {
 
               return ImageResizer(
                 onImageResize: (width, height) {
-                  final res = _embedUtils.getEmbedOffset(
-                    controller: controller,
-                  );
+                  final res = _embedsService.getEmbedOffset();
                   final attr = replaceStyleString(
-                    _imageUtils.getImageStyleString(controller),
+                    _mediaLoaderService.getImageStyleString(),
                     width,
                     height,
                   );
-                  controller.formatText(
-                    res.offset,
-                    1,
-                    StyleAttributeM(attr),
-                  );
+                  final style = StyleAttributeM(attr);
+
+                  _stylesService.formatSelectedText(res.offset, 1, style);
                 },
                 imageWidth: _imageSize.width,
                 imageHeight: _imageSize.height,
@@ -93,18 +111,12 @@ class OptionMenuEditableImage extends StatelessWidget {
         color: Colors.cyanAccent,
         text: 'Copy'.i18n,
         onPressed: () {
-          final imageNode = _embedUtils
-              .getEmbedOffset(
-                controller: controller,
-              )
-              .embed;
+          final imgNode = _embedsService.getEmbedOffset().embed;
+          final imgUrl = imgNode.value.payload;
+          final imgStyle = _mediaLoaderService.getImageStyleString();
+          final image = ImageM(imgUrl, imgStyle);
 
-          final imageUrl = imageNode.value.payload;
-
-          controller.copiedImageUrl = ImageM(
-            imageUrl,
-            _imageUtils.getImageStyleString(controller),
-          );
+          _clipboardService.setCopiedImageUrl(image);
 
           Navigator.pop(context);
         },
@@ -115,16 +127,10 @@ class OptionMenuEditableImage extends StatelessWidget {
         color: Colors.red.shade200,
         text: 'Remove'.i18n,
         onPressed: () {
-          final offset =
-              _embedUtils.getEmbedOffset(controller: controller).offset;
+          final offset = _embedsService.getEmbedOffset().offset;
+          final newSelection = TextSelection.collapsed(offset: offset);
 
-          controller.replaceText(
-            offset,
-            1,
-            '',
-            TextSelection.collapsed(offset: offset),
-          );
-
+          _editorService.replaceText(offset, 1, '', newSelection);
           Navigator.pop(context);
         },
       );

@@ -53,12 +53,19 @@ final MARKERS_TYPES = [
 ];
 ```
 
-Create a new controller and provide the markers you desire.
+Create a new editor and controller pair and then provide the markers you desire.
 ```dart
 final _controller = EditorController(
   document: doc,
-  selection: const TextSelection.collapsed(offset: 0),
-  markersTypes: MARKERS_TYPES,
+);
+```
+```dart
+Widget _editor() => VisualEditor(
+  controller: _controller,
+  config: EditorConfigM(
+    selection: const TextSelection.collapsed(offset: 0),
+    markersTypes: MARKERS_TYPES,
+  ),
 );
 ```
 
@@ -118,10 +125,8 @@ _controller.isMarkerTypeVisible(); // Query if certain type of markers is disabl
 For certain scenarios it might be desired to init the editor with the markers turned off. Later the markers can be enabled using the editor controller API.
 
 ```dart
- VisualEditor(
+VisualEditor(
   controller: _controller,
-  scrollController: ScrollController(),
-  focusNode: _focusNode,
   config: EditorConfigM(
     markersVisibility: true,
   ),
@@ -150,12 +155,19 @@ Additionally I've added 2 callbacks for the editor:
 ```dart
 _controller = EditorController(
   document: document,
-  markerTypes: [
-    //...
-  ],
-  onBuildComplete: _updateMarkerAttachments,
-  onScroll: _updateMarkerAttachments,
-  // ...
+);
+```
+```dart
+Widget _editor() => VisualEditor(
+  controller: _controller,
+  config: EditorConfigM(
+    markerTypes: [
+      //...
+    ],
+    onBuildComplete: _updateMarkerAttachments,
+    onScroll: _updateMarkerAttachments,
+  ),
+);
 ```
 You can hook into these callback to run whatever rendering logic you need for attachments. Basically you have:
 - Markers data
@@ -173,11 +185,6 @@ final StreamController<List<MarkerM>> markers$;
 
 _controller = EditorController(
   document: document,
-  markerTypes: [
-    // MarkerTypeM(), ...
-  ],
-  onBuildComplete: _updateMarkerAttachments,
-  onScroll: _updateMarkerAttachments,
 );
 
 @override
@@ -191,7 +198,13 @@ Widget build(BuildContext context) =>
         controller: _controller!,
         scrollController: _scrollController,
         focusNode: _focusNode,
-        config: EditorConfigM(),
+        config: EditorConfigM(
+          markerTypes: [
+            // MarkerTypeM(), ...
+          ],
+          onBuildComplete: _updateMarkerAttachments,
+          onScroll: _updateMarkerAttachments,
+        ),
       ),
     ]
   );
@@ -214,22 +227,22 @@ In some situations, we want to use one of the markers' types for rendering attac
 
 *json after implementation*
 ```json
- {
-        "insert": "Text\n",
-        "attributes": {
-          "markers": [
-            {
-              "id": "5471139741564000",
-              "type": "spoiler"
-            },
-            {
-              "id": "5456839741567000",
-              "type": "comments",
-              "data": "comments data or uuid"
-            }
-          ]
-        }
+{
+  "insert": "Text\n",
+  "attributes": {
+    "markers": [
+      {
+        "id": "5471139741564000",
+        "type": "spoiler"
+      },
+      {
+        "id": "5456839741567000",
+        "type": "comments",
+        "data": "comments data or uuid"
       }
+    ]
+  }
+}
 ```
 
 ## Displaying A Custom Widget When Tapping A Marker
@@ -256,12 +269,14 @@ Widget build(BuildContext context) => Stack(
 );
 ```
 
-Init the editor controller with callbacks defined for the markers types.
+Init the editor with callbacks defined for the markers types.
 
 ```dart
-void _initEditorController(DocumentM document) {
-  _controller = EditorController(
-    document: document,
+Widget _editor() => VisualEditor(
+  controller: _controller,
+  scrollController: _scrollController,
+  focusNode: _focusNode,
+  config: EditorConfigM(
     onScroll: _updateQuickMenuPosition,
     
     // Hide menu while the selection is changing
@@ -279,8 +294,8 @@ void _initEditorController(DocumentM document) {
         onSingleTapUp: _displayQuickMenuOnMarker,
       ),
     ],
-  );
-}
+  ),
+);
 ```
 
 ## How Markers Are Rendered (explained for maintainers)
@@ -288,13 +303,12 @@ Similar to highlights that used the selection rendering logic we will render abo
 
 **Toggle Markers**
 
-The `_toggleMarkers$` stream is used to trigger `markForPaint()` in every `EditableTextLineRenderer` (similar to how the cursor updates it's animated opacity). We can't use `_state.refreshEditor.refreshEditor()` because there's no new content, therefore Flutter change detection will not find any change, so it wont trigger any repaint.
+The `_toggleMarkers$` stream is used to trigger `markForPaint()` in every `EditableTextLineRenderer` (similar to how the cursor updates it's animated opacity). We can't use `_state.runBuild.runBuild()` because there's no new content, therefore Flutter change detection will not find any change, so it wont trigger any repaint.
 
 **Hover Markers**
 
 In Flutter we don't have any built in mechanic for easily detecting hover over random stretches of text. Therefore we have to write our own code for detecting hovering over markers. When the editor is initialised we store all the markers in the state store. Once the build() method is executed we have references to all the rendering classes for every single class. Using a callback after build we query every single line to check if it has markers, and if so we request the rectangles needed to draw the markers. Unlike highlights, markers are sliced per line by default (when DeltaM is converted to DocumentM). For each marker we cache also the local to global offset of the line where it is hosted. This offset will be essential to align the pointer coordinates with the markers rectangles coordinates. 
 
-Once we have the rectangles we cache them by deep cloning the markers to include this information. When the user pointer enters the editor screen space then the TextGestures widget matches the correct action (onHover). In the on hover method we check every single marker to see if any of the rectangles are intersected by the pointer. Once one or many markers are matched we then cache the ids. On every single hover event we compare if new ids have been added or removed. For each added or removed marker we run the corresponding callbacks defined by the marker type. Then we cache the new hovered markers in the state store and trigger a new editor refresh (build cycle). When the editor is running the build cycle each line will check again for markers that it has to draw and will apply the hovering color according to the hovered markers from the state stare.
-
+Once we have the rectangles we cache them by deep cloning the markers to include this information. When the user pointer enters the editor screen space then the TextGestures widget matches the correct action (onHover). In the on hover method we check every single marker to see if any of the rectangles are intersected by the pointer. Once one or many markers are matched we then cache the ids. On every single hover event we compare if new ids have been added or removed. For each added or removed marker we run the corresponding callbacks defined by the marker type. Then we cache the new hovered markers in the state store and trigger a new editor build (layout update). When the editor is running the build cycle each line will check again for markers that it has to draw and will apply the hovering color according to the hovered markers from the state stare.
 
 Join on [discord](https://discord.gg/XpGygmXde4) to get advice and help or follow us on [YouTube Visual Coding](https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA) to learn more about the architecture of Visual Editor and other Flutter apps.

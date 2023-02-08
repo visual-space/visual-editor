@@ -1,32 +1,35 @@
 import 'package:flutter/material.dart';
 
+import '../../editor/services/editor.service.dart';
 import '../../shared/state/editor.state.dart';
 import '../models/base/text-boundary.model.dart';
 
+// TODO Doc
 class UpdateTextSelectionAction<T extends DirectionalCaretMovementIntent>
     extends ContextAction<T> {
+  late final EditorService _editorService;
+
   final bool ignoreNonCollapsedSelection;
-  final TextBoundaryM Function(
-    T intent,
-    EditorState state,
-  ) getTextBoundariesForIntent;
+  final TextBoundaryM Function(T intent) getTextBoundariesForIntent;
   final EditorState state;
 
   UpdateTextSelectionAction(
     this.ignoreNonCollapsedSelection,
     this.getTextBoundariesForIntent,
     this.state,
-  );
+  ) {
+    _editorService = EditorService(state);
+  }
 
   @override
   Object? invoke(T intent, [BuildContext? context]) {
-    final selection =
-        state.refs.editorController.plainTextEditingValue.selection;
+    final plainText = _editorService.plainText;
+    final selection = plainText.selection;
 
     assert(selection.isValid);
 
-    final collapseSelection = intent.collapseSelection ||
-        !state.editorConfig.config.enableInteractiveSelection;
+    final collapseSelection =
+        intent.collapseSelection || !state.config.enableInteractiveSelection;
 
     // Collapse to the logical start/end.
     TextSelection _collapse(TextSelection selection) {
@@ -45,15 +48,15 @@ class UpdateTextSelectionAction<T extends DirectionalCaretMovementIntent>
       return Actions.invoke(
         context!,
         UpdateSelectionIntent(
-          state.refs.editorController.plainTextEditingValue,
+          plainText,
           _collapse(selection),
           SelectionChangedCause.keyboard,
         ),
       );
     }
 
-    final textBoundary = getTextBoundariesForIntent(intent, state);
-    final textBoundarySelection = textBoundary.textEditingValue.selection;
+    final textBoundary = getTextBoundariesForIntent(intent);
+    final textBoundarySelection = textBoundary.plainText.selection;
 
     if (!textBoundarySelection.isValid) {
       return null;
@@ -65,7 +68,7 @@ class UpdateTextSelectionAction<T extends DirectionalCaretMovementIntent>
       return Actions.invoke(
         context!,
         UpdateSelectionIntent(
-          state.refs.editorController.plainTextEditingValue,
+          plainText,
           _collapse(textBoundarySelection),
           SelectionChangedCause.keyboard,
         ),
@@ -89,7 +92,7 @@ class UpdateTextSelectionAction<T extends DirectionalCaretMovementIntent>
       return Actions.invoke(
         context!,
         UpdateSelectionIntent(
-          state.refs.editorController.plainTextEditingValue,
+          plainText,
           TextSelection.fromPosition(selection.base),
           SelectionChangedCause.keyboard,
         ),
@@ -99,7 +102,7 @@ class UpdateTextSelectionAction<T extends DirectionalCaretMovementIntent>
     return Actions.invoke(
       context!,
       UpdateSelectionIntent(
-        textBoundary.textEditingValue,
+        textBoundary.plainText,
         newSelection,
         SelectionChangedCause.keyboard,
       ),
@@ -107,6 +110,7 @@ class UpdateTextSelectionAction<T extends DirectionalCaretMovementIntent>
   }
 
   @override
-  bool get isActionEnabled =>
-      state.refs.editorController.plainTextEditingValue.selection.isValid;
+  bool get isActionEnabled {
+    return _editorService.plainText.selection.isValid;
+  }
 }

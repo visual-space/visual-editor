@@ -11,7 +11,7 @@ class MarkersVisibilityState {
   bool get visibility => _visibility;
 
   // Used to trigger markForPaint() in EditableTextLineRenderer (similar to how the cursor updates it's animated opacity).
-  // We can't use _state.refreshEditor.refreshEditor() because there's no new content,
+  // We can't use _state.runBuild.runBuild() because there's no new content,
   // Therefore Flutter change detection will not find any change, so it wont trigger any repaint.
   final _toggleMarkers$ = StreamController<void>.broadcast();
 

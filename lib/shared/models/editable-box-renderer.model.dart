@@ -1,8 +1,8 @@
 import 'package:flutter/rendering.dart';
 
-import '../../documents/models/nodes/container.model.dart';
+import '../../document/models/nodes/container.model.dart';
 
-// Base class for render boxes of editable blocks.
+// Base class for render boxes of editable doc-tree.
 // Implementations of this class usually work as a wrapper around
 // regular (non-editable) render boxes which implement RenderContentProxyBox.
 abstract class EditableBoxRenderer extends RenderBox {
@@ -10,11 +10,11 @@ abstract class EditableBoxRenderer extends RenderBox {
   ContainerM get container;
 
   // Returns preferred line height at specified `position` in text.
-  // The `position` parameter must be relative to the node's blocks.
+  // The `position` parameter must be relative to the node's doc-tree.
   double preferredLineHeight(TextPosition position);
 
   // Returns the offset at which to paint the caret.
-  // The `position` parameter must be relative to the node's blocks.
+  // The `position` parameter must be relative to the node's doc-tree.
   // Valid only after layout.
   Offset getOffsetForCaret(TextPosition position);
 
@@ -23,19 +23,19 @@ abstract class EditableBoxRenderer extends RenderBox {
   // Valid only after layout.
   TextPosition getPositionForOffset(Offset offset);
 
-  // Returns the position relative to the node blocks
-  // The `position` must be within the node blocks
+  // Returns the position relative to the node doc-tree
+  // The `position` must be within the node doc-tree
   TextPosition globalToLocalPosition(TextPosition position);
 
   // Returns the position within the text which is on the line above the given `position`.
-  // The `position` parameter must be relative to the node blocks.
+  // The `position` parameter must be relative to the node doc-tree.
   // Primarily used with multi-line or soft-wrapping text.
   // Can return `null` which indicates that the `position` is at the topmost
   // line in the text already.
   TextPosition? getPositionAbove(TextPosition position);
 
   // Returns the position within the text which is on the line below the given `position`.
-  // The `position` parameter must be relative to the node blocks.
+  // The `position` parameter must be relative to the node doc-tree.
   // Primarily used with multi-line or soft-wrapping text.
   // Can return `null` which indicates that the `position` is at the bottommost
   // line in the text already.
@@ -47,13 +47,13 @@ abstract class EditableBoxRenderer extends RenderBox {
   // contains the given text position.
   // Word boundaries are defined more precisely in Unicode Standard Annex #29
   // <http://www.unicode.org/reports/tr29/#Word_Boundaries>.
-  // The `position` parameter must be relative to the node's blocks.
+  // The `position` parameter must be relative to the node's doc-tree.
   // Valid only after layout.
   TextRange getWordBoundary(TextPosition position);
 
   // Returns the text range of the line at the given offset.
   // The newline, if any, is included in the range.
-  // The `position` parameter must be relative to the node's blocks.
+  // The `position` parameter must be relative to the node's doc-tree.
   // Valid only after layout.
   TextRange getLineBoundary(TextPosition position);
 
@@ -66,12 +66,12 @@ abstract class EditableBoxRenderer extends RenderBox {
   // Returns a point for the base selection handle used on touch-oriented devices.
   // The `selection` parameter is expected to be in local offsets to this
   // render object's node.
-  TextSelectionPoint getBaseEndpointForSelection(TextSelection textSelection);
+  TextSelectionPoint getBaseEndpointForSelection(TextSelection selection);
 
   // Returns a point for the extent selection handle used on touch-oriented devices.
   // The `selection` parameter is expected to be in local offsets to this
   // render object's node.
-  TextSelectionPoint getExtentEndpointForSelection(TextSelection textSelection);
+  TextSelectionPoint getExtentEndpointForSelection(TextSelection selection);
 
   // Returns the Rect in local coordinates for the caret at the given text position.
   Rect getLocalRectForCaret(TextPosition position);

@@ -2,13 +2,13 @@ import 'dart:math' as math;
 
 import 'package:flutter/rendering.dart';
 
-import '../../documents/models/nodes/container.model.dart';
+import '../../document/models/nodes/container.model.dart';
 import '../models/editable-box-renderer.model.dart';
 
 class EditableContainerParentData
     extends ContainerBoxParentData<EditableBoxRenderer> {}
 
-// Used by widgets that render multiline text in Visual Editor (the big editor and blocks of text).
+// Used by widgets that render multiline text in Visual Editor (the big editor and doc-tree of text).
 // Provides methods for computing the widget layout based on constraints from the parent.
 // Used/Extended by both the EditorRendererInner and the EditableTextBlockBoxRenderer.
 // Same layout computing logic needed by both text renderers.

@@ -1,33 +1,36 @@
 import 'package:flutter/material.dart';
 
+import '../../editor/services/editor.service.dart';
 import '../../shared/state/editor.state.dart';
 import '../models/base/text-boundary.model.dart';
 
 class ExtendSelectionOrCaretPositionAction extends ContextAction<
     ExtendSelectionToNextWordBoundaryOrCaretLocationIntent> {
+  late final EditorService _editorService;
+
   final EditorState state;
   final TextBoundaryM Function(
     ExtendSelectionToNextWordBoundaryOrCaretLocationIntent intent,
-    EditorState state,
   ) getTextBoundariesForIntent;
 
   ExtendSelectionOrCaretPositionAction(
     this.getTextBoundariesForIntent,
     this.state,
-  );
+  ) {
+    _editorService = EditorService(state);
+  }
 
   @override
   Object? invoke(
     ExtendSelectionToNextWordBoundaryOrCaretLocationIntent intent, [
     BuildContext? context,
   ]) {
-    final selection =
-        state.refs.editorController.plainTextEditingValue.selection;
+    final selection = _editorService.plainText.selection;
 
     assert(selection.isValid);
 
-    final textBoundary = getTextBoundariesForIntent(intent, state);
-    final textBoundarySelection = textBoundary.textEditingValue.selection;
+    final textBoundary = getTextBoundariesForIntent(intent);
+    final textBoundarySelection = textBoundary.plainText.selection;
 
     if (!textBoundarySelection.isValid) {
       return null;
@@ -54,7 +57,7 @@ class ExtendSelectionOrCaretPositionAction extends ContextAction<
     return Actions.invoke(
       context!,
       UpdateSelectionIntent(
-        textBoundary.textEditingValue,
+        textBoundary.plainText,
         newSelection,
         SelectionChangedCause.keyboard,
       ),
@@ -63,6 +66,6 @@ class ExtendSelectionOrCaretPositionAction extends ContextAction<
 
   @override
   bool get isActionEnabled =>
-      state.editorConfig.config.enableInteractiveSelection &&
-      state.refs.editorController.plainTextEditingValue.selection.isValid;
+      state.config.enableInteractiveSelection &&
+      _editorService.plainText.selection.isValid;
 }

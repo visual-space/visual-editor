@@ -1,20 +1,27 @@
 import 'package:flutter/cupertino.dart';
 
 import '../../../controller/controllers/editor-controller.dart';
-import '../../../documents/models/attribute.model.dart';
-import '../../../documents/models/attributes/attributes.model.dart';
-import '../../../documents/models/nodes/embed-node.model.dart';
+import '../../../document/models/attributes/attribute.model.dart';
+import '../../../document/models/attributes/attributes.model.dart';
+import '../../../document/models/nodes/embed-node.model.dart';
+import '../../../shared/state/editor.state.dart';
 import '../../../shared/utils/platform.utils.dart';
 import '../../../shared/utils/string.utils.dart';
 import '../../const/embeds.const.dart';
 import '../../models/embed-builder.model.dart';
-import '../../services/image.utils.dart';
 import '../../widgets/option-menu-editable-image.dart';
 import '../../widgets/option-menu-for-readonly-image.dart';
+import '../media-loader.service.dart';
 
 // Default embed builder for image embeds
 class ImageEmbedBuilder implements EmbedBuilderM {
-  const ImageEmbedBuilder();
+  late final MediaLoaderService _mediaLoaderService;
+
+  final EditorState _state;
+
+  ImageEmbedBuilder(this._state) {
+    _mediaLoaderService = MediaLoaderService(_state);
+  }
 
   @override
   final String type = IMAGE_EMBED_TYPE;
@@ -26,10 +33,11 @@ class ImageEmbedBuilder implements EmbedBuilderM {
     EmbedNodeM embed,
     bool readOnly,
   ) {
-    final imageUtils = ImageUtils();
     late Widget image;
-    final imageUrl = imageUtils.standardizeImageUrl(embed.value.payload);
-    final style = embed.style.attributes?['style'];
+    final imageUrl = _mediaLoaderService.standardizeImageUrl(
+      embed.value.payload,
+    );
+    final style = embed.style.attributes['style'];
 
     if (isMobile() && style != null) {
       final _attributes = _getAttributes(style);
@@ -42,7 +50,7 @@ class ImageEmbedBuilder implements EmbedBuilderM {
       }
     } else {
       // When NO attributes are present we get the content size from the widget itself
-      image = imageUtils.getImageByUrl(imageUrl);
+      image = _mediaLoaderService.getImageByUrl(imageUrl);
     }
 
     if (!readOnly && isMobile()) {
@@ -52,7 +60,7 @@ class ImageEmbedBuilder implements EmbedBuilderM {
       );
     }
 
-    final _isImageBase64 = imageUtils.isImageBase64(imageUrl);
+    final _isImageBase64 = _mediaLoaderService.isImageBase64(imageUrl);
 
     if (!readOnly || !isMobile() || _isImageBase64) {
       return image;
@@ -60,6 +68,7 @@ class ImageEmbedBuilder implements EmbedBuilderM {
 
     // We provide option menu for mobile platforms excluding base64 images
     return OptionMenuForReadOnlyImage(
+      state: _state,
       imageUrl: imageUrl,
       child: image,
     );
@@ -69,8 +78,6 @@ class ImageEmbedBuilder implements EmbedBuilderM {
     required Map<String, String> attributes,
     required String imageUrl,
   }) {
-    final _imageUtils = ImageUtils();
-
     // We force the image to have a certain size, margins or alignments
     assert(
       attributes[AttributesM.mobileWidth] != null &&
@@ -91,7 +98,7 @@ class ImageEmbedBuilder implements EmbedBuilderM {
 
     return Padding(
       padding: EdgeInsets.all(padding),
-      child: _imageUtils.getImageByUrl(
+      child: _mediaLoaderService.getImageByUrl(
         imageUrl,
         width: width,
         height: height,

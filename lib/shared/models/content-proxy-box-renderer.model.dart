@@ -1,6 +1,6 @@
 import 'package:flutter/rendering.dart';
 
-// A common interface to render boxes which represent a piece of rich text blocks.
+// A common interface to render boxes which represent a piece of rich text doc-tree.
 // See also:
 // * RenderParagraphProxy implementation of this interface which wraps built-in RenderParagraph
 // * RenderEmbedProxy implementation of this interface which wraps an arbitrary
@@ -20,5 +20,5 @@ abstract class RenderContentProxyBox implements RenderBox {
   // A given selection might have more than one rect if this text painter
   // contains bidirectional text because logically contiguous text might not be visually contiguous.
   // Valid only after layout.
-  List<TextBox> getBoxesForSelection(TextSelection textSelection);
+  List<TextBox> getBoxesForSelection(TextSelection selection);
 }

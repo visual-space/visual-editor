@@ -15,7 +15,7 @@ import 'package:flutter/material.dart';
 abstract class TextBoundaryM {
   const TextBoundaryM();
 
-  TextEditingValue get textEditingValue;
+  TextEditingValue get plainText;
 
   // Returns the leading text boundary at the given location, inclusive.
   TextPosition getLeadingTextBoundaryAt(TextPosition position);

@@ -1,34 +1,67 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../controller/controllers/editor-controller.dart';
+import '../../../document/controllers/history.controller.dart';
+import '../../../editor/services/editor.service.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
+import '../../../shared/state/editor-state-receiver.dart';
+import '../../../shared/state/editor.state.dart';
 import '../toolbar.dart';
 
-class HistoryButton extends StatefulWidget {
+// Navigates through the history states of the document
+// ignore: must_be_immutable
+class HistoryButton extends StatefulWidget with EditorStateReceiver {
   final IconData icon;
   final double iconSize;
-  final bool undo;
+  final bool isUndo;
   final EditorController controller;
   final EditorIconThemeM? iconTheme;
   final double buttonsSpacing;
+  late EditorState _state;
 
-  const HistoryButton({
+  HistoryButton({
     required this.icon,
     required this.controller,
     required this.buttonsSpacing,
-    required this.undo,
+    required this.isUndo,
     this.iconSize = defaultIconSize,
     this.iconTheme,
     Key? key,
-  }) : super(key: key);
+  }) : super(key: key) {
+    controller.setStateInEditorStateReceiver(this);
+  }
 
   @override
   _HistoryButtonState createState() => _HistoryButtonState();
+
+  @override
+  void cacheStateStore(EditorState state) {
+    _state = state;
+  }
 }
 
 class _HistoryButtonState extends State<HistoryButton> {
+  late final EditorService _editorService;
+
   Color? _iconColor;
   late ThemeData theme;
+  late final StreamSubscription _docChanges$L;
+
+  @override
+  void initState() {
+    _editorService = EditorService(widget._state);
+
+    _subscribeToDocumentChanges();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _docChanges$L.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,10 +71,6 @@ class _HistoryButtonState extends State<HistoryButton> {
     final fillColor =
         widget.iconTheme?.iconUnselectedFillColor ?? theme.canvasColor;
 
-    widget.controller.changes.listen((event) async {
-      _setIconColor();
-    });
-
     return IconBtn(
       highlightElevation: 0,
       hoverElevation: 0,
@@ -50,11 +79,9 @@ class _HistoryButtonState extends State<HistoryButton> {
       icon: _icon(),
       fillColor: fillColor,
       borderRadius: widget.iconTheme?.borderRadius ?? 2,
-      onPressed: _changeHistory,
+      onPressed: _undoRedoHistory,
     );
   }
-
-  // === PRIVATE ===
 
   Widget _icon() => Icon(
         widget.icon,
@@ -62,35 +89,50 @@ class _HistoryButtonState extends State<HistoryButton> {
         color: _iconColor,
       );
 
+  // === UTILS ===
+
+  void _subscribeToDocumentChanges() {
+    _docChanges$L = _editorService.changes$.listen((event) {
+      _setIconColor();
+    });
+  }
+
+  // Indicates if there are more available history states.
   void _setIconColor() {
     if (!mounted) return;
 
-    if (widget.undo) {
-      setState(() {
-        _iconColor = widget.controller.hasUndo
-            ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color
-            : widget.iconTheme?.disabledIconColor ?? theme.disabledColor;
-      });
-    } else {
-      setState(() {
-        _iconColor = widget.controller.hasRedo
-            ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color
-            : widget.iconTheme?.disabledIconColor ?? theme.disabledColor;
-      });
-    }
+    setState(() {
+      if (widget.isUndo) {
+        _iconColor = _getColor(_historyController.hasUndo);
+      } else {
+        _iconColor = _getColor(_historyController.hasRedo);
+      }
+    });
   }
 
-  void _changeHistory() {
-    if (widget.undo) {
-      if (widget.controller.hasUndo) {
-        widget.controller.undo();
+  // Indicates if there are more available history states.
+  Color _getColor(bool enabled) => (enabled
+      ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color
+      : widget.iconTheme?.disabledIconColor ?? theme.disabledColor)!;
+
+  // Depending on which button mode this one is it either undoes or redoes
+  void _undoRedoHistory() {
+    if (widget.isUndo) {
+      if (_historyController.hasUndo) {
+        _historyController.undo();
       }
     } else {
-      if (widget.controller.hasRedo) {
-        widget.controller.redo();
+      if (_historyController.hasRedo) {
+        _historyController.redo();
       }
     }
 
     _setIconColor();
+  }
+
+  // === PRIVATE ===
+
+  HistoryController get _historyController {
+    return widget._state.refs.historyController;
   }
 }

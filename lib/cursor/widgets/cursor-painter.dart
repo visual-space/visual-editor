@@ -21,9 +21,9 @@ class CursorPainter {
     required this.devicePixelRatio,
   });
 
-  // Paints cursor on [canvas] at specified [position].
-  // [offset] is global top left (x, y) of text line
-  // [position] is relative (x) in text line
+  // Paints cursor on canvas at specified position.
+  // offset is global top left (x, y) of text line
+  // position is relative (x) in text line
   void paint(
     Canvas canvas,
     Offset offset,

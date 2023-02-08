@@ -13,11 +13,11 @@ class ExpandedTextBoundary extends TextBoundaryM {
   final TextBoundaryM outerTextBoundary;
 
   @override
-  TextEditingValue get textEditingValue {
-    assert(innerTextBoundary.textEditingValue ==
-        outerTextBoundary.textEditingValue);
+  TextEditingValue get plainText {
+    assert(innerTextBoundary.plainText ==
+        outerTextBoundary.plainText);
 
-    return innerTextBoundary.textEditingValue;
+    return innerTextBoundary.plainText;
   }
 
   @override

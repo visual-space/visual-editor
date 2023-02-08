@@ -1,21 +1,25 @@
-import '../../../documents/controllers/delta.iterator.dart';
-import '../../../documents/models/attribute.model.dart';
-import '../../../documents/models/delta/delta.model.dart';
+import '../../../document/controllers/delta.iterator.dart';
+import '../../../document/models/attributes/attribute.model.dart';
+import '../../../document/models/delta/delta.model.dart';
+import '../../../document/services/delta.utils.dart';
 import '../../../embeds/const/embeds.const.dart';
 import '../../models/insert-rule.model.dart';
 
 // Handles all format operations which manipulate embeds.
 // This rule wraps line breaks around video, not image.
 class InsertEmbedsRule extends InsertRuleM {
-  const InsertEmbedsRule();
+  final _du = DeltaUtils();
+
+  InsertEmbedsRule();
 
   @override
   DeltaM? applyRule(
-    DeltaM document,
+    DeltaM docDelta,
     int index, {
     int? len,
     Object? data,
     AttributeM? attribute,
+    String plainText = '',
   }) {
     if (data is String) {
       return null;
@@ -27,16 +31,20 @@ class InsertEmbedsRule extends InsertRuleM {
       return null;
     }
 
-    final delta = DeltaM()..retain(index + (len ?? 0));
-    final itr = DeltaIterator(document);
-    final prev = itr.skip(index), cur = itr.next();
+    final changeDelta = DeltaM();
+
+    _du.retain(changeDelta, index + (len ?? 0));
+
+    final currItr = DeltaIterator(docDelta);
+    final prev = currItr.skip(index), cur = currItr.next();
     final textBefore = prev?.data is String ? prev!.data as String? : '';
     final textAfter = cur.data is String ? (cur.data as String?)! : '';
     final isNewlineBefore = prev == null || textBefore!.endsWith('\n');
     final isNewlineAfter = textAfter.startsWith('\n');
 
     if (isNewlineBefore && isNewlineAfter) {
-      return delta..insert(data);
+      _du.insert(changeDelta, data);
+      return changeDelta;
     }
 
     Map<String, dynamic>? lineStyle;
@@ -44,25 +52,27 @@ class InsertEmbedsRule extends InsertRuleM {
     if (textAfter.contains('\n')) {
       lineStyle = cur.attributes;
     } else {
-      while (itr.hasNext) {
-        final op = itr.next();
-        if ((op.data is String ? op.data as String? : '')!.contains('\n')) {
-          lineStyle = op.attributes;
+      while (currItr.hasNext) {
+        final operation = currItr.next();
+
+        if ((operation.data is String ? operation.data as String? : '')!
+            .contains('\n')) {
+          lineStyle = operation.attributes;
           break;
         }
       }
     }
 
     if (!isNewlineBefore) {
-      delta.insert('\n', lineStyle);
+      _du.insert(changeDelta, '\n', lineStyle);
     }
 
-    delta.insert(data);
+    _du.insert(changeDelta, data);
 
     if (!isNewlineAfter) {
-      delta.insert('\n');
+      _du.insert(changeDelta, '\n');
     }
 
-    return delta;
+    return changeDelta;
   }
 }

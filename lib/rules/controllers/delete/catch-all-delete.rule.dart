@@ -1,25 +1,31 @@
-import '../../../documents/controllers/delta.iterator.dart';
-import '../../../documents/models/attribute.model.dart';
-import '../../../documents/models/delta/delta.model.dart';
+import '../../../document/controllers/delta.iterator.dart';
+import '../../../document/models/attributes/attribute.model.dart';
+import '../../../document/models/delta/delta.model.dart';
+import '../../../document/services/delta.utils.dart';
 import '../../models/delete-rule.model.dart';
 
 // Fallback rule for delete operations which simply deletes specified text
 // range without any special handling.
 class CatchAllDeleteRule extends DeleteRuleM {
-  const CatchAllDeleteRule();
+  final _du = DeltaUtils();
+
+  CatchAllDeleteRule();
 
   @override
   DeltaM applyRule(
-    DeltaM document,
+    DeltaM docDelta,
     int index, {
     int? len,
     Object? data,
     AttributeM? attribute,
+    String plainText = '',
   }) {
-    final itr = DeltaIterator(document)..skip(index + len!);
+    final currItr = DeltaIterator(docDelta)..skip(index + len!);
 
-    return DeltaM()
-      ..retain(index)
-      ..delete(itr.hasNext ? len : len - 1);
+    final changeDelta = DeltaM();
+    _du.retain(changeDelta, index);
+    _du.delete(changeDelta, currItr.hasNext ? len : len - 1);
+
+    return changeDelta;
   }
 }

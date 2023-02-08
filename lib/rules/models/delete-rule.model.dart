@@ -1,4 +1,4 @@
-import '../../documents/models/attribute.model.dart';
+import '../../document/models/attributes/attribute.model.dart';
 import '../models/rule-type.enum.dart';
 import '../models/rule.model.dart';
 

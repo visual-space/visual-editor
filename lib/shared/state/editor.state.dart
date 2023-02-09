@@ -13,6 +13,7 @@ import '../../markers/state/markers-types.state.dart';
 import '../../markers/state/markers-visibility.state.dart';
 import '../../markers/state/markers.state.dart';
 import '../../selection/state/last-tap-down.state.dart';
+import '../../selection/state/selected-link.state.dart';
 import '../../selection/state/selection-layers.state.dart';
 import '../../selection/state/selection.state.dart';
 import '../../styles/state/platform-styles.state.dart';
@@ -67,6 +68,7 @@ class EditorState {
   final selection = SelectionState();
   final lastTapDown = LastTapDownState();
   final selectionLayers = SelectionLayersState();
+  final selectedLink = SelectedLinkState();
 
   // Toolbar
   final toolbar = ToolbarState();

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 // Internal use, used to get drag direction information
 class DragTextSelection extends TextSelection {
+  final bool first;
+
   const DragTextSelection({
     TextAffinity affinity = TextAffinity.downstream,
     int baseOffset = 0,
@@ -14,8 +16,6 @@ class DragTextSelection extends TextSelection {
           affinity: affinity,
           isDirectional: isDirectional,
         );
-
-  final bool first;
 
   @override
   DragTextSelection copyWith({

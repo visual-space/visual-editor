@@ -158,7 +158,8 @@ class SelectionHandlesController {
       _context,
       rootOverlay: true,
       debugRequiredFor: debugRequiredFor,
-    ).insert(toolbar!);
+    )
+        .insert(toolbar!);
     _toolbarController.forward(from: 0);
 
     // Make sure handles are visible as well
@@ -231,7 +232,8 @@ class SelectionHandlesController {
       _context,
       rootOverlay: true,
       debugRequiredFor: debugRequiredFor,
-    ).insertAll(_handles!);
+    )
+        .insertAll(_handles!);
   }
 
   // Causes the overlay to update its rendering.

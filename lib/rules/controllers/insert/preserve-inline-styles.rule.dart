@@ -5,6 +5,7 @@ import '../../../document/models/delta/delta.model.dart';
 import '../../../document/services/delta.utils.dart';
 import '../../models/insert-rule.model.dart';
 
+// TODO Improve comments.
 // Preserves inline styles when user inserts text inside formatted segment.
 class PreserveInlineStylesRule extends InsertRuleM {
   final _du = DeltaUtils();
@@ -45,23 +46,13 @@ class PreserveInlineStylesRule extends InsertRuleM {
       return deltaRes;
     }
 
-    attributes.remove(AttributesM.link.key);
-
-    final changeDelta = DeltaM();
-
-    _du.retain(changeDelta, index + (len ?? 0));
-    _du.insert(changeDelta, text, attributes.isEmpty ? null : attributes);
-
     final next = currItr.next();
     final nextAttributes = next.attributes ?? const <String, dynamic>{};
-
-    if (!nextAttributes.containsKey(AttributesM.link.key)) {
-      return changeDelta;
-    }
 
     final currAndNextNodesAreLinks = attributes[AttributesM.link.key] ==
         nextAttributes[AttributesM.link.key];
 
+    // We want to keep link styling for each char typed inside a word that is marked as a link.
     if (currAndNextNodesAreLinks) {
       final _deltaRes = DeltaM();
 
@@ -70,6 +61,13 @@ class PreserveInlineStylesRule extends InsertRuleM {
 
       return _deltaRes;
     }
+
+    attributes.remove(AttributesM.link.key);
+
+    final changeDelta = DeltaM();
+
+    _du.retain(changeDelta, index + (len ?? 0));
+    _du.insert(changeDelta, text, attributes.isEmpty ? null : attributes);
 
     return changeDelta;
   }

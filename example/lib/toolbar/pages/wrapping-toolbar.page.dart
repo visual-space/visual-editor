@@ -33,7 +33,7 @@ class _WrappingToolbarPageState extends State<WrappingToolbarPage> {
         children: _controller != null
             ? [
                 _editor(),
-                _toolbars(
+                _col(
                   children: [
                     _withScroll(),
                     _fixed(),
@@ -67,7 +67,7 @@ class _WrappingToolbarPageState extends State<WrappingToolbarPage> {
         ),
       );
 
-  Widget _toolbars({required List<Widget> children}) => Container(
+  Widget _col({required List<Widget> children}) => Container(
         padding: EdgeInsets.symmetric(
           vertical: 16,
           horizontal: 8,

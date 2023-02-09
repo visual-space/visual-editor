@@ -34,8 +34,10 @@ class AutoFormatMultipleLinksRule extends InsertRuleM {
   // http://www.example.com/?action=birds&brass=apparatus
   // https://example.net/
   // URL generator tool (https://www.randomlists.com/urls) is used.
+  // White space at the end of the regex in order to set the URL
+  // as link type only when user presses space after the link.
   static const _linkPattern =
-      r'(https?:\/\/|www\.)[\w-\.]+\.[\w-\.]+(\/([\S]+)?)?';
+      r'(https?:\/\/|www\.)[\w-\.]+\.[\w-\.]+(\/([\S]+)?)? ';
   static final linkRegExp = RegExp(_linkPattern);
 
   @override

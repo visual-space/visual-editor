@@ -31,6 +31,8 @@ Future<LinkMenuAction> defaultLinkActionPickerDelegate(
   }
 }
 
+// === PRIVATE ===
+
 Future<LinkMenuAction> _showCupertinoLinkMenu(
   BuildContext context,
   String link,

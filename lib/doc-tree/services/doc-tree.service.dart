@@ -100,6 +100,7 @@ class DocTreeService {
       _cacheMarkers(renderers);
       _cacheHighlights(renderers);
       _cacheSelectionRectangles(renderers);
+      _cacheSelectedLinkRectangles(renderers);
       _cacheHeadings(renderers);
     });
 
@@ -360,5 +361,25 @@ class DocTreeService {
       link,
       linkNode,
     );
+  }
+
+  // Stores the selected link rectangles after build.
+  void _cacheSelectedLinkRectangles(
+      List<EditableTextLineWidgetRenderer> renderers,
+      ) {
+    // Get Rectangles
+    final rectangles = <SelectionRectanglesM>[];
+
+    renderers.forEach((renderer) {
+      // Selected link coordinates
+      final lineRectangles = renderer.getSelectedLinkRectangles();
+
+      if (lineRectangles != null) {
+        rectangles.add(lineRectangles);
+      }
+    });
+
+    // Cache in state store
+    state.selectedLink.setSelectedLinkRectangles(rectangles);
   }
 }

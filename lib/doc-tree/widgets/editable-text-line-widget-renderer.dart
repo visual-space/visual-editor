@@ -153,6 +153,11 @@ class EditableTextLineWidgetRenderer extends RenderObjectWidget {
     return _renderer?.getSelectionCoordinates();
   }
 
+  // Avoids exposing the private renderer, it only collects the selected link rectangles.
+  SelectionRectanglesM? getSelectedLinkRectangles() {
+    return _renderer?.getSelectedLinkRectangles();
+  }
+
   // Avoids exposing the private renderer, it only collects the headings.
   HeadingM? getRenderedHeadingCoordinates() {
     return _renderer?.getRenderedHeadingCoordinates();

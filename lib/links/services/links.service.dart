@@ -1,4 +1,5 @@
 import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -59,6 +60,10 @@ class LinksService {
     return linkRecognizers[node]!;
   }
 
+  // When the author attempt to edit a link we need to edit the entire link
+  // length regardless of how much from the link was selected.
+  // The link range is extracted by analysing which neighbouring nodes contain the same link attribute.
+  // Once we know the range of a link we can then apply the changes on the entire link, not only on the selected part.
   TextRange getLinkRange(NodeM node) {
     var start = _nodeUtils.getDocumentOffset(node);
     var length = node.charsNum;
@@ -89,7 +94,39 @@ class LinksService {
     return TextRange(start: start, end: start + length);
   }
 
+  void removeLink() {
+    var index = state.refs.controller.selection.start;
+    var length = state.refs.controller.selection.end - index;
+
+    if (_getLinkAttributeValue() != null) {
+      final leaf = state.refs.documentController.queryNode(index).leaf;
+
+      if (leaf != null) {
+        final range = state.refs.controller.getLinkRange(leaf);
+        index = range.start;
+        length = range.end - range.start;
+      }
+    }
+
+    final link = state.refs.documentController.getPlainTextAtRange(
+      index,
+      length,
+    );
+
+    state.refs.controller.replaceText(
+      index,
+      length,
+      link,
+      null,
+    );
+  }
+
   // === PRIVATE ===
+
+  String? _getLinkAttributeValue() => _stylesService
+      .getSelectionStyle()
+      .attributes[AttributesM.link.key]
+      ?.value;
 
   Future<void> _launchUrl(String url) async {
     await launchUrl(Uri.parse(url));

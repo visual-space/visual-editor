@@ -1,6 +1,12 @@
 # Changelog
 If you want to learn more about the specs, all tickets are available by following the hashtag links.
 
+## [0.10.0] Blocks - Editable links [#10](https://github.com/visual-space/visual-editor/issues/10)
+- Added link menu, now when tapping on a link, a menu opens, displaying the url of the link, and 3 buttons (edit link, remove link from text/url, and copy link to clipboard)
+- Improved Readme.md, added screen captures of the new features
+- Added custom fonts (RobotoMono) for code blocks and inline code
+- Replaced code block icon from toolbar with a proper one, before it was using the same icon as inline code, which was not a proper UX.
+
 ## [0.9.0] Inputs - Keyboard Shortcuts [#163](https://github.com/visual-space/visual-editor/issues/163)
 - Added hotkeys for toolbar actions (e.g.: CTRL + B makes the selected text bold).
 - Added ordered list on key combination (1. + space) at the beginning of a line and (- + space) creates bullet list.
@@ -177,7 +183,7 @@ If you want to learn more about the specs, all tickets are available by followin
   * Added horizontal mouse scroll for toolbar.
   * Fixed the scroll controller which overlays over the toolbar buttons.
   * Fixed the toolbar stretching and irregular distance between buttons.
-
+  * 
 ## [0.3.0] Architecture Refactoring [#1](https://github.com/visual-space/visual-editor/issues/1)
 * Cleaning up editor.dart
 * Improved docs [#2](https://github.com/visual-space/visual-editor/issues/2)

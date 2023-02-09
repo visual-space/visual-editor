@@ -204,6 +204,22 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
     return rectangles;
   }
 
+  SelectionRectanglesM? getSelectedLinkRectangles() {
+    SelectionRectanglesM? rectangles;
+
+    if (_underlyingText != null) {
+      // Selected Link
+      rectangles = _rectanglesService.getSelectedLinkRectangles(
+        _state.selection.selection,
+        line,
+        _state,
+        _underlyingText!,
+      );
+    }
+
+    return rectangles;
+  }
+
   void setTextSelection(TextSelection _selection) {
     if (selection == _selection) {
       return;

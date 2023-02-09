@@ -89,6 +89,9 @@ ColorButton(
 ),
 ```
 
+## State Management In The Toolbar Buttons
+Notice that we don't have full control over the timing of loading the main widget and the toolbar widgets. Therefore we had to do some extra work in the toolbar buttons to double check if the `DocumentController` and `HistoryController` are defined. 
+
 Join on [discord](https://discord.gg/XpGygmXde4) to get advice and help or follow us
 on [YouTube Visual Coding](https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA) to learn more
 about the architecture of Visual Editor and other Flutter apps.

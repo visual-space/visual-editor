@@ -10,49 +10,49 @@ Visual Editor is a Rich Text editor for [Flutter] originally forked from [Flutte
 Highlight custom regions of text with temporary markers that are sensitive to taps and hovering. Highlights are not stored in the delta document. Useful when you want to temporarily showcase a particular range of text. Check out the [highlights docs](https://github.com/visual-space/visual-editor/blob/develop/lib/highlights/highlights.md).
 
 <p align="center">
-  <img src="https://github.com/visual-space/visual-editor/blob/feature/174-sys-improve-file-folders-structure/example/assets/github/highlights.gif"/>
+  <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/highlights.gif"/>
 </p>
 
 ## Markers
 Markers have similar mechanics as highlights but instead of being stored temporarily in the controller they are stored permanently in the document. Markers can be enabled or disabled on demand. Check out the [markers docs](https://github.com/visual-space/visual-editor/blob/develop/lib/markers/markers.md).
 
 <p align="center">
-  <img src="https://github.com/visual-space/visual-editor/blob/feature/174-sys-improve-file-folders-structure/example/assets/github/markers.gif"/>
+  <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/markers.gif"/>
 </p>
 
 ## Markers Attachments
 Markers can have attachments assigned to them. Custom data can be stored in the attachments. Visual Editor exposes the necessary hooks to implement markers attachments. You can easily customize all the behaviours/rendering. Check out the [markers docs](https://github.com/visual-space/visual-editor/blob/develop/lib/markers/markers.md).
 
 <p align="center">
-  <img src="https://github.com/visual-space/visual-editor/blob/feature/174-sys-improve-file-folders-structure/example/assets/github/markers-attachments.gif"/>
+  <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/markers-attachments.gif"/>
 </p>
 
 ## Quick Menu
 A quick menu can be displayed on top of the current text selection, on top of highlights or markers, or any arbitrary region of text. Visual Editor exposes the necessary hooks to implement custom menus. You can easily customize all the behaviours/rendering.
 
 <p align="center">
-  <img src="https://github.com/visual-space/visual-editor/blob/feature/174-sys-improve-file-folders-structure/example/assets/github/quick-menu.gif"/>
+  <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/quick-menu.gif"/>
 </p>
 
 ## Jump To Heading
 A document index can be displayed. Tapping the headings will scroll the document to the correct position. Visual Editor exposes the necessary hooks to implement custom menus. You can easily customize all the behaviours/rendering.
 
 <p align="center">
-  <img src="https://github.com/visual-space/visual-editor/blob/feature/174-sys-improve-file-folders-structure/example/assets/github/headings-index.gif"/>
+  <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/headings-index.gif"/>
 </p>
 
 ## Headings Validation
 Fancy behaviours such as custom validation of heading lengths can be implemented. We extract a list of headings, we check against custom validation rules and we display highlights where we spot problems. This is by no means a standard feature in rich text editors, therefore we expose the hooks needed to implement it. You can easily customize all the behaviours/rendering.
 
 <p align="center">
-  <img src="https://github.com/visual-space/visual-editor/blob/feature/174-sys-improve-file-folders-structure/example/assets/github/headings-validation.gif"/>
+  <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/headings-validation.gif"/>
 </p>
 
 ## Custom Embeds
 Inside of delta document you can inject any type of custom embed. Custom embeds store the data necessary to init the embed. In order to render custom embeds client apps need to provide the custom embed builders. Visual Editor exposes the necessary hooks to implement custom menus. You can easily customize all the behaviours/rendering. Check out the [custom embeds docs](https://github.com/visual-space/visual-editor/blob/develop/lib/embeds/embeds.md).
 
 <p align="center">
-  <img src="https://github.com/visual-space/visual-editor/blob/feature/174-sys-improve-file-folders-structure/example/assets/github/custom-embeds.gif"/>
+  <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/custom-embeds.gif"/>
 </p>
 
 ## Planned Features

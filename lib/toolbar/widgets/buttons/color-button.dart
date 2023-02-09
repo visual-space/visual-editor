@@ -51,14 +51,14 @@ class _ColorButtonState extends State<ColorButton> {
   late final RunBuildService _runBuildService;
   late final StylesService _stylesService;
 
-  late bool _isToggledColor;
-  late bool _isToggledBackground;
-  late bool _isWhite;
-  late bool _isWhiteBackground;
-  late Color _iconColorBgr;
-  late Color _iconColor;
-  late Color _fillColorBgr;
-  late Color _fillColor;
+  var _isToggledColor = false;
+  var _isToggledBackground = false;
+  var _isWhite = false;
+  var _isWhiteBackground = false;
+  var  _iconColorBgr = Colors.white;
+  var  _iconColor = Colors.white;
+  var  _fillColorBgr = Colors.white;
+  var  _fillColor = Colors.white;
   StreamSubscription? _runBuild$L;
 
   @override
@@ -122,7 +122,7 @@ class _ColorButtonState extends State<ColorButton> {
       _stylesService.getSelectionStyle().attributes;
 
   void _cacheToggledColors() {
-    if (_attributes == null) {
+    if (!(_documentControllerInitialised && _attributes != null)) {
       return;
     }
 
@@ -169,5 +169,9 @@ class _ColorButtonState extends State<ColorButton> {
         ),
       ),
     );
+  }
+
+  bool get _documentControllerInitialised {
+    return widget._state.refs.documentControllerInitialised == true;
   }
 }

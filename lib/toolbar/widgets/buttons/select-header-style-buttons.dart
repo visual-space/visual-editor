@@ -50,7 +50,7 @@ class _SelectHeaderStyleButtonsState extends State<SelectHeaderStyleButtons> {
   late final ToolbarService _toolbarService;
   late final StylesService _stylesService;
 
-  AttributeM? _value;
+  AttributeM? _attr;
   StreamSubscription? _runBuild$L;
 
   @override
@@ -60,10 +60,7 @@ class _SelectHeaderStyleButtonsState extends State<SelectHeaderStyleButtons> {
     _stylesService = StylesService(widget._state);
 
     super.initState();
-    setState(() {
-      // TODO Remove setState ? Seems useless. Double check if it is needed.
-      _value = _getHeaderValue();
-    });
+    _attr = _getHeaderAttr();
     _subscribeToRunBuild();
   }
 
@@ -113,7 +110,7 @@ class _SelectHeaderStyleButtonsState extends State<SelectHeaderStyleButtons> {
                   widget.iconTheme?.borderRadius ?? 2,
                 ),
               ),
-              fillColor: _valueToText[_value] == _valueString[index]
+              fillColor: _valueToText[_attr] == _valueString[index]
                   ? (widget.iconTheme?.iconSelectedFillColor ??
                       theme.toggleableActiveColor)
                   : (widget.iconTheme?.iconUnselectedFillColor ??
@@ -126,7 +123,7 @@ class _SelectHeaderStyleButtonsState extends State<SelectHeaderStyleButtons> {
               child: Text(
                 _valueString[index],
                 style: style.copyWith(
-                  color: _valueToText[_value] == _valueString[index]
+                  color: _valueToText[_attr] == _valueString[index]
                       ? (widget.iconTheme?.iconSelectedColor ??
                           theme.primaryIconTheme.color)
                       : (widget.iconTheme?.iconUnselectedColor ??
@@ -150,7 +147,7 @@ class _SelectHeaderStyleButtonsState extends State<SelectHeaderStyleButtons> {
       _runBuild$L?.cancel();
       widget.controller.setStateInEditorStateReceiver(widget);
       _subscribeToRunBuild();
-      _value = _getHeaderValue();
+      _attr = _getHeaderAttr();
     }
   }
 
@@ -165,12 +162,16 @@ class _SelectHeaderStyleButtonsState extends State<SelectHeaderStyleButtons> {
   void _subscribeToRunBuild() {
     _runBuild$L = _runBuildService.runBuild$.listen(
       (_) => setState(() {
-        _value = _getHeaderValue();
+        _attr = _getHeaderAttr();
       }),
     );
   }
 
-  AttributeM<dynamic> _getHeaderValue() {
+  AttributeM? _getHeaderAttr() {
+    if (!_documentControllerInitialised) {
+      return null;
+    }
+
     final toggler = _toolbarService.getToolbarButtonToggler();
     final attribute = toggler[AttributesM.header.key];
 
@@ -185,5 +186,9 @@ class _SelectHeaderStyleButtonsState extends State<SelectHeaderStyleButtons> {
 
     return selectionStyle.attributes[AttributesM.header.key] ??
         AttributesM.header;
+  }
+
+  bool get _documentControllerInitialised {
+    return widget._state.refs.documentControllerInitialised == true;
   }
 }

@@ -267,6 +267,7 @@ class DocumentController {
     final deltaRes = _documentUtils.mapAndAddNewLineBeforeAndAfterVideoEmbed(
       changeDelta,
     );
+    final originalDelta =  document.delta;
 
     // Nodes Operations
     for (final operation in deltaRes.toList()) {
@@ -314,7 +315,7 @@ class DocumentController {
     // }
 
     // Changes
-    final change = DocAndChangeM(document.delta, changeDelta, changeSource);
+    final change = DocAndChangeM(originalDelta, changeDelta, changeSource);
 
     _emitDocChange?.call(change);
     historyController.updateHistoryStacks(change);

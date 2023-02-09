@@ -136,6 +136,10 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
   }
 
   void _openLinkDialog(BuildContext context) {
+    if(!_documentControllerInitialised) {
+      return;
+    }
+
     showDialog<dynamic>(
       context: context,
       builder: (ctx) {
@@ -146,7 +150,7 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
 
         if (link != null) {
           // Text should be the link's corresponding text, not selection
-          final leaf = documentController.queryNode(index).leaf;
+          final leaf = documentController?.queryNode(index).leaf;
 
           if (leaf != null) {
             text = leaf.toPlainText();
@@ -154,7 +158,7 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
         }
 
         final len = selection.end - index;
-        text ??= len == 0 ? '' : documentController.getPlainTextAtRange(index, len);
+        text ??= len == 0 ? '' : documentController?.getPlainTextAtRange(index, len);
 
         return LinkStyleDialog(
           dialogTheme: widget.dialogTheme,
@@ -169,7 +173,11 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
     );
   }
 
-  DocumentController get documentController {
+  DocumentController? get documentController {
     return widget._state.refs.documentController;
+  }
+
+  bool get _documentControllerInitialised {
+    return widget._state.refs.documentControllerInitialised == true;
   }
 }

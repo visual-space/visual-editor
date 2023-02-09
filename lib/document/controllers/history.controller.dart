@@ -33,7 +33,7 @@ class HistoryController {
       return;
     }
 
-    // TODO Use from config
+    // TODO Use from history settings from editor config (currently client code can't change this setup)
     if (!_history.userOnly || change.source == ChangeSource.LOCAL) {
       _record(change.changes, change.docDelta);
     } else {

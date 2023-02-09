@@ -66,9 +66,7 @@ class _ToggleCheckListButtonState extends State<ToggleCheckListButton> {
 
     super.initState();
 
-    if (_attributes != null) {
-      _isToggled = _getIsToggled(_attributes!);
-    }
+    _isToggled = _getIsToggled();
 
     _subscribeToRunBuild();
   }
@@ -101,7 +99,7 @@ class _ToggleCheckListButtonState extends State<ToggleCheckListButton> {
       _runBuild$L?.cancel();
       widget.controller.setStateInEditorStateReceiver(widget);
       _subscribeToRunBuild();
-      _isToggled = _getIsToggled(_attributes!);
+      _isToggled = _getIsToggled();
     }
   }
 
@@ -110,7 +108,7 @@ class _ToggleCheckListButtonState extends State<ToggleCheckListButton> {
   void _subscribeToRunBuild() {
     _runBuild$L = _runBuildService.runBuild$.listen(
       (_) => setState(() {
-        _isToggled = _getIsToggled(_attributes!);
+        _isToggled = _getIsToggled();
       }),
     );
   }
@@ -118,12 +116,16 @@ class _ToggleCheckListButtonState extends State<ToggleCheckListButton> {
   Map<String, AttributeM>? get _attributes =>
       _stylesService.getSelectionStyle().attributes;
 
-  bool _getIsToggled(Map<String, AttributeM> attrs) {
+  bool? _getIsToggled() {
+    if (!(_documentControllerInitialised && _attributes != null)) {
+      return null;
+    }
+
     final toggler = _toolbarService.getToolbarButtonToggler();
     var attribute = toggler[AttributesM.list.key];
 
     if (attribute == null) {
-      attribute = attrs[AttributesM.list.key];
+      attribute = _attributes![AttributesM.list.key];
     } else {
       // Checkbox tapping causes selection to go to offset 0
       toggler.remove(AttributesM.list.key);
@@ -143,5 +145,9 @@ class _ToggleCheckListButtonState extends State<ToggleCheckListButton> {
         : AttributesAliasesM.unchecked;
 
     _stylesService.formatSelection(attribute);
+  }
+
+  bool get _documentControllerInitialised {
+    return widget._state.refs.documentControllerInitialised == true;
   }
 }

@@ -128,7 +128,9 @@ class _ArrowScrollableButtonListState extends State<ArrowScrollableButtonList>
   // === UTILS ===
 
   void _handleScroll() {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     setState(() {
       _showLeftArrow =

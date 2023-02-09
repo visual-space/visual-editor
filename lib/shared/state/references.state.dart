@@ -18,15 +18,21 @@ import '../../main.dart';
 class ReferencesState {
   // Controllers
   late EditorController controller;
-  late DocumentController documentController;
-  late HistoryController historyController;
   late EmbedBuilderController embedBuilderController;
   late ScrollController scrollController;
-  late CursorController cursorController;
+
+  // Toolbar initialises eagerly, way sooner than this controller is available
+  late DocumentController documentController;
+  bool documentControllerInitialised = false;
+
+  // Toolbar initialises eagerly, way sooner than this controller is available
+  late HistoryController historyController;
+  bool historyControllerInitialised = false;
 
   // Cache the prev instance of the controller to be able to
   // dispose of it after the new instance was created.
   // Full explanation in state-store.md
+  late CursorController cursorController;
   CursorController? oldCursorController;
   bool cursorControllerInitialised = false;
 

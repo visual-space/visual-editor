@@ -3,10 +3,101 @@ If you want to learn more about the specs, all tickets are available by followin
 
 ## [0.8.0] Improved file/folders structure [#174](https://github.com/visual-space/visual-editor/issues/174)
 - Sys - Improve file/folders structure
-- Improve Readme.md, added screen captures of the new features
-- Grouped demo pages navigation menu in categories
-- Grouped demo pages into modules
-- Removed `defaultToggleStyleButtonBuilder` from `ToggleStyleButton` and from `ToggleCheckListButton`
+- Add demo images in readme.
+- Grouped demo pages navigation menu in categories.
+- Grouped demo pages into modules.
+- Removed `defaultToggleStyleButtonBuilder` from `ToggleStyleButton` and from `ToggleCheckListButton`.
+- Created `DocumentEditingService`, Moved `formatText` `formatTextStyle` to `TextStylesService`.
+- Renamed `SelectionActionsService` to `SelectionHandlesService`.
+- Moved controller callbacks type definitions to standalone file.
+- Removed local cached reference of the document from the controller. We are now reading the document only from the state store.
+- Moved `keepStyleOnNewLine` to the state store in `EditorConfigM`. There was no need to separate this property from the main config.
+- Moved toggledStyle to state store
+- The controller was getting too big with too many methods. Maintenance was becoming difficult due to unclear code boundaries. We moved most of the methods to dedicated services.
+- Moved selection to the state store
+- Remove rectangles param from the `onSelectionChanged`.
+- When it was first introduced we though we are going to use the param to get the rectangles and display the selection menu position. However in the meantime we developed the `onBuildComplete` callback. Since the rectangles data is stale we decided to remove it rather than refactor the whole code flow.
+- (CANCELLED) Slice out refs from state. It simplifies the mental model needed to understand the state store. Abandoned, creates too much boilerplate in the buttons.
+- Move controller callbacks into the config model.
+- Remove useless setter getters from the state store. There's no point in having them if all they do is read and write.
+- Move the remaining params as well: `selection`, `highlights`, `markerTypes`,
+- We are no longer constrained to call methods defined only in the controller.
+- Separate marker types and highlights as methods in the demo pages
+- Update documentation to reflect the editor config params change. Updated the state store documentation.
+- Remove EditorController.basic. It is no longer needed.
+- Removed `editorWidget` from state no longer required
+- Sliced `CoordinatesService` from `LinesAndBlocsService`.
+- One is concerned with retrieving coordinates of elements in the document. The other is concerned with rendering the document lines and blocs.
+- Created `StylesService` & `DocumentService`
+- Rename `editorController` to controller
+- Rename `editorWidgetState` to `widget`
+- Move markers and highlights methods from controller to services
+- Merge `CursorService` and `CaretService`
+- Move `toolbarButtonToggler` and `copiedImageUrl` to the state store
+- Review if all state branches are relevant
+- Removed the additional layer from `config.config` even if it brakes the state store pattern. It's simply too much nesting repetition in the code base for no benefit.
+- Replace all `refs.controller.selection` with the state/service version `selection.selection`
+- Rename `TextValueService` to `PreBuildService` to better reflect what it really does.
+- Rename `value` in `TextEditingValue` value to `plainText`.
+- Rename `refreshEditor` to `runBuild`.
+- Rename /documents module to /document.
+- Rename /blocks to /doc-tree.
+- Merge `DocumentRenderService` into `DocTreeService`.
+- Rename `setState` to void `cacheStateStore` to avoid confusion with the widget `setState`.
+- Rename `userUpdateTextEditingValue` to `removeSpecialCharsAndUpdateDocTextAndStyle`.
+- Merge `EditorTextService` into `DocumentService` (defragmentation).
+- Rename all listeners to short notation: `runBuild$L`.
+- Replace all internal controller calls `refs.controller` with service calls.
+- Rename `TextSelectionService` to `SelectionService`
+- Improved management for embed builders list
+- Wrapped state store access in the services. Improves code readability (more awareness)
+- Replaced singleton services with services that have the state initialised. This means each instance of the editor gets a new set of services with the correct state store initialised. More details in the state-store.md document. This technique is useful because now we no longer need prop drilling to pass the state.
+- Simplified the controller code further. It is currently a nice index of methods form services. No more wrapping.
+- Moved document logic from the toolbar buttons to services. Now more methods are available in the controller for manipulating the document programmatically.
+- Added `EmbedsService`, has methods for inserting embeds programatically.
+- Wrapped DeltaUtils in a class
+- In `InputConnectionService` Rename `updateEditingValue` to `diffPlainTextAndUpdateDocumentModel`
+- Added `InputState` to cache temporarily the `plainText` value during
+- Added clarifications what is the difference between `InputConnectionService` and the `KeyboardConnectionService`.
+- Renamed `PreBuildService` to `GuiService` to better indicate it's role.
+- Merged `runBuild` and `runBuildIfMounted`
+- Merged `EditorKeyboardListener` into `VisualEditor`. It had nothing useful to add in the widget tree.
+- Moved focus related update handler from `EditorService` into `GuiService`.
+- Renamed `EditorService` to `RunBuildService`
+- Rename `_emitPressedKeyHandler`, `state.pressedKeys.emitPressedKeys()`.
+- Remove `_pressedKeysChanged`. It is useless since we use the state store. `metaOrControlPressed` can be read directly sync from the state store.
+- Cleanup in `TextGesturesService`
+- Expose selection service methods in controller.
+- Remove rectangles param from `OnSelectionChangedCallback`. They are outdated because the callback is invoked before the build cycle can compute the new rectangles.
+- Move all cached vars from services to the state store (we no longer use singletons for services).
+- Move `TextGestures` service and widget to /inputs
+- Convert stateful utils to services
+- There are 2 `StylesService `. One of them was renamed to `StylesCfgService`.
+- Renamed params in delta: `other` in `new`, `this` in `curr`
+- Improved doc comments in `HistoryM`. It appears we have support for coop but it is not exposed/enabled publicly.
+- Refactored `DocumentM`. Extracted most methods in a dedicated service `DocumentNodesService `. Improved doc comments.
+- One of the challenges of understanding how `DocumentM` works was recognising if methods are pure or impure. I've updated the comments to reflect if methods are pure or impure (purity indicators). Having increased awareness of the purity of code improves the developers ability to predict what will happen. Thus makes the debugging process far easier.
+- Rename `DocumentService` to `EditorService`. Rename `DocumentNodesService` to `DocumentService`. This reflects the reality of what happens in codebase. `EditorService` mutates doc, updates all systems and triggers build. `DocumentService` only performs the mutations on the doc.
+- Refactored `DeltaM` and `OperationM`. Extracted most methods in a dedicated service `DeltaService`. Improved doc comments.
+- Remove basic constructor
+- Moved all the code from `HistoryM` into `HistoryService`, since this is an internal model never exposed in the public.
+- We need to keep changes for multiple docs, we can't have a central one. _history stays in document model.
+- Move changes$ from `DocumentM` in the `EditorController`. Changes are not operated and broadcasted from an idle document without the user being aware via the GUI. Therefore it does not make sense to keep the changes stream in the document model. We want to have the document model pure data.
+- Move `HistoryService` and `DocumentService` in the controller. This means we can start migrating the document models to pure data. Also it means all services are now state store aware. The `HistoryService` and `DocumentService` were document aware only. We did not want to pass the state store to the document to avoid complicated architecture. Now that we are migrating all data from the models means we no longer risk exposing the state store in the public. More explanations about our architecture choices in editor.md .
+- Convert `DocumentService` to `DocumentController`, `DeltaService` to `DeltaUtils`. This enables us to keep the models as pure data. It also enables advanced client developers to edit documents that are not cached in the `EditorController`.
+- Moved _rules form `DocumentM` to `DocumentController`. Moved `customRules` to `stateStore` (one list per editor).
+- Created `DocumentUtils` to segregate some simple utils that are used also when initialising the Document.
+- Restored the old state one instance state store. No more shallow cloning. Shallow cloning the `EditorState` when passing it to the`Toolbar ` buttons meant that we lost the reference to the `DocumentController`. Fixed the `CusrsorController.dispose()` issue the correct way by caching the prev instance in the state store. Detailed explanation in state-store.md. Now the state store is back again a simple object, easy to understand.
+- Convert `HistoryService` to `HistoryController`. We need a controller independent of the state store to be able to process changes also when the document model manipulated from outside.
+- Move `HistoryController` in `DocumentController`. Edits running outside of the editor will update history as well.
+- Merge all caching code of the editor in one method. No need to have so many small methods. Improved sorting of methods in `main.dart`.
+- Rename `SelectionActionsController ` to `SelectionHandlesController`.
+- Convert `DeltaService` to `DeltaUtils`.
+- Renamed node `length` into `charsNum`.
+- Renamed node `adjust` into `mergeSimilarNodes`.
+- Created `EditableTextPaintService`. `EditableTextLineBoxRenderer` has many overrides concerned with computing the layout dimensions. Therefore the painting logic for selection/highlight boxes is better separated here. Separating the layout dimensions logic and painting logic helps improves readability and maintainability.
+- Move code that is closely related to other modules to the respective modules
+- Renamed `EditorRendererInner` to `EditorTextAreaRenderer` following the conventions for editable text line.
 
 ## [0.7.0] Custom Embeds [#157](https://github.com/visual-space/visual-editor/issues/157)
 * Demos - Demo page for adding new items in document.

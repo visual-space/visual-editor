@@ -108,7 +108,15 @@ class _ToggleStyleButtonState extends State<ToggleStyleButton> {
   }
 
   bool _cacheIsToggled() {
+    if (!_documentControllerInitialised) {
+      return false;
+    }
+
     return _isToggled =
         _stylesService.isAttributeToggledInSelection(widget.attribute);
+  }
+
+  bool get _documentControllerInitialised {
+    return widget._state.refs.documentControllerInitialised == true;
   }
 }

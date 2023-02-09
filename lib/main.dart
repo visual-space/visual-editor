@@ -529,16 +529,18 @@ class VisualEditorState extends State<VisualEditor>
   // === PRIVATE - INIT ===
 
   void _initControllersAndCacheControllersRefs() {
-    // Document
+    // Document Controller
     _documentController = DocumentController(
       state.document.document,
       state.document.emitChange,
       _editorService.composeCacheSelectionAndRunBuild,
     );
     state.refs.documentController = _documentController;
+    state.refs.documentControllerInitialised = true;
 
     // History Controller
     state.refs.historyController = _documentController.historyController;
+    state.refs.historyControllerInitialised = true;
 
     // Embed Builders
     _embedsService.initAndCacheEmbedBuilderController();

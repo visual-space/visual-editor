@@ -99,13 +99,15 @@ class _HistoryButtonState extends State<HistoryButton> {
 
   // Indicates if there are more available history states.
   void _setIconColor() {
-    if (!mounted) return;
+    if (!mounted || !_historyControllerInitialised) {
+      return;
+    }
 
     setState(() {
       if (widget.isUndo) {
-        _iconColor = _getColor(_historyController.hasUndo);
+        _iconColor = _getColor(_historyController?.hasUndo ?? false);
       } else {
-        _iconColor = _getColor(_historyController.hasRedo);
+        _iconColor = _getColor(_historyController?.hasRedo ?? false);
       }
     });
   }
@@ -118,12 +120,12 @@ class _HistoryButtonState extends State<HistoryButton> {
   // Depending on which button mode this one is it either undoes or redoes
   void _undoRedoHistory() {
     if (widget.isUndo) {
-      if (_historyController.hasUndo) {
-        _historyController.undo();
+      if (_historyController!.hasUndo) {
+        _historyController!.undo();
       }
     } else {
-      if (_historyController.hasRedo) {
-        _historyController.redo();
+      if (_historyController!.hasRedo) {
+        _historyController!.redo();
       }
     }
 
@@ -132,7 +134,11 @@ class _HistoryButtonState extends State<HistoryButton> {
 
   // === PRIVATE ===
 
-  HistoryController get _historyController {
+  HistoryController? get _historyController {
     return widget._state.refs.historyController;
+  }
+
+  bool get _historyControllerInitialised {
+    return widget._state.refs.historyControllerInitialised == true;
   }
 }

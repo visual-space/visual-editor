@@ -43,6 +43,9 @@ class OperationM {
 
   // === QUERIES ===
 
+  @override
+  String toString() => _opUtils.opToString(this);
+
   // Returns value of this operation.
   // For insert operations this returns text, for delete and retain - length.
   dynamic get value => (key == INSERT_KEY) ? data : length;

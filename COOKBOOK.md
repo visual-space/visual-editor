@@ -1,8 +1,8 @@
-### Visual Editor Cookbook
+# Cookbook
 
 Here are presented basic operations that can be done using editor controller methods.
 
-# Insert new elements at the end of the document
+## Insert new elements at the end of the document
 
 For example if you want to have a button that every time is pressed adds a new empty line at the end of the document we can simply replace the last element of the document with the empty line. 
 
@@ -11,7 +11,7 @@ final docLen = _controller.document.length;
 _controller.replaceText(docLen - 1, 0, '\n', null);
 ```
 
-# How to apply attributes to text via the controller
+## How to apply attributes to text via the controller
 
 The attributes are used to apply a different style to a piece of text (bold, italic, etc.). Everything which is not simple text has at least an attribute. To apply attributes without directly interacting with the text (i.e by pressing a button) we can call the format text method from the controller with the desired attribute. 
  ```dart
@@ -20,7 +20,7 @@ The attributes are used to apply a different style to a piece of text (bold, ita
 
 Here we apply the h1 attribute to the empty line created above. In this way, by pressing a single button we can create a new empty line with h1 attribute
 
-# How to implement limited length headings
+## How to implement limited length headings
 
 First of all we have to extract all headings of the page. We already have a method on the controller that does this for us. The recommended way to call this method is every time the build is done. In this way, we will always have access to the latest headings of the document. 
 Then we have to compare every headings length with our limit. If the limit is exceeded we have to create a counter (they will be displayed near every heading which exceeds the limit).

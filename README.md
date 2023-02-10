@@ -180,7 +180,8 @@ For a detailed overview of the public API and the code architecture check out ou
 - **[State Store](https://github.com/visual-space/visual-editor/blob/develop/lib/shared/state-store.md)** - State store architecture decisions.
 - **[Project Structure](https://github.com/visual-space/visual-editor/blob/develop/lib/shared/project-structure.md)** - Overview of the major modules and modules folder structure.
 - **[Guidelines](https://github.com/visual-space/visual-editor/blob/develop/GUIDELINES.md)** - Coding guidelines for code quality and architecture.
-- **[Cookbook](https://github.com/visual-space/visual-editor/blob/develop/COOKBOOK.md)** - These are common API calls used to process documents via the controller or editor.
+- **[Cookbook](https://github.com/visual-space/visual-editor/blob/develop/COOKBOOK.md)** - Tips and tricks used to extend the editor with new features.
+- **[Common Issues](https://github.com/visual-space/visual-editor/blob/develop/COMMON_ISSUES.md)** - Advice to common problems.
 
 ## Who Is Using Visual Editor?
 

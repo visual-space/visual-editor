@@ -92,7 +92,7 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
     _cachedOffset = offset;
 
     _editableTextPaintService.paint(
-      TextPaintCfg(
+      TextPaintCfgM(
         context,
         offset,
         _leading,

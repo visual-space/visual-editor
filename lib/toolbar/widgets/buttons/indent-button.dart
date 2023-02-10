@@ -66,14 +66,9 @@ class _IndentButtonState extends State<IndentButton> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isIndentEnabled =
-        widget._state.disabledButtons.isSelectionIndentEnabled;
-
-    final iconColor = isIndentEnabled
-        ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color
-        : theme.disabledColor;
-    final iconFillColor =
-        widget.iconTheme?.iconUnselectedFillColor ?? theme.canvasColor;
+    final isIndentEnabled = widget._state.disabledButtons.isSelectionIndentEnabled;
+    final iconColor = isIndentEnabled ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color : theme.disabledColor;
+    final iconFillColor = widget.iconTheme?.iconUnselectedFillColor ?? theme.canvasColor;
 
     return IconBtn(
       highlightElevation: 0,
@@ -87,9 +82,7 @@ class _IndentButtonState extends State<IndentButton> {
       buttonsSpacing: widget.buttonsSpacing,
       fillColor: iconFillColor,
       borderRadius: widget.iconTheme?.borderRadius ?? 2,
-      onPressed: isIndentEnabled
-          ? () => _stylesService.indentSelection(widget.isIncrease)
-          : null,
+      onPressed: isIndentEnabled ? () => _stylesService.indentSelection(widget.isIncrease) : null,
     );
   }
 
@@ -98,7 +91,7 @@ class _IndentButtonState extends State<IndentButton> {
   // In order to update the button state after each selection change check if button is enabled.
   void _subscribeToRunBuild() {
     _runBuild$L = _runBuildService.runBuild$.listen(
-          (_) => setState(() {}),
+      (_) => setState(() {}),
     );
   }
 }

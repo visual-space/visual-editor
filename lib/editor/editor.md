@@ -1,32 +1,29 @@
-# Editor (WIP - Needs rework, most of the content needs to be moved since it's not representative of this particular module, it actually represents the entire lib)
-TODO The editor module is a mediator/core module between all the other modules. (To be detailed)
+# Editor 
+This is the main class of the Visual Editor. The editor can start completely on default values. The editor can be rendered either in scrollable mode or in expanded mode. Most apps will prefer the scrollable mode and a sticky EditorToolbar on top or at the bottom of the viewport. Use the expanded version when you want to stack multiple editors on top of each other. A placeholder text can be defined to be displayed when the editor has no contents. All the styles of the editor can be overridden using custom styles. Each instance of the editor will need an `EditorController`. EditorToolbar can be synced to `VisualEditor` via the `EditorController`.
 
-## Overview
-This is the main class of the Visual Editor. There are 2 constructors available, one for controlling all the settings of the editor in precise detail. The other one is the basic init that will spare you the pain of having to comb trough all the props. The default settings are carefully chosen to satisfy the basic needs of any app that needs rich text editing. The editor can be rendered either in scrollable mode or in expanded mode. Most apps will prefer the scrollable mode and a sticky EditorToolbar on top or at the bottom of the viewport. Use the expanded version when you want to stack multiple editors on top of each other. A placeholder text can be defined to be displayed when the editor has no contents. All the styles of the editor can be overridden using custom styles.
 
-## Custom Embeds
-Besides the existing styled text options the editor can also render custom embeds such as video players or whatever else the client apps desire to render in the documents. Any kind of widget can be provided to be displayed in the middle of the document text.
+## Architecture
+As you probably observed, the `main.dart` file is the editor widget itself. We named the file main to give new contributors a clear indication where to start reading the codebase. Under normal circumstance this file should be listed at the root of the editor module. But since it serves also as the main entry in the code base we chose to list it at the root of the `/lib` folder.
 
-TODO Example how to use embeds or link to the md
+Several major improvements have been made since forking from Quill. First of all the build() method has been cleaned and shrunk down from 200 LOC to around 20. It's a lot easier to understand what the editor widget is composed of. In fact, the `build()` it's simply a long series of nested widgets, like the onion layers. Each one of these widgets ads one more feature on top of the editor. At the end of it we have the document tree, which is just the collection of text lines. One additional improvement was to get rid of the `Editor` and `RawEditor` distinction by merging them in one single widget. These two components have little to no reason to be separated as they are currently in the Quill codebase.
 
-## Callbacks
-Several callbacks are available to be used when interacting with the editor:
-- `onTapDown()`
-- `onTapUp()`
-- `onSingleLongTapStart()`
-- `onSingleLongTapMoveUpdate()`
-- `onSingleLongTapEnd()`
+The main widget implements several mixins as provided by the Flutter architecture. These mixins are absolutely essential for managing custom fields inside the Flutter framework. This overrides architecture is highly OOP oriented. Since we were forced to implement these overrides in the main class an additional challenge was somehow isolating the state from the main class. I highly recommend a read trough the [State Store](https://github.com/visual-space/visual-editor/blob/develop/lib/shared/state-store.md). 
 
-## Controller
-Each instance of the editor will need an `EditorController`. EditorToolbar can be synced to `VisualEditor` via the `EditorController`.
 
-## Rendering
-The Editor uses Flutter `TextField` to render the paragraphs in a column of content. On top of the regular `TextField` we are rendering custom selection controls or highlights using the `RenderBox` API.
+## Editor Config Model
+When instantiating a new Visual Editor, developers can control several styling and behaviour options. They are all defined here in this model for the sake of clear separation of code. By eliminating individual properties from the main VisualEditor instance and grouping them in a model. we create a far easier to read and maintain architecture. Grouping these properties in a class makes passing these properties around a lot easier. Note that the editor and scroll controllers are passed at the top level not here in the config. 
 
-## Gestures
-The VisualEditor class implements `TextSelectionGesturesBuilderDelegate`. This base class is used to separate the features related to gesture detection and to give the opportunity to override them.
 
-## Custom Style Builder (WIP)
-Custom styles can be defined for custom attributes.
+## Services
+- **EditorService** - Contains the logic that orchestrates the editor UI systems with the `DocumentController` (pure data editing). Does not contain the document mutation logic. It delegates this logic to the `DocumentController`.
+  - Updates all systems of the editor (selection, focus, scroll, markers, menus, etc).
+  - Invokes the callbacks provided by the client code.
+  - Triggers the build cycle.
+  - Relays the document editing commands to the `DocumentController`
+- **GuiService** - After document model was updated this service updates the text GUI right before triggering the build. Requests the soft keyboard. Handles web and mobiles. Updates the remote value in the connected system input. Displays the caret on screen and prevents blinking while typing. Triggers the build cycle for the editor and the toolbar. Shows, hides selection controls after the build completed.
+- **RunBuildService** - Provides easy access to the build trigger. After the document changes have been applied and the gui elements have been updated, it's now time to update the document widget tree.
 
-Join on [discord](https://discord.gg/XpGygmXde4) to get advice and help or follow us on [YouTube Visual Coding](https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA) to learn more about the architecture of Visual Editor and other Flutter apps.
+
+
+
+

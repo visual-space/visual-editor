@@ -5,14 +5,15 @@ Visual Editor has a lot of internal state to manage: the document, cursor positi
 The original architecture inherited from [Quill](https://github.com/singerdmx/flutter-quill/issues) had several core issues:
 - **Large Source Files** - First of all, many classes were hosted in the same file, some reaching 2K lines of code. Many classes hosted in the same file were reading each other's private states. Dart allows 2 classes in the same file to access private props between them. This practice leads to spaghetti code.
 - **Classes were sharing scopes** - This issue stems from the architecture of Flutter. The `@override` methods required by Flutter to implement text editing influenced the early Quill/Zephyr implementation to share the scope of the editor widget with other classes. Again this created spaghetti code since the business object domains are not easy to recognise in the Quill codebase. 
-- **Overreliance on ChangeNotifiers and Providers** - `ChangeNotifiers` are a convenient way of announcing other classes that a class changed it's state. This approach is convenient for a small app. However at the size of Quill (over 13K lines of code) this is no longer a suitable approach. Why? Because we are mixing data and methods in a bag and we are making it very hard to trace what does what. Even more annoying is the overuse of `Providers`. Because they pass data trough the widget tree it's even harder to trace from where to where this data travels. When you have 13K code, all tangled, it no longer is reasonable to use Notifiers and Providers as your state management solution.
+- **Over-reliance on ChangeNotifiers and Providers** - `ChangeNotifiers` are a convenient way of announcing other classes that a class changed it's state. This approach is convenient for a small app. However at the size of Quill (over 13K lines of code) this is no longer a suitable approach. Why? Because we are mixing data and methods in a bag and we are making it very hard to trace what does what. Even more annoying is the overuse of `Providers`. Because they pass data trough the widget tree it's even harder to trace from where to where this data travels. When you have 13K code, all tangled, it no longer is reasonable to use Notifiers and Providers as your state management solution.
 
 All these issues together made Quill difficult and frustrating to extend. The source code should be easy to read and maintain, even for developers that are not familiar with the code base.
 
-### Large Scopes
+**Large Scopes**
 In the first stage of refactoring we did split the large files in modules and smaller files. The second part was to separate the state in a dedicated layer. The first major challenge was to split the editor class which had a scope that contained between 5-6K lines of code (main class + mixins). Most of the methods from these scopes knew each other and their states. This happened due to the many mixins that were implemented by Flutter. It forced the original authors to keep passing scopes around to achieve their goals.
 
 When a project starts small it's easy to overlook state management concerns, relying only on ChangeNotifiers and Providers. This approach works ok for a while but it quickly becomes unbearable. In the case of Quill, nobody wanted to own the problem and everybody just patched "one more little thing" until leading to a major case of spaghetti code. 
+
 
 ## Improved Architecture
 In essence, the editor code flow boils down to 2 steps: preparing the raw data to be processed and then calling the build method to update the UI. There are no widgets running in parallel consuming different data sources. Therefore, existing state store libs for single page apps are not suitable. Instead we developed a simple internal state store solution using basic Dart data classes and a stream to trigger the build cycle. The entire state management architecture follows these principles:
@@ -21,6 +22,7 @@ In essence, the editor code flow boils down to 2 steps: preparing the raw data t
 - **Pure Data** - The goal is to keep only pure data classes in the state store. No data processing methods are hanging around. The code that manipulates the data should be isolated from the data itself.
 - **Immutable** - Ideally we would have the entire codebase written in immutable classes. However due to the data format of the delta document and due to the data flow in editor (one giant build cycle) it's impractical to use only immutable objects. In places where it was possible we used immutable. However in many other places the state store is mutable.
 - **Unidirectional** - All the interactions that trigger state changes will trigger a build cycle. In the new build cycle, all the lines of text will check if their particular node of text has mutated. If so the `TextLine` will trigger internally a repaint. No TextLine can communicate to another TextLine directly. Neither the toolbar. Therefore the entire state store architecture is considered unidirectional.
+
 
 ## Editor Config
 The first step towards implementing the new state store was migrating all the props from the `VisualEditor` constructor params into a dedicated model class `EditorConfigM`. Once separated, the model class was moved to a dedicated `EditorConfigState` class. This class is now available in the `EditorState` class.
@@ -53,6 +55,7 @@ class EditorConfigState {
 }
 ```
 
+
 ## Global State
 All the states of the editor are stored together in one global object that is passed around.
 
@@ -64,6 +67,7 @@ class EditorState {
   // ...
 }
 ```
+
 
 ## Project Structure
 The source code is split in several module folders. Each module is dedicated to a major feature of the editor and each one contains a `/state` subfolder. Inside the `/state` subfolder we store a state class for each feature that needs to pass data around the code base.
@@ -78,6 +82,7 @@ The source code is split in several module folders. Each module is dedicated to 
     document.state.dart
   /widgets
 ```
+
 
 ## Refreshing The Widget Tree
 In a reactive state store management library all the relevant properties are passed around via observables subscriptions. Each subscription can trigger a distinct widget (or set of widgets) to update. Unlike a web app which has widgets that can update independently, the Visual Editor acts as one large page that updates all the lines and blocks of text in build cycle. 
@@ -103,10 +108,12 @@ void dispose() {
 }
 ```
 
+
 ## Singletons vs Distinct Instances
 There are many classes that need access to the state store: toolbar, editor, toolbar buttons. The first attempt to migrate the state architecture made use of singleton state classes. The advantage of importing singleton state classes was the elimination of drilling down props trough the call stack. However the state got shared between multiple running instances of the editor. 
 
 The solution was to bundle all the state classes in a single `EditorState` class. The global state class gets instantiated once per `EditorController`. Therefore each editor instance has it's own internal state independent of the other editors from the same page. With the current pattern we still have to drill down props, but it's far easier to follow the line since all we pass around is the state store.
+
 
 ## Encapsulation
 A major concern when designing the state store was to make sure that the state store is not exposed in the public. Encapsulating the state prevents developers from accessing/changing the internal state when writing client code. Preventing such practices enables the library source code to evolve without introducing breaking changes in the client code.
@@ -146,6 +153,7 @@ CursorController({required EditorState state,}) {
   _cacheStateStore(state);
 }
 ```
+
 
 ## Internal References
 One annoying issue that is still present is the need to access the scopes of widgets that implement the overrides requested by Flutter or the `FocusNode` or `ScrollController` that the user provides. To avoid creating more prop drilling these scopes are all cached in the state store in a dedicated `EditorReferences` class. Although storing these reference in the state store, infringes on the "pure data" principle we still implemented this trick because it reduces the amount of prop drilling required in the code.
@@ -196,6 +204,7 @@ final hasFocus = state.refs.focusNode.hasFocus;
 
 ```
 
+
 ## Disposing The Old CursorController Race Condition
 This is a technical note explaining some difficulties we had with setting up the current state store. It's meant for lib architects that need to change the state store patterns. If you are not interested in the topic you can skip.
 
@@ -212,7 +221,7 @@ The solution was to shallow clone the state such that the previous state module 
 **New Solution (clean)**
 The previous solution proved to be a mistake. Since moving to the new pure models for document we moved everything in the `DocumentController`. When creating the `EditorController` we also init a `DocumentController` which then gets stored in state refs. However since we have the previous trick it gets deleted by the time it arrives to the toolbar. Why? Because each time we pass the state from controller to state receivers we did the shallow clone trick. But the trick itself causes the above described problem. So now we have to get rid of shallow cloning completely and keep the same old state instance alive between widget rebuilds. Instead we are going to keep 2 properties for the `CursorController`. One for the new and one for the old. Therefore we can prevent the old widget instance to command the new `CursorController` to close on widget destroy.
 
+
 ## Contributing
 Any Pull Request that does not conform to the principles of this document and attempts to "patch" things quick and dirty will be rejected. If you need advice on how to contribute please join our live discord server where you can talk to the maintainers and receive advice on how to plan your bug fixes or new features. 
 
-Join on [discord](https://discord.gg/XpGygmXde4) to get advice and help or follow us on [YouTube Visual Coding](https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA) to learn more about the architecture of Visual Editor and other Flutter apps.

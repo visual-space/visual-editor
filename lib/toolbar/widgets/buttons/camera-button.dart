@@ -77,14 +77,9 @@ class _CameraButtonState extends State<CameraButton> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isSelectionCameraEnabled =
-        widget._state.disabledButtons.isSelectionCameraEnabled;
-
-    final iconColor = isSelectionCameraEnabled
-        ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color
-        : theme.disabledColor;
-    final iconFillColor = widget.iconTheme?.iconUnselectedFillColor ??
-        (widget.fillColor ?? theme.canvasColor);
+    final isSelectionCameraEnabled = widget._state.disabledButtons.isSelectionCameraEnabled;
+    final iconColor = isSelectionCameraEnabled ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color : theme.disabledColor;
+    final iconFillColor = widget.iconTheme?.iconUnselectedFillColor ?? (widget.fillColor ?? theme.canvasColor);
 
     return IconBtn(
       icon: Icon(
@@ -112,7 +107,7 @@ class _CameraButtonState extends State<CameraButton> {
   }
 
   // === PRIVATE ===
-  
+
   Future<void> _handleCameraButtonTap(
     BuildContext context,
     EditorController controller, {
@@ -170,8 +165,7 @@ class _CameraButtonState extends State<CameraButton> {
     );
   }
 
-  Widget _videoButton(BuildContext context,
-      OnVideoPickCallback onVideoPickCallback, FilePickImpl? filePickImpl) {
+  Widget _videoButton(BuildContext context, OnVideoPickCallback onVideoPickCallback, FilePickImpl? filePickImpl) {
     return Padding(
       padding: EdgeInsets.only(top: 15),
       child: TextButton.icon(
@@ -197,11 +191,7 @@ class _CameraButtonState extends State<CameraButton> {
     );
   }
 
-  TextButton _photoButton(
-      BuildContext context,
-      OnImagePickCallback onImagePickCallback,
-      FilePickImpl? filePickImpl,
-      WebImagePickImpl? webImagePickImpl) {
+  TextButton _photoButton(BuildContext context, OnImagePickCallback onImagePickCallback, FilePickImpl? filePickImpl, WebImagePickImpl? webImagePickImpl) {
     return TextButton.icon(
       icon: const Icon(
         Icons.photo,

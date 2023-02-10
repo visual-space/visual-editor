@@ -20,10 +20,10 @@ var MARKERS_MOCK = '''[
 ]''';
 
 void main() {
-  // late DocumentM document;
+  // late DeltaDocM document;
 
   setUp(() {
-    // document = DocumentM.fromJson(jsonDecode(MARKERS_MOCK));
+    // document = DeltaDocM.fromJson(jsonDecode(MARKERS_MOCK));
   });
 
   group('Document Model', () {

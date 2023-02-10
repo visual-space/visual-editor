@@ -15,7 +15,7 @@ typedef HideToolbarCallback = void Function([bool hideHandles]);
 
 // Controls the handles rendered on mobile when the selection menu is visible.
 class SelectionHandlesService {
-  late final SelectionRendererService _selectionUtils;
+  late final SelectionRendererService _selectionRendererService;
   late final CoordinatesService _coordinatesService;
   final _contUtils = ContainerUtils();
   final _nodeUtils = NodeUtils();
@@ -23,7 +23,7 @@ class SelectionHandlesService {
   final EditorState state;
 
   SelectionHandlesService(this.state) {
-    _selectionUtils = SelectionRendererService(state);
+    _selectionRendererService = SelectionRendererService(state);
     _coordinatesService = CoordinatesService(state);
   }
 
@@ -75,7 +75,7 @@ class SelectionHandlesService {
     assert(baseChild != null);
 
     final baseParentData = baseChild!.parentData as BoxParentData;
-    final baseSelection = _selectionUtils.getLocalSelection(
+    final baseSelection = _selectionRendererService.getLocalSelection(
       baseChild.container,
       textSelection,
       true,
@@ -106,7 +106,7 @@ class SelectionHandlesService {
     assert(extentChild != null);
 
     final extentParentData = extentChild!.parentData as BoxParentData;
-    final extentSelection = _selectionUtils.getLocalSelection(
+    final extentSelection = _selectionRendererService.getLocalSelection(
       extentChild.container,
       textSelection,
       true,

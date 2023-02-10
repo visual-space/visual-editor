@@ -1,27 +1,24 @@
-# Blocks (WIP)
-Documents templates are composed of lines of text and blocks of text. The blocks themselves can have different styling and roles.
+# Document Tree
+Documents templates are composed of lines of text and blocks of text. The blocks themselves can have different styling and roles. The `DocTreeService` builds the widgets of the doc-tree as described by the document nodes. Each new break line represents a new text line, which generates an EditableTextLine widget. Inside a text line, each range of text with an unique set of attributes is considered a node. For each node the EditableTextLine generates a TextSpan with the correct test style applied. These widgets are `EditableTextLine` or `EditableTextBlock`. Each time changes are made in the document or the state store the editor build() will render once again the document tree. After the build cycle is complete we are caching rectangles for several layers: selection, highlights, markers, headings. Provides the callback for handling checkboxes.
+
 
 ## Text Lines (WIP)
 TODO Explain the relations between: EditableBlock, EditableTextBlock, and the other widgets.
 
-## Styles (WIP)
 
-**Text spans**
+## Text Blocks
 
-**Widget spans**
-
-**Custom styles**
-
-## Embeds (WIP)
 
 ## Proxies (WIP)
 
+
 ## Links (WIP)
+
 
 ## Markers (WIP)
 
-## Code Snippets
 
+## Pixel Coordinates
 Snippet used to convert the position of the pointer in X and Y to a TextSelection extent.
 ```dart
 final position = _coordinatesService.getPositionForOffset(
@@ -30,4 +27,3 @@ final position = _coordinatesService.getPositionForOffset(
 );
 ```
 
-Join on [discord](https://discord.gg/XpGygmXde4) to get advice and help or follow us on [YouTube Visual Coding](https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA) to learn more about the architecture of Visual Editor and other Flutter apps.

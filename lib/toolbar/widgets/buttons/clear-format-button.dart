@@ -71,8 +71,7 @@ class _ClearFormatButtonState extends State<ClearFormatButton> {
   }
 
   void _cacheButtonsColors(ThemeData theme) {
-    _iconColor =
-        widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color!;
+    _iconColor = widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color!;
     _fillColor = widget.iconTheme?.iconUnselectedFillColor ?? theme.canvasColor;
   }
 }

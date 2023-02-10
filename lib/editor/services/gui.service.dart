@@ -15,7 +15,6 @@ import 'editor.service.dart';
 // Displays the caret on screen and prevents blinking while typing.
 // Triggers the build cycle for the editor and the toolbar.
 // Shows, hides selection controls after the build completed.
-// @@@ TODO Copy to docs
 class GuiService {
   late final EditorService _editorService;
   late final InputConnectionService _inputConnectionService;

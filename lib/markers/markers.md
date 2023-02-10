@@ -1,6 +1,7 @@
 # Markers
 Renders permanent text markers sensitive to taps. Markers are defined in the delta document. Unlike highlights, markers change the delta document by adding attributes. The markers are rendered on top of the text. Markers are sensitive to taps and hovers. Custom marker types with custom colors and behaviours can be defined. 
 
+
 ## Data Model
 **marker-type.model.dart**
 ```dart
@@ -27,6 +28,7 @@ class MarkerTypeM {
   });
 }
 ```
+
 
 ## Defining Marker Sets
 Before using markers the types of markers need to be defined. If no information is provided, then our default marker type is used.
@@ -69,6 +71,7 @@ Widget _editor() => VisualEditor(
 );
 ```
 
+
 ## Storing Markers in The Delta Document
 The delta text format can be extended with the marker attribute.
 
@@ -89,6 +92,7 @@ The delta text format can be extended with the marker attribute.
 ]
 ```
 
+
 ## Adding Markers (WIP)
 There are two ways to add markers:
 - Via the toolbar - First select some text that you want marked. Then click on the markers dropdown. Select a the desired marker type.
@@ -99,11 +103,14 @@ There are two ways to add markers:
 controller.addMarker('expert'); 
 ```
 
+
 ## List Of Markers
 Get a list of all markers. Each marker provides the position relative to text and the custom data. Positions can be used to render other custom text decorations in perfect alignment with the text.
 
+
 ## Removing Markers (WIP)
 Multiple markers can be added on top of each other. Inspecting multiple markers at once for content is not easily done without creating a complex overview panel. Removing markers is best done by inspecting and removing them one by one to make sure no desired marker is removed. Therefore, the clear styling button does not remove markers in bulk. Also for the same reason we limited the markers dropdown to only adding markers. Removing markers from the dropdown is very prone to removing the wrong marker. Also the UX would be super complicated and hard to master. Again, the easiest and most precise way is to tap on the markers and use the options menu.
+
 
 ## Storing Custom Data In Markers (WIP)
 Advanced use cases might require that markers store custom data such as UUIDs or whatever else the client app developers require. A callback method can be used to generate the custom data when a new marker is added from the dropdown. Beware that these IDs could be generated and then discarded if the author decided to cancel the edit. Therefore make sure you don't populate your DB eagerly unless the document was saved.
@@ -111,6 +118,7 @@ Advanced use cases might require that markers store custom data such as UUIDs or
 A marker defines it's type (class) and additional data. The "data" attribute stores custom params as desired by the client app (uuid or serialised json data). It's up to the client app to decide how to use the data attribute. One idea is to use UUIDS that point to separate objects which provide additional info for a marker. For example a developer might want to render a bunch of stats that are repeating on a large set of the markers of the app. Therefore instead of repeating the same data inline in the entire doc it's better to reference these values from a separate list. In this case using the data to store an UUID for the descriptor object will be enough.
 
 On the other hand, if the dev knows that most of the markers will have few and unique attributes than he can store the attributes in the "data" attribute itself. The "data" attribute will be returned by the callbacks methods invoked on hover and tap. Multiple markers can use the same "data" values to trigger the same common behaviours. In essence there are many ways this attribute can be put to good use. It's also possible not to use it at all and just render highlights that don't have any unique data assigned.
+
 
 ## Hiding Markers
 Despite being part of the delta document the markers can be hidden on demand. Toggling markers from the editor controller can be useful for situations where the developers want to clear the text of any visual guides and show the pure rich text. Highlights can be toggled all at once or just for certain types of markers via the controller. This might be useful if you want to render the text without any extra decorations.
@@ -133,12 +141,14 @@ VisualEditor(
 ),
 ```
 
+
 ## Delete markers
 Markers can be deleted from the document. All markers with the same id will be removed.
 
 ```dart
 controller.deleteMarkerById(_marker.id);
 ```
+
 
 ## Markers Attachments
 Markers provide support for attachments by returning their pixel coordinates and dimensions for positioning in text. Based on this information any widget can be linked to a marker. Keep in mind that markers are not widgets, so a simple Overlay from Flutter wont do the trick. Markers are rendered as painted rectangles in a canvas on top of the text. Even if markers are hidden, marker attachments still work correctly. Therefore the only way to simulate attached widgets is by positioning them to the exact coordinates. This page demonstrates such a setup. Attachments can be used render elements such as the markers options menu or delete button.
@@ -245,8 +255,8 @@ In some situations, we want to use one of the markers' types for rendering attac
 }
 ```
 
-## Displaying A Custom Widget When Tapping A Marker
 
+## Displaying A Custom Widget When Tapping A Marker
 This is a general overview of setting up a marker menu or custom widgets when the marker is tapped. To view a complete sample go to the `SelectionMenuPage` and inspect the code.
 
 ```dart
@@ -298,6 +308,7 @@ Widget _editor() => VisualEditor(
 );
 ```
 
+
 ## How Markers Are Rendered (explained for maintainers)
 Similar to highlights that used the selection rendering logic we will render above the TextLine. We can't use TextSpan Styles to render the document markers since the background color already has this role.
 
@@ -307,8 +318,32 @@ The `_toggleMarkers$` stream is used to trigger `markForPaint()` in every `Edita
 
 **Hover Markers**
 
-In Flutter we don't have any built in mechanic for easily detecting hover over random stretches of text. Therefore we have to write our own code for detecting hovering over markers. When the editor is initialised we store all the markers in the state store. Once the build() method is executed we have references to all the rendering classes for every single class. Using a callback after build we query every single line to check if it has markers, and if so we request the rectangles needed to draw the markers. Unlike highlights, markers are sliced per line by default (when DeltaM is converted to DocumentM). For each marker we cache also the local to global offset of the line where it is hosted. This offset will be essential to align the pointer coordinates with the markers rectangles coordinates. 
+In Flutter we don't have any built in mechanic for easily detecting hover over random stretches of text. Therefore we have to write our own code for detecting hovering over markers. When the editor is initialised we store all the markers in the state store. Once the build() method is executed we have references to all the rendering classes for every single class. Using a callback after build we query every single line to check if it has markers, and if so we request the rectangles needed to draw the markers. Unlike highlights, markers are sliced per line by default (when DeltaM is converted to DeltaDocM). For each marker we cache also the local to global offset of the line where it is hosted. This offset will be essential to align the pointer coordinates with the markers rectangles coordinates. 
 
 Once we have the rectangles we cache them by deep cloning the markers to include this information. When the user pointer enters the editor screen space then the TextGestures widget matches the correct action (onHover). In the on hover method we check every single marker to see if any of the rectangles are intersected by the pointer. Once one or many markers are matched we then cache the ids. On every single hover event we compare if new ids have been added or removed. For each added or removed marker we run the corresponding callbacks defined by the marker type. Then we cache the new hovered markers in the state store and trigger a new editor build (layout update). When the editor is running the build cycle each line will check again for markers that it has to draw and will apply the hovering color according to the hovered markers from the state stare.
 
-Join on [discord](https://discord.gg/XpGygmXde4) to get advice and help or follow us on [YouTube Visual Coding](https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA) to learn more about the architecture of Visual Editor and other Flutter apps.
+
+## Get Offset Compared Relative To The Document.
+When dealing with extraction of rectangles for tasks such as rendering highlights or markers, one might often need to learn the offset relative to the document, or relative to the line of text. There are two highly useful methods for this purpose `localToGlobal()`. Learning this information can be useful later for retrieving the rectangles of a selection of text. Knowing the `docRelPosition` is essential if you are building code that attempts to position elements relative to arbitrary text selections. You can find multiple examples of how these methods are used by reading `SelectionMenuPage`, `MarkersAttachmentsPage`, `RectanglesService`, etc.
+
+```dart
+
+// Local to Global
+final docRelPosition = underlyingText.localToGlobal(
+  const Offset(0, 0),
+  ancestor: state.refs.renderer,
+);
+
+// Global to Local
+final localPosition = targetChild.globalToLocalPosition(position);
+final childLocalRect = targetChild.getLocalRectForCaret(localPosition);
+```
+
+Another essential method to know as a extension or core contributor in Visual Editor is `getRectanglesFromNode()`. You can use rectangles and docRelativePosition to compute where on screen a certain region of text is located. Once you know these coordinates many other things are possible, such as linking arbitrary overlay widgets to random positions in the text. This method has been used numerous times in several critical parts of the editor. Drawing the selection, the markers, the highlights, the quick menu, etc. Follow code examples related to these features to better understand what this methods does.
+
+```dart
+markers.forEach((marker) {
+  final rectangles = getRectanglesFromNode(node, underlyingText);
+  // ...
+}
+```

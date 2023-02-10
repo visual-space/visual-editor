@@ -5,13 +5,14 @@ Visual Editor is a Rich Text editor for [Flutter] originally forked from [Flutte
   <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/visual-editor-demo.gif"/>
 </p>
 
-## Highlights
 
+## Highlights
 Highlight custom regions of text with temporary markers that are sensitive to taps and hovering. Highlights are not stored in the delta document. Useful when you want to temporarily showcase a particular range of text. Check out the [highlights docs](https://github.com/visual-space/visual-editor/blob/develop/lib/highlights/highlights.md).
 
 <p align="center">
   <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/highlights.gif"/>
 </p>
+
 
 ## Markers
 Markers have similar mechanics as highlights but instead of being stored temporarily in the controller they are stored permanently in the document. Markers can be enabled or disabled on demand. Check out the [markers docs](https://github.com/visual-space/visual-editor/blob/develop/lib/markers/markers.md).
@@ -20,12 +21,14 @@ Markers have similar mechanics as highlights but instead of being stored tempora
   <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/markers.gif"/>
 </p>
 
+
 ## Markers Attachments
 Markers can have attachments assigned to them. Custom data can be stored in the attachments. Visual Editor exposes the necessary hooks to implement markers attachments. You can easily customize all the behaviors/rendering. Check out the [markers docs](https://github.com/visual-space/visual-editor/blob/develop/lib/markers/markers.md).
 
 <p align="center">
   <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/markers-attachments.gif"/>
 </p>
+
 
 ## Quick Menu
 A quick menu can be displayed on top of the current text selection, on top of highlights or markers, or any arbitrary region of text. Visual Editor exposes the necessary hooks to implement custom menus. You can easily customize all the behaviors/rendering.
@@ -34,12 +37,14 @@ A quick menu can be displayed on top of the current text selection, on top of hi
   <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/quick-menu.gif"/>
 </p>
 
+
 ## Jump To Heading
 A document index can be displayed. Tapping the headings will scroll the document to the correct position. Visual Editor exposes the necessary hooks to implement custom menus. You can easily customize all the behaviors/rendering.
 
 <p align="center">
   <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/headings-index.gif"/>
 </p>
+
 
 ## Headings Validation
 Fancy behaviors such as custom validation of heading lengths can be implemented. We extract a list of headings, we check against custom validation rules and we display highlights where we spot problems. This is by no means a standard feature in rich text editors, therefore we expose the hooks needed to implement it. You can easily customize all the behaviors/rendering.
@@ -48,6 +53,7 @@ Fancy behaviors such as custom validation of heading lengths can be implemented.
   <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/headings-validation.gif"/>
 </p>
 
+
 ## Custom Embeds
 Inside of delta document you can inject any type of custom embed. Custom embeds store the data necessary to init the embed. In order to render custom embeds client apps need to provide the custom embed builders. Visual Editor exposes the necessary hooks to implement custom menus. You can easily customize all the behaviors/rendering. Check out the [custom embeds docs](https://github.com/visual-space/visual-editor/blob/develop/lib/embeds/embeds.md).
 
@@ -55,12 +61,14 @@ Inside of delta document you can inject any type of custom embed. Custom embeds 
   <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/custom-embeds.gif"/>
 </p>
 
+
 ## Link Menu
 Clicking on a link/text (which is set as a link) opens the link menu, which displays the url of the link, in order to open the link into another tab, beside the URL, there are 3 buttons. One for removing the link, leaving the text as it is without the link attribute. Second the edit link which opens the edit link menu. Third is the copy to clipboard menu.
 
 <p align="center">
     <img src="https://user-images.githubusercontent.com/72706978/222151071-191321dd-24ba-45f7-a3cc-9a393476b4e8.mp4"/>
 </p>
+
 
 ## Planned Features
 - Better links editing UI
@@ -70,8 +78,8 @@ Clicking on a link/text (which is set as a link) opens the link menu, which disp
 - Coop editing
 - Math formulas
 
-## Getting Started
 
+## Getting Started
 The current version is getting close to a clean state. Visual Editor will soon be ready to be published in pub.dev without major changes. Until then you can use it by linking directly from Github:
 
 ```
@@ -83,13 +91,11 @@ dependencies:
 **Minimal Example** - You will need an editor, a toolbar and a controller to link them together.
 
 ```dart
-final _controller = EditorController.basic();
-```
+final _controller = EditorController();
 
-```dart
 Column(
   children: [
-    EditorToolbar.basic(
+    EditorToolbar(
       controller: _controller,
     ),
     VisualEditor(
@@ -99,7 +105,7 @@ Column(
 )
 ```
 
-Make sure you don't create a new `EditorController` instance on `setState()`. This mistake degrades performance and you will lose the document's edit history. You can update or change the document directly from the [controller](https://github.com/visual-space/visual-editor/blob/develop/lib/controller/controller.md). We have a dedicated page for [performance](https://github.com/visual-space/visual-editor/blob/develop/PERFORMANCE.md) tips and tricks.
+Make sure you don't create a new `EditorController` instance on `setState()`. This mistake degrades performance and you will lose the document's edit history. You can update or change the document directly from the [controller](https://github.com/visual-space/visual-editor/blob/develop/lib/controller/controller.md).
 
 **Saving a Document**
 ```dart
@@ -111,24 +117,19 @@ final json = jsonEncode(_controller.document.toDelta().toJson());
 const blogPost = jsonDecode(response);
 
 final _controller = EditorController(
-  document: DocumentM.fromJson(blogPost)
+  document: DocDeltaM.fromJson(blogPost)
 );
 ```
 
 **Empty Document**
 
-For empty documents the editor can display a placeholder text. This is an empty document:
-```json
-[
-  {
-    "insert":"\n"
-  }
-] 
-```
- 
-For convenience you can import and use the `EMPTY_DELTA_DOC_JSON` constant.
+For empty documents the editor can display a placeholder text. This is an empty document. For convenience you can import and use the `EMPTY_DELTA_DOC_JSON` constant.
 
-**Delta Or Plain Text**
+```json
+[{"insert":"\n"}] 
+```
+
+**Export Delta Or Plain Text**
 
 Visual Editor uses [Delta] operations as an internal data format to describe the attributes of each fragment of text.
 
@@ -156,11 +157,13 @@ _controller.document.toPlainText();
     </tr>
 </table>
 
+
 ## Demos & Code Samples
 In this repository you can also find a demo app with various pages that showcase all sorts of configurations for the editor. One particularly useful page is the "Delta Sandbox" page. In this page you can see side by side a live editor and a json preview panel. This demo will help you to quickly learn how the Delta format works. 
 
 - You can start the demo app by running main.dart in Android Studio.
 - Soon we will have a website with the same demo pages so you don't have to run the samples locally.
+
 
 ## Documentation
 For a detailed overview of the public API and the code architecture check out our documentation:
@@ -177,22 +180,21 @@ For a detailed overview of the public API and the code architecture check out ou
 - **[Selection](https://github.com/visual-space/visual-editor/blob/develop/lib/selection/selection.md)** - Handles the rendering of text selection handles and toolbar.
 - **[Highlights](https://github.com/visual-space/visual-editor/blob/develop/lib/highlights/highlights.md)** - Renders temporary text markers sensitive to taps.
 - **[Markers](https://github.com/visual-space/visual-editor/blob/develop/lib/markers/markers.md)** - Renders permanent text markers sensitive to taps as part of the delta document.
-- **[Performance](https://github.com/visual-space/visual-editor/blob/develop/PERFORMANCE.md)** - Basic tips to follow in order to maintain the editor's performance.
-- **[Why Fork Quill](https://github.com/visual-space/visual-editor/blob/develop/CHANGELOG.md)** - Explains the reasons why we forked Quill.
-- **[Migration](https://github.com/visual-space/visual-editor/blob/develop/MIGRATING.md)** - A simple guide with instructions to migrate from Flutter Quill.
-- **[Changelog](https://github.com/visual-space/visual-editor/blob/develop/CHANGELOG.md)** - Journal of changes made to the visual editor.
+- **[Coop](https://github.com/visual-space/visual-editor/blob/develop/lib/coop/cop.md)** - Instructions on how to run Visual Editor in coop mode (WIP).
   
 **For Contributors:**
+If you start contributing in the codebase make sure to setup the line char limit to 160 chars. We find the 80 chars default from Flutter way too restrictive.
 
+- **[Why Fork Quill](https://github.com/visual-space/visual-editor/blob/develop/changelog.md)** - Explains the reasons why we forked Quill.
+- **[Changelog](https://github.com/visual-space/visual-editor/blob/develop/changelog.md)** - Journal of changes made to the visual editor.
+- **[Architecture Overview](https://github.com/visual-space/visual-editor/blob/develop/lib/shared/architecture-overview.md)** - Overview of the editor architecture.
 - **[State Store](https://github.com/visual-space/visual-editor/blob/develop/lib/shared/state-store.md)** - State store architecture decisions.
-- **[Project Structure](https://github.com/visual-space/visual-editor/blob/develop/lib/shared/project-structure.md)** - Overview of the major modules and modules folder structure.
-- **[Guidelines](https://github.com/visual-space/visual-editor/blob/develop/GUIDELINES.md)** - Coding guidelines for code quality and architecture.
-- **[Cookbook](https://github.com/visual-space/visual-editor/blob/develop/COOKBOOK.md)** - Tips and tricks used to extend the editor with new features.
-- **[Common Issues](https://github.com/visual-space/visual-editor/blob/develop/COMMON_ISSUES.md)** - Advice to common problems.
+- **[Migration](https://github.com/visual-space/visual-editor/blob/develop/migration-guide.md)** - A simple guide with instructions to migrate from Flutter Quill.
 
-## Who Is Using Visual Editor?
 
-- **[Visual Space]** - Social media for engineers, innovators and online teams of enthusiasts.
+## Who Is Maintaining Visual Editor?
+- **[Visual Space]** - We are the team behind the Visual Editor fork. We are building a social media platform for engineers and innovators. This platforms makes heavy use of advanced rich text editing features. Many of these features had to be built from scratch in Visual Editor since they are not yet available in the Flutter ecosystem from other providers.
+
 
 ## Useful Resources
 [QuillJs Delta](https://github.com/quilljs/delta) • 

@@ -31,7 +31,7 @@ class EditableTextPaintService {
     cursorController = state.refs.cursorController;
   }
 
-  void paint(TextPaintCfg cfg) {
+  void paint(TextPaintCfgM cfg) {
     // Leading (bullets, checkboxes)
     if (cfg.leading != null) {
       final parentData = cfg.leading!.parentData as BoxParentData;
@@ -209,7 +209,7 @@ class EditableTextPaintService {
   }
 
   void _paintCursor(
-    TextPaintCfg cfg,
+    TextPaintCfgM cfg,
     Offset offset,
   ) {
     final lineOffset = _nodeUtils.getDocumentOffset(cfg.line);
@@ -233,7 +233,7 @@ class EditableTextPaintService {
     );
   }
 
-  CursorPainter getCursorPainter(TextPaintCfg cfg) => CursorPainter(
+  CursorPainter getCursorPainter(TextPaintCfgM cfg) => CursorPainter(
         editable: cfg.underlyingText,
         style: cursorController.style,
         prototype: cfg.caretPrototype,

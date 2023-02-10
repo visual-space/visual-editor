@@ -7,7 +7,7 @@ import '../../styles/models/doc-tree/inline-code-style.model.dart';
 // An internal config object, used to decouple the paint code
 // from the layout code in the EditableTextLineBoxRenderer.
 @immutable
-class TextPaintCfg {
+class TextPaintCfgM {
   final PaintingContext context;
   final Offset offset;
   final RenderBox? leading;
@@ -21,7 +21,7 @@ class TextPaintCfg {
   final Rect caretPrototype;
   final double devicePixelRatio;
 
-  const TextPaintCfg(
+  const TextPaintCfgM(
     this.context,
     this.offset,
     this.leading,

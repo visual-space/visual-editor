@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter/src/services/text_editing.dart';
+import '../../doc-tree/services/coordinates.service.dart';
 import '../../document/controllers/document.controller.dart';
 import '../../document/models/delta-doc.model.dart';
 import '../../editor/services/editor.service.dart';
@@ -8,6 +9,7 @@ import '../../highlights/services/highlights.service.dart';
 import '../../inputs/services/keyboard.service.dart';
 import '../../links/services/links.service.dart';
 import '../../markers/services/markers.service.dart';
+import '../../selection/services/selection-renderer.service.dart';
 import '../../selection/services/selection.service.dart';
 import '../../shared/state/editor-state-receiver.dart';
 import '../../shared/state/editor.state.dart';
@@ -38,7 +40,9 @@ class EditorController {
   late final MarkersService _markersService;
   late final EmbedsService _embedsService;
   late final KeyboardService _keyboardService;
+  late final CoordinatesService _coordinatesService;
   late final LinksService _linksService;
+  late final SelectionRendererService _selectionRendererService;
 
   final _state = EditorState();
 
@@ -55,6 +59,8 @@ class EditorController {
     _embedsService = EmbedsService(_state);
     _keyboardService = KeyboardService(_state);
     _linksService = LinksService(_state);
+    _coordinatesService = CoordinatesService(_state);
+    _selectionRendererService = SelectionRendererService(_state);
 
     // Controllers
     _initControllersAndCacheControllersRefs();
@@ -150,6 +156,11 @@ class EditorController {
   // === KEYBOARD ===
 
   late final requestKeyboard = _keyboardService.requestKeyboard;
+
+  // === DEV UTILS ===
+
+  late final getPositionForOffset = _coordinatesService.getPositionForOffset;
+  late final getWordAtPosition = _selectionRendererService.getWordAtPosition;
 
   // === UTILS ===
 

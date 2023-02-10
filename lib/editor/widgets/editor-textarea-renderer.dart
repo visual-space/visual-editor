@@ -22,7 +22,7 @@ import '../controllers/vertical-caret-movement-run.controller.dart';
 class EditorTextAreaRenderer extends MultilineTextAreaRenderer
     with RelayoutWhenSystemFontsChangeMixin
     implements TextLayoutMetrics {
-  late final SelectionRendererService _selectionUtils;
+  late final SelectionRendererService _selectionRendererService;
   late final CoordinatesService _coordinatesService;
   late final SelectionHandlesService _selectionHandlesService;
 
@@ -82,7 +82,7 @@ class EditorTextAreaRenderer extends MultilineTextAreaRenderer
           container: state.refs.documentController.rootNode,
           textDirection: textDirection,
         ) {
-    _selectionUtils = SelectionRendererService(state);
+    _selectionRendererService = SelectionRendererService(state);
     _coordinatesService = CoordinatesService(state);
     _selectionHandlesService = SelectionHandlesService(state);
 
@@ -216,22 +216,22 @@ class EditorTextAreaRenderer extends MultilineTextAreaRenderer
 
   @override
   TextSelection getLineAtOffset(TextPosition position) {
-    return _selectionUtils.getLineAtOffset(position, this);
+    return _selectionRendererService.getLineAtOffset(position, this);
   }
 
   @override
   TextRange getWordBoundary(TextPosition position) {
-    return _selectionUtils.getWordBoundary(position, this);
+    return _selectionRendererService.getWordBoundary(position, this);
   }
 
   @override
   TextPosition getTextPositionAbove(TextPosition position) {
-    return _selectionUtils.getTextPositionAbove(position, this);
+    return _selectionRendererService.getTextPositionAbove(position, this);
   }
 
   @override
   TextPosition getTextPositionBelow(TextPosition position) {
-    return _selectionUtils.getTextPositionBelow(position, this);
+    return _selectionRendererService.getTextPositionBelow(position, this);
   }
 
   VerticalCaretMovementRunController startVerticalCaretMovement(

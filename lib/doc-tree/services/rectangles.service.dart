@@ -20,13 +20,13 @@ import '../models/text-paint-cfg.model.dart';
 // Rectangles are used to draw boxes over precise text coordinates
 // or to link overlaid text elements over the text.
 class RectanglesService {
-  late final SelectionRendererService _selectionUtils;
+  late final SelectionRendererService _selectionRendererService;
   final _nodeUtils = NodeUtils();
 
   final EditorState state;
 
   RectanglesService(this.state) {
-    _selectionUtils = SelectionRendererService(state);
+    _selectionRendererService = SelectionRendererService(state);
   }
 
   // === EXTRACT HIGHLIGHTS ===
@@ -49,12 +49,9 @@ class RectanglesService {
     final lineContainsHighlight = _lineContainsSelection(line, selection);
 
     if (lineContainsHighlight) {
-      final local = _selectionUtils.getLocalSelection(line, selection, false);
+      final local = _selectionRendererService.getLocalSelection(line, selection, false);
       final nodeRectangles = underlyingText.getBoxesForSelection(local);
-      final docRelPosition = underlyingText.localToGlobal(
-        const Offset(0, 0),
-        ancestor: state.refs.renderer,
-      );
+      final docRelPosition = underlyingText.localToGlobal(const Offset(0, 0), ancestor: state.refs.renderer);
       rectangles = SelectionRectanglesM(
         textSelection: local,
         rectangles: nodeRectangles,
@@ -101,10 +98,7 @@ class RectanglesService {
       // ignore: avoid_types_on_closure_parameters
       markers.forEach((marker) {
         final rectangles = getRectanglesFromNode(node, underlyingText);
-        final docRelPosition = underlyingText?.localToGlobal(
-          const Offset(0, 0),
-          ancestor: state.refs.renderer,
-        );
+        final docRelPosition = underlyingText?.localToGlobal(const Offset(0, 0), ancestor: state.refs.renderer);
         final nodeOffset = _nodeUtils.getDocumentOffset(node);
         final renderedMarker = marker.copyWith(
           // For markers that have been extracted at init we already have the text selection.
@@ -114,10 +108,7 @@ class RectanglesService {
           // When a new marker is inserted it is passed to the format() method, then to the rules and then to composes().
           // Once compose completes, it then calls the runBuild() which means a new build() cycle starts.
           // During the build we always have access to the selection values, once again by looking at the document data.
-          textSelection: TextSelection(
-            baseOffset: nodeOffset,
-            extentOffset: nodeOffset + node.charsNum,
-          ),
+          textSelection: TextSelection(baseOffset: nodeOffset, extentOffset: nodeOffset + node.charsNum),
           rectangles: rectangles,
           docRelPosition: docRelPosition,
         );
@@ -165,10 +156,7 @@ class RectanglesService {
       );
 
       // Text selection in every line
-      final selection = TextSelection(
-        baseOffset: 0,
-        extentOffset: line.charsNum,
-      );
+      final selection = TextSelection(baseOffset: 0, extentOffset: line.charsNum);
 
       // Text selection in the entire document
       final lineOffset = _nodeUtils.getDocumentOffset(line);
@@ -237,25 +225,12 @@ class RectanglesService {
 
       if (hasLink) {
         if (lineContainsSelection) {
-          final hasSelectedNode = _nodeUtils.containsOffset(
-            node,
-            textSelection.baseOffset,
-          );
+          final hasSelectedNode = _nodeUtils.containsOffset(node, textSelection.baseOffset);
 
           if (hasSelectedNode) {
-            final local = _selectionUtils.getLocalSelection(
-              line,
-              textSelection,
-              false,
-            );
-            final docRelPosition = underlyingText.localToGlobal(
-              const Offset(0, 0),
-              ancestor: state.refs.renderer,
-            );
-            final nodeRectangles = getRectanglesFromNode(
-              node,
-              underlyingText,
-            );
+            final local = _selectionRendererService.getLocalSelection(line, textSelection, false);
+            final docRelPosition = underlyingText.localToGlobal(const Offset(0, 0), ancestor: state.refs.renderer);
+            final nodeRectangles = getRectanglesFromNode(node, underlyingText);
 
             rectangles = SelectionRectanglesM(
               docRelPosition: docRelPosition,
@@ -275,7 +250,7 @@ class RectanglesService {
   // Draws a rectangle around the margins of the node.
   // Border radius can be defined.
   void drawRectanglesFromNode(
-    TextPaintCfg cfg,
+    TextPaintCfgM cfg,
     NodeM node,
     Offset effectiveOffset,
   ) {
@@ -355,7 +330,6 @@ class RectanglesService {
 
   bool _lineContainsSelection(LineM line, TextSelection selection) {
     final lineOffset = _nodeUtils.getDocumentOffset(line);
-    return lineOffset <= selection.end &&
-        selection.start <= lineOffset + line.charsNum - 1;
+    return lineOffset <= selection.end && selection.start <= lineOffset + line.charsNum - 1;
   }
 }

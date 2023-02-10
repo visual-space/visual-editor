@@ -26,7 +26,7 @@ import '../widgets/text-line.dart';
 // Provides the widgets of the doc-tree as described by the document.
 // Each new breakline represents a new textline, which generates an EditableTextLine widget.
 // Inside a text line, each range of text with an unique set of attributes is considered a node.
-// For each node the EditableTextLine generate a TextSpan with the currect test style applied.
+// For each node the EditableTextLine generates a TextSpan with the correct test style applied.
 // These widgets are EditableTextLine or EditableTextBlock.
 // Each time changes are made in the document or the state store the editor build()
 // will render once again the document tree.

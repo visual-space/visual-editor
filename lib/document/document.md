@@ -1,113 +1,62 @@
-# Documents (WIP)
+# Delta Documents
+Delta is a simple, yet expressive format that can be used to describe contents and changes. The format is JSON based, and is human readable, yet easily parsable by machines. Deltas can describe any rich text document, includes all text and formatting information, without the ambiguity and complexity of HTML. A Delta is made up of an list of Operations, which describe changes to a document. They can be an `insert`, `delete` or `retain`. They always describe the change at the current index. Use retains to "keep" or "skip" certain parts of the document. Reading the various json samples we have in the demo pages project will help you quickly learn how delta docs work. Also try the Sandbox demo page where you can see in real time how a document changes.
 
+**Delta format docs:**
+- [Delta](https://github.com/quilljs/delta)
+- [Designing the delta format](https://quilljs.com/guides/designing-the-delta-format)
 
-## Delta
-Delta is a simple, yet expressive format that can be used to describe contents and changes. The format is JSON based, and is human readable, yet easily parsable by machines. Deltas can describe any rich text document, includes all text and formatting information, without the ambiguity and complexity of HTML.
-
-A Delta is made up of an [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) of Operations, which describe changes to a document. They can be an [`insert`](#insert-operation), [`delete`](#delete-operation) or [`retain`](#retain-operation). Note operations do not take an index. They always describe the change at the current index. Use retains to "keep" or "skip" certain parts of the document.
-
-Don’t be confused by its name Delta&mdash;Deltas represents both documents and changes to documents. If you think of Deltas as the instructions from going from one document to another, the way Deltas represent a document is by expressing the instructions starting from an empty document.
-
-
-## Quick Example
-
-```js
-// Document with text "Gandalf the Grey"
-// with "Gandalf" bolded, and "Grey" in grey
-const delta = new Delta([
-  { insert: 'Gandalf', attributes: { bold: true } },
-  { insert: ' the ' },
-  { insert: 'Grey', attributes: { color: '#ccc' } }
-]);
-
-// Change intended to be applied to above:
-// Keep the first 12 characters, insert a white 'White'
-// and delete the next four characters ('Grey')
-const death = new Delta().retain(12)
-                         .insert('White', { color: '#fff' })
-                         .delete(4);
-// {
-//   ops: [
-//     { retain: 12 },
-//     { insert: 'White', attributes: { color: '#fff' } },
-//     { delete: 4 }
-//   ]
-// }
-
-// Applying the above:
-const restored = delta.getComposedDelta(death);
-// {
-//   ops: [
-//     { insert: 'Gandalf', attributes: { bold: true } },
-//     { insert: ' the ' },
-//     { insert: 'White', attributes: { color: '#fff' } }
-//   ]
-// }
+**Basic Title and Text Sample**
+```json
+[
+  {
+    "insert": "Read Only"
+  },
+  {
+    "insert": "\n",
+    "attributes": {
+      "header": 1
+    }
+  },
+  {
+    "insert": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n"
+  }
+]
 ```
 
+## Document Controller
+The actual document (pure data) editing happens by calling compose() or other methods from the documentController level. Since both of editor service and document controller are public APIs we had to use short names (less expressive). Therefore to solve the confusion between `editorController.compose()` and `documentController.compose()` remember that the editor level has to coordinate more systems along with the updates of the document. Which means that the actual pure data editing of the document content happens in documentController.
 
-## Attributes (WIP)
-Attributes defined the characteristics of text. The delta document stores attributes for each operation.
 
-**Attribute Types:**
+## Pure Data Models
+In the initial Quill architecture (before forking) the Document models had a large number of methods. This made them really hard to understand because code and data were mixed together. We made a large refactoring effort to convert all models to pure data models. This reduced the effort required to understand the models. This means we transitioned from OOP API design (methods attached to document) to a pure functional API design (pure data models and utils). We retained the short OOP naming style, aka fluent API). This approach makes it a lot easier for new lib contributors to understand the architecture.
 
-- **Inline Keys**: bold, italic, small, underline, strikeThrough, link, color, background, placeholder,
-- **Block Keys**: header, align, list, codeBlock, blockQuote, indent, direction,
-- **Block Keys Except Header**: list, align, codeBlock, blockQuote, indent, direction,
-- **Exclusive Block Keys**: header, list, codeBlock, blockQuote, 
+- **Models & Utils** - Since the models no longer have methods that means devs will need to know two files: models and utils. This is one slight drawback of this architecture. Since only advanced users manipulate the document outside of the editor controller we think that's not a good enough reason to retain the old OOP style models.
+
+
+## Attributes
+Attributes defined the characteristics of text. The delta document stores attributes for each operation. Not all operations are required to define attributes.
+
+**Attribute Types**
+
+- **Inline Keys** - bold, italic, small, underline, strikeThrough, link, color, background, placeholder,
+- **Block Keys** - header, align, list, codeBlock, blockQuote, indent, direction,
+- **Block Keys Except Header** - list, align, codeBlock, blockQuote, indent, direction,
+- **Exclusive Block Keys** - header, list, codeBlock, blockQuote, 
 
 **Attribute Scopes**
 
-- **Inline** - refer to https://quilljs.com/docs/formats/#inline
-- **Block**, - refer to https://quilljs.com/docs/formats/#block
-- **Embeds**, - refer to https://quilljs.com/docs/formats/#embeds
-- **Ignore**, - attributes that can be ignored
-
-**Defining New Attributes (WIP)**
+- **Inline** - Inline attributes apply styles to a random slice of text at any position.
+- **Block** - Block attributes apply styles to a large block of text (code block or bullets list)
+- **Embeds** - Embeds are used to add additional content that is not supported by the editor (video, interactive widgets, etc).
+- **Ignore** - Attributes that can be ignored
 
 
-## Text Lines, Text Blocks (WIP)
+## Nodes (WIP)
+Document models can be initialised empty or from json data or delta models. Internally, in the editor controller there exists an additional representation: nodes. Nodes is a list of objects that represent each individual fragment of text with unique styling. Islands made of nodes of identical styling get merged in one single continuous chunk. When a document is initialised, the delta operations are converted to nodes and attached to the root node. The build() process maps the document nodes to styled text spans in the widget tree.
 
+All nodes inherit from `NodeM`. The node inherits from the `LinkedListEntry`. This means all nodes can be linked in a linked list structure. This is by far the most efficient data structure that can be used to iterate through the document. All nodes are linked to prev and next but also to parent Which means we have the best of both worlds: linked lists and directed acyclic graphs. In the end all nodes are listed under the root node of document tree.
 
-## How Rendering Works (WIP)
-
-- How TextLine works,
-- How Styles are applied to Text spans,
-- How embeds are rendered
-
-
-## Conversion From JSON (WIP)
-
-- **DeltaM** -
-- **OperationM** -
-
-
-## Encoding (WIP)
-Delta json files are converted to in-memory representation as classes.
-
-TODO Document these:
-
-- **DocumentM** - 
-  - **fromJson()** - 
-  - **fromDelta()** - 
-  - **root** - 
-  - **toDelta()** - 
-  - **setCustomRules()** - 
-  - **setCustomRules()** - 
-  - **hasUndo** - 
-  - **hasRedo** - 
-  - **changes** - 
-  - **insert()** - 
-  - **delete()** - 
-  - **replace()** - 
-  - **format()** - 
-  - **compose()** - 
-  - **undo()** - 
-  - **redo()** - 
-  - **toPlainText()** - 
-  - **getPlainText()** - 
-  - **queryChild()** - 
-  - **querySegmentLeafNode()** - 
+- **DocumentM** -
 - **DeltaM** - 
 - **RootM** - 
 - **ContainerM** - 
@@ -128,22 +77,5 @@ TODO Document these:
 ## History (WIP)
 
 
-## Conversion To Other Data Formats (WIP)
-Not yet implemented.
+## Conversion To Other Data Formats (TBD)
 
-**Read the full article about the delta format:**
-- https://github.com/quilljs/delta
-- https://quilljs.com/guides/designing-the-delta-format
-
-
-## Solved Issues
-**update() added an extra \n**
-
-(!) Calling `update()` will trigger two operations: `clear()` and `compose()`. `clear()` will use `replace()` to cleanup the entire document until we are left with `[{"insert":"\n"}]`. `compose()` will then use the new delta to append it to the document. `documentController.compose()` will trigger an insert on the `rootNode` (nodes list). Reminder: `clear()` has updated both the delta and `rootNode` to contain an empty line with a simple break line inside. This means we are adding empty rootNode "\n" + new data: "abc\n" and we will get "abc\n\n".
-
-* **Attempt1** - Deleting in the controller delta the new line \n character such that we can do "" + "abc\n". This approach has some serious after effects because the delta and the `rootNode` go out of sync.
-* **Attempt2** - Deleting the newline in the rootNode after the insert. However first time it was done the wrong way. I was removing the first child in the list thus leaving the document empty regardless of the delta provided by `update()`. This seems to work fine when you have just an empty field being updated with empty doc. However it no longer works when you attempt to update with a regular document that has chars. Another issue was that I did not update the internal delta of the controller to match the new state of the `rootNode`. Once again things were going crazy with further interactions due to the mismatch between internal delta and rootNode.
-* **Final Attempt** - I realised that I need to delete the last line of the rootNode. Also, we need to make sure this is done ONLY when compose() is called from `clear()`. That's why I created the `overrideRootNode` param. This entire setup might look like a hack, but there's simply no way to get rid of the double \n\n when updating the doc. The entire nodes manipulation code is built under the assumption that a document line will always end with \n. Therefore there's no simple way of getting rid of the initial \n of an empty doc. Thus we are left only with the option presented here: to remove the double \n if we now it was generated by update().
-
-
-Join on [discord](https://discord.gg/XpGygmXde4) to get advice and help or follow us on [YouTube Visual Coding](https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA) to learn more about the architecture of Visual Editor and other Flutter apps.

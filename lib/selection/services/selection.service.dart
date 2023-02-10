@@ -21,13 +21,12 @@ typedef UpdateSelectionCallback = void Function(
 );
 
 // Provides methods for moving the cursor to arbitrary positions.
-
 // Hosts the text gestures (tapDown, tapUp) which were mapped to selection commands by the TextGesturesService.
 class SelectionService {
   late final RunBuildService _runBuildService;
   late final CaretService _caretService;
   late final CoordinatesService _coordinatesService;
-  late final SelectionRendererService _selectionUtils;
+  late final SelectionRendererService _selectionRendererService;
   late final SelectionHandlesService _selectionHandlesService;
   late final KeyboardService _keyboardService;
   final _nodeUtils = NodeUtils();
@@ -38,7 +37,7 @@ class SelectionService {
     _runBuildService = RunBuildService(state);
     _caretService = CaretService(state);
     _coordinatesService = CoordinatesService(state);
-    _selectionUtils = SelectionRendererService(state);
+    _selectionRendererService = SelectionRendererService(state);
     _selectionHandlesService = SelectionHandlesService(state);
     _keyboardService = KeyboardService(state);
   }
@@ -80,10 +79,12 @@ class SelectionService {
     SelectionChangedCause cause,
   ) {
     final firstPosition = _coordinatesService.getPositionForOffset(from);
-    final firstWord = _selectionUtils.getWordAtPosition(firstPosition);
+    final firstWord = _selectionRendererService.getWordAtPosition(
+      firstPosition,
+    );
     final lastWord = to == null
         ? firstWord
-        : _selectionUtils.getWordAtPosition(
+        : _selectionRendererService.getWordAtPosition(
             _coordinatesService.getPositionForOffset(to),
           );
 

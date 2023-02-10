@@ -14,7 +14,7 @@ import '../services/coordinates.service.dart';
 class EditableTextBlockBoxRenderer extends MultilineTextAreaRenderer
     implements EditableBoxRenderer {
   late final CoordinatesService _coordinatesService;
-  late final SelectionRendererService _selectionUtils;
+  late final SelectionRendererService _selectionRendererService;
   final _contUtils = ContainerUtils();
   final _nodeUtils = NodeUtils();
 
@@ -68,7 +68,7 @@ class EditableTextBlockBoxRenderer extends MultilineTextAreaRenderer
           ),
         ) {
     _coordinatesService = CoordinatesService(state);
-    _selectionUtils = SelectionRendererService(state);
+    _selectionRendererService = SelectionRendererService(state);
 
     _contentPadding = isCodeBlock ? const EdgeInsets.all(16) : EdgeInsets.zero;
   }
@@ -232,7 +232,11 @@ class EditableTextBlockBoxRenderer extends MultilineTextAreaRenderer
     assert(baseChild != null);
 
     final basePoint = baseChild!.getBaseEndpointForSelection(
-      _selectionUtils.getLocalSelection(baseChild.container, selection, true),
+      _selectionRendererService.getLocalSelection(
+        baseChild.container,
+        selection,
+        true,
+      ),
     );
 
     return TextSelectionPoint(
@@ -264,7 +268,7 @@ class EditableTextBlockBoxRenderer extends MultilineTextAreaRenderer
     assert(extentChild != null);
 
     final extentPoint = extentChild!.getExtentEndpointForSelection(
-      _selectionUtils.getLocalSelection(
+      _selectionRendererService.getLocalSelection(
         extentChild.container,
         selection,
         true,

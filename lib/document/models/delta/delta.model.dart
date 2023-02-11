@@ -2,6 +2,7 @@ import 'package:quiver/core.dart';
 
 import '../../services/delta.utils.dart';
 import '../../services/nodes/operations.utils.dart';
+import 'data-decoder.type.dart';
 import 'operation.model.dart';
 
 final _du = DeltaUtils();
@@ -26,11 +27,13 @@ class DeltaM {
     operations = _operations ?? [];
   }
 
-  // Creates new Delta from existing Delta.
   // TODO Needs to be improved to create a deep clone (even the Quill version is badly implemented)
   DeltaM.from(DeltaM newDelta) {
     operations = newDelta.operations;
   }
+
+  static DeltaM fromJson(List jsonOps, {DataDecoder? dataDecoder}) =>
+      _du.fromJson(jsonOps);
 
   // === QUERIES ===
 

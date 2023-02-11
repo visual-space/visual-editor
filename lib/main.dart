@@ -402,6 +402,17 @@ class VisualEditorState extends State<VisualEditor>
     return _clipboardService.toolbarOptions().selectAll;
   }
 
+  @override
+  void didChangeInputControl(
+      TextInputControl? oldControl, TextInputControl? newControl) {
+    // TODO: implement didChangeInputControl
+  }
+
+  @override
+  void performSelector(String selectorName) {
+    // TODO: implement performSelector
+  }
+
   // Required to avoid circular reference between EditorService and KeyboardService.
   // Ugly solution but it works.
   bool updGuiAndBuildViaHardwareKbEvent(_) =>

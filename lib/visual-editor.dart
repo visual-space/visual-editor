@@ -1,6 +1,7 @@
 library visual_editor;
 
 export 'controller/controllers/editor-controller.dart';
+export 'doc-tree/models/vertical-spacing.model.dart';
 export 'doc-tree/style-widgets.dart';
 export 'document/controllers/document.controller.dart';
 export 'document/models/attributes/attribute.model.dart';

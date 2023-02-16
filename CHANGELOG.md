@@ -6,6 +6,8 @@ If you want to learn more about the specs, all tickets are available by followin
 - Improved Readme.md, added screen captures of the new features
 - Added custom fonts (RobotoMono) for code blocks and inline code
 - Replaced code block icon from toolbar with a proper one, before it was using the same icon as inline code, which was not a proper UX.
+- Selection - Can't select the first whitespace after any text [#176](https://github.com/visual-space/visual-editor/issues/176)
+
 
 ## [0.9.0] Inputs - Keyboard Shortcuts [#163](https://github.com/visual-space/visual-editor/issues/163)
 - Added hotkeys for toolbar actions (e.g.: CTRL + B makes the selected text bold).

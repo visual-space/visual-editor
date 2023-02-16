@@ -98,8 +98,30 @@ class CoordinatesService {
     final localOffset = local - parentData.offset;
     final localPosition = child.getPositionForOffset(localOffset);
 
+    // Store the letter position. Works properly if the line is not empty (doesn't contain '\n').
+    // For that we got below a condition which solves the problem.
+    final letterOffset = localPosition.offset + _nodeUtils.getOffset(child.container);
+
+    final isNotFirstCharInsideDocument = letterOffset > 1;
+
+    // (!) In order to make the caret be placeable before the first letter in the document.
+    if (isNotFirstCharInsideDocument) {
+      // Selection is also when user taps at a specific place in the editor in order to place the caret.
+      final firstLetterOfSelection =
+      state.refs.documentController.getPlainTextAtRange(letterOffset - 1, 1);
+
+      // Empty Line
+      if (firstLetterOfSelection == '\n') {
+        // Move caret at the position of that empty line.
+        return TextPosition(
+          offset: _nodeUtils.getOffset(child.container),
+          affinity: localPosition.affinity,
+        );
+      }
+    }
+
     return TextPosition(
-      offset: localPosition.offset + _nodeUtils.getOffset(child.container),
+      offset: letterOffset,
       affinity: localPosition.affinity,
     );
   }

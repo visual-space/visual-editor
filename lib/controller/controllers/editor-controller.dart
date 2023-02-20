@@ -104,6 +104,7 @@ class EditorController {
 
   late final addHighlight = _highlightsService.addHighlight;
   late final removeHighlight = _highlightsService.removeHighlight;
+  late final removeHighlightsById = _highlightsService.removeHighlightsById;
   late final removeAllHighlights = _highlightsService.removeAllHighlights;
 
   // === MARKERS ===

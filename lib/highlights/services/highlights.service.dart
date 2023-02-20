@@ -22,6 +22,11 @@ class HighlightsService {
     _runBuildService.runBuild();
   }
 
+  void removeHighlightsById(String id) {
+    state.highlights.removeHighlightsById(id);
+    _runBuildService.runBuild();
+  }
+
   void removeAllHighlights() {
     state.highlights.removeAllHighlights();
     _runBuildService.runBuild();

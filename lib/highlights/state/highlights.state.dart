@@ -15,6 +15,12 @@ class HighlightsState {
     highlights.remove(highlight);
   }
 
+  void removeHighlightsById(String id) {
+    highlights.removeWhere(
+      (highlight) => highlight.id == id,
+    );
+  }
+
   void removeAllHighlights() {
     highlights = [];
   }

@@ -13,6 +13,7 @@ import '../widgets/selection-stats.dart';
 
 // Highlights are text selections that are temporarily marked in color.
 // They can be enabled on demand for features such as highlighted a searched string.
+// Highlights can be removed all at once, one by one (based on the object) or by id (one or more)
 class HighlightsPage extends StatefulWidget {
   @override
   _HighlightsPageState createState() => _HighlightsPageState();
@@ -24,8 +25,6 @@ class _HighlightsPageState extends State<HighlightsPage> {
   final _scrollController = ScrollController();
   late TextSelection _selection;
   final _selection$ = StreamController<TextSelection>.broadcast();
-
-  // TextSelection _selection = TextSelection.collapsed(offset: 0);
 
   @override
   void initState() {
@@ -40,7 +39,13 @@ class _HighlightsPageState extends State<HighlightsPage> {
                 _editor(),
                 _actionsCol(
                   children: [
-                    _newHighlightButton(),
+                    _row(
+                      children: [
+                        _addHighlightBtn(),
+                        _removeGreenHighlightsBtn(),
+                        _removeAllHighlightsBtn(),
+                      ],
+                    ),
                     _selectionStats(),
                   ],
                 ),
@@ -62,39 +67,29 @@ class _HighlightsPageState extends State<HighlightsPage> {
         children: children,
       );
 
-  Widget _newHighlightButton() => Container(
-        padding: EdgeInsets.all(20),
+  Widget _row({required List<Widget> children}) => Container(
+        padding: EdgeInsets.symmetric(vertical: 20),
         child: Row(
-          children: [
-            Padding(
-              padding: EdgeInsets.only(
-                right: 10,
-              ),
-              child: ElevatedButton(
-                child: Text('Add highlight'),
-                onPressed: () {
-                  _controller?.addHighlight(
-                    HighlightM(
-                      id: getTimeBasedId(),
-                      textSelection: _selection.copyWith(),
-                      onEnter: (highlight) {},
-                      onExit: (highlight) {},
-                      onSingleTapUp: (highlight) {
-                        print('Highlight tapped ${highlight.id}');
-                      },
-                    ),
-                  );
-                },
-              ),
-            ),
-            ElevatedButton(
-              child: Text('Clear highlights'),
-              onPressed: () {
-                _controller!.removeAllHighlights();
-              },
-            ),
-          ],
+          children: children,
         ),
+      );
+
+  Widget _addHighlightBtn() => ElevatedButton(
+        onPressed: _addHighlight,
+        child: Text('Add highlight'),
+      );
+
+  Widget _removeGreenHighlightsBtn() => Container(
+        padding: EdgeInsets.symmetric(horizontal: 15),
+        child: ElevatedButton(
+          onPressed: _removeGreenHighlights,
+          child: Text('Remove green highlights'),
+        ),
+      );
+
+  Widget _removeAllHighlightsBtn() => ElevatedButton(
+        onPressed: _removeAllHighlights,
+        child: Text('Remove all highlights'),
       );
 
   Widget _selectionStats() => SelectionStats(
@@ -137,6 +132,29 @@ class _HighlightsPageState extends State<HighlightsPage> {
           multiRowsDisplay: false,
         ),
       );
+
+  void _addHighlight() {
+    _controller?.addHighlight(
+      HighlightM(
+        id: getTimeBasedId(),
+        textSelection: _selection.copyWith(),
+        onEnter: (highlight) {},
+        onExit: (highlight) {},
+        onSingleTapUp: (highlight) {
+          print('Highlight tapped ${highlight.id}');
+        },
+      ),
+    );
+  }
+
+// Remove all highlights with the same id
+  void _removeGreenHighlights() {
+    _controller?.removeHighlightsById('1255915683987000');
+  }
+
+  void _removeAllHighlights() {
+    _controller?.removeAllHighlights();
+  }
 
   Future<void> _loadDocumentAndInitController() async {
     final deltaJson = await rootBundle.loadString(

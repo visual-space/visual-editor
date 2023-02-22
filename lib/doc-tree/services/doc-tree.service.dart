@@ -51,7 +51,7 @@ class DocTreeService {
   // For each node it renders a new rich text widget.
   List<Widget> getDocumentTree({required DocumentM document}) {
     final docWidgets = <Widget>[];
-    final indentLevelCounts = <int, int>{};
+    var indentLevelCounts = <int, int>{};
     final nodes = state.refs.documentController.rootNode.children;
     final renderers = <EditableTextLineWidgetRenderer>[];
 
@@ -67,6 +67,10 @@ class DocTreeService {
             child: renderer,
           ),
         );
+
+        // Needs to be reset after each line in order to start with the indentation at the
+        // correct index when entering inside another block and not keep the old indexes of the last block inside it.
+        indentLevelCounts = <int, int>{};
 
         // Block
       } else if (node is BlockM) {

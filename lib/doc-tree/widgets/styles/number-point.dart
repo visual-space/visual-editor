@@ -5,82 +5,68 @@ import '../../../document/models/attributes/attributes.model.dart';
 import '../../const/arabian-roman-numbers.const.dart';
 import '../../const/roman-numbers.const.dart';
 
+// Displays the index of a line inside a block of ordered list or code block.
+// It holds the logic for converting the index from integer to alpha or roman and vice-versa.
 class NumberPoint extends StatelessWidget {
-  final int index;
   final Map<int?, int> indentLevelCounts;
-  final int count;
-  final TextStyle style;
-  final double width;
+  final TextStyle textStyle;
+  final double containerWidth;
   final Map<String, AttributeM> attrs;
-  final bool withDot;
-  final double padding;
+  final bool hasDotAfterNumber;
+  final double endPadding;
+  final int blockLength;
 
   const NumberPoint({
-    required this.index,
     required this.indentLevelCounts,
-    required this.count,
-    required this.style,
-    required this.width,
+    required this.textStyle,
+    required this.containerWidth,
     required this.attrs,
-    this.withDot = true,
-    this.padding = 0.0,
+    required this.blockLength,
+    this.hasDotAfterNumber = true,
+    this.endPadding = 0.0,
     Key? key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    var s = index.toString();
-    int? level = 0;
-
-    if (!attrs.containsKey(AttributesM.indent.key) &&
-        !indentLevelCounts.containsKey(1)) {
-      indentLevelCounts.clear();
-
-      return Container(
-        alignment: AlignmentDirectional.topEnd,
-        width: width,
-        padding: EdgeInsetsDirectional.only(end: padding),
-        child: Text(withDot ? '$s.' : s, style: style),
-      );
-    }
-
-    if (attrs.containsKey(AttributesM.indent.key)) {
-      level = attrs[AttributesM.indent.key]!.value;
-    } else {
-      // first level but is back from previous indent level
-      // supposed to be "2."
-      indentLevelCounts[0] = 1;
-    }
-
-    if (indentLevelCounts.containsKey(level! + 1)) {
-      // last visited level is done, going up
-      indentLevelCounts.remove(level + 1);
-    }
-
-    final count = (indentLevelCounts[level] ?? 0) + 1;
-    indentLevelCounts[level] = count;
-    s = count.toString();
-
-    if (level % 3 == 1) {
-      // a. b. c. d. e. ...
-      s = _toExcelSheetColumnTitle(count);
-    } else if (level % 3 == 2) {
-      // i. ii. iii. ...
-      s = _intToRoman(count);
-    }
-    // level % 3 == 0 goes back to 1. 2. 3.
+    final olString = _getOlString();
 
     return Container(
       alignment: AlignmentDirectional.topEnd,
-      width: width,
-      padding: EdgeInsetsDirectional.only(end: padding),
-      child: Text(withDot ? '$s.' : s, style: style),
+      width: containerWidth,
+      padding: EdgeInsetsDirectional.only(end: endPadding),
+      child: Text('$olString${hasDotAfterNumber ? '.' : ''}', style: textStyle),
     );
   }
 
-  String _toExcelSheetColumnTitle(int n) {
-    final result = StringBuffer();
+  String _getOlString() {
+    // Stores the indentation level of the current line.
+    final int indentLevel = attrs[AttributesM.indent.key]?.value ?? 0;
 
+    // First the indentLevelCounts is going to be empty.
+    // This is for other levels of indentation, so they don't connect with the other indented.
+    if (indentLevelCounts.containsKey(indentLevel + 1)) {
+      // last visited level is done, going up
+      indentLevelCounts.remove(indentLevel + 1);
+    }
+
+    final count = (indentLevelCounts[indentLevel] ?? 0) + 1;
+    indentLevelCounts[indentLevel] = count;
+
+    final numberingMode = indentLevel % 3;
+    if (numberingMode == 1) {
+      // a. b. c.
+      return _intToAlpha(count);
+    } else if (numberingMode == 2) {
+      // i. ii. iii.
+      return _intToRoman(count);
+    }
+
+    return count.toString();
+  }
+
+  String _intToAlpha(int n) {
+    final result = StringBuffer();
     while (n > 0) {
       n--;
       result.write(String.fromCharCode((n % 26).floor() + 97));
@@ -96,19 +82,16 @@ class NumberPoint extends StatelessWidget {
     if (num < 0) {
       return '';
     } else if (num == 0) {
-      return 'nulla';
+      return 'null';
     }
 
     final builder = StringBuffer();
-
     for (var a = 0; a < arabianRomanNumbers.length; a++) {
-      final times = (num / arabianRomanNumbers[a])
-          .truncate(); // Equals 1 only when arabianRomanNumbers[a] = num
-
-      // Executes n times where n is the number of times you have to add
+      // Equals 1 only when arabianRomanNumbers[a] = num
+      final times = (num / arabianRomanNumbers[a]).truncate();
+      // executes n times where n is the number of times you have to add
       // the current roman number value to reach current num.
       builder.write(romanNumbers[a] * times);
-
       // Subtract previous roman number value from num
       num -= times * arabianRomanNumbers[a];
     }

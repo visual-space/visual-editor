@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:visual_editor/doc-tree/models/vertical-spacing.model.dart';
 import 'package:visual_editor/styles/models/doc-tree/list-block-style.model.dart';
 import 'package:visual_editor/visual-editor.dart';
 

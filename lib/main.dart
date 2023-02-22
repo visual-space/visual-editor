@@ -28,12 +28,14 @@ import 'inputs/services/clipboard.service.dart';
 import 'inputs/services/input-connection.service.dart';
 import 'inputs/services/keyboard-actions.service.dart';
 import 'inputs/services/keyboard.service.dart';
+import 'inputs/services/typing-shortcuts-service.dart';
 import 'inputs/widgets/text-gestures.dart';
 import 'selection/controllers/selection-handles.controller.dart';
 import 'selection/services/selection-handles.service.dart';
 import 'selection/services/selection.service.dart';
 import 'shared/state/editor-state-receiver.dart';
 import 'shared/state/editor.state.dart';
+import 'shared/utils/shortcuts.utils.dart';
 import 'styles/services/styles-cfg.service.dart';
 
 // There are 2 constructors available, one for controlling all the settings of the editor in precise detail.
@@ -126,6 +128,7 @@ class VisualEditorState extends State<VisualEditor>
   late final StylesCfgService _stylesCfgService;
   late final GuiService _guiService;
   late final EmbedsService _embedsService;
+  late final TypingShortcutsService _typingShortcutsService;
 
   // Controllers
   SelectionHandlesController? selectionHandlesController;
@@ -158,6 +161,7 @@ class VisualEditorState extends State<VisualEditor>
     _stylesCfgService = StylesCfgService(state);
     _guiService = GuiService(state);
     _embedsService = EmbedsService(state);
+    _typingShortcutsService = TypingShortcutsService(state);
 
     super.initState();
     _cacheWidgetRef();
@@ -182,7 +186,7 @@ class VisualEditorState extends State<VisualEditor>
     final editorTree = _conditionalPreventKeyPropagationToParentIfWeb(
       child: _i18n(
         child: _textGestures(
-          child: _hotkeysActions(
+          child: _hotkeysActionsAndShortcuts(
             child: _focusField(
               child: _constrainedBox(
                 child: _conditionalScrollable(
@@ -443,16 +447,18 @@ class VisualEditorState extends State<VisualEditor>
       kIsWeb
           ? RawKeyboardListener(
               focusNode: FocusNode(
-                onKey: (node, event) => KeyEventResult.skipRemainingHandlers,
+                onKey: _typingShortcutsService.getKeyEventResult,
               ),
               child: child,
-              onKey: (_) {},
             )
           : child;
 
-  Widget _hotkeysActions({required Widget child}) => Actions(
-        actions: _keyboardActionsService.getActions(context),
-        child: child,
+  Widget _hotkeysActionsAndShortcuts({required Widget child}) => Shortcuts(
+        shortcuts: shortcuts,
+        child: Actions(
+          actions: _keyboardActionsService.getActions(context),
+          child: child,
+        ),
       );
 
   Widget _focusField({required Widget child}) => Focus(

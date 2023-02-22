@@ -163,7 +163,7 @@ class _ArrowScrollableButtonListState extends State<ArrowScrollableButtonList>
 class _ScrollBehavior extends ScrollBehavior {
   // Delete the Material glow effect.
   @override
-  Widget buildViewportChrome(
+  Widget buildOverscrollIndicator(
     context,
     child,
     axisDirection,

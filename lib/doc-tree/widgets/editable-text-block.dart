@@ -181,13 +181,12 @@ class EditableTextBlock extends StatelessWidget {
     // Numbered list
     if (attrs[AttributesM.list.key] == AttributesAliasesM.orderedList) {
       return NumberPoint(
-        index: index,
+        blockLength: count,
         indentLevelCounts: indentLevelCounts,
-        count: count,
-        style: styles.leading!.style,
+        textStyle: styles.leading!.style,
         attrs: attrs,
-        width: 32,
-        padding: 8,
+        containerWidth: 32,
+        endPadding: 8,
       );
     }
 
@@ -228,16 +227,15 @@ class EditableTextBlock extends StatelessWidget {
     // Code Block
     if (attrs.containsKey(AttributesM.codeBlock.key)) {
       return NumberPoint(
-        index: index,
+        blockLength: count,
         indentLevelCounts: indentLevelCounts,
-        count: count,
-        style: styles.code!.style.copyWith(
+        textStyle: styles.code!.style.copyWith(
           color: styles.code!.style.color!.withOpacity(0.4),
         ),
-        width: 32,
+        containerWidth: 32,
         attrs: attrs,
-        padding: 16,
-        withDot: false,
+        endPadding: 16,
+        hasDotAfterNumber: false,
       );
     }
 

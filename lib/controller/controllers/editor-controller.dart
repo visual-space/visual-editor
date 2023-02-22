@@ -1,3 +1,5 @@
+import 'package:flutter/src/services/text_editing.dart';
+
 import '../../document/models/document.model.dart';
 import '../../editor/services/editor.service.dart';
 import '../../embeds/services/embeds.service.dart';
@@ -88,7 +90,7 @@ class EditorController {
 
   // === CURSOR / SELECTION ===
 
-  late final selection = _selectionService.selection;
+  TextSelection get selection => _selectionService.selection;
   late final moveCursorToPosition = _selectionService.moveCursorToPosition;
   late final moveCursorToStart = _selectionService.moveCursorToStart;
   late final moveCursorToEnd = _selectionService.moveCursorToEnd;

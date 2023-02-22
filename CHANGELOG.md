@@ -1,6 +1,12 @@
 # Changelog
 If you want to learn more about the specs, all tickets are available by following the hashtag links.
 
+## [0.9.0] Inputs - Keyboard Shortcuts [#163](https://github.com/visual-space/visual-editor/issues/163)
+- Added hotkeys for toolbar actions (e.g.: CTRL + B makes the selected text bold).
+- Added ordered list on key combination (1. + space) at the beginning of a line and (- + space) creates bullet list.
+- Fixed the wrong ordering number bug in ordered lists and code block. [#158](https://github.com/visual-space/visual-editor/issues/158)
+- Added nested bullets with TAB key. [#11](https://github.com/visual-space/visual-editor/issues/11)
+
 ## [0.8.0] Improved file/folders structure [#174](https://github.com/visual-space/visual-editor/issues/174)
 - Sys - Improve file/folders structure
 - Add demo images in readme.

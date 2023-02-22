@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../doc-tree/services/coordinates.service.dart';
@@ -103,7 +102,7 @@ class SelectionHandlesController {
 
     // The context must not be null and must have an Overlay as an ancestor.
     _context = state.refs.widget.context;
-    final overlay = Overlay.of(_context, rootOverlay: true)!;
+    final overlay = Overlay.of(_context, rootOverlay: true);
 
     _textSelectionControls = textSelectionControls ??
         _state.platformStyles.styles.textSelectionControls;
@@ -159,8 +158,7 @@ class SelectionHandlesController {
       _context,
       rootOverlay: true,
       debugRequiredFor: debugRequiredFor,
-    )!
-        .insert(toolbar!);
+    ).insert(toolbar!);
     _toolbarController.forward(from: 0);
 
     // Make sure handles are visible as well
@@ -233,8 +231,7 @@ class SelectionHandlesController {
       _context,
       rootOverlay: true,
       debugRequiredFor: debugRequiredFor,
-    )!
-        .insertAll(_handles!);
+    ).insertAll(_handles!);
   }
 
   // Causes the overlay to update its rendering.

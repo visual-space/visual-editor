@@ -262,7 +262,7 @@ class _EditorDropdownState<T> extends State<EditorDropdown<T>> {
   RelativeRect _getMenuPosition() {
     final button = context.findRenderObject() as RenderBox;
     final overlay =
-        Overlay.of(context)!.context.findRenderObject() as RenderBox;
+        Overlay.of(context).context.findRenderObject() as RenderBox;
 
     return RelativeRect.fromRect(
       Rect.fromPoints(

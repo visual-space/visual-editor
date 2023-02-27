@@ -14,6 +14,7 @@ import 'markers/pages/hide-markers.page.dart';
 import 'markers/pages/highlights.page.dart';
 import 'markers/pages/markers-attachments.page.dart';
 import 'markers/pages/markers.page.dart';
+import 'markers/pages/profile-card-on-marker.page.dart';
 import 'styles/pages/all-styles.page.dart';
 import 'styles/pages/custom-styles.page.dart';
 import 'styles/pages/placeholder.page.dart';
@@ -51,6 +52,7 @@ class DemoApp extends StatelessWidget {
           '/markers-attachments': (context) => MarkersAttachmentsPage(),
           '/hide-markers': (context) => HideMarkersPage(),
           '/delete-markers': (context) => DeleteMarkersPage(),
+          '/profile-card': (context) => ProfileCardOnMarkerPage(),
 
           // Interactions
           '/selection-menu': (context) => SelectionMenuPage(),

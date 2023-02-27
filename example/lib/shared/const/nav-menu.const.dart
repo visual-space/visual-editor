@@ -67,6 +67,10 @@ const List<NavMenuCategoryM> NAV_MENU = [
         title: 'Delete Markers',
         route: '/delete-markers',
       ),
+      NavMenuLinkM(
+        title: 'Profile Card On Marker',
+        route: '/profile-card',
+      ),
     ],
   ),
 

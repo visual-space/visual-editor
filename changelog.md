@@ -154,6 +154,7 @@ If you want to learn more about the specs, all tickets are available by followin
 - Created `EditableTextPaintService`. `EditableTextLineBoxRenderer` has many overrides concerned with computing the layout dimensions. Therefore the painting logic for selection/highlight boxes is better separated here. Separating the layout dimensions logic and painting logic helps improves readability and maintainability.
 - Move code that is closely related to other modules to the respective modules
 - Renamed `EditorRendererInner` to `EditorTextAreaRenderer` following the conventions for editable text line.
+- Replaced header style buttons with a dropdown [#15](https://github.com/visual-space/visual-editor/issues/15)
 
 
 ## Custom Embeds [#157](https://github.com/visual-space/visual-editor/issues/157)

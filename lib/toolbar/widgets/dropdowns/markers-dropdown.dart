@@ -15,11 +15,6 @@ import '../../models/dropdown-option.model.dart';
 // However the markers use a custom data format to store multiple layers in one attribute.
 // Therefore we need a custom method to read the attributes values and
 // to convert them into selected dropdown options.
-// When the dropdown renders the list we highlight the options selected in the current text selection.
-// Most attributes use primitive values such as the sizes dropdown.
-// However the markers use a custom data format to store multiple layers in one attribute.
-// Therefore we need a custom method to read the attributes values and
-// to convert them into selected dropdown options.
 // Applies one of the available marker types.
 // ignore: must_be_immutable
 class MarkersDropdown extends StatelessWidget with EditorStateReceiver {

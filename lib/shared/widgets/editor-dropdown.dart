@@ -142,7 +142,7 @@ class _EditorDropdownState<T> extends State<EditorDropdown<T>> {
                 height: widget.iconSize * 1.75,
               ),
               child: Container(
-                padding: EdgeInsets.fromLTRB(8, 0, 8, 0),
+                padding: EdgeInsets.fromLTRB(8, 0, 4, 0),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: children,
@@ -268,7 +268,6 @@ class _EditorDropdownState<T> extends State<EditorDropdown<T>> {
   List<DropDownOptionM<T>> _getSelectedOptionsFromTextSelection() {
     final attribute = _attributes?[widget.attribute.key];
     var selectedOptions = <DropDownOptionM<T>>[];
-
     // Get the attribute value
     if (attribute != null) {
       // Custom Value

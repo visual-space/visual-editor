@@ -10,6 +10,7 @@ import '../../shared/widgets/arrow-scrollable-button-list.dart';
 import '../../shared/widgets/icon-button.dart';
 import '../models/custom-toolbar-button.model.dart';
 import '../models/font-sizes.const.dart';
+import '../models/header-styles.const.dart';
 import '../models/media-picker.type.dart';
 import 'buttons/camera-button.dart';
 import 'buttons/clear-format-button.dart';
@@ -20,10 +21,10 @@ import 'buttons/indent-button.dart';
 import 'buttons/link-style-button.dart';
 import 'buttons/search-button.dart';
 import 'buttons/select-alignment-buttons.dart';
-import 'buttons/select-header-style-buttons.dart';
 import 'buttons/toggle-check-list-button.dart';
 import 'buttons/toggle-style-button.dart';
 import 'buttons/video-button.dart';
+import 'dropdowns/header-styles-dropdown.dart';
 import 'dropdowns/markers-dropdown.dart';
 import 'dropdowns/sizes-dropdown.dart';
 
@@ -36,10 +37,10 @@ export 'buttons/image-button.dart';
 export 'buttons/indent-button.dart';
 export 'buttons/link-style-button.dart';
 export 'buttons/select-alignment-buttons.dart';
-export 'buttons/select-header-style-buttons.dart';
 export 'buttons/toggle-check-list-button.dart';
 export 'buttons/toggle-style-button.dart';
 export 'buttons/video-button.dart';
+export 'dropdowns/header-styles-dropdown.dart';
 
 // The default size of the icon of a button.
 const defaultIconSize = 21.0;
@@ -148,6 +149,10 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
     Map<String, int>? fontSizeValues,
     int? initialFontSizeValue,
 
+    // Map of header styles in int
+    Map<String, int>? headerStyles,
+    int? initialHeaderStyle,
+
     // The theme to use for the icons in the buttons
     EditorIconThemeM? iconTheme,
 
@@ -224,6 +229,14 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
             buttonsSpacing: toolbarSectionSpacing,
             isUndo: false,
             iconTheme: iconTheme,
+          ),
+        if (showHeaderStyle)
+          HeaderStylesDropdown(
+            controller: controller,
+            iconSize: toolbarIconSize,
+            iconTheme: iconTheme,
+            headerStyles: headerStyles ?? HEADER_STYLES,
+            initialHeaderStyleValue: initialHeaderStyle ?? INITIAL_HEADER_STYLE,
           ),
         if (showFontSize)
           SizesDropdown(
@@ -339,8 +352,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
             iconTheme: iconTheme,
             dialogTheme: dialogTheme,
           ),
-        if ((onImagePickCallback != null || onVideoPickCallback != null) &&
-            showCameraButton)
+        if ((onImagePickCallback != null || onVideoPickCallback != null) && showCameraButton)
           CameraButton(
             icon: Icons.photo_camera,
             iconSize: toolbarIconSize,
@@ -355,11 +367,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
           ),
         if (showDividers &&
             isButtonGroupShown[0] &&
-            (isButtonGroupShown[1] ||
-                isButtonGroupShown[2] ||
-                isButtonGroupShown[3] ||
-                isButtonGroupShown[4] ||
-                isButtonGroupShown[5]))
+            (isButtonGroupShown[1] || isButtonGroupShown[2] || isButtonGroupShown[3] || isButtonGroupShown[4] || isButtonGroupShown[5]))
           _divider(),
         if (showAlignmentButtons)
           SelectAlignmentButtons(
@@ -381,27 +389,9 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
             iconSize: toolbarIconSize,
             iconTheme: iconTheme,
           ),
-        if (showDividers &&
-            isButtonGroupShown[1] &&
-            (isButtonGroupShown[2] ||
-                isButtonGroupShown[3] ||
-                isButtonGroupShown[4] ||
-                isButtonGroupShown[5]))
+        if (showDividers && isButtonGroupShown[1] && (isButtonGroupShown[2] || isButtonGroupShown[3] || isButtonGroupShown[4] || isButtonGroupShown[5]))
           _divider(),
-        if (showHeaderStyle)
-          SelectHeaderStyleButtons(
-            controller: controller,
-            buttonsSpacing: toolbarSectionSpacing,
-            iconSize: toolbarIconSize,
-            iconTheme: iconTheme,
-          ),
-        if (showDividers &&
-            showHeaderStyle &&
-            isButtonGroupShown[2] &&
-            (isButtonGroupShown[3] ||
-                isButtonGroupShown[4] ||
-                isButtonGroupShown[5]))
-          _divider(),
+        if (showDividers && showHeaderStyle && isButtonGroupShown[2] && (isButtonGroupShown[3] || isButtonGroupShown[4] || isButtonGroupShown[5])) _divider(),
         if (showListNumbers)
           ToggleStyleButton(
             buttonsSpacing: toolbarSectionSpacing,
@@ -438,10 +428,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
             iconSize: toolbarIconSize,
             iconTheme: iconTheme,
           ),
-        if (showDividers &&
-            isButtonGroupShown[3] &&
-            (isButtonGroupShown[4] || isButtonGroupShown[5]))
-          _divider(),
+        if (showDividers && isButtonGroupShown[3] && (isButtonGroupShown[4] || isButtonGroupShown[5])) _divider(),
         if (showQuote)
           ToggleStyleButton(
             attribute: AttributesM.blockQuote,
@@ -469,8 +456,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
             isIncrease: false,
             iconTheme: iconTheme,
           ),
-        if (showDividers && isButtonGroupShown[4] && isButtonGroupShown[5])
-          _divider(),
+        if (showDividers && isButtonGroupShown[4] && isButtonGroupShown[5]) _divider(),
         if (showLink)
           LinkStyleButton(
             controller: controller,

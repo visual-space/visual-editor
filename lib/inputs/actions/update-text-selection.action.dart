@@ -110,7 +110,5 @@ class UpdateTextSelectionAction<T extends DirectionalCaretMovementIntent>
   }
 
   @override
-  bool get isActionEnabled {
-    return _editorService.plainText.selection.isValid;
-  }
+  bool get isActionEnabled => _editorService.plainText.selection.isValid;
 }

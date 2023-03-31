@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../controller/controllers/editor-controller.dart';
 import '../../document/models/attributes/attributes.model.dart';
 import '../../editor/services/editor.service.dart';
+import '../../inputs/services/clipboard.service.dart';
 import '../../selection/services/selection.service.dart';
 import '../../shared/state/editor-state-receiver.dart';
 import '../../shared/state/editor.state.dart';
@@ -40,6 +41,7 @@ class _LinkMenuState extends State<LinkMenu> {
   late final SelectionService _selectionService;
   late final StylesService _stylesService;
   late final LinksService _linksService;
+  late final ClipboardService _clipboardService;
 
   @override
   void initState() {
@@ -47,6 +49,7 @@ class _LinkMenuState extends State<LinkMenu> {
     _selectionService = SelectionService(widget._state);
     _stylesService = StylesService(widget._state);
     _linksService = LinksService(widget._state);
+    _clipboardService = ClipboardService(widget._state);
     super.initState();
   }
 
@@ -86,12 +89,10 @@ class _LinkMenuState extends State<LinkMenu> {
         ),
       );
 
-  // TODO Add functionality after adding the commit (158 I think) responsible for
-  // keyboard shortcuts on master, you need the code from there.
   Widget _copyLinkToClipboardBtn() => Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {},
+          onTap: _clipboardService.copySelectionLinkUrl,
           child: Container(
             padding: EdgeInsets.all(6),
             child: Icon(

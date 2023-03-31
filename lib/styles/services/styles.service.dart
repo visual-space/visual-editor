@@ -12,6 +12,7 @@ import '../../editor/services/run-build.service.dart';
 import '../../selection/services/selection.service.dart';
 import '../../shared/state/editor.state.dart';
 import '../../toolbar/models/font-sizes.const.dart';
+import '../../toolbar/services/toolbar.service.dart';
 import '../../visual-editor.dart';
 
 final _stylesUtils = StylesUtils();
@@ -20,6 +21,7 @@ final _stylesUtils = StylesUtils();
 class StylesService {
   late final RunBuildService _runBuildService;
   late final SelectionService _selectionService;
+  late final ToolbarService _toolbarService;
   final _du = DeltaUtils();
 
   final EditorState state;
@@ -27,6 +29,7 @@ class StylesService {
   StylesService(this.state) {
     _runBuildService = RunBuildService(state);
     _selectionService = SelectionService(state);
+    _toolbarService = ToolbarService(state);
   }
 
   // === FORMAT ===
@@ -151,6 +154,27 @@ class StylesService {
     )..add(state.styles.toggledStyle);
 
     return styles;
+  }
+
+  // Checks if selection contains a checklist attribute or not.
+  bool hasSelectionChecklistAttr() {
+    final attrs = getSelectionStyle().attributes;
+    var attribute =
+        _toolbarService.getToolbarButtonToggler()[AttributesM.list.key];
+
+    if (attribute == null) {
+      attribute = attrs[AttributesM.list.key];
+    } else {
+      // Checkbox tapping causes controller.selection to go to offset 0
+      _toolbarService.getToolbarButtonToggler().remove(AttributesM.list.key);
+    }
+
+    if (attribute == null) {
+      return false;
+    }
+
+    return attribute.value == AttributesAliasesM.unchecked.value ||
+        attribute.value == AttributesAliasesM.checked.value;
   }
 
   // === TOGGLE STYLE ===

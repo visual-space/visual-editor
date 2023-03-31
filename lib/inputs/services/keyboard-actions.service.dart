@@ -3,16 +3,16 @@ import 'package:flutter/cupertino.dart';
 import '../../editor/models/boundaries/character-boundary.model.dart';
 import '../../editor/services/editor.service.dart';
 import '../../shared/state/editor.state.dart';
-import '../controllers/apply-checklist-action.dart';
-import '../controllers/apply-header.action.dart';
-import '../controllers/copy-selection.action.dart';
-import '../controllers/delete-text.action.dart';
-import '../controllers/extend-selection-or-caret-position.action.dart';
-import '../controllers/indent-selection.action.dart';
-import '../controllers/select-all.action.dart';
-import '../controllers/toggle-text-style.action.dart';
-import '../controllers/update-text-selection-to-adjiacent-line.action.dart';
-import '../controllers/update-text-selection.action.dart';
+import '../actions/apply-checklist-action.dart';
+import '../actions/apply-header.action.dart';
+import '../actions/copy-selection.action.dart';
+import '../actions/delete-text.action.dart';
+import '../actions/extend-selection-or-caret-position.action.dart';
+import '../actions/indent-selection.action.dart';
+import '../actions/select-all.action.dart';
+import '../actions/toggle-text-style.action.dart';
+import '../actions/update-text-selection-to-adjiacent-line.action.dart';
+import '../actions/update-text-selection.action.dart';
 import '../intents/apply-checklist.intent.dart';
 import '../intents/apply-header.intent.dart';
 import '../intents/indent-selection.intent.dart';
@@ -72,7 +72,10 @@ class KeyboardActionsService {
       // === DELETE ===
 
       DeleteCharacterIntent: _makeOverridable(
-        DeleteTextAction<DeleteCharacterIntent>(_characterBoundary, state),
+        DeleteTextAction<DeleteCharacterIntent>(
+          _characterBoundary,
+          state,
+        ),
         context,
       ),
       DeleteToNextWordBoundaryIntent: _makeOverridable(
@@ -165,7 +168,6 @@ class KeyboardActionsService {
       // === HEADER ===
 
       ApplyHeaderIntent: ApplyHeaderAction(state),
-
     };
   }
 
@@ -250,5 +252,7 @@ class KeyboardActionsService {
   UpdateTextSelectionToAdjacentLineAction<
           ExtendSelectionVerticallyToAdjacentLineIntent>
       getAdjacentLineAction() => UpdateTextSelectionToAdjacentLineAction<
-          ExtendSelectionVerticallyToAdjacentLineIntent>(state);
+              ExtendSelectionVerticallyToAdjacentLineIntent>(
+            state,
+          );
 }

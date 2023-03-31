@@ -335,7 +335,7 @@ class DocTreeService {
       _stylesService.formatTextRange(offset, 0, attribute);
 
       // Checkbox tapping causes text selection to go to offset 0.
-      // Stop toggling those two buttons buttons.
+      // Stop toggling those two buttons.
       state.toolbar.buttonToggler = {
         AttributesM.list.key: attribute,
         AttributesM.header.key: AttributesM.header

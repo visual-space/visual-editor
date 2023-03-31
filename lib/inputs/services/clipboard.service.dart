@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../cursor/services/caret.service.dart';
+import '../../document/models/attributes/attributes.model.dart';
 import '../../document/models/attributes/styling-attributes.dart';
 import '../../document/models/nodes/embed.model.dart';
 import '../../editor/services/editor.service.dart';
@@ -60,6 +61,24 @@ class ClipboardService {
           ),
         ),
         SelectionChangedCause.toolbar,
+      );
+    }
+  }
+
+  // If selection contains a link, copy to clipboard the link url.
+  void copySelectionLinkUrl() {
+    final selectionHasLink = _stylesService.getSelectionStyle().attributes.containsKey('link');
+
+    if (selectionHasLink) {
+      final linkUrl = _stylesService
+          .getSelectionStyle()
+          .attributes[AttributesM.link.key]
+          ?.value;
+
+      Clipboard.setData(
+        ClipboardData(
+          text: linkUrl,
+        ),
       );
     }
   }

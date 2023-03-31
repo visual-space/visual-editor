@@ -15,7 +15,6 @@ class CopySelectionAction extends ContextAction<CopySelectionTextIntent> {
   CopySelectionAction(this.state) {
     _editorService = EditorService(state);
     _clipboardService = ClipboardService(state);
-    // final _selectionHandlesService = SelectionHandlesService();
   }
 
   @override
@@ -33,6 +32,7 @@ class CopySelectionAction extends ContextAction<CopySelectionTextIntent> {
   @override
   bool get isActionEnabled {
     final selection = _editorService.plainText.selection;
+
     return selection.isValid && !selection.isCollapsed;
   }
 }

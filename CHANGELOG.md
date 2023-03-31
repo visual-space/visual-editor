@@ -8,10 +8,13 @@ If you want to learn more about the specs, all tickets are available by followin
 - Removed stack from the main method inside the editor, in order to place widgets on the screen inside the editor, we are now using overlay service.
 - Moved some methods from manipulating links in controller.
 
-## [0.11.0] Disable adding styling in code blocks [185](https://github.com/visual-space/visual-editor/issues/185)
-- Added `DisabledButtonsState` in order to toggle the buttons color and disable applying different attrs to selection based on different selection attrs.
-- Disabled styling and most of the buttons in the toolbar when selection is code block or inline code.
-- Added `enableSelectionCodeButtons()` and `disableSelectionCodeButtons()` in `SelectionService` and `EditorController` in order to toggle enable/disable buttons when selection is code.
+## [0.11.0] Actions - Extract document manipulation logic from actions [#208](https://github.com/visual-space/visual-editor/issues/208)
+  - Made the copy to clipboard button from the link menu to work properly.
+  - Extracted code that manipulates the document from some of the actions and placed it into services.
+- Disable adding styling in code blocks [185](https://github.com/visual-space/visual-editor/issues/185)
+  - Added `DisabledButtonsState` in order to toggle the buttons color and disable applying different attrs to selection based on different selection attrs.
+  - Disabled styling and most of the buttons in the toolbar when selection is code block or inline code.
+  - Added `enableSelectionCodeButtons()` and `disableSelectionCodeButtons()` in `SelectionService` and `EditorController` in order to toggle enable/disable buttons when selection is code.
 
 ## [0.10.0] Blocks - Editable links [#10](https://github.com/visual-space/visual-editor/issues/10)
 - Added link menu, now when tapping on a link, a menu opens, displaying the url of the link, and 3 buttons (edit link, remove link from text/url, and copy link to clipboard)

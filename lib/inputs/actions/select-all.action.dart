@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../editor/services/editor.service.dart';
 import '../../shared/state/editor.state.dart';
 
+// Activated when user presses CTRL + A. Selects all the text inside a document.
 class SelectAllAction extends ContextAction<SelectAllTextIntent> {
   late final EditorService _editorService;
 

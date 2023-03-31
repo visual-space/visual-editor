@@ -6,7 +6,7 @@ import '../../document/controllers/document.controller.dart';
 import '../../document/controllers/history.controller.dart';
 import '../../editor/widgets/editor-textarea-renderer.dart';
 import '../../embeds/controllers/embed-builder.controller.dart';
-import '../../inputs/controllers/update-text-selection-to-adjiacent-line.action.dart';
+import '../../inputs/actions/update-text-selection-to-adjiacent-line.action.dart';
 import '../../main.dart';
 
 // Caches references to different internal classes (widgets, renderers)

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:i18n_extension/i18n_widget.dart';
@@ -13,6 +12,7 @@ import 'cursor/controllers/cursor.controller.dart';
 import 'cursor/controllers/floating-cursor.controller.dart';
 import 'cursor/services/caret.service.dart';
 import 'doc-tree/services/doc-tree.service.dart';
+import 'doc-tree/services/overlay.service.dart';
 import 'document/controllers/document.controller.dart';
 import 'document/models/document.model.dart';
 import 'editor/models/editor-cfg.model.dart';
@@ -31,7 +31,6 @@ import 'inputs/services/keyboard-actions.service.dart';
 import 'inputs/services/keyboard.service.dart';
 import 'inputs/services/typing-shortcuts-service.dart';
 import 'inputs/widgets/text-gestures.dart';
-import 'links/widgets/link-menu.dart';
 import 'selection/controllers/selection-handles.controller.dart';
 import 'selection/services/selection-handles.service.dart';
 import 'selection/services/selection.service.dart';
@@ -131,6 +130,7 @@ class VisualEditorState extends State<VisualEditor>
   late final GuiService _guiService;
   late final EmbedsService _embedsService;
   late final TypingShortcutsService _typingShortcutsService;
+  late final OverlayService _overlayService;
 
   // Controllers
   SelectionHandlesController? selectionHandlesController;
@@ -164,6 +164,7 @@ class VisualEditorState extends State<VisualEditor>
     _guiService = GuiService(state);
     _embedsService = EmbedsService(state);
     _typingShortcutsService = TypingShortcutsService(state);
+    _overlayService = OverlayService(state);
 
     super.initState();
     _cacheWidgetRef();
@@ -185,21 +186,19 @@ class VisualEditorState extends State<VisualEditor>
     // If doc is empty override with a placeholder
     final document = _docTreeService.getDocOrPlaceholder();
 
-    final editorTree = _globalStackWithMenus(
-      child: _conditionalPreventKeyPropagationToParentIfWeb(
-        child: _i18n(
-          child: _textGestures(
-            child: _hotkeysActionsAndShortcuts(
-              child: _focusField(
-                child: _constrainedBox(
-                  child: _conditionalScrollable(
-                    child: _selectionToolbarTarget(
-                      child: _editorRenderer(
+    final editorTree = _conditionalPreventKeyPropagationToParentIfWeb(
+      child: _i18n(
+        child: _textGestures(
+          child: _hotkeysActionsAndShortcuts(
+            child: _focusField(
+              child: _constrainedBox(
+                child: _conditionalScrollable(
+                  child: _selectionToolbarTarget(
+                    child: _editorRenderer(
+                      document: document,
+                      // This is where the document elements are rendered
+                      children: _docTreeService.getDocumentTree(
                         document: document,
-                        // This is where the document elements are rendered
-                        children: _docTreeService.getDocumentTree(
-                          document: document,
-                        ),
                       ),
                     ),
                   ),
@@ -211,12 +210,8 @@ class VisualEditorState extends State<VisualEditor>
       ),
     );
 
-    // (!) A not so good solution in order to solve the bug: Link menu not displaying on the
-    // first tap, it works only on the second tap if we remove this method.
-    // That's because we are storing the link rectangles after the build is done. When we are changing
-    // selection (selecting a link) we are triggering another rebuild of the editor, and so we are caching the rectangles
-    // after the build, so the menu doesn't know where to place the menu at the build.
-    _onBuildComplete();
+    // Handles the logic for displaying the link menu.
+    _overlayService.refreshLinkMenuOverlay(context);
 
     // (!) Calling after the widget tree is built ensures that we schedule the
     // onBuildComplete callback as the last addPostFrameCallback() to execute.
@@ -438,12 +433,6 @@ class VisualEditorState extends State<VisualEditor>
 
   // === PRIVATE ===
 
-  void _onBuildComplete() {
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      setState(() {});
-    });
-  }
-
   Widget _i18n({required Widget child}) => I18n(
         initialLocale: widget.config.locale,
         child: child,
@@ -453,16 +442,6 @@ class VisualEditorState extends State<VisualEditor>
         behavior: HitTestBehavior.translucent,
         state: state,
         child: child,
-      );
-
-  // Different menus which can be placed at different offsets on the screen should pe added here.
-  Widget _globalStackWithMenus({required Widget child}) => Stack(
-        children: [
-          child,
-          LinkMenu(
-            controller: widget.controller,
-          ),
-        ],
       );
 
   // Intercept RawKeyEvent on Web to prevent it from propagating to parents that might

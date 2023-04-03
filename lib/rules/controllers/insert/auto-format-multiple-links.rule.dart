@@ -5,8 +5,12 @@ import '../../../document/models/delta/delta.model.dart';
 import '../../../document/services/delta.utils.dart';
 import '../../models/insert-rule.model.dart';
 
-// Applies link format to text segments within the inserted text that matches the URL pattern.
-// The link attribute is applied as the user types.
+// Applies link formatting to inserted text that matches the URL pattern.
+// It determines the affected words by retrieving the word before and after the insertion point,
+// and searches for matches within them. If there are no matches, the method does not apply any format.
+// If there are matches, it builds a base delta for the insertion and a formatter delta for formatting changes.
+// The formatter delta only includes link formatting when necessary. After processing all matches,
+// the method composes the base delta and formatter delta to obtain the resulting change delta.
 class AutoFormatMultipleLinksRule extends InsertRuleM {
   final _du = DeltaUtils();
 

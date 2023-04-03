@@ -1,5 +1,4 @@
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -7,6 +6,7 @@ import '../../doc-tree/const/link-prefixes.const.dart';
 import '../../document/models/attributes/attributes.model.dart';
 import '../../document/models/nodes/node.model.dart';
 import '../../document/services/nodes/node.utils.dart';
+import '../../selection/services/selection.service.dart';
 import '../../shared/state/editor.state.dart';
 import '../../shared/utils/platform.utils.dart';
 import '../../styles/services/styles.service.dart';
@@ -16,12 +16,15 @@ import '../models/link-action.picker.type.dart';
 // Links can either be opened or copied.
 class LinksService {
   late final StylesService _stylesService;
+  late final SelectionService _selectionService;
+
   final _nodeUtils = NodeUtils();
 
   final EditorState state;
 
   LinksService(this.state) {
     _stylesService = StylesService(state);
+    _selectionService = SelectionService(state);
   }
 
   bool canLaunchLinks(bool metaOrControlPressed) {
@@ -91,34 +94,93 @@ class LinksService {
       }
     }
 
-    return TextRange(start: start, end: start + length);
+    return TextRange(
+      start: start,
+      end: start + length,
+    );
   }
 
-  void removeLink() {
-    var index = state.refs.controller.selection.start;
-    var length = state.refs.controller.selection.end - index;
+  // Links can be removed either from link menu or users also have the free choice
+  // the decide when to remove them from the outside of the editor.
+  void removeSelectionLink() {
+    var index = _selectionService.selection.start;
+    var length = _selectionService.selection.end - index;
 
+    // Checks if selection has link attr and a valid url or not.
     if (_getLinkAttributeValue() != null) {
       final leaf = state.refs.documentController.queryNode(index).leaf;
 
       if (leaf != null) {
-        final range = state.refs.controller.getLinkRange(leaf);
+        final range = getLinkRange(leaf);
+
         index = range.start;
         length = range.end - range.start;
       }
     }
 
-    final link = state.refs.documentController.getPlainTextAtRange(
+    // Stores the text that is set as a link, it can either be a alias which contains a link
+    // or a URL directly pointing.
+    final linkText = state.refs.documentController.getPlainTextAtRange(
       index,
       length,
     );
 
+    // Replaces link with the same text value but without the link attribute.
     state.refs.controller.replaceText(
       index,
       length,
-      link,
+      linkText,
       null,
     );
+  }
+
+  // The location at which the link menu should be placed on the screen.
+  // It should be placed with the tooltip pointing below the first letter of a link.
+  Offset getOffsetForLinkMenu() {
+    final linkRect = state.selectedLink.selectedLinkRectangles;
+
+    if (linkRect != null && linkRect.isNotEmpty) {
+      final firstLinkRectIsNotEmpty = linkRect[0].rectangles.isNotEmpty;
+
+      if (firstLinkRectIsNotEmpty) {
+        final isLinkSelected =
+        _stylesService.getSelectionStyle().attributes.containsKey('link');
+
+        if (isLinkSelected) {
+          // Get positions for offset
+          final rectangle = linkRect[0].rectangles[0];
+          final lineOffset = linkRect[0].docRelPosition;
+
+          // In order to place the tooltip menu with the arrow starting tipping at the
+          // first char in a link, we need to keep in mind the margin position.
+          const triangleTooltipMargin = 15;
+
+          // Editor topbar
+          const topBarHeight = 50;
+
+          final scrollOffset = state.refs.scrollController.offset;
+
+          final heightOffset = Offset(
+            0,
+            lineOffset.dy + rectangle.bottom - scrollOffset + topBarHeight,
+          );
+
+          // Width must be converted to global in order to place the menu at the correct coordinates
+          // using the Overlay in flutter.
+          final widthOffset = Offset(rectangle.left, 0);
+          final widthToGlobalOffset =
+          state.refs.renderer.localToGlobal(widthOffset);
+
+          return Offset(
+            widthToGlobalOffset.dx - triangleTooltipMargin,
+            heightOffset.dy,
+          );
+        }
+      }
+    }
+
+    // Fail case
+    return Offset.infinite;
   }
 
   // === PRIVATE ===

@@ -112,6 +112,10 @@ class EditorConfigM {
   // For Android, the menu is displayed with showModalBottomSheet and a list of Material ListTiles.
   final LinkActionPickerDelegate? linkActionPickerDelegate;
 
+  // Whether to show the link menu when tapping on a link, or not.
+  // Keep in mind that link menu and create/edit link menu from the toolbar are 2 different things.
+  final bool linkMenuDisabled;
+
   // A floating cursor will help you to see what is currently under your thumb when moving the caret.
   final bool floatingCursorDisabled;
 
@@ -206,6 +210,7 @@ class EditorConfigM {
     this.overrideEmbedBuilders,
     this.customEmbedBuilders = const [],
     this.linkActionPickerDelegate = defaultLinkActionPickerDelegate,
+    this.linkMenuDisabled = false,
     this.customStyleBuilder,
     this.locale,
     this.floatingCursorDisabled = false,

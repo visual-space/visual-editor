@@ -21,7 +21,10 @@ class TypingShortcutsService {
   }
 
   // Returns the pressed or released key.
-  KeyEventResult getKeyEventResult(FocusNode node, RawKeyEvent event) {
+  KeyEventResult getKeyEventResult(
+    FocusNode node,
+    RawKeyEvent event,
+  ) {
     // Don't handle key if there is a meta key pressed.
     if (event.isAltPressed || event.isControlPressed || event.isMetaPressed) {
       return KeyEventResult.ignored;
@@ -33,8 +36,8 @@ class TypingShortcutsService {
     }
 
     // Don't handle key if there is an active selection.
-    if (state.refs.controller.selection.baseOffset !=
-        state.refs.controller.selection.extentOffset) {
+    final selection = _selectionService.selection;
+    if (selection.baseOffset != selection.extentOffset) {
       return KeyEventResult.ignored;
     }
 
@@ -56,7 +59,7 @@ class TypingShortcutsService {
 
   KeyEventResult _handleSpaceKey(RawKeyEvent event) {
     final child = state.refs.documentController.queryChild(
-      state.refs.controller.selection.baseOffset,
+      _selectionService.selection.baseOffset,
     );
 
     if (child.node == null) {
@@ -94,7 +97,7 @@ class TypingShortcutsService {
 
   KeyEventResult _handleTabKey(RawKeyEvent event) {
     final child = state.refs.documentController.queryChild(
-      state.refs.controller.selection.baseOffset,
+      _selectionService.selection.baseOffset,
     );
     final node = child.node!;
     final nodeParent = node.parent;
@@ -110,9 +113,11 @@ class TypingShortcutsService {
     }
 
     // Ordered lists, unordered lists, checked type line.
-    if (nodeParent.style.containsKey(AttributesAliasesM.orderedList.key) ||
-        nodeParent.style.containsKey(AttributesAliasesM.bulletList.key) ||
-        nodeParent.style.containsKey(AttributesAliasesM.checked.key)) {
+    final canBeIndented =
+        nodeParent.style.containsKey(AttributesAliasesM.orderedList.key) ||
+            nodeParent.style.containsKey(AttributesAliasesM.bulletList.key) ||
+            nodeParent.style.containsKey(AttributesAliasesM.checked.key);
+    if (canBeIndented) {
       state.refs.controller.indentSelection(!event.isShiftPressed);
       return KeyEventResult.handled;
     }
@@ -135,7 +140,7 @@ class TypingShortcutsService {
     state.refs.controller
       ..formatSelection(attribute)
       ..replaceText(
-        state.refs.controller.selection.baseOffset - phrase.length,
+        _selectionService.selection.baseOffset - phrase.length,
         phrase.length,
         '',
         null,
@@ -154,7 +159,7 @@ class TypingShortcutsService {
   // If there are, apply this logic, else do not.
   KeyEventResult _removeTabCharacter() {
     state.refs.controller.replaceText(
-      state.refs.controller.selection.baseOffset - 4,
+      _selectionService.selection.baseOffset - 4,
       4,
       '',
       null,
@@ -171,7 +176,7 @@ class TypingShortcutsService {
     const tab = '    ';
 
     state.refs.controller.replaceText(
-      state.refs.controller.selection.baseOffset,
+      _selectionService.selection.baseOffset,
       0,
       tab,
       null,
@@ -183,10 +188,10 @@ class TypingShortcutsService {
   }
 
   void _moveCursor(int chars) {
-    final selection = state.refs.controller.selection;
+    final selection = _selectionService.selection;
 
     _selectionService.cacheSelectionAndRunBuild(
-      state.refs.controller.selection.copyWith(
+      selection.copyWith(
         baseOffset: selection.baseOffset + chars,
         extentOffset: selection.baseOffset + chars,
       ),

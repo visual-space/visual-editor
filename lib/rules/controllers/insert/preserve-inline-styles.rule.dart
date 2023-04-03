@@ -5,7 +5,6 @@ import '../../../document/models/delta/delta.model.dart';
 import '../../../document/services/delta.utils.dart';
 import '../../models/insert-rule.model.dart';
 
-// TODO Improve comments.
 // Preserves inline styles when user inserts text inside formatted segment.
 class PreserveInlineStylesRule extends InsertRuleM {
   final _du = DeltaUtils();

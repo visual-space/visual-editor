@@ -133,6 +133,8 @@ class EditorController {
   // === LINKS ===
 
   late final getLinkRange = _linksService.getLinkRange;
+  late final removeSelectionLink = _linksService.removeSelectionLink;
+  late final getOffsetForLinkMenu = _linksService.getOffsetForLinkMenu;
 
   // === KEYBOARD ===
 

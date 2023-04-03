@@ -365,19 +365,21 @@ class DocTreeService {
 
   // Stores the selected link rectangles after build.
   void _cacheSelectedLinkRectangles(
-      List<EditableTextLineWidgetRenderer> renderers,
-      ) {
+    List<EditableTextLineWidgetRenderer> renderers,
+  ) {
     // Get Rectangles
     final rectangles = <SelectionRectanglesM>[];
 
-    renderers.forEach((renderer) {
-      // Selected link coordinates
-      final lineRectangles = renderer.getSelectedLinkRectangles();
+    renderers.forEach(
+      (renderer) {
+        // Selected link coordinates
+        final linkRectangles = renderer.getSelectedLinkRectangles();
 
-      if (lineRectangles != null) {
-        rectangles.add(lineRectangles);
-      }
-    });
+        if (linkRectangles != null) {
+          rectangles.add(linkRectangles);
+        }
+      },
+    );
 
     // Cache in state store
     state.selectedLink.setSelectedLinkRectangles(rectangles);

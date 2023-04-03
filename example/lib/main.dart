@@ -6,6 +6,7 @@ import 'controller/pages/headings.page.dart';
 import 'developer/pages/delta-sandbox.page.dart';
 import 'developer/pages/multiple-editors.page.dart';
 import 'developer/pages/overwrite-controller.page.dart';
+import 'developer/pages/parent-scroll.page.dart';
 import 'embeds/pages/custom-embeds.page.dart';
 import 'interactions/pages/selection-menu.page.dart';
 import 'markers/pages/delete-markers.page.dart';
@@ -66,6 +67,7 @@ class DemoApp extends StatelessWidget {
           '/delta-sandbox': (context) => DeltaSandboxPage(),
           '/multiple-editors': (context) => MultipleEditorsPage(),
           '/overwrite-controller': (context) => OverwriteControllerPage(),
+          '/parent-scroll':(context) => ParentScrollPage(),
         },
       );
 }

@@ -136,6 +136,10 @@ const List<NavMenuCategoryM> NAV_MENU = [
         route: '/multiple-editors',
       ),
       NavMenuLinkM(
+        title: 'Multiple Editors With Parent Scroll',
+        route: '/parent-scroll',
+      ),
+      NavMenuLinkM(
         title: 'Overwrite Controller',
         route: '/overwrite-controller',
       ),

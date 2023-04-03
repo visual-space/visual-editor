@@ -8,7 +8,8 @@ import 'package:visual_editor/visual-editor.dart';
 import '../../shared/const/dimensions.const.dart';
 import '../../shared/widgets/demo-page-scaffold.dart';
 import '../../shared/widgets/loading.dart';
-import '../models/markers-and-scroll-offset.model.dart';
+import '../models/marker-and-relative-position.model.dart';
+import '../models/markers-attachments-position.dart';
 import '../widgets/markers-attachments.dart';
 
 // For smoke testing. You don't need this in your implementation.
@@ -38,7 +39,7 @@ class _MarkersAttachmentsPageState extends State<MarkersAttachmentsPage> {
   // We will update only the MarkersAttachmentsSidebar via the stream.
   // By using this trick we can prevent Flutter from running expensive page updates.
   // We will target our updates only on the area that renders the attachments (far better performance).
-  final _markers$ = StreamController<MarkersAndScrollOffset>.broadcast();
+  final _markers$ = StreamController<MarkersAttachmentsPos>.broadcast();
 
   @override
   void initState() {
@@ -173,9 +174,19 @@ class _MarkersAttachmentsPageState extends State<MarkersAttachmentsPage> {
   // (!) Avoid setState() on the parent page, setState in a smallest possible widget to minimise the update cost.
   void _updateMarkerAttachments() {
     final markers = _controller?.getAllMarkers() ?? [];
+    final markersAndPos = <MarkerAndRelPos>[];
+
+    markers.forEach((marker) {
+      markersAndPos.add(
+        MarkerAndRelPos(
+          marker: marker,
+        ),
+      );
+    });
+
     _markers$.sink.add(
-      MarkersAndScrollOffset(
-        markers: markers,
+      MarkersAttachmentsPos(
+        markers: markersAndPos,
         scrollOffset: SCROLLABLE ? _scrollController.offset : 0,
       ),
     );

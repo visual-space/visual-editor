@@ -1,15 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:visual_editor/markers/models/marker.model.dart';
 
-import '../models/markers-and-scroll-offset.model.dart';
+import '../models/marker-and-relative-position.model.dart';
+import '../models/markers-attachments-position.dart';
 
 // Marker attachments are widgets that are synced to match the same position on screen as the markers.
 // Notice we use a stream to pass the updates instead of using setState on the parent widget which contains the editor.
 // By using the stream we avoid heavy re-renders of the editor and we maintain maximum performance.
 class MarkersAttachments extends StatefulWidget {
-  final StreamController<MarkersAndScrollOffset> markers$;
+  final StreamController<MarkersAttachmentsPos> markers$;
 
   MarkersAttachments({
     required this.markers$,
@@ -20,7 +20,7 @@ class MarkersAttachments extends StatefulWidget {
 }
 
 class _MarkersAttachmentsState extends State<MarkersAttachments> {
-  List<MarkerM> _markers = [];
+  List<MarkerAndRelPos> _markers = [];
   var _scrollOffset = 0.0;
   late StreamSubscription _markers$L;
 
@@ -56,14 +56,14 @@ class _MarkersAttachmentsState extends State<MarkersAttachments> {
   // (!) Attachments that exit the viewport should no longer be rendered.
   // For the sake of simplicity of example we don't do this performance check here.
   // Additional logic for collision detection could be implemented as well.
-  Widget _attachment({required MarkerM marker}) {
-    final rectangle = marker.rectangles?[0];
+  Widget _attachment({required MarkerAndRelPos marker}) {
+    final rectangle = marker.marker.rectangles?[0];
     return Positioned(
       top: _getMarkerPosition(marker, rectangle),
       left: 10,
       child: Icon(
-        _getAttachmentIcon(marker.type),
-        color: _getColor(marker.type),
+        _getAttachmentIcon(marker.marker.type),
+        color: _getColor(marker.marker.type),
         size: 24,
         semanticLabel: 'Favourite',
       ),
@@ -98,8 +98,11 @@ class _MarkersAttachmentsState extends State<MarkersAttachments> {
     }
   }
 
-  double _getMarkerPosition(MarkerM marker, TextBox? rectangle) =>
-      (marker.docRelPosition?.dy ?? 0) + (rectangle?.top ?? 0) - _scrollOffset;
+  double _getMarkerPosition(MarkerAndRelPos marker, TextBox? rectangle) =>
+      (marker.marker.docRelPosition?.dy ?? 0) +
+      (rectangle?.top ?? 0) +
+      marker.relativePosition -
+      _scrollOffset;
 
   void _subscribeToMarkers() {
     _markers$L = widget.markers$.stream.listen(

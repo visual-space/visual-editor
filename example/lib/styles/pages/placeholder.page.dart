@@ -8,6 +8,7 @@ import '../../shared/widgets/demo-page-scaffold.dart';
 // Demonstrates the placeholder functionality of the editor.
 // When a document is completely empty, the placeholder text is displayed.
 // Notice that we don't load any document, we init straight away with empty document.
+// TODO Placeholder (in the entire app) does not works properly.
 class PlaceholderPage extends StatefulWidget {
   @override
   _PlaceholderPageState createState() => _PlaceholderPageState();

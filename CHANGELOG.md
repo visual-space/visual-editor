@@ -15,6 +15,7 @@ If you want to learn more about the specs, all tickets are available by followin
 - Replaced code block icon from toolbar with a proper one, before it was using the same icon as inline code, which was not a proper UX.
 - Selection - Can't select the first whitespace after any text [#176](https://github.com/visual-space/visual-editor/issues/176)
 - Highlights - Controller method to remove highlights by id [#178](https://github.com/visual-space/visual-editor/issues/178)
+- Demos - Demo page for multiple editors in scrollable parent [#161](https://github.com/visual-space/visual-editor/issues/161)
 
 ## [0.9.0] Inputs - Keyboard Shortcuts [#163](https://github.com/visual-space/visual-editor/issues/163)
 - Added hotkeys for toolbar actions (e.g.: CTRL + B makes the selected text bold).

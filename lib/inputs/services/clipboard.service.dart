@@ -117,7 +117,7 @@ class ClipboardService {
         final offset = _embedsService.getEmbedOffset().offset;
         final newStyle = StyleAttributeM(copied.style);
 
-        _stylesService.formatSelectedText(offset, 1, newStyle);
+        _stylesService.formatTextRange(offset, 1, newStyle);
       }
 
       state.paste.copiedImageUrl = null;

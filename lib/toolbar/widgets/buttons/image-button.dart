@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../controller/controllers/editor-controller.dart';
+import '../../../editor/services/run-build.service.dart';
 import '../../../embeds/services/embeds.service.dart';
 import '../../../shared/models/editor-dialog-theme.model.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
@@ -14,10 +17,7 @@ import '../toolbar.dart';
 
 // Adds an image.
 // ignore: must_be_immutable
-class ImageButton extends StatelessWidget with EditorStateReceiver {
-  late final EmbedsService _embedsService;
-  late final MediaLoaderService _imageVideoUtils;
-
+class ImageButton extends StatefulWidget with EditorStateReceiver {
   final IconData icon;
   final double iconSize;
   final Color? fillColor;
@@ -46,45 +46,76 @@ class ImageButton extends StatelessWidget with EditorStateReceiver {
     Key? key,
   }) : super(key: key) {
     controller.setStateInEditorStateReceiver(this);
-    _embedsService = EmbedsService(_state);
-    _imageVideoUtils = MediaLoaderService(_state);
   }
+
+  @override
+  State<ImageButton> createState() => _ImageButtonState();
 
   @override
   void cacheStateStore(EditorState state) {
     _state = state;
+  }
+}
+
+class _ImageButtonState extends State<ImageButton> {
+  late final RunBuildService _runBuildService;
+  late final EmbedsService _embedsService;
+  late final MediaLoaderService _mediaLoaderService;
+
+  StreamSubscription? _runBuild$L;
+
+  @override
+  void initState() {
+    _runBuildService = RunBuildService(widget._state);
+    _embedsService = EmbedsService(widget._state);
+    _mediaLoaderService = MediaLoaderService(widget._state);
+
+    super.initState();
+    _subscribeToRunBuild();
+  }
+
+  @override
+  void dispose() {
+    _runBuild$L?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final iconColor = iconTheme?.iconUnselectedColor ?? theme.iconTheme.color;
-    final iconFillColor =
-        iconTheme?.iconUnselectedFillColor ?? (fillColor ?? theme.canvasColor);
+    final isStylingEnabledInSelection =
+        widget._state.disabledButtons.isSelectionStylingEnabled;
+
+    final iconColor = isStylingEnabledInSelection
+        ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color
+        : theme.disabledColor;
+    final iconFillColor = widget.iconTheme?.iconUnselectedFillColor ??
+        (widget.fillColor ?? theme.canvasColor);
 
     return IconBtn(
       icon: Icon(
-        icon,
-        size: iconSize,
+        widget.icon,
+        size: widget.iconSize,
         color: iconColor,
       ),
-      buttonsSpacing: buttonsSpacing,
+      buttonsSpacing: widget.buttonsSpacing,
       highlightElevation: 0,
       hoverElevation: 0,
-      size: iconSize * 1.77,
+      size: widget.iconSize * 1.77,
       fillColor: iconFillColor,
-      borderRadius: iconTheme?.borderRadius ?? 2,
-      onPressed: () => _insertImage(context),
+      borderRadius: widget.iconTheme?.borderRadius ?? 2,
+      onPressed:
+          isStylingEnabledInSelection ? () => _insertImage(context) : null,
     );
   }
 
   // === PRIVATE ===
 
   Future<void> _insertImage(BuildContext context) async {
-    if (onImagePickCallback != null) {
-      final selector =
-          mediaPickSettingSelector ?? _imageVideoUtils.selectMediaPickSetting;
+    if (widget.onImagePickCallback != null) {
+      final selector = widget.mediaPickSettingSelector ??
+          _mediaLoaderService.selectMediaPickSetting;
       final source = await selector(context);
 
       if (source != null) {
@@ -99,20 +130,29 @@ class ImageButton extends StatelessWidget with EditorStateReceiver {
     }
   }
 
-  void _pickImage(BuildContext context) => _imageVideoUtils.pickImage(
+  void _pickImage(BuildContext context) => _mediaLoaderService.pickImage(
         context,
         ImageSource.gallery,
-        onImagePickCallback!,
-        filePickImpl: filePickImpl,
-        webImagePickImpl: webImagePickImpl,
+        widget.onImagePickCallback!,
+        filePickImpl: widget.filePickImpl,
+        webImagePickImpl: widget.webImagePickImpl,
       );
 
   void _typeLink(BuildContext context) {
     showDialog<String>(
       context: context,
       builder: (_) => LinkDialog(
-        dialogTheme: dialogTheme,
+        dialogTheme: widget.dialogTheme,
       ),
     ).then(_embedsService.insertInSelectionImageViaUrl);
+  }
+
+  // === UTILS ===
+
+  // In order to update the button state after each selection change check if button is enabled.
+  void _subscribeToRunBuild() {
+    _runBuild$L = _runBuildService.runBuild$.listen(
+      (_) => setState(() {}),
+    );
   }
 }

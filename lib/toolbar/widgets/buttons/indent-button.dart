@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../controller/controllers/editor-controller.dart';
+import '../../../editor/services/run-build.service.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
 import '../../../shared/state/editor-state-receiver.dart';
 import '../../../shared/state/editor.state.dart';
@@ -41,19 +44,34 @@ class IndentButton extends StatefulWidget with EditorStateReceiver {
 
 class _IndentButtonState extends State<IndentButton> {
   late final StylesService _stylesService;
+  late final RunBuildService _runBuildService;
+
+  StreamSubscription? _runBuild$L;
 
   @override
   void initState() {
     _stylesService = StylesService(widget._state);
+    _runBuildService = RunBuildService(widget._state);
+
     super.initState();
+    _subscribeToRunBuild();
+  }
+
+  @override
+  void dispose() {
+    _runBuild$L?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isIndentEnabled =
+        widget._state.disabledButtons.isSelectionIndentEnabled;
 
-    final iconColor =
-        widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color;
+    final iconColor = isIndentEnabled
+        ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color
+        : theme.disabledColor;
     final iconFillColor =
         widget.iconTheme?.iconUnselectedFillColor ?? theme.canvasColor;
 
@@ -69,7 +87,18 @@ class _IndentButtonState extends State<IndentButton> {
       buttonsSpacing: widget.buttonsSpacing,
       fillColor: iconFillColor,
       borderRadius: widget.iconTheme?.borderRadius ?? 2,
-      onPressed: () => _stylesService.indentSelection(widget.isIncrease),
+      onPressed: isIndentEnabled
+          ? () => _stylesService.indentSelection(widget.isIncrease)
+          : null,
+    );
+  }
+
+  // === UTILS ===
+
+  // In order to update the button state after each selection change check if button is enabled.
+  void _subscribeToRunBuild() {
+    _runBuild$L = _runBuildService.runBuild$.listen(
+          (_) => setState(() {}),
     );
   }
 }

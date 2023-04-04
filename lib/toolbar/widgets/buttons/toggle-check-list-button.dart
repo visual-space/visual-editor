@@ -78,16 +78,20 @@ class _ToggleCheckListButtonState extends State<ToggleCheckListButton> {
   }
 
   @override
-  Widget build(BuildContext context) => ToggleButton(
-        context: context,
-        icon: widget.icon,
-        buttonsSpacing: widget.buttonsSpacing,
-        fillColor: widget.fillColor,
-        isToggled: _isToggled,
-        onPressed: _toggleAttribute,
-        iconSize: widget.iconSize,
-        iconTheme: widget.iconTheme,
-      );
+  Widget build(BuildContext context) {
+    final isSelectionCheckListEnabled = widget._state.disabledButtons.isSelectionChecklistEnabled;
+
+    return ToggleButton(
+      context: context,
+      icon: widget.icon,
+      buttonsSpacing: widget.buttonsSpacing,
+      fillColor: widget.fillColor,
+      isToggled: _isToggled,
+      onPressed: isSelectionCheckListEnabled ? _toggleAttribute : null,
+      iconSize: widget.iconSize,
+      iconTheme: widget.iconTheme,
+    );
+  }
 
   @override
   void didUpdateWidget(covariant ToggleCheckListButton oldWidget) {

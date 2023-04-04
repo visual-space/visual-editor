@@ -105,6 +105,8 @@ class _SelectAlignmentButtonsState extends State<SelectAlignmentButtons> {
     ];
 
     final theme = Theme.of(context);
+    final isSelectionAlignmentEnabled =
+        widget._state.disabledButtons.isSelectionAlignmentEnabled;
 
     final buttonCount = ((widget.showLeftAlignment!) ? 1 : 0) +
         ((widget.showCenterAlignment!) ? 1 : 0) +
@@ -139,12 +141,14 @@ class _SelectAlignmentButtonsState extends State<SelectAlignmentButtons> {
                   : (widget.iconTheme?.iconUnselectedFillColor ??
                       theme.canvasColor),
               // Export a nice and clean version of this method in the styles service. Similar to other buttons.
-              onPressed: () =>
-                  _valueAttribute[index] == AttributesAliasesM.leftAlignment
+              onPressed: isSelectionAlignmentEnabled
+                  ? () => _valueAttribute[index] ==
+                          AttributesAliasesM.leftAlignment
                       ? _stylesService.formatSelection(
                           AttributeUtils.clone(AttributesM.align, null),
                         )
-                      : _stylesService.formatSelection(_valueAttribute[index]),
+                      : _stylesService.formatSelection(_valueAttribute[index])
+                  : null,
               child: Icon(
                 _valueString[index] == AttributesAliasesM.leftAlignment.value
                     ? Icons.format_align_left
@@ -156,11 +160,13 @@ class _SelectAlignmentButtonsState extends State<SelectAlignmentButtons> {
                             ? Icons.format_align_right
                             : Icons.format_align_justify,
                 size: widget.iconSize,
-                color: _valueToText[_value] == _valueString[index]
-                    ? (widget.iconTheme?.iconSelectedColor ??
-                        theme.primaryIconTheme.color)
-                    : (widget.iconTheme?.iconUnselectedColor ??
-                        theme.iconTheme.color),
+                color: isSelectionAlignmentEnabled
+                    ? _valueToText[_value] == _valueString[index]
+                        ? (widget.iconTheme?.iconSelectedColor ??
+                            theme.primaryIconTheme.color)
+                        : (widget.iconTheme?.iconUnselectedColor ??
+                            theme.iconTheme.color)
+                    : theme.disabledColor,
               ),
             ),
           ),

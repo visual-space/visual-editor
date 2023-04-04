@@ -147,10 +147,8 @@ class _LinkMenuState extends State<LinkMenu> {
         final len = selection.end - index;
         text ??= len == 0
             ? ''
-            : widget._state.refs.documentController.getPlainTextAtRange(
-                index,
-                len,
-              );
+            : widget._state.refs.documentController
+                .getPlainTextAtRange(index, len);
 
         return LinkStyleDialog(
           link: link,

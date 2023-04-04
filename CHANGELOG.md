@@ -1,12 +1,17 @@
 # Changelog
 If you want to learn more about the specs, all tickets are available by following the hashtag links.
 
-## [0.11.0] Overlay - Custom overlay [#209](https://github.com/visual-space/visual-editor/issues/209)
+## [0.12.0] Overlay - Custom overlay [#209](https://github.com/visual-space/visual-editor/issues/209)
 - Removed the _onBuildComplete() method which was causing a lot of refreshes on the editor, and affecting the performance.
 - Added docs for links.md
 - Added overlay service in order to insert the link menu and for future menus to be added.
 - Removed stack from the main method inside the editor, in order to place widgets on the screen inside the editor, we are now using overlay service.
 - Moved some methods from manipulating links in controller.
+
+## [0.11.0] Disable adding styling in code blocks [185](https://github.com/visual-space/visual-editor/issues/185)
+- Added `DisabledButtonsState` in order to toggle the buttons color and disable applying different attrs to selection based on different selection attrs.
+- Disabled styling and most of the buttons in the toolbar when selection is code block or inline code.
+- Added `enableSelectionCodeButtons()` and `disableSelectionCodeButtons()` in `SelectionService` and `EditorController` in order to toggle enable/disable buttons when selection is code.
 
 ## [0.10.0] Blocks - Editable links [#10](https://github.com/visual-space/visual-editor/issues/10)
 - Added link menu, now when tapping on a link, a menu opens, displaying the url of the link, and 3 buttons (edit link, remove link from text/url, and copy link to clipboard)

@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../../cursor/services/caret.service.dart';
 import '../../doc-tree/services/coordinates.service.dart';
@@ -139,6 +140,8 @@ class SelectionService {
     required SelectionChangedCause cause,
     Offset? to,
   }) {
+    _handleDisabledButtonsInSelection();
+
     final fromPosition = _coordinatesService.getPositionForOffset(from);
     final toPosition =
         to == null ? null : _coordinatesService.getPositionForOffset(to);
@@ -189,6 +192,8 @@ class SelectionService {
     Offset to, {
     required SelectionChangedCause cause,
   }) {
+    _handleDisabledButtonsInExtendedSelection();
+
     final selOrigin = state.selection.origin;
 
     // The below logic does not exactly match the native version because
@@ -305,6 +310,40 @@ class SelectionService {
     state.styles.toggledStyle = StyleM();
   }
 
+  // === UPDATE BUTTONS ===
+
+  void disableButtonsInCodeSelectionAndRunBuild() {
+    state.disabledButtons.isSelectionStylingEnabled = false;
+    state.disabledButtons.isSelectionImageEnabled = false;
+    state.disabledButtons.isSelectionIndentEnabled = false;
+    state.disabledButtons.isSelectionColorEnabled = false;
+    state.disabledButtons.isSelectionChecklistEnabled = false;
+    state.disabledButtons.isSelectionCameraEnabled = false;
+    state.disabledButtons.isSelectionVideoEnabled = false;
+    state.disabledButtons.isSelectionAlignmentEnabled = false;
+    state.disabledButtons.isSelectionHeaderEnabled = false;
+    state.disabledButtons.isSelectionDropdownEnabled = false;
+
+    // Refresh
+    _runBuildService.runBuild();
+  }
+
+  void enableButtonsInCodeSelectionAndRunBuild() {
+    state.disabledButtons.isSelectionStylingEnabled = true;
+    state.disabledButtons.isSelectionImageEnabled = true;
+    state.disabledButtons.isSelectionIndentEnabled = true;
+    state.disabledButtons.isSelectionColorEnabled = true;
+    state.disabledButtons.isSelectionChecklistEnabled = true;
+    state.disabledButtons.isSelectionCameraEnabled = true;
+    state.disabledButtons.isSelectionVideoEnabled = true;
+    state.disabledButtons.isSelectionAlignmentEnabled = true;
+    state.disabledButtons.isSelectionHeaderEnabled = true;
+    state.disabledButtons.isSelectionDropdownEnabled = true;
+
+    // Refresh
+    _runBuildService.runBuild();
+  }
+
   // === CALLBACKS ===
 
   // Client defined callback
@@ -334,4 +373,46 @@ class SelectionService {
       selection: state.selection.selection,
     );
   }
+
+  // === PRIVATE ===
+
+  // Disables/enables toolbar buttons in certain situations.
+  void _handleDisabledButtonsInSelection() =>
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        // Disable styling in code blocks and inline code.
+        final selectionIsCodeBlock = state.refs.controller
+            .selectionStyle()
+            .attributes
+            .containsKey('code-block');
+        final selectionIsInlineCode = state.refs.controller
+            .selectionStyle()
+            .attributes
+            .containsKey('code');
+
+        if (selectionIsCodeBlock || selectionIsInlineCode) {
+          disableButtonsInCodeSelectionAndRunBuild();
+        } else {
+          enableButtonsInCodeSelectionAndRunBuild();
+        }
+      });
+
+  // Disables/enables toolbar buttons in certain situations.
+  // Currently if some part of the selection contains code we are disabling buttons for the whole selection.
+  void _handleDisabledButtonsInExtendedSelection() =>
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        // Disable styling in code blocks and inline code.
+        final allSelectionStyles =
+            state.refs.controller.getAllSelectionStyles();
+        var selectionContainsCode = false;
+
+        for (final style in allSelectionStyles) {
+          selectionContainsCode = style.attributes.containsKey('code-block') ||
+              style.attributes.containsKey('code');
+
+          if (selectionContainsCode) {
+            disableButtonsInCodeSelectionAndRunBuild();
+            break;
+          }
+        }
+      });
 }

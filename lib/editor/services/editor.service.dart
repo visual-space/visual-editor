@@ -299,7 +299,7 @@ class EditorService {
     }
 
     replaceText(index, length, text, null);
-    _stylesService.formatSelectedText(index, text.length, LinkAttributeM(link));
+    _stylesService.formatTextRange(index, text.length, LinkAttributeM(link));
   }
 
   String? getSelectionLinkAttributeValue() => _stylesService

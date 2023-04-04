@@ -114,17 +114,6 @@ class DocTreeService {
     return docIsEmpty && _placeholder != null ? _placeholderDoc() : _document;
   }
 
-  DocumentM _placeholderDoc() {
-    return DocumentM.fromJson(
-      jsonDecode(
-        '[{'
-        '"attributes":{"placeholder":true},'
-        '"insert":"${state.config.placeholder}\\n"'
-        '}]',
-      ),
-    );
-  }
-
   // Generates the editable text line widget from a delta document node
   // Nodes are defined in the delta json using new line chars "\n"
   // An editable text line is composed of a underlying text line (text spans)
@@ -194,6 +183,17 @@ class DocTreeService {
   }
 
   // === PRIVATE ===
+
+  DocumentM _placeholderDoc() {
+    return DocumentM.fromJson(
+      jsonDecode(
+        '[{'
+            '"attributes":{"placeholder":true},'
+            '"insert":"${state.config.placeholder}\\n"'
+            '}]',
+      ),
+    );
+  }
 
   DocumentM get _document {
     return state.document.document;
@@ -332,7 +332,7 @@ class DocTreeService {
       final attribute =
           value ? AttributesAliasesM.checked : AttributesAliasesM.unchecked;
 
-      _stylesService.formatSelectedText(offset, 0, attribute);
+      _stylesService.formatTextRange(offset, 0, attribute);
 
       // Checkbox tapping causes text selection to go to offset 0.
       // Stop toggling those two buttons buttons.

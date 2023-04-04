@@ -98,7 +98,7 @@ class MarkersService {
           null,
         );
 
-        _stylesService.formatSelectedText(index, length, markerAttribute);
+        _stylesService.formatTextRange(index, length, markerAttribute);
       }
     });
   }

@@ -67,7 +67,10 @@ class EditableTextBlock extends StatelessWidget {
     assert(debugCheckHasMediaQuery(context));
 
     return _editableTextBlockWidgetRenderer(
-      children: _blockLines(context, indentLevelCounts),
+      children: _blockLines(
+        context,
+        indentLevelCounts,
+      ),
       context: context,
     );
   }
@@ -85,9 +88,14 @@ class EditableTextBlock extends StatelessWidget {
       decoration: _getBlockDecoration(block, styles) ?? const BoxDecoration(),
       isCodeBlock: isCodeBlock,
       state: _state,
-      children: _blockLines(context, indentLevelCounts),
+      children: _blockLines(
+        context,
+        indentLevelCounts,
+      ),
     );
   }
+
+  // === PRIVATE ===
 
   BoxDecoration? _getBlockDecoration(
     BlockM node,
@@ -178,7 +186,7 @@ class EditableTextBlock extends StatelessWidget {
     final styles = _state.styles.styles;
     final attrs = line.style.attributes;
 
-    // Numbered list
+    // Ordered list
     if (attrs[AttributesM.list.key] == AttributesAliasesM.orderedList) {
       return NumberPoint(
         blockLength: count,
@@ -190,7 +198,7 @@ class EditableTextBlock extends StatelessWidget {
       );
     }
 
-    // Bullet
+    // Bullet list
     if (attrs[AttributesM.list.key] == AttributesAliasesM.bulletList) {
       return BulletPoint(
         style: styles.leading!.style.copyWith(

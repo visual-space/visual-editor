@@ -178,7 +178,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
       showHeaderStyle,
       showListNumbers || showListBullets || showListCheck || showCodeBlock,
       showQuote || showIndent,
-      showLink
+      showLink,
     ];
 
     // Default font size values

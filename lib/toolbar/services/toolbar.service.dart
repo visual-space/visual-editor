@@ -7,7 +7,6 @@ class ToolbarService {
 
   ToolbarService(this.state);
 
-  Map<String, AttributeM> getToolbarButtonToggler() {
-    return state.toolbar.buttonToggler;
-  }
+  Map<String, AttributeM> getToolbarButtonToggler() =>
+      state.toolbar.buttonToggler;
 }

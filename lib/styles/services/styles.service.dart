@@ -34,14 +34,14 @@ class StylesService {
   // Add multiple styles at once on the selected text
   void formatSelectedTextByStyle(int index, int len, StyleM style) {
     style.attributes.forEach((key, attr) {
-      formatSelectedText(index, len, attr);
+      formatTextRange(index, len, attr);
     });
   }
 
   // Formats the text by adding a new attribute to the selected text.
   // Based on the executed change, we reset the text selection range.
   // Ex: deleting text will decrease the text selection.
-  void formatSelectedText(
+  void formatTextRange(
     int index,
     int len,
     AttributeM? attribute,
@@ -82,7 +82,35 @@ class StylesService {
   void formatSelection(AttributeM? attribute) {
     final selection = state.selection.selection;
 
-    formatSelectedText(
+    // Styling is disabled for selection that contains code blocks and inline code at this point.
+    // (!) Must be added here in order to prevent applying style when using hotkeys too (e.g. Ctrl + B = applies bold attr).
+    final isSelectionCode =
+        getSelectionStyle().attributes.containsKey('code') ||
+            getSelectionStyle().attributes.containsKey('code-block');
+
+    // We must check that the attr applied is code or inline code in order to enable the
+    // clear format button.
+    final isAttrCode =
+        attribute?.key == 'code' || attribute?.key == 'code-block';
+
+    // Don't apply attr that is not code to code selection
+    if (isSelectionCode && !isAttrCode) {
+      return;
+    }
+
+    // Applying code attr over selection (that is not code), without changing selection,
+    // buttons color remains enabled, so we must disable and refresh the editor.
+    //
+    // Using the clear format button (without changing selection) which returns
+    // the same attr as code we must also check that the selection is not code
+    // in order to make it work properly and set buttons color to enable.
+    if (isAttrCode && !isSelectionCode) {
+      _selectionService.disableButtonsInCodeSelectionAndRunBuild();
+    } else {
+      _selectionService.enableButtonsInCodeSelectionAndRunBuild();
+    }
+
+    formatTextRange(
       selection.start,
       selection.end - selection.start,
       attribute,

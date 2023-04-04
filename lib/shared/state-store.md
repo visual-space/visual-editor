@@ -19,7 +19,7 @@ In essence, the editor code flow boils down to 2 steps: preparing the raw data t
 
 - **Global State** - The entire state of the app is stored in a global class that contains state objects for each feature.
 - **Pure Data** - The goal is to keep only pure data classes in the state store. No data processing methods are hanging around. The code that manipulates the data should be isolated from the data itself.
-- **Immutable** - Ideally we would have the entire codebase written in immutable classes. However due to the data format of the delta document and due to the data flow in editor (one giant build cycle) it's impractical to use only immutable objects. In places where it was possible we used immutable. However in many other places the stae store is mutable.
+- **Immutable** - Ideally we would have the entire codebase written in immutable classes. However due to the data format of the delta document and due to the data flow in editor (one giant build cycle) it's impractical to use only immutable objects. In places where it was possible we used immutable. However in many other places the state store is mutable.
 - **Unidirectional** - All the interactions that trigger state changes will trigger a build cycle. In the new build cycle, all the lines of text will check if their particular node of text has mutated. If so the `TextLine` will trigger internally a repaint. No TextLine can communicate to another TextLine directly. Neither the toolbar. Therefore the entire state store architecture is considered unidirectional.
 
 ## Editor Config

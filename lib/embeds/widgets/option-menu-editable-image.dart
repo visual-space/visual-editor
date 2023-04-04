@@ -94,7 +94,7 @@ class OptionMenuEditableImage extends StatelessWidget with EditorStateReceiver {
                   );
                   final style = StyleAttributeM(attr);
 
-                  _stylesService.formatSelectedText(res.offset, 1, style);
+                  _stylesService.formatTextRange(res.offset, 1, style);
                 },
                 imageWidth: _imageSize.width,
                 imageHeight: _imageSize.height,

@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../controller/controllers/editor-controller.dart';
+import '../../../editor/services/run-build.service.dart';
 import '../../../embeds/services/embeds.service.dart';
 import '../../../shared/models/editor-dialog-theme.model.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
@@ -14,7 +17,7 @@ import '../toolbar.dart';
 
 // Adds video in the document.
 // ignore: must_be_immutable
-class VideoButton extends StatelessWidget with EditorStateReceiver {
+class VideoButton extends StatefulWidget with EditorStateReceiver {
   late final EmbedsService _embedsService;
   late final MediaLoaderService _imageVideoUtils;
 
@@ -51,40 +54,67 @@ class VideoButton extends StatelessWidget with EditorStateReceiver {
   }
 
   @override
+  State<VideoButton> createState() => _VideoButtonState();
+
+  @override
   void cacheStateStore(EditorState state) {
     _state = state;
+  }
+}
+
+class _VideoButtonState extends State<VideoButton> {
+  late final RunBuildService _runBuildService;
+
+  StreamSubscription? _runBuild$L;
+
+  @override
+  void initState() {
+    _runBuildService = RunBuildService(widget._state);
+
+    _subscribeToRunBuild();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _runBuild$L?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isSelectionVideoEnabled =
+        widget._state.disabledButtons.isSelectionVideoEnabled;
 
-    final iconColor = iconTheme?.iconUnselectedColor ?? theme.iconTheme.color;
-    final iconFillColor =
-        iconTheme?.iconUnselectedFillColor ?? (fillColor ?? theme.canvasColor);
+    final iconColor = isSelectionVideoEnabled
+        ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color
+        : theme.disabledColor;
+    final iconFillColor = widget.iconTheme?.iconUnselectedFillColor ??
+        (widget.fillColor ?? theme.canvasColor);
 
     return IconBtn(
       icon: Icon(
-        icon,
-        size: iconSize,
+        widget.icon,
+        size: widget.iconSize,
         color: iconColor,
       ),
       highlightElevation: 0,
-      buttonsSpacing: buttonsSpacing,
+      buttonsSpacing: widget.buttonsSpacing,
       hoverElevation: 0,
-      size: iconSize * 1.77,
+      size: widget.iconSize * 1.77,
       fillColor: iconFillColor,
-      borderRadius: iconTheme?.borderRadius ?? 2,
-      onPressed: () => _insertVideo(context),
+      borderRadius: widget.iconTheme?.borderRadius ?? 2,
+      onPressed: isSelectionVideoEnabled ? () => _insertVideo(context) : null,
     );
   }
 
   // === PRIVATE ===
 
   Future<void> _insertVideo(BuildContext context) async {
-    if (onVideoPickCallback != null) {
-      final selector =
-          mediaPickSettingSelector ?? _imageVideoUtils.selectMediaPickSetting;
+    if (widget.onVideoPickCallback != null) {
+      final selector = widget.mediaPickSettingSelector ??
+          widget._imageVideoUtils.selectMediaPickSetting;
       final source = await selector(context);
 
       if (source != null) {
@@ -99,21 +129,29 @@ class VideoButton extends StatelessWidget with EditorStateReceiver {
     }
   }
 
-  void _pickVideo(BuildContext context) =>
-      _imageVideoUtils.insertVideo(
+  void _pickVideo(BuildContext context) => widget._imageVideoUtils.insertVideo(
         context,
         ImageSource.gallery,
-        onVideoPickCallback!,
-        filePickImpl: filePickImpl,
-        webVideoPickImpl: webVideoPickImpl,
+        widget.onVideoPickCallback!,
+        filePickImpl: widget.filePickImpl,
+        webVideoPickImpl: widget.webVideoPickImpl,
       );
 
   void _typeLink(BuildContext context) {
     showDialog<String>(
       context: context,
       builder: (_) => LinkDialog(
-        dialogTheme: dialogTheme,
+        dialogTheme: widget.dialogTheme,
       ),
-    ).then(_embedsService.insertInSelectionVideoViaUrl);
+    ).then(widget._embedsService.insertInSelectionVideoViaUrl);
+  }
+
+  // === UTILS ===
+
+  // In order to update the button state after each selection change check if button is enabled.
+  void _subscribeToRunBuild() {
+    _runBuild$L = _runBuildService.runBuild$.listen(
+      (_) => setState(() {}),
+    );
   }
 }

@@ -18,6 +18,7 @@ import '../../selection/state/selection-layers.state.dart';
 import '../../selection/state/selection.state.dart';
 import '../../styles/state/platform-styles.state.dart';
 import '../../styles/state/styles.state.dart';
+import '../../toolbar/state/disabled-buttons.state.dart';
 import '../../toolbar/state/toolbar.state.dart';
 import 'references.state.dart';
 
@@ -72,6 +73,7 @@ class EditorState {
 
   // Toolbar
   final toolbar = ToolbarState();
+  final disabledButtons = DisabledButtonsState();
 
   // Internal References
   final refs = ReferencesState();

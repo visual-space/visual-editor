@@ -66,18 +66,29 @@ class _ToggleStyleButtonState extends State<ToggleStyleButton> {
   }
 
   @override
-  Widget build(BuildContext context) => ToggleButton(
-        context: context,
-        icon: widget.icon,
-        buttonsSpacing: widget.buttonsSpacing,
-        fillColor: widget.fillColor,
-        isToggled: _isToggled,
-        onPressed: () => _stylesService.toggleAttributeInSelection(
-          widget.attribute,
-        ),
-        iconSize: widget.iconSize,
-        iconTheme: widget.iconTheme,
-      );
+  void dispose() {
+    _runBuild$L?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isStylingEnabledInSelection =
+        widget._state.disabledButtons.isSelectionStylingEnabled;
+
+    return ToggleButton(
+      context: context,
+      icon: widget.icon,
+      buttonsSpacing: widget.buttonsSpacing,
+      fillColor: widget.fillColor,
+      isToggled: _isToggled,
+      onPressed: isStylingEnabledInSelection
+          ? () => _stylesService.toggleAttributeInSelection(widget.attribute)
+          : null,
+      iconSize: widget.iconSize,
+      iconTheme: widget.iconTheme,
+    );
+  }
 
   @override
   void didUpdateWidget(covariant ToggleStyleButton oldWidget) {
@@ -91,12 +102,6 @@ class _ToggleStyleButtonState extends State<ToggleStyleButton> {
       _subscribeToRunBuild();
       _cacheIsToggled();
     }
-  }
-
-  @override
-  void dispose() {
-    _runBuild$L?.cancel();
-    super.dispose();
   }
 
   // === UTILS ===

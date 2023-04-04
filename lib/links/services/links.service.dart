@@ -240,7 +240,7 @@ class LinksService {
 
       case LinkMenuAction.remove:
         final range = getLinkRange(node);
-        _stylesService.formatSelectedText(
+        _stylesService.formatTextRange(
           range.start,
           range.end - range.start,
           AttributesM.link,

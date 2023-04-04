@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../controller/controllers/editor-controller.dart';
+import '../../../editor/services/run-build.service.dart';
 import '../../../shared/models/editor-icon-theme.model.dart';
 import '../../../shared/state/editor-state-receiver.dart';
 import '../../../shared/state/editor.state.dart';
@@ -10,9 +13,7 @@ import '../toolbar.dart';
 
 // Insert in the document images capture via the camera.
 // ignore: must_be_immutable
-class CameraButton extends StatelessWidget with EditorStateReceiver {
-  late final MediaLoaderService _imageVideoUtils;
-
+class CameraButton extends StatefulWidget with EditorStateReceiver {
   final IconData icon;
   final double iconSize;
   final Color? fillColor;
@@ -41,47 +42,76 @@ class CameraButton extends StatelessWidget with EditorStateReceiver {
     Key? key,
   }) : super(key: key) {
     controller.setStateInEditorStateReceiver(this);
-    _imageVideoUtils = MediaLoaderService(_state);
   }
+
+  @override
+  State<CameraButton> createState() => _CameraButtonState();
 
   @override
   void cacheStateStore(EditorState state) {
     _state = state;
   }
+}
+
+class _CameraButtonState extends State<CameraButton> {
+  late final MediaLoaderService _mediaLoaderService;
+  late final RunBuildService _runBuildService;
+
+  StreamSubscription? _runBuild$L;
+
+  @override
+  void initState() {
+    _mediaLoaderService = MediaLoaderService(widget._state);
+    _runBuildService = RunBuildService(widget._state);
+
+    _subscribeToRunBuild();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _runBuild$L?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isSelectionCameraEnabled =
+        widget._state.disabledButtons.isSelectionCameraEnabled;
 
-    final iconColor = iconTheme?.iconUnselectedColor ?? theme.iconTheme.color;
-    final iconFillColor =
-        iconTheme?.iconUnselectedFillColor ?? (fillColor ?? theme.canvasColor);
+    final iconColor = isSelectionCameraEnabled
+        ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color
+        : theme.disabledColor;
+    final iconFillColor = widget.iconTheme?.iconUnselectedFillColor ??
+        (widget.fillColor ?? theme.canvasColor);
 
     return IconBtn(
       icon: Icon(
-        icon,
-        size: iconSize,
+        widget.icon,
+        size: widget.iconSize,
         color: iconColor,
       ),
-      buttonsSpacing: buttonsSpacing,
+      buttonsSpacing: widget.buttonsSpacing,
       highlightElevation: 0,
       hoverElevation: 0,
-      size: iconSize * 1.77,
+      size: widget.iconSize * 1.77,
       fillColor: iconFillColor,
-      borderRadius: iconTheme?.borderRadius ?? 2,
-      onPressed: () => _handleCameraButtonTap(
-        context,
-        controller,
-        onImagePickCallback: onImagePickCallback,
-        onVideoPickCallback: onVideoPickCallback,
-        filePickImpl: filePickImpl,
-        webImagePickImpl: webImagePickImpl,
-      ),
+      borderRadius: widget.iconTheme?.borderRadius ?? 2,
+      onPressed: isSelectionCameraEnabled
+          ? () => _handleCameraButtonTap(
+                context,
+                widget.controller,
+                onImagePickCallback: widget.onImagePickCallback,
+                onVideoPickCallback: widget.onVideoPickCallback,
+                filePickImpl: widget.filePickImpl,
+                webImagePickImpl: widget.webImagePickImpl,
+              )
+          : null,
     );
   }
 
   // === PRIVATE ===
-
   Future<void> _handleCameraButtonTap(
     BuildContext context,
     EditorController controller, {
@@ -108,7 +138,7 @@ class CameraButton extends StatelessWidget with EditorStateReceiver {
                     ),
                     label: const Text('Photo'),
                     onPressed: () {
-                      _imageVideoUtils.pickImage(
+                      _mediaLoaderService.pickImage(
                         context,
                         ImageSource.camera,
                         onImagePickCallback,
@@ -124,12 +154,12 @@ class CameraButton extends StatelessWidget with EditorStateReceiver {
                     ),
                     label: const Text('Video'),
                     onPressed: () {
-                      _imageVideoUtils.insertVideo(
+                      _mediaLoaderService.insertVideo(
                         context,
                         ImageSource.camera,
                         onVideoPickCallback,
                         filePickImpl: filePickImpl,
-                        webVideoPickImpl: webVideoPickImpl,
+                        webVideoPickImpl: widget.webVideoPickImpl,
                       );
                     },
                   )
@@ -140,7 +170,7 @@ class CameraButton extends StatelessWidget with EditorStateReceiver {
     }
 
     if (onImagePickCallback != null) {
-      return _imageVideoUtils.pickImage(
+      return _mediaLoaderService.pickImage(
         context,
         ImageSource.camera,
         onImagePickCallback,
@@ -150,12 +180,21 @@ class CameraButton extends StatelessWidget with EditorStateReceiver {
     }
 
     assert(onVideoPickCallback != null, 'onVideoPickCallback must not be null');
-    return _imageVideoUtils.insertVideo(
+    return _mediaLoaderService.insertVideo(
       context,
       ImageSource.camera,
       onVideoPickCallback!,
       filePickImpl: filePickImpl,
-      webVideoPickImpl: webVideoPickImpl,
+      webVideoPickImpl: widget.webVideoPickImpl,
+    );
+  }
+
+  // === UTILS ===
+
+  // In order to update the button state after each selection change check if button is enabled.
+  void _subscribeToRunBuild() {
+    _runBuild$L = _runBuildService.runBuild$.listen(
+      (_) => setState(() {}),
     );
   }
 }

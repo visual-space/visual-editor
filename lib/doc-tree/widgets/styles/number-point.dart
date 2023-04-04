@@ -34,8 +34,13 @@ class NumberPoint extends StatelessWidget {
     return Container(
       alignment: AlignmentDirectional.topEnd,
       width: containerWidth,
-      padding: EdgeInsetsDirectional.only(end: endPadding),
-      child: Text('$olString${hasDotAfterNumber ? '.' : ''}', style: textStyle),
+      padding: EdgeInsetsDirectional.only(
+        end: endPadding,
+      ),
+      child: Text(
+        '$olString${hasDotAfterNumber ? '.' : ''}',
+        style: textStyle,
+      ),
     );
   }
 

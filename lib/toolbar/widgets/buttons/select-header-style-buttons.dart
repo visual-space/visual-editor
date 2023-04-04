@@ -86,6 +86,8 @@ class _SelectHeaderStyleButtonsState extends State<SelectHeaderStyleButtons> {
       fontWeight: FontWeight.w600,
       fontSize: widget.iconSize * 0.7,
     );
+    final isSelectionHeaderEnabled =
+        widget._state.disabledButtons.isSelectionHeaderEnabled;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -117,17 +119,21 @@ class _SelectHeaderStyleButtonsState extends State<SelectHeaderStyleButtons> {
                       theme.canvasColor),
 
               // Export a nice and clean version of this method in the styles service. Similar to other buttons.
-              onPressed: () => _stylesService.formatSelection(
-                _valueAttribute[index],
-              ),
+              onPressed: isSelectionHeaderEnabled
+                  ? () => _stylesService.formatSelection(
+                        _valueAttribute[index],
+                      )
+                  : null,
               child: Text(
                 _valueString[index],
                 style: style.copyWith(
-                  color: _valueToText[_attr] == _valueString[index]
-                      ? (widget.iconTheme?.iconSelectedColor ??
-                          theme.primaryIconTheme.color)
-                      : (widget.iconTheme?.iconUnselectedColor ??
-                          theme.iconTheme.color),
+                  color: isSelectionHeaderEnabled
+                      ? _valueToText[_attr] == _valueString[index]
+                          ? (widget.iconTheme?.iconSelectedColor ??
+                              theme.primaryIconTheme.color)
+                          : (widget.iconTheme?.iconUnselectedColor ??
+                              theme.iconTheme.color)
+                      : theme.disabledColor,
                 ),
               ),
             ),

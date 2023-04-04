@@ -76,7 +76,7 @@ class EditorController {
   // === TEXT STYLES ===
 
   late final formatSelectedTextByStyle = _stylesService.formatSelectedTextByStyle;
-  late final formatSelectedText = _stylesService.formatSelectedText;
+  late final formatSelectedText = _stylesService.formatTextRange;
   late final formatSelection = _stylesService.formatSelection;
   late final selectionStyle = _stylesService.getSelectionStyle;
   late final getAllIndividualSelectionStyles = _stylesService.getAllIndividualSelectionStyles;
@@ -135,6 +135,11 @@ class EditorController {
   late final getLinkRange = _linksService.getLinkRange;
   late final removeSelectionLink = _linksService.removeSelectionLink;
   late final getOffsetForLinkMenu = _linksService.getOffsetForLinkMenu;
+
+  // === CODE ===
+
+  late final enableButtonsInCodeSelection = _selectionService.enableButtonsInCodeSelectionAndRunBuild;
+  late final disableButtonsInCodeSelection = _selectionService.disableButtonsInCodeSelectionAndRunBuild;
 
   // === KEYBOARD ===
 

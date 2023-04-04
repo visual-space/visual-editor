@@ -128,29 +128,36 @@ class _EditorDropdownState<T> extends State<EditorDropdown<T>> {
     }
   }
 
-  Widget _rectangleButton({required List<Widget> children}) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 2.5),
-        child: Material(
-          child: InkWell(
-            onTap: _displayOptionsMenu,
-            child: ConstrainedBox(
-              constraints: BoxConstraints.tightFor(
-                height: widget.iconSize * 1.75,
-              ),
-              child: Container(
-                padding: EdgeInsets.fromLTRB(8, 0, 8, 0),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: children,
-                ),
+  Widget _rectangleButton({required List<Widget> children}) {
+    final isSelectionDropdownEnabled =
+        widget._state.disabledButtons.isSelectionDropdownEnabled;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2.5),
+      child: Material(
+        child: InkWell(
+          onTap: isSelectionDropdownEnabled ? _displayOptionsMenu : null,
+          child: ConstrainedBox(
+            constraints: BoxConstraints.tightFor(
+              height: widget.iconSize * 1.75,
+            ),
+            child: Container(
+              padding: EdgeInsets.fromLTRB(8, 0, 8, 0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: children,
               ),
             ),
           ),
         ),
-      );
+      ),
+    );
+  }
 
   Widget _textAndArrow() {
     final theme = Theme.of(context);
+    final isSelectionSizeEnabled =
+        widget._state.disabledButtons.isSelectionDropdownEnabled;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -159,8 +166,9 @@ class _EditorDropdownState<T> extends State<EditorDropdown<T>> {
           _selectedOptions.map((option) => option.name).join(' '),
           style: TextStyle(
             fontSize: widget.iconSize / 1.15,
-            color:
-                widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color,
+            color: isSelectionSizeEnabled
+                ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color
+                : theme.disabledColor,
           ),
         ),
         SizedBox(
@@ -169,7 +177,9 @@ class _EditorDropdownState<T> extends State<EditorDropdown<T>> {
         Icon(
           Icons.arrow_drop_down,
           size: widget.iconSize / 1.15,
-          color: widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color,
+          color: isSelectionSizeEnabled
+              ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color
+              : theme.disabledColor,
         )
       ],
     );
@@ -177,6 +187,8 @@ class _EditorDropdownState<T> extends State<EditorDropdown<T>> {
 
   Widget _icon() {
     final theme = Theme.of(context);
+    final isSelectionSizeEnabled =
+        widget._state.disabledButtons.isSelectionDropdownEnabled;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -185,7 +197,9 @@ class _EditorDropdownState<T> extends State<EditorDropdown<T>> {
       child: Icon(
         widget.icon,
         size: widget.iconSize,
-        color: widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color,
+        color: isSelectionSizeEnabled
+            ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color
+            : theme.disabledColor,
       ),
     );
   }
@@ -261,8 +275,7 @@ class _EditorDropdownState<T> extends State<EditorDropdown<T>> {
 
   RelativeRect _getMenuPosition() {
     final button = context.findRenderObject() as RenderBox;
-    final overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox;
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
 
     return RelativeRect.fromRect(
       Rect.fromPoints(

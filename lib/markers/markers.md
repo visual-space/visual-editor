@@ -1,5 +1,5 @@
 # Markers
-Renders permanent text markers sensitive to taps. Markers are defined in the delta document. Unlike markers, markers change the delta document by adding attributes. The markers are rendered on top of the text. Markers are sensitive to taps and hovers. Custom marker types with custom colors and behaviours can be defined. 
+Renders permanent text markers sensitive to taps. Markers are defined in the delta document. Unlike highlights, markers change the delta document by adding attributes. The markers are rendered on top of the text. Markers are sensitive to taps and hovers. Custom marker types with custom colors and behaviours can be defined. 
 
 ## Data Model
 **marker-type.model.dart**

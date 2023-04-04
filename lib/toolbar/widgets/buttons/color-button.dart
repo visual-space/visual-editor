@@ -55,10 +55,10 @@ class _ColorButtonState extends State<ColorButton> {
   var _isToggledBackground = false;
   var _isWhite = false;
   var _isWhiteBackground = false;
-  var  _iconColorBgr = Colors.white;
-  var  _iconColor = Colors.white;
-  var  _fillColorBgr = Colors.white;
-  var  _fillColor = Colors.white;
+  var _iconColorBgr = Colors.white;
+  var _iconColor = Colors.white;
+  var _fillColorBgr = Colors.white;
+  var _fillColor = Colors.white;
   StreamSubscription? _runBuild$L;
 
   @override
@@ -80,6 +80,9 @@ class _ColorButtonState extends State<ColorButton> {
   @override
   Widget build(BuildContext context) {
     _cacheButtonsColors();
+    final isSelectionColorEnabled =
+        widget._state.disabledButtons.isSelectionColorEnabled;
+    final theme = Theme.of(context);
 
     return IconBtn(
       highlightElevation: 0,
@@ -89,11 +92,15 @@ class _ColorButtonState extends State<ColorButton> {
       icon: Icon(
         widget.icon,
         size: widget.iconSize,
-        color: widget.background ? _iconColorBgr : _iconColor,
+        color: isSelectionColorEnabled
+            ? widget.background
+                ? _iconColorBgr
+                : _iconColor
+            : theme.disabledColor,
       ),
       fillColor: widget.background ? _fillColorBgr : _fillColor,
       borderRadius: widget.iconTheme?.borderRadius ?? 2,
-      onPressed: _showColorPicker,
+      onPressed: isSelectionColorEnabled ? _showColorPicker : null,
     );
   }
 

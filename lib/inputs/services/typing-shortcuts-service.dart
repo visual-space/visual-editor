@@ -123,7 +123,9 @@ class TypingShortcutsService {
     }
 
     if (node is! LineM || (node.isNotEmpty && node.first is! String)) {
-      return _insertTabCharacter();
+      return event.isShiftPressed
+          ? _removeTabCharacter()
+          : _insertTabCharacter();
     }
 
     if (node.isNotEmpty && (node.first as String).isNotEmpty) {
@@ -153,19 +155,25 @@ class TypingShortcutsService {
         : _moveCursor(-1);
   }
 
-  // TODO When pressing shift + tab even though there aren't any tab char added
-  // The logic is going to remove 4 chars before the charet. That's not what we intend.
-  // One possible solution to this is to verify if there are 4 whitespaces before the charet.
-  // If there are, apply this logic, else do not.
-  KeyEventResult _removeTabCharacter() {
-    state.refs.controller.replaceText(
-      _selectionService.selection.baseOffset - 4,
+KeyEventResult _removeTabCharacter() {
+    const tab = '    ';
+    final textBeforeSelection = state.refs.documentController.getPlainTextAtRange(
+      state.refs.controller.selection.baseOffset - 4,
       4,
-      '',
-      null,
     );
+    final doesNotContainText = textBeforeSelection == tab;
+    
+    if (doesNotContainText) {
+      // Remove tab char
+      state.refs.controller.replaceText(
+        state.refs.controller.selection.baseOffset - 4,
+        4,
+        '',
+        null,
+      );
 
-    _moveCursor(-4);
+      _moveCursor(-4);
+    }
 
     return KeyEventResult.handled;
   }

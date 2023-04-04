@@ -12,6 +12,7 @@ import 'developer/pages/overwrite-controller.page.dart';
 import 'developer/pages/parent-scroll.page.dart';
 import 'embeds/pages/custom-embeds.page.dart';
 import 'interactions/pages/selection-menu.page.dart';
+import 'markers/pages/collapsable-text.page.dart';
 import 'markers/pages/delete-markers.page.dart';
 import 'markers/pages/hide-markers.page.dart';
 import 'markers/pages/highlights.page.dart';
@@ -61,6 +62,7 @@ class DemoApp extends StatelessWidget {
           '/markers-attachments': (context) => MarkersAttachmentsPage(),
           '/hide-markers': (context) => HideMarkersPage(),
           '/delete-markers': (context) => DeleteMarkersPage(),
+          '/collapsable-text': (context) => CollapsableTextPage(),
           '/profile-card': (context) => ProfileCardOnMarkerPage(),
 
           // Interactions

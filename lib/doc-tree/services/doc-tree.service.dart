@@ -56,6 +56,7 @@ class DocTreeService {
     final renderers = <EditableTextLineWidgetRenderer>[];
 
     for (final node in nodes) {
+
       // Line
       if (node is LineM) {
         final renderer = _getEditableTextLineFromNode(node);

@@ -104,16 +104,28 @@ class MarkersService {
     state.markersVisibility.toggleMarkers(areVisible);
   }
 
-  void toggleMarkerByTypeId(String markerType, bool isVisible) {
-    state.markersTypes.toggleMarkerByTypeId(markerType, isVisible);
+  void toggleMarkerHighlightVisibilityByTypeId(String markerType, bool isVisible) {
+    state.markersTypes.toggleMarkerHighlightVisibilityByTypeId(markerType, isVisible);
+  }
+
+  void toggleMarkerTextVisibilityByTypeId(String markerType, bool isVisible) {
+    state.markersTypes.toggleMarkerTextVisibilityByTypeId(markerType, isVisible);
+  }
+
+  void toggleMarkerTextVisibilityByMarkerId(String markerId, bool isVisible) {
+    state.markersTypes.toggleMarkerTextVisibilityByMarkerId(markerId, isVisible);
   }
 
   bool getMarkersVisibility() {
     return state.markersVisibility.visibility;
   }
 
-  bool isMarkerTypeVisible(String markerType) {
-    return state.markersTypes.isMarkerTypeVisible(markerType);
+  bool isMarkerTypeHighlightVisible(String markerType) {
+    return state.markersTypes.isMarkerTypeHighlightVisible(markerType);
+  }
+
+  bool isMarkerTypeTextVisible(String markerType) {
+    return state.markersTypes.isMarkerTypeTextVisible(markerType);
   }
 
   List<MarkerM> getAllMarkers() {

@@ -19,7 +19,8 @@ class MarkerTypeM {
   final String name;
   final Color color;
   final Color hoverColor;
-  final bool isVisible;
+  final bool isHighlightVisible;
+  final bool isTextVisible;
   final Function(MarkerM marker)? onSingleTapUp;
   final Function(MarkerM marker)? onEnter;
   final Function(MarkerM marker)? onHover;
@@ -36,7 +37,8 @@ class MarkerTypeM {
     this.color = _DEFAULT_MARKER_COLOR,
     this.hoverColor = _HOVERED_MARKER_COLOR,
     this.onSingleTapUp,
-    this.isVisible = true,
+    this.isHighlightVisible = true,
+    this.isTextVisible = true,
     this.onEnter,
     this.onHover,
     this.onExit,
@@ -48,7 +50,8 @@ class MarkerTypeM {
     return 'MarkerTypeM('
         'id: $id, '
         'name: $name, '
-        'isVisible : $isVisible,'
+        'isHighlightVisible : $isHighlightVisible,'
+        'isTextVisible : $isTextVisible,'
         'color: $color, '
         'hoverColor: $hoverColor,'
         ')';
@@ -59,7 +62,8 @@ class MarkerTypeM {
     String? name,
     Color? color,
     Color? hoverColor,
-    bool? isVisible,
+    bool? isHighlightVisible,
+    bool? isTextVisible,
     Function(MarkerM marker)? onSingleTapUp,
     Function(MarkerM marker)? onEnter,
     Function(MarkerM marker)? onHover,
@@ -70,7 +74,8 @@ class MarkerTypeM {
         name: name ?? this.id,
         color: color ?? this.color,
         hoverColor: hoverColor ?? this.hoverColor,
-        isVisible: isVisible ?? this.isVisible,
+        isHighlightVisible: isHighlightVisible ?? this.isHighlightVisible,
+        isTextVisible: isTextVisible ?? this.isTextVisible,
         onSingleTapUp: onSingleTapUp ?? this.onSingleTapUp,
         onEnter: onEnter ?? this.onEnter,
         onExit: onExit ?? this.onExit,

@@ -89,7 +89,7 @@ class EditorController {
   // === TEXT STYLES ===
 
   late final formatSelectedTextByStyle = _stylesService.formatTextRangeWithStyle;
-  late final formatSelectedText = _stylesService.formatTextRange;
+  late final formatTextRange = _stylesService.formatTextRange;
   late final formatSelection = _stylesService.formatSelection;
   late final selectionStyle = _stylesService.getSelectionStyle;
   late final getAllIndividualSelectionStyles = _stylesService.getAllIndividualSelectionStyles;
@@ -126,9 +126,12 @@ class EditorController {
   late final addMarker = _markersService.addMarker;
   late final deleteMarkerById = _markersService.deleteMarkerById;
   late final toggleMarkers = _markersService.toggleMarkers;
-  late final toggleMarkerByTypeId = _markersService.toggleMarkerByTypeId;
+  late final toggleMarkerHighlightVisibilityByTypeId = _markersService.toggleMarkerHighlightVisibilityByTypeId;
+  late final toggleMarkerTextVisibilityByTypeId = _markersService.toggleMarkerTextVisibilityByTypeId;
+  late final toggleMarkerTextVisibilityByMarkerId = _markersService.toggleMarkerTextVisibilityByMarkerId;
   late final getMarkersVisibility = _markersService.getMarkersVisibility;
-  late final isMarkerTypeVisible = _markersService.isMarkerTypeVisible;
+  late final isMarkerTypeHighlightVisible = _markersService.isMarkerTypeHighlightVisible;
+  late final isMarkerTypeTextVisible = _markersService.isMarkerTypeTextVisible;
   late final getAllMarkers = _markersService.getAllMarkers;
 
   // === HISTORY ===

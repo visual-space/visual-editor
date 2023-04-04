@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:visual_editor/markers/models/marker.model.dart';
 import 'package:visual_editor/document/models/material/text-box.model.dart';
 
 import '../models/marker-and-relative-position.model.dart';
@@ -11,9 +12,11 @@ import '../models/markers-attachments-position.dart';
 // By using the stream we avoid heavy re-renders of the editor and we maintain maximum performance.
 class MarkersAttachments extends StatefulWidget {
   final StreamController<MarkersAttachmentsPos> markers$;
+  final Function(MarkerM marker)? onTap;
 
   MarkersAttachments({
     required this.markers$,
+    this.onTap,
   });
 
   @override
@@ -59,14 +62,22 @@ class _MarkersAttachmentsState extends State<MarkersAttachments> {
   // Additional logic for collision detection could be implemented as well.
   Widget _attachment({required MarkerAndRelPos marker}) {
     final rectangle = marker.marker.rectangles?[0];
+
     return Positioned(
       top: _getMarkerPosition(marker, rectangle),
       left: 10,
-      child: Icon(
-        _getAttachmentIcon(marker.marker.type),
-        color: _getColor(marker.marker.type),
-        size: 24,
-        semanticLabel: 'Favourite',
+      child: InkWell(
+        child: Icon(
+          _getAttachmentIcon(marker.marker.type),
+          color: _getColor(marker.marker.type),
+          size: 24,
+          semanticLabel: 'Favourite',
+        ),
+        onTap: () {
+          if (widget.onTap != null) {
+            widget.onTap!(marker.marker);
+          }
+        },
       ),
     );
   }
@@ -75,6 +86,8 @@ class _MarkersAttachmentsState extends State<MarkersAttachments> {
 
   IconData _getAttachmentIcon(String type) {
     switch (type) {
+      case 'extra-info':
+        return Icons.info_outline_rounded;
       case 'expert':
         return Icons.verified;
       case 'beginner':
@@ -88,6 +101,8 @@ class _MarkersAttachmentsState extends State<MarkersAttachments> {
 
   Color _getColor(String type) {
     switch (type) {
+      case 'extra-info':
+        return Colors.grey;
       case 'expert':
         return Colors.amber;
       case 'beginner':

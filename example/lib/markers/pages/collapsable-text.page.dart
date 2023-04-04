@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:visual_editor/shared/widgets/default-button.dart';
 import 'package:visual_editor/visual-editor.dart';
 
 import '../../shared/const/dimensions.const.dart';
@@ -12,17 +11,16 @@ import '../../shared/widgets/loading.dart';
 import '../models/marker-and-relative-position.model.dart';
 import '../models/markers-attachments-position.dart';
 import '../widgets/markers-attachments.dart';
-import 'delete-markers.page.dart';
 
-// Markers rectangles can be hidden by type from the document.
-// Markers are not deleted so we still can use their information
-// i.e. even though the markers are hidden, markers attachments still works properly
-class HideMarkersPage extends StatefulWidget {
+// For smoke testing. You don't need this in your implementation.
+const SCROLLABLE = true;
+
+class CollapsableTextPage extends StatefulWidget {
   @override
-  _HideMarkersPageState createState() => _HideMarkersPageState();
+  _CollapsableTextPageState createState() => _CollapsableTextPageState();
 }
 
-class _HideMarkersPageState extends State<HideMarkersPage> {
+class _CollapsableTextPageState extends State<CollapsableTextPage> {
   EditorController? _controller;
   final _scrollController = ScrollController();
   final _focusNode = FocusNode();
@@ -52,13 +50,6 @@ class _HideMarkersPageState extends State<HideMarkersPage> {
                     _fillerToBalanceRow(),
                   ],
                 ),
-                _row(
-                  children: [
-                    _toggleReminders(),
-                    _toggleExpert(),
-                    _toggleExpertAndBeginner(),
-                  ],
-                ),
                 _toolbar(),
               ]
             : [
@@ -73,24 +64,6 @@ class _HideMarkersPageState extends State<HideMarkersPage> {
         ),
       );
 
-  Widget _editor() => Flexible(
-        child: Container(
-          width: PAGE_WIDTH,
-          color: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 30),
-          child: VisualEditor(
-            controller: _controller!,
-            scrollController: _scrollController,
-            focusNode: _focusNode,
-            config: EditorConfigM(
-              markerTypes: getMarkerTypes(),
-              onBuildCompleted: _updateMarkerAttachments,
-              onScroll: _updateMarkerAttachments,
-            ),
-          ),
-        ),
-      );
-
   Widget _flexibleRow({required List<Widget> children}) => Flexible(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -101,52 +74,38 @@ class _HideMarkersPageState extends State<HideMarkersPage> {
 
   Widget _markersAttachments() => MarkersAttachments(
         markers$: _markers$,
+        onTap: (marker) {
+          _controller?.toggleMarkerTextVisibilityByMarkerId(
+            marker.id,
+            false,
+          );
+        },
+      );
+
+  Widget _editor() => Flexible(
+        child: Container(
+          width: PAGE_WIDTH,
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(30, 0, 30, 0),
+          child: VisualEditor(
+            controller: _controller!,
+            // (!) Don't do this mistake.
+            // You will override the Scroll controller with a new instance and the scroll callback wont fire.
+            scrollController: SCROLLABLE ? _scrollController : null,
+            focusNode: _focusNode,
+            config: EditorConfigM(
+              markerTypes: _getMarkerTypes(),
+              // ignore: avoid_redundant_argument_values
+              scrollable: SCROLLABLE,
+              onBuildCompleted: _updateMarkerAttachments,
+              onScroll: _updateMarkerAttachments,
+            ),
+          ),
+        ),
       );
 
   // Row is space in between, therefore we need on the right side an empty container to force the editor on the center.
   Widget _fillerToBalanceRow() => Container(width: 0);
-
-  Widget _row({required List<Widget> children}) => Container(
-        margin: EdgeInsets.only(top: 15),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: children,
-        ),
-      );
-
-  Widget _toggleReminders() => DefaultButton(
-        name: 'Toggle Reminder Markers',
-        onPressed: () {
-          final visibility =
-              !(_controller?.isMarkerTypeHighlightVisible('reminder') ?? false);
-
-          _controller?.toggleMarkerHighlightVisibilityByTypeId('reminder', visibility);
-        },
-      );
-
-  Widget _toggleExpert() => DefaultButton(
-        name: 'Toggle Expert Markers',
-        padding: EdgeInsets.symmetric(horizontal: 25),
-        onPressed: () {
-          final visibility =
-              !(_controller?.isMarkerTypeHighlightVisible('expert') ?? false);
-
-          _controller?.toggleMarkerHighlightVisibilityByTypeId('expert', visibility);
-        },
-      );
-
-  Widget _toggleExpertAndBeginner() => DefaultButton(
-        name: 'Toggle Expert And Beginner Markers',
-        onPressed: () {
-          final expertVisibility =
-              !(_controller?.isMarkerTypeHighlightVisible('expert') ?? false);
-          final beginnerVisibility =
-              !(_controller?.isMarkerTypeHighlightVisible('beginner') ?? false);
-
-          _controller?.toggleMarkerHighlightVisibilityByTypeId('expert', expertVisibility);
-          _controller?.toggleMarkerHighlightVisibilityByTypeId('beginner', beginnerVisibility);
-        },
-      );
 
   Widget _toolbar() => Container(
         padding: EdgeInsets.symmetric(
@@ -160,9 +119,11 @@ class _HideMarkersPageState extends State<HideMarkersPage> {
         ),
       );
 
+  // === UTILS ===
+
   Future<void> _loadDocumentAndInitController() async {
     final deltaJson = await rootBundle.loadString(
-      'lib/markers/assets/hide-markers.json',
+      'lib/markers/assets/collapsable-text.json',
     );
     final document = DeltaDocM.fromJson(jsonDecode(deltaJson));
 
@@ -173,22 +134,16 @@ class _HideMarkersPageState extends State<HideMarkersPage> {
     });
   }
 
-  List<MarkerTypeM> getMarkerTypes() => [
+  List<MarkerTypeM> _getMarkerTypes() => [
         MarkerTypeM(
-          id: 'expert',
-          name: 'Expert',
-          color: Colors.amber.withOpacity(0.2),
-        ),
-        MarkerTypeM(
-          id: 'beginner',
-          name: 'Beginner',
-          color: Colors.blue.withOpacity(0.2),
-        ),
-        MarkerTypeM(
-          id: 'reminder',
-          name: 'Reminder',
-          color: Colors.cyan.withOpacity(0.2),
-        ),
+          id: 'extra-info',
+          name: 'Extra-Info',
+          color: Colors.black.withOpacity(0.2),
+          onAddMarkerViaToolbar: (_) => 'fake-id-1',
+          onSingleTapUp: (marker) {
+            print('Marker Tapped - ${marker.type}');
+          },
+        )
       ];
 
   // From here on it's up to the client developer to decide how to draw the attachments.

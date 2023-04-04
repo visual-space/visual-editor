@@ -112,19 +112,19 @@ class _AddElementsPageState extends State<AddElementsPage> {
   void _insertH1Line() {
     final docLen = _controller!.docLength;
     _controller!.replace(docLen - 1, 0, '\nHeading\n', null);
-    _controller!.formatSelectedText(docLen, 0, AttributesAliasesM.h1);
+    _controller!.formatTextRange(docLen, 0, AttributesAliasesM.h1);
   }
 
   void _insertBulletList() {
     final docLen = _controller!.docLength;
     _controller!.replace(docLen - 1, 0, '\nBullet list\n', null);
-    _controller!.formatSelectedText(docLen, 0, AttributesAliasesM.bulletList);
+    _controller!.formatTextRange(docLen, 0, AttributesAliasesM.bulletList);
   }
 
   void _insertCodeBlock() {
     final docLen = _controller!.docLength;
     _controller!.replace(docLen - 1, 0, '\nfinal count = 0;\n', null);
-    _controller!.formatSelectedText(docLen, 0, AttributesM.codeBlock);
+    _controller!.formatTextRange(docLen, 0, AttributesM.codeBlock);
   }
 
   Future<void> _loadDocumentAndInitController() async {

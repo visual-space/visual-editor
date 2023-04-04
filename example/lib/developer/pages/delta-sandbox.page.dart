@@ -138,6 +138,17 @@ class _DeltaSandboxPageState extends State<DeltaSandboxPage> {
           config: EditorConfigM(
             placeholder: 'Enter text',
             padding: EdgeInsets.fromLTRB(15, 0, 15, 0),
+            markerTypes: [
+              MarkerTypeM(
+                id: 'reminder',
+                name: 'Reminder',
+                color: Colors.cyan.withOpacity(0.2),
+                onAddMarkerViaToolbar: (_) => 'fake-id-3',
+                onSingleTapUp: (marker) {
+                  print('Marker Tapped - ${marker.type}');
+                },
+              ),
+            ],
             onBuildCompleted: _updateJsonPreview,
           ),
         ),

@@ -68,6 +68,10 @@ const List<NavMenuCategoryM> NAV_MENU = [
         route: '/delete-markers',
       ),
       NavMenuLinkM(
+        title: 'Collapsable Text',
+        route: '/collapsable-text',
+      ),
+      NavMenuLinkM(
         title: 'Profile Card On Marker',
         route: '/profile-card',
       ),

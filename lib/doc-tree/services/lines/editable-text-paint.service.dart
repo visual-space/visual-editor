@@ -70,7 +70,7 @@ class EditableTextPaintService {
           final markerType = _getMarkerType(marker);
           final isHovered = state.markers.hoveredMarkers.firstWhereOrNull((_marker) => _marker.id == marker.id) != null;
 
-          if (markerType?.isVisible == true) {
+          if (markerType?.isHighlightVisible == true) {
             _rectanglesService.drawRectangles(
               marker.rectangles ?? [],
               offset,

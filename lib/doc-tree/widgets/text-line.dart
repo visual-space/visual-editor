@@ -210,6 +210,7 @@ class _TextLineState extends State<TextLine> {
     LinkedList<NodeM> nodes,
     TextStyle lineStyle,
   ) {
+    final children = <TextSpan>[];
     if (nodes.isEmpty && kIsWeb) {
       nodes = LinkedList<NodeM>()
         ..add(
@@ -217,17 +218,33 @@ class _TextLineState extends State<TextLine> {
         );
     }
 
-    final children = nodes
-        .map(
-          (node) => _getTextSpanFromNode(
+    for (final node in nodes) {
+      if (node.style.containsKey(AttributesM.markers.key)) {
+        continue;
+      } else {
+
+        children.add(
+          _getTextSpanFromNode(
             defaultStyles,
             node,
             widget.line.style,
           ),
-        )
-        .toList(
-          growable: false,
         );
+      }
+    }
+    print('++++$children');
+
+    // final children = nodes
+    //     .map(
+    //       (node) => _getTextSpanFromNode(
+    //         defaultStyles,
+    //         node,
+    //         widget.line.style,
+    //       ),
+    //     )
+    //     .toList(
+    //       growable: false,
+    //     );
 
     return TextSpan(
       children: children,

@@ -16,6 +16,7 @@ const headings = EditorStylesM(
     ),
     VerticalSpacing(top: 16, bottom: 0),
     VERTICAL_SPACING_EMPTY,
+    VERTICAL_SPACING_EMPTY,
     null,
   ),
   h2: TextBlockStyleM(
@@ -28,6 +29,7 @@ const headings = EditorStylesM(
     ),
     VerticalSpacing(top: 8, bottom: 0),
     VERTICAL_SPACING_EMPTY,
+    VERTICAL_SPACING_EMPTY,
     null,
   ),
   h3: TextBlockStyleM(
@@ -38,6 +40,7 @@ const headings = EditorStylesM(
       fontWeight: FontWeight.w200,
     ),
     VerticalSpacing(top: 10, bottom: 10),
+    VERTICAL_SPACING_EMPTY,
     VERTICAL_SPACING_EMPTY,
     null,
   ),
@@ -53,6 +56,7 @@ const paragraphsAndTypography = EditorStylesM(
     ),
     VerticalSpacing(top: 16, bottom: 10),
     VERTICAL_SPACING_EMPTY,
+    VERTICAL_SPACING_EMPTY,
     null,
   ),
   paragraph: TextBlockStyleM(
@@ -60,6 +64,7 @@ const paragraphsAndTypography = EditorStylesM(
       fontSize: 16,
       height: 1.8,
     ),
+    VERTICAL_SPACING_EMPTY,
     VERTICAL_SPACING_EMPTY,
     VERTICAL_SPACING_EMPTY,
     null,
@@ -90,6 +95,7 @@ final listQuotesAndSnippets = EditorStylesM(
     TextStyle(color: Colors.blue),
     VERTICAL_SPACING_EMPTY,
     VERTICAL_SPACING_EMPTY,
+    VERTICAL_SPACING_EMPTY,
     null,
   ),
   lists: ListBlockStyle(
@@ -100,6 +106,7 @@ final listQuotesAndSnippets = EditorStylesM(
     ),
     VerticalSpacing(top: 0, bottom: 60),
     VerticalSpacing(top: 0, bottom: 6),
+    VERTICAL_SPACING_EMPTY,
     null,
     null,
   ),
@@ -112,6 +119,7 @@ final listQuotesAndSnippets = EditorStylesM(
       top: 6,
       bottom: 10,
     ),
+    VERTICAL_SPACING_EMPTY,
     BoxDecoration(
       border: Border(
         left: BorderSide(

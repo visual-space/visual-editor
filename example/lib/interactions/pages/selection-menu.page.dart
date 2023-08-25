@@ -134,7 +134,7 @@ class _SelectionMenuPageState extends State<SelectionMenuPage> {
     final result = await rootBundle.loadString(
       'lib/interactions/assets/selection-menu.json',
     );
-    final document = DocumentM.fromJson(jsonDecode(result));
+    final document = DeltaDocM.fromJson(jsonDecode(result));
 
     setState(() {
       _controller = EditorController(

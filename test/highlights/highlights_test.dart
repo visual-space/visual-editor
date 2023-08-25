@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:visual_editor/document/models/document.model.dart';
+import 'package:visual_editor/document/models/delta-doc.model.dart';
 
 var SIMPLE_TEXT_MOCK = '''[
   {
@@ -10,10 +10,10 @@ var SIMPLE_TEXT_MOCK = '''[
 ]''';
 
 void main() {
-  late DocumentM document;
+  late DeltaDocM document;
 
   setUp(() {
-    document = DocumentM.fromJson(jsonDecode(SIMPLE_TEXT_MOCK));
+    document = DeltaDocM.fromJson(jsonDecode(SIMPLE_TEXT_MOCK));
     document;
   });
 

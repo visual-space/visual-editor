@@ -99,7 +99,7 @@ class _MarkersAttachmentsPageState extends State<MarkersAttachmentsPage> {
               markerTypes: _getMarkerTypes(),
               // ignore: avoid_redundant_argument_values
               scrollable: SCROLLABLE,
-              onBuildComplete: _updateMarkerAttachments,
+              onBuildCompleted: _updateMarkerAttachments,
               onScroll: _updateMarkerAttachments,
             ),
           ),
@@ -127,7 +127,7 @@ class _MarkersAttachmentsPageState extends State<MarkersAttachmentsPage> {
     final deltaJson = await rootBundle.loadString(
       'lib/markers/assets/markers-attachments.json',
     );
-    final document = DocumentM.fromJson(jsonDecode(deltaJson));
+    final document = DeltaDocM.fromJson(jsonDecode(deltaJson));
 
     setState(() {
       _controller = EditorController(

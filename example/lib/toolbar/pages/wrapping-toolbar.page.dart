@@ -109,7 +109,7 @@ class _WrappingToolbarPageState extends State<WrappingToolbarPage> {
     final result = await rootBundle.loadString(
       'lib/toolbar/assets/wrapping-toolbar.json',
     );
-    final document = DocumentM.fromJson(jsonDecode(result));
+    final document = DeltaDocM.fromJson(jsonDecode(result));
 
     setState(() {
       _controller = EditorController(

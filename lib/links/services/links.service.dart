@@ -126,7 +126,7 @@ class LinksService {
     );
 
     // Replaces link with the same text value but without the link attribute.
-    state.refs.controller.replaceText(
+    state.refs.controller.replace(
       index,
       length,
       linkText,

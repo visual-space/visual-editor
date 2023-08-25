@@ -11,7 +11,14 @@ class ListBlockStyle extends TextBlockStyleM {
     TextStyle style,
     VerticalSpacing blockSpacing,
     VerticalSpacing lineSpacing,
+    VerticalSpacing lastLineSpacing,
     BoxDecoration? decoration,
     this.checkboxUIBuilder,
-  ) : super(style, blockSpacing, lineSpacing, decoration);
+  ) : super(
+          style,
+          blockSpacing,
+          lineSpacing,
+          lastLineSpacing,
+          decoration,
+        );
 }

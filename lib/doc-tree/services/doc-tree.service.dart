@@ -1,17 +1,15 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../document/models/attributes/attribute.model.dart';
 import '../../document/models/attributes/attributes-aliases.model.dart';
 import '../../document/models/attributes/attributes.model.dart';
-import '../../document/models/document.model.dart';
 import '../../document/models/history/change-source.enum.dart';
 import '../../document/models/nodes/block.model.dart';
 import '../../document/models/nodes/line.model.dart';
 import '../../document/models/nodes/node.model.dart';
 import '../../document/services/delta.utils.dart';
+import '../../document/services/placeholder.service.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../links/models/link-action-menu.enum.dart';
 import '../../links/services/default-link-action-picker-delegate.utils.dart';
@@ -38,6 +36,7 @@ import '../widgets/text-line.dart';
 class DocTreeService {
   late final StylesService _stylesService;
   late final SelectionService _selectionService;
+  late final PlaceholderService _placeholderService;
   final _du = DeltaUtils();
 
   final EditorState state;
@@ -45,14 +44,16 @@ class DocTreeService {
   DocTreeService(this.state) {
     _stylesService = StylesService(state);
     _selectionService = SelectionService(state);
+    _placeholderService = PlaceholderService(state);
   }
 
   // Renders all the text elements (lines and blocs) that are visible in the editor.
   // For each node it renders a new rich text widget.
-  List<Widget> getDocumentTree({required DocumentM document}) {
+  List<Widget> buildDocumentTree() {
     final docWidgets = <Widget>[];
     var indentLevelCounts = <int, int>{};
-    final nodes = state.refs.documentController.rootNode.children;
+    final nodes =
+        _placeholderService.getDocOrPlaceholderCtrl().rootNode.children;
     final renderers = <EditableTextLineWidgetRenderer>[];
 
     for (final node in nodes) {
@@ -105,13 +106,6 @@ class DocTreeService {
     });
 
     return docWidgets;
-  }
-
-  // Right before rendering the document we want to check if the document is not empty.
-  // If empty, we replace it with placeholder content.
-  DocumentM getDocOrPlaceholder() {
-    final docIsEmpty = state.refs.documentController.isEmpty();
-    return docIsEmpty && _placeholder != null ? _placeholderDoc() : _document;
   }
 
   // Generates the editable text line widget from a delta document node
@@ -183,25 +177,6 @@ class DocTreeService {
   }
 
   // === PRIVATE ===
-
-  DocumentM _placeholderDoc() {
-    return DocumentM.fromJson(
-      jsonDecode(
-        '[{'
-            '"attributes":{"placeholder":true},'
-            '"insert":"${state.config.placeholder}\\n"'
-            '}]',
-      ),
-    );
-  }
-
-  DocumentM get _document {
-    return state.document.document;
-  }
-
-  String? get _placeholder {
-    return state.config.placeholder;
-  }
 
   void _cacheMarkers(List<EditableTextLineWidgetRenderer> renderers) {
     // Clear the old markers
@@ -307,22 +282,31 @@ class DocTreeService {
     EditorStylesM? defaultStyles,
   ) {
     final attrs = line.style.attributes;
+    final isLastLine = line.isLast;
 
     if (attrs.containsKey(AttributesM.header.key)) {
       final int? level = attrs[AttributesM.header.key]!.value;
       switch (level) {
         case 1:
-          return defaultStyles!.h1!.verticalSpacing;
+          return isLastLine
+              ? defaultStyles!.h1!.lastLineSpacing
+              : defaultStyles!.h1!.verticalSpacing;
         case 2:
-          return defaultStyles!.h2!.verticalSpacing;
+          return isLastLine
+              ? defaultStyles!.h2!.lastLineSpacing
+              : defaultStyles!.h2!.verticalSpacing;
         case 3:
-          return defaultStyles!.h3!.verticalSpacing;
+          return isLastLine
+              ? defaultStyles!.h3!.lastLineSpacing
+              : defaultStyles!.h3!.verticalSpacing;
         default:
           throw 'Invalid level $level';
       }
     }
 
-    return defaultStyles!.paragraph!.verticalSpacing;
+    return isLastLine
+        ? defaultStyles!.paragraph!.lastLineSpacing
+        : defaultStyles!.paragraph!.verticalSpacing;
   }
 
   // Updates the checkbox positioned at [offset] in document by changing its attribute according to [value].

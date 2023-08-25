@@ -31,6 +31,16 @@ final _stylesUtils = StylesUtils();
 class LineUtils {
   // === DOC EDITING OPS ===
 
+  // Inserting text (string) in a LineM model.
+  // Note that "\n" is used to mark the break line character.
+  // When a new text is inserted in an existing line it might contain multiple break lines \n.
+  // For each of these break lines this method slices the string in half, ingests the suffix as own text
+  // and passes the remainder text to a new line by self invoking.
+  // The entire string is chopped into multiple models. If you have 3 break lines expect to see 4 LineM.
+  // Once all the break lines are consumed the method ends recursion.
+  // All the new LineM models are linked to the previous LineM.
+  // This means that in the final modeled nodes list you wont see the \n symbol.
+  // You will only see LineM models containing the substrings in between \n chars.
   void insert(LineM line, int index, Object data, StyleM? style) {
     if (data is EmbedM) {
       // We do not check whether this line already has any children here as inserting an embed
@@ -43,7 +53,8 @@ class LineUtils {
     final text = data as String;
     final lineBreak = text.indexOf('\n');
 
-    if (lineBreak < 0) {
+    final isLastLine = lineBreak < 0;
+    if (isLastLine) {
       _insertSafe(line, index, text, style);
       // No need to update line or block format since those attributes can only
       // be attached to `\n` character and we already know it's not present.
@@ -359,6 +370,8 @@ class LineUtils {
         : line.parent!.next as LineM?;
   }
 
+  // Splits a new line from the existing line at the requested index.
+  // Inserts the old line after after the new line
   LineM _getNextLineClone(LineM line, int index) {
     assert(index == 0 || (index > 0 && index < line.charsNum));
 

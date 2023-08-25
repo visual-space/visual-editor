@@ -53,6 +53,7 @@ class StylesCfgService {
         ),
         VerticalSpacing(top: 16, bottom: 0),
         VERTICAL_SPACING_EMPTY,
+        VERTICAL_SPACING_EMPTY,
         null,
       ),
       h2: TextBlockStyleM(
@@ -63,6 +64,7 @@ class StylesCfgService {
           fontWeight: FontWeight.normal,
         ),
         VerticalSpacing(top: 8, bottom: 0),
+        VERTICAL_SPACING_EMPTY,
         VERTICAL_SPACING_EMPTY,
         null,
       ),
@@ -75,10 +77,12 @@ class StylesCfgService {
         ),
         VerticalSpacing(top: 8, bottom: 0),
         VERTICAL_SPACING_EMPTY,
+        VERTICAL_SPACING_EMPTY,
         null,
       ),
       paragraph: TextBlockStyleM(
         baseStyle,
+        VERTICAL_SPACING_EMPTY,
         VERTICAL_SPACING_EMPTY,
         VERTICAL_SPACING_EMPTY,
         null,
@@ -127,12 +131,14 @@ class StylesCfgService {
         ),
         VERTICAL_SPACING_EMPTY,
         VERTICAL_SPACING_EMPTY,
+        VERTICAL_SPACING_EMPTY,
         null,
       ),
       lists: ListBlockStyle(
         baseStyle,
         VERTICAL_BASE_SPACING,
         VerticalSpacing(top: 0, bottom: 6),
+        VERTICAL_SPACING_EMPTY,
         null,
         null,
       ),
@@ -142,6 +148,7 @@ class StylesCfgService {
         ),
         VERTICAL_BASE_SPACING,
         VerticalSpacing(top: 6, bottom: 2),
+        VERTICAL_SPACING_EMPTY,
         BoxDecoration(
           border: Border(
             left: BorderSide(
@@ -159,6 +166,7 @@ class StylesCfgService {
         ),
         VERTICAL_BASE_SPACING,
         VERTICAL_SPACING_EMPTY,
+        VERTICAL_SPACING_EMPTY,
         BoxDecoration(
           color: Colors.grey.shade50,
           borderRadius: BorderRadius.circular(2),
@@ -168,16 +176,19 @@ class StylesCfgService {
         baseStyle,
         VERTICAL_BASE_SPACING,
         VerticalSpacing(top: 0, bottom: 6),
+        VERTICAL_SPACING_EMPTY,
         null,
       ),
       align: TextBlockStyleM(
         baseStyle,
         VERTICAL_SPACING_EMPTY,
         VERTICAL_SPACING_EMPTY,
+        VERTICAL_SPACING_EMPTY,
         null,
       ),
       leading: TextBlockStyleM(
         baseStyle,
+        VERTICAL_SPACING_EMPTY,
         VERTICAL_SPACING_EMPTY,
         VERTICAL_SPACING_EMPTY,
         null,

@@ -13,8 +13,6 @@ import 'cursor/controllers/floating-cursor.controller.dart';
 import 'cursor/services/caret.service.dart';
 import 'doc-tree/services/doc-tree.service.dart';
 import 'doc-tree/services/overlay.service.dart';
-import 'document/controllers/document.controller.dart';
-import 'document/models/document.model.dart';
 import 'editor/models/editor-cfg.model.dart';
 import 'editor/models/platform-dependent-styles.model.dart';
 import 'editor/services/editor.service.dart';
@@ -137,7 +135,6 @@ class VisualEditorState extends State<VisualEditor>
   KeyboardVisibilityController? kbVisibCtrl;
   late FloatingCursorController _floatingCursorController;
   late CursorController _cursorController;
-  late DocumentController _documentController;
 
   final ClipboardStatusNotifier clipboardStatus = ClipboardStatusNotifier();
   final _editorRendererKey = GlobalKey();
@@ -183,9 +180,6 @@ class VisualEditorState extends State<VisualEditor>
     super.build(context);
     _initStylesAndCursorOnlyOnce(context);
 
-    // If doc is empty override with a placeholder
-    final document = _docTreeService.getDocOrPlaceholder();
-
     final editorTree = _conditionalPreventKeyPropagationToParentIfWeb(
       child: _i18n(
         child: _textGestures(
@@ -195,11 +189,8 @@ class VisualEditorState extends State<VisualEditor>
                 child: _conditionalScrollable(
                   child: _selectionToolbarTarget(
                     child: _editorRenderer(
-                      document: document,
                       // This is where the document elements are rendered
-                      children: _docTreeService.getDocumentTree(
-                        document: document,
-                      ),
+                      children: _docTreeService.buildDocumentTree(),
                     ),
                   ),
                 ),
@@ -240,7 +231,6 @@ class VisualEditorState extends State<VisualEditor>
     _resubscribeToFocusNode(oldWidget);
     _cacheWidgetRef();
     _cacheEditorRendererRef();
-    _reCacheControllersRefs();
     _reCacheStylesAndCursorOnlyOnce();
     _updateStateOnCursorController();
     _subscribeToRunBuildAndReqKbUpdGuiElems();
@@ -344,7 +334,10 @@ class VisualEditorState extends State<VisualEditor>
     _inputConnectionService.diffPlainTextAndUpdateDocumentModel(
       plainText,
       _selectionService.cacheSelectionAndRunBuild,
-      _editorService.replaceText,
+      _editorService.replace,
+      // Always on true for now. We could inhibit event emission even for characters typed by the user.
+      // However this is a level a customization that seems excessive for now.
+      true,
     );
   }
 
@@ -522,14 +515,10 @@ class VisualEditorState extends State<VisualEditor>
   // Computes the boundaries of the editor (performLayout).
   // We don't use a widget as the parent for the list of document elements because we need custom virtual scroll behaviour.
   // Also renders the floating cursor (cursor displayed when long tapping on mobile and dragging the cursor).
-  Widget _editorRenderer({
-    required DocumentM document,
-    required List<Widget> children,
-  }) =>
-      Semantics(
+  Widget _editorRenderer({required List<Widget> children}) => Semantics(
         child: EditorWidgetRenderer(
           offset: _offset,
-          document: document,
+          document: state.document.document,
           textDirection: textDirection,
           state: state,
           key: _editorRendererKey,
@@ -551,24 +540,9 @@ class VisualEditorState extends State<VisualEditor>
 
   // === PRIVATE - INIT ===
 
+  // Layout related controllers
   void _initControllersAndCacheControllersRefs() {
-    // Document Controller
-    _documentController = DocumentController(
-      state.document.document,
-      state.document.emitChange,
-      _editorService.composeCacheSelectionAndRunBuild,
-    );
-    state.refs.documentController = _documentController;
-    state.refs.documentControllerInitialised = true;
-
-    // History Controller
-    state.refs.historyController = _documentController.historyController;
-    state.refs.historyControllerInitialised = true;
-
-    // Embed Builders
     _embedsService.initAndCacheEmbedBuilderController();
-
-    // Floating Cursor
     _floatingCursorController = FloatingCursorController(state);
   }
 
@@ -628,11 +602,6 @@ class VisualEditorState extends State<VisualEditor>
 
   void _cacheWidgetRef() {
     state.refs.widget = this;
-  }
-
-  void _reCacheControllersRefs() {
-    state.refs.documentController = _documentController;
-    state.refs.historyController = _documentController.historyController;
   }
 
   // === BUILD & SYNC GUI ===

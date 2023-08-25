@@ -3,9 +3,9 @@ import 'package:flutter/scheduler.dart';
 
 import '../../document/models/attributes/attributes.model.dart';
 import '../../document/models/attributes/styling-attributes.dart';
+import '../../document/models/delta-doc.model.dart';
 import '../../document/models/delta/delta-changes.model.dart';
 import '../../document/models/delta/delta.model.dart';
-import '../../document/models/document.model.dart';
 import '../../document/models/history/change-source.enum.dart';
 import '../../document/models/nodes/embed-node.model.dart';
 import '../../document/models/nodes/embed.model.dart';
@@ -33,17 +33,24 @@ typedef ReplaceTextCallback = void Function(
   int len,
   Object? data,
   TextSelection? textSelection, {
+  bool emitEvent,
   bool ignoreFocus,
 });
 
 final _stylesUtils = StylesUtils();
 
-// Invokes mutations in the document.
-// Does not contain the logic to mutate the doc, only logic related
-// to orchestrating the document to the other systems in the editor.
-// Updates all systems of the editor (selection, focus, scroll, markers, menus, etc).
-// Invokes the callbacks provided by the client code.
-// Triggers the build cycle.
+// Contains the logic that orchestrates the editor UI systems with the DocumentController (pure data editing).
+// Does not contain the document mutation logic. It delegates this logic to the DocumentController.
+// This means that methods from the service are concerned with:
+// - updates all systems of the editor (selection, focus, scroll, markers, menus, etc).
+// - invokes the callbacks provided by the client code.
+// - triggers the build cycle.
+//
+// (!) The actual document (pure data) editing happens by calling compose() or other methods from the documentController level.
+// Since both of these are public APIs (service and controller) we had to use short names (less expressive).
+// Therefore to solve the confusion between editorController.compose() and documentController.compose() remember
+// that the editor level has to coordinate more systems along with the updates of the document.
+// Which means that the actual pure data editing of the document content happens in documentController.
 class EditorService {
   late final RunBuildService _runBuildService;
   late final SelectionService _selectionService;
@@ -62,7 +69,7 @@ class EditorService {
 
   // === QUERIES ===
 
-  DocumentM get document {
+  DeltaDocM get document {
     return state.document.document;
   }
 
@@ -76,6 +83,7 @@ class EditorService {
   }
 
   // Get plain text and selection
+  // TODO This is a potential place for improvement, Many places call on this method. It should return a cached answer.
   TextEditingValue get plainText {
     return TextEditingValue(
       text: state.refs.documentController.toPlainText(),
@@ -98,79 +106,61 @@ class EditorService {
 
   // Update editor with a new document. (mutates the doc)
   // Use ignoreFocus if you want to avoid the caret to be positioned and activate when changing the doc.
-  void update(DeltaM delta, {bool ignoreFocus = false}) {
-    clear(ignoreFocus: ignoreFocus);
+  void update(
+    DeltaM delta, {
+    bool ignoreFocus = false,
+    bool emitEvent = true,
+  }) {
+    clear(
+      ignoreFocus: ignoreFocus,
+      emitEvent: emitEvent,
+    );
+    var currDocDelta = state.refs.documentController.document.delta;
     compose(
       delta,
       const TextSelection.collapsed(offset: 0),
       ChangeSource.LOCAL,
+      emitEvent,
+      overrideRootNode: true,
     );
   }
 
   // Clear editor
   // Use ignoreFocus if you want to avoid the caret to be position and activated when changing the doc.
-  void clear({bool ignoreFocus = false}) {
-    replaceText(
+  void clear({
+    bool ignoreFocus = false,
+    bool emitEvent = true,
+  }) {
+    final len = plainText.text.length - 1;
+    const collapseSel = TextSelection.collapsed(offset: 0);
+
+    replace(
       0,
-      plainText.text.length - 1,
+      len,
       '',
-      const TextSelection.collapsed(offset: 0),
+      collapseSel,
+      emitEvent: emitEvent,
       ignoreFocus: ignoreFocus,
     );
   }
 
-  // Executed when the user interacts with the editor via system menus (usually clipboard ops on mobile).
-  // After the document is updated the next step will be the update gui and build() calls.
-  // The new value is treated as user input and thus may subject to input formatting.
-  // If no changes, collapses the selection and hide the buttons and handles.
-  // Invoked on mobile devices.
-  // TODO Figure out how copy pasting works on web, document.
-  void removeSpecialCharsAndUpdateDocTextAndStyle(
-    TextEditingValue plainText,
-    SelectionChangedCause cause,
-  ) {
-    final cursorPosition = plainText.selection.extentOffset;
-    final oldText = state.refs.documentController.toPlainText();
-    final newText = plainText.text;
-    final diff = _du.getDiff(oldText, newText, cursorPosition);
-
-    if (diff.deleted == '' && diff.inserted == '') {
-      // Only changing selection range
-      _selectionService.cacheSelectionAndRunBuild(
-        plainText.selection,
-        ChangeSource.LOCAL,
-      );
-
-      return;
-    }
-
-    final insertedText = _removeSpecialObjectCharsFromText(diff.inserted);
-
-    replaceText(
-      diff.start,
-      diff.deleted.length,
-      insertedText,
-      plainText.selection,
-    );
-
-    _applyPasteStyle(insertedText, diff.start);
-  }
-
   // Update the text of the document by replacing selection text with new text.
-  // If the option is enable it can preserve the styles of the prev line of text on the new line that is created.
+  // If the option is enabled it can preserve the styles of the prev line of text on the new line that is created.
   // Updates the selection depending on the changes made in text.
+  // Unlike update() it only update part of the existing document.
   // Calls client code callbacks.
   // index - At which character to start
   // length - How many characters to replace
   // data - Content to be inserted (text, embed)
   // textSelection - Text selection after the update
   // ignoreFocus - Avoid the caret to be position and activated when changing the doc.
-  void replaceText(
+  void replace(
     int index,
     int len,
     Object? data,
     TextSelection? selection, {
     bool ignoreFocus = false,
+    bool emitEvent = true,
   }) {
     assert(
       data is String || data is EmbedM,
@@ -180,20 +170,25 @@ class EditorService {
     // Callback
     final onReplaceText = state.config.onReplaceText;
 
-    if (onReplaceText != null && !onReplaceText(index, len, data)) {
+    if (onReplaceText != null &&
+        emitEvent &&
+        !onReplaceText(index, len, data)) {
       return;
     }
 
-    DeltaM? newDelta;
-
-    // Replace Text + Apply Toggled Style
-    newDelta = _replaceTextAndApplyToggledStyles(len, data, newDelta, index);
+    // Replace Text Compose + Apply Toggled Style
+    final changeDelta = _replaceTextAndApplyToggledStyles(
+      len,
+      data,
+      index,
+      emitEvent,
+    );
 
     // Retain styles on new line
     _keepStylesOnNewLine();
 
     // Cache changed selection
-    _cacheSelectionUpdatedAfterEdit(selection, newDelta, index, data, len);
+    _cacheSelectionUpdatedAfterEdit(selection, changeDelta, index, data, len);
 
     // Run build
     state.runBuild.runBuildWithoutCaretPlacement();
@@ -203,22 +198,34 @@ class EditorService {
       _selectionService.callOnSelectionChanged();
     }
 
-    callOnTextReplaceComplete();
+    if (emitEvent) {
+      callOnTextReplaceComplete();
+    }
   }
 
-  // Applies the change in the document model.
-  // Updates the selection in the state store.
+  // Applies the change in the document model by invoking compose() from the controller.
+  // Additionally it updates the selection in the state store.
   // Triggers the build() cycle to update the document widgets tree update.
   // Invokes client code callbacks.
+  // The changes$ stream can be inhibited on demand via the emitEvent: false flag.
+  // This is useful when we need to setup the editor without notifying
+  // other subscribed components of the initial changes.
   // TODO Improve newSelection param handling. Looks like we are always overwriting (exactly as forked from Quill)
   void compose(
     DeltaM delta,
     TextSelection newSelection,
     ChangeSource source,
-  ) {
+    bool emitEvent, {
+    bool overrideRootNode = false,
+  }) {
     // Update doc model
     if (delta.isNotEmpty) {
-      state.refs.documentController.compose(delta, source);
+      state.refs.documentController.compose(
+        delta,
+        source,
+        emitEvent,
+        overrideRootNode,
+      );
     }
 
     // Cache new selection
@@ -249,6 +256,43 @@ class EditorService {
     if (!sameSelection) {
       _selectionService.callOnSelectionChanged();
     }
+  }
+
+  // Executed when the user interacts with the editor via system menus (usually clipboard ops on mobile).
+  // After the document is updated the next step will be the update gui and build() calls.
+  // The new value is treated as user input and thus may subject to input formatting.
+  // If no changes, collapses the selection and hide the buttons and handles.
+  // Invoked on mobile devices.
+  // TODO Figure out how copy pasting works on web, document.
+  void removeSpecialCharsAndUpdateDocTextAndStyle(
+    TextEditingValue plainText,
+    SelectionChangedCause cause,
+  ) {
+    final cursorPosition = plainText.selection.extentOffset;
+    final oldText = state.refs.documentController.toPlainText();
+    final newText = plainText.text;
+    final diff = _du.getDiff(oldText, newText, cursorPosition);
+
+    if (diff.deleted == '' && diff.inserted == '') {
+      // Only changing selection range
+      _selectionService.cacheSelectionAndRunBuild(
+        plainText.selection,
+        ChangeSource.LOCAL,
+      );
+
+      return;
+    }
+
+    final insertedText = _removeSpecialObjectCharsFromText(diff.inserted);
+
+    replace(
+      diff.start,
+      diff.deleted.length,
+      insertedText,
+      plainText.selection,
+    );
+
+    _applyPasteStyle(insertedText, diff.start);
   }
 
   // === CALLBACKS ===
@@ -298,7 +342,7 @@ class EditorService {
       }
     }
 
-    replaceText(index, length, text, null);
+    replace(index, length, text, null);
     _stylesService.formatTextRange(index, text.length, LinkAttributeM(link));
   }
 
@@ -328,9 +372,17 @@ class EditorService {
   // passed to the DocumentController to update the nodes.
   // In case the selection changed it gets cached.
   // Finally a new build cycle is triggered.
-  void composeCacheSelectionAndRunBuild(DeltaM deltaRes, int? extent) {
+  void composeCacheSelectionAndRunBuild(
+    DeltaM deltaRes,
+    int? extent,
+    bool emitEvent,
+  ) {
     // Update Doc
-    state.refs.documentController.compose(deltaRes, ChangeSource.LOCAL);
+    state.refs.documentController.compose(
+      deltaRes,
+      ChangeSource.LOCAL,
+      emitEvent,
+    );
 
     // Cache Selection + Run Build
     if (extent! != 0) {
@@ -367,18 +419,25 @@ class EditorService {
   // === PRIVATE ===
 
   // Replaces text and applies toggled styles.
+  // It executes compose (mutating the doc) and it returns the change delta.
   // Toggled styles are styles that have been enabled between 2 letters before starting typing.
-  DeltaM? _replaceTextAndApplyToggledStyles(
+  DeltaM _replaceTextAndApplyToggledStyles(
     int len,
     Object? data,
-    DeltaM? changeDelta,
     int index,
+    bool emitEvent,
   ) {
+    var changeDelta = DeltaM();
     final toggledStyle = state.styles.toggledStyle;
 
     if (len > 0 || data is! String || data.isNotEmpty) {
-      // Replace
-      changeDelta = state.refs.documentController.replace(index, len, data);
+      // Replace (mutates the doc)
+      changeDelta = state.refs.documentController.replace(
+        index,
+        len,
+        data,
+        emitEvent,
+      );
 
       // Check if there are toggled styles to apply in the replaced text.
       var shouldRetainDelta = toggledStyle.isNotEmpty &&
@@ -414,7 +473,12 @@ class EditorService {
           toggledStyle.toJson(),
         );
 
-        state.refs.documentController.compose(retainDelta, ChangeSource.LOCAL);
+        // Compose toggled styles (mutates the doc)
+        state.refs.documentController.compose(
+          retainDelta,
+          ChangeSource.LOCAL,
+          emitEvent,
+        );
       }
     }
 

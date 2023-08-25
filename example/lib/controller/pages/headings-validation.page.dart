@@ -9,7 +9,7 @@ import '../../shared/const/dimensions.const.dart';
 import '../../shared/widgets/demo-page-scaffold.dart';
 import '../../shared/widgets/loading.dart';
 import '../controllers/headings-counter.controller.dart';
-import '../widgets/characters-counter.smart.dart';
+import '../widgets/characters-counter.dart';
 
 // Headers can have a special behavior when they exceed a characters limit.
 // For example, anytime a heading exceeds the limit we highlight the extra characters
@@ -62,7 +62,7 @@ class _HeadingsValidationPageState extends State<HeadingsValidationPage> {
         ),
       );
 
-  Widget _charactersCounters() => CharacterCountersSmart(
+  Widget _charactersCounters() => CharacterCounters(
         headingsController: _headingsCounterController,
       );
 
@@ -80,7 +80,7 @@ class _HeadingsValidationPageState extends State<HeadingsValidationPage> {
         scrollController: _scrollController,
         focusNode: _focusNode,
         config: EditorConfigM(
-          onBuildComplete: _initHeadingsCounterController,
+          onBuildCompleted: _initHeadingsCounterController,
         ),
       );
 
@@ -102,7 +102,7 @@ class _HeadingsValidationPageState extends State<HeadingsValidationPage> {
     final result = await rootBundle.loadString(
       'lib/controller/assets/headings-validation.json',
     );
-    final document = DocumentM.fromJson(jsonDecode(result));
+    final document = DeltaDocM.fromJson(jsonDecode(result));
     setState(() {
       _controller = EditorController(
         document: document,

@@ -31,7 +31,8 @@ class InputConnectionService {
   void diffPlainTextAndUpdateDocumentModel(
     TextEditingValue plainText,
     UpdateSelectionCallback updateSelection,
-    ReplaceTextCallback replaceText,
+    ReplaceTextCallback replace,
+    bool emitEvent,
   ) {
     if (!shouldCreateInputConnection()) {
       return;
@@ -73,11 +74,12 @@ class InputConnectionService {
 
       // Replace Text
     } else {
-      replaceText(
+      replace(
         diff.start,
         diff.deleted.length,
         diff.inserted,
         plainText.selection,
+        emitEvent: emitEvent,
       );
     }
   }

@@ -135,13 +135,10 @@ class TypingShortcutsService {
     return _insertTabCharacter();
   }
 
-  void _updateSelectionForKeyPhrase(
-    String phrase,
-    AttributeM attribute,
-  ) {
+  void _updateSelectionForKeyPhrase(String phrase, AttributeM attribute) {
     state.refs.controller
       ..formatSelection(attribute)
-      ..replaceText(
+      ..replace(
         _selectionService.selection.baseOffset - phrase.length,
         phrase.length,
         '',
@@ -155,17 +152,18 @@ class TypingShortcutsService {
         : _moveCursor(-1);
   }
 
-KeyEventResult _removeTabCharacter() {
+  KeyEventResult _removeTabCharacter() {
     const tab = '    ';
-    final textBeforeSelection = state.refs.documentController.getPlainTextAtRange(
+    final textBeforeSelection =
+        state.refs.documentController.getPlainTextAtRange(
       state.refs.controller.selection.baseOffset - 4,
       4,
     );
     final doesNotContainText = textBeforeSelection == tab;
-    
+
     if (doesNotContainText) {
       // Remove tab char
-      state.refs.controller.replaceText(
+      state.refs.controller.replace(
         state.refs.controller.selection.baseOffset - 4,
         4,
         '',
@@ -183,7 +181,7 @@ KeyEventResult _removeTabCharacter() {
   KeyEventResult _insertTabCharacter() {
     const tab = '    ';
 
-    state.refs.controller.replaceText(
+    state.refs.controller.replace(
       _selectionService.selection.baseOffset,
       0,
       tab,

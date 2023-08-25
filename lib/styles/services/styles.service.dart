@@ -47,8 +47,9 @@ class StylesService {
   void formatTextRange(
     int index,
     int len,
-    AttributeM? attribute,
-  ) {
+    AttributeM? attribute, [
+    bool emitEvent = true,
+  ]) {
     if (len == 0 &&
         attribute!.isInline &&
         attribute.key != AttributesM.link.key) {
@@ -57,7 +58,12 @@ class StylesService {
       state.styles.updateToggledStyle(attribute);
     }
 
-    final change = state.refs.documentController.format(index, len, attribute);
+    final change = state.refs.documentController.format(
+      index,
+      len,
+      attribute,
+      emitEvent,
+    );
     final selection = state.selection.selection;
 
     // Transform selection against the composed change and give priority to the change.
@@ -82,7 +88,7 @@ class StylesService {
   }
 
   // Applies an attribute to a selection of text
-  void formatSelection(AttributeM? attribute) {
+  void formatSelection(AttributeM? attribute, [bool emitEvent = true]) {
     final selection = state.selection.selection;
 
     // Styling is disabled for selection that contains code blocks and inline code at this point.
@@ -108,16 +114,13 @@ class StylesService {
     // the same attr as code we must also check that the selection is not code
     // in order to make it work properly and set buttons color to enable.
     if (isAttrCode && !isSelectionCode) {
-      _selectionService.disableButtonsInCodeSelectionAndRunBuild();
+      _selectionService.disableSelectionStylingButtonsAndRunBuild();
     } else {
-      _selectionService.enableButtonsInCodeSelectionAndRunBuild();
+      _selectionService.enableSelectionStylingButtonsAndRunBuild();
     }
 
     formatTextRange(
-      selection.start,
-      selection.end - selection.start,
-      attribute,
-    );
+        selection.start, selection.end - selection.start, attribute, emitEvent);
   }
 
   // === GET STYLES ===

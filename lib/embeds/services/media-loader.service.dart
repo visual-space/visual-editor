@@ -160,7 +160,7 @@ class MediaLoaderService {
 
     if (imageUrl != null) {
       final embed = EmbedM(IMAGE_EMBED_TYPE, imageUrl);
-      _editorService.replaceText(index, length, embed, null);
+      _editorService.replace(index, length, embed, null);
     }
   }
 
@@ -197,7 +197,7 @@ class MediaLoaderService {
 
     if (videoUrl != null) {
       final embed = EmbedM(VIDEO_EMBED_TYPE, videoUrl);
-      _editorService.replaceText(index, length, embed, null);
+      _editorService.replace(index, length, embed, null);
     }
   }
 

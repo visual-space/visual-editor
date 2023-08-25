@@ -79,7 +79,7 @@ class GuiService {
     final selection = state.selection.selection;
     _inputConnectionService.updateRemoteValueIfNeeded(plainText);
 
-    // When dispatching replaceText() from the controller if is possible to skip over the code
+    // When dispatching replace() from the controller if is possible to skip over the code
     // that handles the placement and activation of the caret.
     if (!ignoreCaret) {
       _caretService.showCaretOnScreen();

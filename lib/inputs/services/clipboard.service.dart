@@ -130,7 +130,7 @@ class ClipboardService {
       final copied = state.paste.copiedImageUrl!;
       final imgEmbed = EmbedM(IMAGE_EMBED_TYPE, copied.imageUrl);
 
-      _editorService.replaceText(index, length, imgEmbed, null);
+      _editorService.replace(index, length, imgEmbed, null);
 
       if (copied.style.isNotEmpty) {
         final offset = _embedsService.getEmbedOffset().offset;

@@ -1,4 +1,4 @@
-import '../../../document/models/document.model.dart';
+import '../../../document/models/delta-doc.model.dart';
 import '../../../rules/models/rule-type.enum.dart';
 import '../../document/models/attributes/attribute.model.dart';
 import '../../document/models/delta/delta.model.dart';
@@ -65,7 +65,7 @@ class RulesController {
 
   DeltaM apply(
     RuleTypeE ruleType,
-    DocumentM document,
+    DeltaDocM document,
     int index, {
     required String plainText,
     int? len,

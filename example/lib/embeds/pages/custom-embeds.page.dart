@@ -78,7 +78,7 @@ class _CustomEmbedsPageState extends State<CustomEmbedsPage> {
           final index = _controller.selection.baseOffset;
           final length = _controller.selection.extentOffset - index;
 
-          _controller.replaceText(
+          _controller.replace(
             index,
             length,
             EmbedM(BASIC_EMBED_TYPE),
@@ -100,7 +100,7 @@ class _CustomEmbedsPageState extends State<CustomEmbedsPage> {
             'https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg',
           ];
 
-          _controller.replaceText(
+          _controller.replace(
             index,
             length,
             EmbedM(ALBUM_EMBED_TYPE, imageUrls),
@@ -137,7 +137,7 @@ class _CustomEmbedsPageState extends State<CustomEmbedsPage> {
 
   void _setupEditorController() {
     _controller = EditorController(
-      document: DocumentM.fromJson(
+      document: DeltaDocM.fromJson(
         jsonDecode(LOREM_LIPSUM_DOC_JSON),
       ),
     );
@@ -147,7 +147,7 @@ class _CustomEmbedsPageState extends State<CustomEmbedsPage> {
     final doc = await rootBundle.loadString(
       'lib/embeds/assets/custom-embeds.json',
     );
-    final delta = DocumentM.fromJson(jsonDecode(doc)).delta;
+    final delta = DeltaDocM.fromJson(jsonDecode(doc)).delta;
 
     _controller.update(
       delta,

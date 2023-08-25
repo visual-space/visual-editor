@@ -84,7 +84,7 @@ class _HideMarkersPageState extends State<HideMarkersPage> {
             focusNode: _focusNode,
             config: EditorConfigM(
               markerTypes: getMarkerTypes(),
-              onBuildComplete: _updateMarkerAttachments,
+              onBuildCompleted: _updateMarkerAttachments,
               onScroll: _updateMarkerAttachments,
             ),
           ),
@@ -164,7 +164,7 @@ class _HideMarkersPageState extends State<HideMarkersPage> {
     final deltaJson = await rootBundle.loadString(
       'lib/markers/assets/hide-markers.json',
     );
-    final document = DocumentM.fromJson(jsonDecode(deltaJson));
+    final document = DeltaDocM.fromJson(jsonDecode(deltaJson));
 
     setState(() {
       _controller = EditorController(

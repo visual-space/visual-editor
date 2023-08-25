@@ -107,7 +107,7 @@ class _MarkersPageState extends State<MarkersPage> {
     final deltaJson = await rootBundle.loadString(
       'lib/markers/assets/markers.json',
     );
-    final document = DocumentM.fromJson(jsonDecode(deltaJson));
+    final document = DeltaDocM.fromJson(jsonDecode(deltaJson));
 
     setState(() {
       _controller = EditorController(

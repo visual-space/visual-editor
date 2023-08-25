@@ -111,19 +111,19 @@ class _AddElementsPageState extends State<AddElementsPage> {
 
   void _insertH1Line() {
     final docLen = _controller!.docLength;
-    _controller!.replaceText(docLen - 1, 0, '\nHeading\n', null);
+    _controller!.replace(docLen - 1, 0, '\nHeading\n', null);
     _controller!.formatSelectedText(docLen, 0, AttributesAliasesM.h1);
   }
 
   void _insertBulletList() {
     final docLen = _controller!.docLength;
-    _controller!.replaceText(docLen - 1, 0, '\nBullet list\n', null);
+    _controller!.replace(docLen - 1, 0, '\nBullet list\n', null);
     _controller!.formatSelectedText(docLen, 0, AttributesAliasesM.bulletList);
   }
 
   void _insertCodeBlock() {
     final docLen = _controller!.docLength;
-    _controller!.replaceText(docLen - 1, 0, '\nfinal count = 0;\n', null);
+    _controller!.replace(docLen - 1, 0, '\nfinal count = 0;\n', null);
     _controller!.formatSelectedText(docLen, 0, AttributesM.codeBlock);
   }
 
@@ -131,7 +131,7 @@ class _AddElementsPageState extends State<AddElementsPage> {
     final deltaJson = await rootBundle.loadString(
       'lib/controller/assets/add-elements.json',
     );
-    final document = DocumentM.fromJson(jsonDecode(deltaJson));
+    final document = DeltaDocM.fromJson(jsonDecode(deltaJson));
 
     setState(() {
       _controller = EditorController(

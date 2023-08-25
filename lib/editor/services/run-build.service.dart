@@ -20,7 +20,7 @@ class RunBuildService {
 
   void callBuildCompleteCallback() {
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      final onBuildComplete = state.config.onBuildComplete;
+      final onBuildComplete = state.config.onBuildCompleted;
 
       if (onBuildComplete != null) {
         onBuildComplete();

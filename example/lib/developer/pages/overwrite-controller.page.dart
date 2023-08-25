@@ -82,7 +82,7 @@ class _OverwriteControllerPageState extends State<OverwriteControllerPage> {
     final deltaJson = await rootBundle.loadString(
       'lib/developer/assets/overwrite-controller.json',
     );
-    final document = DocumentM.fromJson(jsonDecode(deltaJson));
+    final document = DeltaDocM.fromJson(jsonDecode(deltaJson));
 
     setState(() {
       _controller = EditorController(

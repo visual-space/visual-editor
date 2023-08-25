@@ -89,9 +89,10 @@ class _VideoButtonState extends State<VideoButton> {
 
     final iconColor = isSelectionVideoEnabled
         ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color
-        : theme.disabledColor;
-    final iconFillColor = widget.iconTheme?.iconUnselectedFillColor ??
-        (widget.fillColor ?? theme.canvasColor);
+        : widget.iconTheme?.disabledIconColor ?? theme.disabledColor;
+    final iconFillColor = isSelectionVideoEnabled
+        ? (widget.iconTheme?.iconUnselectedFillColor ?? theme.canvasColor)
+        : widget.iconTheme?.disabledIconFillColor ?? theme.disabledColor;
 
     return IconBtn(
       icon: Icon(

@@ -112,6 +112,7 @@ class _CameraButtonState extends State<CameraButton> {
   }
 
   // === PRIVATE ===
+  
   Future<void> _handleCameraButtonTap(
     BuildContext context,
     EditorController controller, {
@@ -123,50 +124,30 @@ class _CameraButtonState extends State<CameraButton> {
     if (onImagePickCallback != null && onVideoPickCallback != null) {
       // Show dialog to choose Photo or Video
       return await showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              contentPadding: const EdgeInsets.all(0),
-              backgroundColor: Colors.transparent,
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextButton.icon(
-                    icon: const Icon(
-                      Icons.photo,
-                      color: Colors.cyanAccent,
-                    ),
-                    label: const Text('Photo'),
-                    onPressed: () {
-                      _mediaLoaderService.pickImage(
-                        context,
-                        ImageSource.camera,
-                        onImagePickCallback,
-                        filePickImpl: filePickImpl,
-                        webImagePickImpl: webImagePickImpl,
-                      );
-                    },
-                  ),
-                  TextButton.icon(
-                    icon: const Icon(
-                      Icons.movie_creation,
-                      color: Colors.orangeAccent,
-                    ),
-                    label: const Text('Video'),
-                    onPressed: () {
-                      _mediaLoaderService.insertVideo(
-                        context,
-                        ImageSource.camera,
-                        onVideoPickCallback,
-                        filePickImpl: filePickImpl,
-                        webVideoPickImpl: widget.webVideoPickImpl,
-                      );
-                    },
-                  )
-                ],
-              ),
-            );
-          });
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            contentPadding: const EdgeInsets.symmetric(vertical: 60),
+            content: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _photoButton(
+                  context,
+                  onImagePickCallback,
+                  filePickImpl,
+                  webImagePickImpl,
+                ),
+                _videoButton(
+                  context,
+                  onVideoPickCallback,
+                  filePickImpl,
+                )
+              ],
+            ),
+          );
+        },
+      );
     }
 
     if (onImagePickCallback != null) {
@@ -186,6 +167,60 @@ class _CameraButtonState extends State<CameraButton> {
       onVideoPickCallback!,
       filePickImpl: filePickImpl,
       webVideoPickImpl: widget.webVideoPickImpl,
+    );
+  }
+
+  Widget _videoButton(BuildContext context,
+      OnVideoPickCallback onVideoPickCallback, FilePickImpl? filePickImpl) {
+    return Padding(
+      padding: EdgeInsets.only(top: 15),
+      child: TextButton.icon(
+        icon: const Icon(
+          Icons.movie_creation,
+          color: Colors.orangeAccent,
+          size: 40,
+        ),
+        label: const Text(
+          'Video',
+          style: TextStyle(color: Colors.black87),
+        ),
+        onPressed: () {
+          _mediaLoaderService.insertVideo(
+            context,
+            ImageSource.camera,
+            onVideoPickCallback,
+            filePickImpl: filePickImpl,
+            webVideoPickImpl: widget.webVideoPickImpl,
+          );
+        },
+      ),
+    );
+  }
+
+  TextButton _photoButton(
+      BuildContext context,
+      OnImagePickCallback onImagePickCallback,
+      FilePickImpl? filePickImpl,
+      WebImagePickImpl? webImagePickImpl) {
+    return TextButton.icon(
+      icon: const Icon(
+        Icons.photo,
+        color: Colors.cyanAccent,
+        size: 40,
+      ),
+      label: const Text(
+        'Photo',
+        style: TextStyle(color: Colors.black87),
+      ),
+      onPressed: () {
+        _mediaLoaderService.pickImage(
+          context,
+          ImageSource.camera,
+          onImagePickCallback,
+          filePickImpl: filePickImpl,
+          webImagePickImpl: webImagePickImpl,
+        );
+      },
     );
   }
 

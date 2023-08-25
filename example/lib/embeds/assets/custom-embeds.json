@@ -684,7 +684,7 @@
     }
   },
   {
-    "insert": "_editorController.replaceText("
+    "insert": "_editorController.replace("
   },
   {
     "insert": "\n",

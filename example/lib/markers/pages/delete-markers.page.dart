@@ -101,7 +101,7 @@ class _DeleteMarkersPageState extends State<DeleteMarkersPage> {
               markerTypes: _getMarkerTypes(),
               // ignore: avoid_redundant_argument_values
               scrollable: SCROLLABLE,
-              onBuildComplete: _updateMarker,
+              onBuildCompleted: _updateMarker,
               onScroll: _updateMarker,
               onSelectionChanged: (selection) => _hideDeleteButton(),
             ),
@@ -127,7 +127,7 @@ class _DeleteMarkersPageState extends State<DeleteMarkersPage> {
     final deltaJson = await rootBundle.loadString(
       'lib/markers/assets/delete-markers.json',
     );
-    final document = DocumentM.fromJson(jsonDecode(deltaJson));
+    final document = DeltaDocM.fromJson(jsonDecode(deltaJson));
 
     setState(() {
       _controller = EditorController(

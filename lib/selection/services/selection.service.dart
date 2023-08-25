@@ -204,7 +204,7 @@ class SelectionService {
 
     final selection = state.selection.selection;
     final toPosition = _coordinatesService.getPositionForOffset(to);
-    late final TextSelection newSelection;
+    TextSelection? newSelection;
 
     // From extent offset
     if (toPosition.offset < selOrigin.baseOffset) {
@@ -224,7 +224,10 @@ class SelectionService {
     }
 
     // Cache selection + Trigger Build
-    cacheSelectionAndUpdGuiElems(newSelection, cause);
+    cacheSelectionAndUpdGuiElems(
+      newSelection ?? TextSelection.collapsed(offset: 0),
+      cause,
+    );
   }
 
   // === UPDATE GUI ===
@@ -312,7 +315,7 @@ class SelectionService {
 
   // === UPDATE BUTTONS ===
 
-  void disableButtonsInCodeSelectionAndRunBuild() {
+  void disableSelectionStylingButtons() {
     state.disabledButtons.isSelectionStylingEnabled = false;
     state.disabledButtons.isSelectionImageEnabled = false;
     state.disabledButtons.isSelectionIndentEnabled = false;
@@ -323,12 +326,14 @@ class SelectionService {
     state.disabledButtons.isSelectionAlignmentEnabled = false;
     state.disabledButtons.isSelectionHeaderEnabled = false;
     state.disabledButtons.isSelectionDropdownEnabled = false;
+  }
 
-    // Refresh
+  void disableSelectionStylingButtonsAndRunBuild() {
+    disableSelectionStylingButtons();
     _runBuildService.runBuild();
   }
 
-  void enableButtonsInCodeSelectionAndRunBuild() {
+  void enableSelectionStylingButtons() {
     state.disabledButtons.isSelectionStylingEnabled = true;
     state.disabledButtons.isSelectionImageEnabled = true;
     state.disabledButtons.isSelectionIndentEnabled = true;
@@ -339,8 +344,10 @@ class SelectionService {
     state.disabledButtons.isSelectionAlignmentEnabled = true;
     state.disabledButtons.isSelectionHeaderEnabled = true;
     state.disabledButtons.isSelectionDropdownEnabled = true;
+  }
 
-    // Refresh
+  void enableSelectionStylingButtonsAndRunBuild() {
+    enableSelectionStylingButtons();
     _runBuildService.runBuild();
   }
 
@@ -390,9 +397,9 @@ class SelectionService {
             .containsKey('code');
 
         if (selectionIsCodeBlock || selectionIsInlineCode) {
-          disableButtonsInCodeSelectionAndRunBuild();
+          disableSelectionStylingButtonsAndRunBuild();
         } else {
-          enableButtonsInCodeSelectionAndRunBuild();
+          enableSelectionStylingButtonsAndRunBuild();
         }
       });
 
@@ -410,7 +417,7 @@ class SelectionService {
               style.attributes.containsKey('code');
 
           if (selectionContainsCode) {
-            disableButtonsInCodeSelectionAndRunBuild();
+            disableSelectionStylingButtonsAndRunBuild();
             break;
           }
         }

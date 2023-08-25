@@ -1,17 +1,16 @@
 import 'dart:async';
 
+import '../models/delta-doc.model.dart';
 import '../models/delta/delta-changes.model.dart';
-import '../models/document.model.dart';
 
 // Stores the document as pure data.
 // Emits a stream of changes when the document is edited
 class DocumentState {
-
   // === DOCUMENT ===
 
   // Document that is currently used by the controller.
   // Multiple documents can be swapped on the same editor.
-  var document = DocumentM();
+  var document = DeltaDocM();
 
   // === CHANGES ===
 

@@ -84,14 +84,15 @@ class _ImageButtonState extends State<ImageButton> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final isStylingEnabledInSelection =
-        widget._state.disabledButtons.isSelectionStylingEnabled;
+    final isSelectionImageEnabled =
+        widget._state.disabledButtons.isSelectionImageEnabled;
 
-    final iconColor = isStylingEnabledInSelection
+    final iconColor = isSelectionImageEnabled
         ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color
-        : theme.disabledColor;
-    final iconFillColor = widget.iconTheme?.iconUnselectedFillColor ??
-        (widget.fillColor ?? theme.canvasColor);
+        : widget.iconTheme?.disabledIconColor ?? theme.disabledColor;
+    final iconFillColor = isSelectionImageEnabled
+        ? (widget.iconTheme?.iconUnselectedFillColor ?? theme.canvasColor)
+        : widget.iconTheme?.disabledIconFillColor ?? theme.disabledColor;
 
     return IconBtn(
       icon: Icon(
@@ -105,8 +106,7 @@ class _ImageButtonState extends State<ImageButton> {
       size: widget.iconSize * 1.77,
       fillColor: iconFillColor,
       borderRadius: widget.iconTheme?.borderRadius ?? 2,
-      onPressed:
-          isStylingEnabledInSelection ? () => _insertImage(context) : null,
+      onPressed: isSelectionImageEnabled ? () => _insertImage(context) : null,
     );
   }
 

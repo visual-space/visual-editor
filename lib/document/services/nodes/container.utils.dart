@@ -11,13 +11,15 @@ class ContainerUtils {
     ContainerM container,
     int index,
     Object data,
-    StyleM? style,
-  ) {
+    StyleM? style, [
+    bool overrideRootNode = false,
+  ]) {
     assert(index == 0 || (index > 0 && index < container.charsNum));
 
     if (container.isNotEmpty) {
       final child = queryChild(container, index, false);
       _nodeUtils.insert(child.node!, child.offset, data, style);
+
       return;
     }
 
@@ -25,7 +27,6 @@ class ContainerUtils {
     assert(index == 0);
 
     final node = container.defaultChild;
-
     add(container, node);
     _nodeUtils.insert(node, index, data, style);
   }

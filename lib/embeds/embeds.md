@@ -65,14 +65,14 @@ class ImageEmbedM extends EmbedM {
 }
 ```
 
-To insert embeds into the document, create the require embed and `replaceText` passing the data as an embed node.
+To insert embeds into the document, create the require embed and `replace` passing the data as an embed node.
 
 ```
 final imageEmbed = ImageEmbedM(imageUrl);
 final index = _controller.selection.baseOffset;
 final length = _controller.selection.extentOffset - index;
 
-_controller.replaceText(
+_controller.replace(
     index,
     length,
     embeddableWidget,

@@ -1,14 +1,32 @@
 # Changelog
 If you want to learn more about the specs, all tickets are available by following the hashtag links.
 
-## [0.12.0] Overlay - Custom overlay [#209](https://github.com/visual-space/visual-editor/issues/209)
+**Fixes**
+- Moved `DocumentController` in `EditorController` [#222](https://github.com/visual-space/visual-editor/issues/222)
+- Fixed missing placeholder. When generating the doc tree we were no longer reading from the document param. It was bypassed by reading straight form the state store. This param provided the placeholder doc in case the user doc was empty. We had to separate the placeholder document generation logic to a dedicated service `PlaceholderService`.
+- Renamed `DocumentM` to `DeltaDocM`. This change was made to prevent model collisions with apps that use `DocumentM` internally.
+- Fixed issue with `EditorController` getters. They were returning the initial stale value instead of the latest value.
+- Added new param `emitEvent` for `controller.update()`. It defaults to true which means that by default any change (update) made to the document will fire the callbacks `onReplaceText()` and `onReplaceTextCompleted()`. In certain scenarios when the editor is used in a combination with the state store we might want to disable the emission of a new event. If the state store update the document then we want to prevent the callbacks from being fired. That's when we use `emitEvent: false`. If the editor has been changed by the user via typing then we want to push this change to the state store. Then we prefer to emit events (call callbacks) as per default behaviour.
+- Added new public method `getHeadingsByType()` on the controller. Useful for listing the headings of the document in a separate index component.
+- More documentation improvements. Added an overview of the "Hierarchy of Code Flow". As a new dev in the codebase you can get quite confused when trying to understand why you can find 3 `compose()` and 3 `replace()` methods in the codebase. There's a very solid explanation behind this architecture.
+- Fixed a bug that kept adding a new whitespace each time the document was updated using `update()`. [#255](https://github.com/visual-space/visual-editor/issues/225)
+  It's a silly combination of factors. But in summary:
+  - `update()` calls `clear()` and compose().
+  - `clear()` produces a document: `[{"insert":"\n"}]`
+  - `compose()` then comes and adds: `[{"insert":"A\n"}]`
+  - \n + \n = \n\n
+  - The result is: `[{"insert":"A\n\n"}]`
+  - Rinse and repeat
+- Renamed `replaceText()` back to `replace()`. Technically speaking this is the correct name. It was change some months ago due to poor understanding on our side of the Quill API. We wanted a name that made it simpler to understand what `update()`, `replace()`, `compose()` do. These methods were very poorly documented. However the naming is correct. They are short names mostly because these are public API methods. Now why they are duplicated is explained in the updated documentation.
+
+**Overlay - Custom overlay [#209](https://github.com/visual-space/visual-editor/issues/209)**
 - Removed the _onBuildComplete() method which was causing a lot of refreshes on the editor, and affecting the performance.
 - Added docs for links.md
 - Added overlay service in order to insert the link menu and for future menus to be added.
 - Removed stack from the main method inside the editor, in order to place widgets on the screen inside the editor, we are now using overlay service.
 - Moved some methods from manipulating links in controller.
 
-## [0.11.0] Actions - Extract document manipulation logic from actions [#208](https://github.com/visual-space/visual-editor/issues/208)
+**Actions - Extract document manipulation logic from actions [#208](https://github.com/visual-space/visual-editor/issues/208)**
   - Made the copy to clipboard button from the link menu to work properly.
   - Extracted code that manipulates the document from some of the actions and placed it into services.
 - Disable adding styling in code blocks [185](https://github.com/visual-space/visual-editor/issues/185)
@@ -16,7 +34,7 @@ If you want to learn more about the specs, all tickets are available by followin
   - Disabled styling and most of the buttons in the toolbar when selection is code block or inline code.
   - Added `enableSelectionCodeButtons()` and `disableSelectionCodeButtons()` in `SelectionService` and `EditorController` in order to toggle enable/disable buttons when selection is code.
 
-## [0.10.0] Blocks - Editable links [#10](https://github.com/visual-space/visual-editor/issues/10)
+**Blocks - Editable links [#10](https://github.com/visual-space/visual-editor/issues/10)**
 - Added link menu, now when tapping on a link, a menu opens, displaying the url of the link, and 3 buttons (edit link, remove link from text/url, and copy link to clipboard)
 - Improved Readme.md, added screen captures of the new features
 - Added custom fonts (RobotoMono) for code blocks and inline code
@@ -25,13 +43,13 @@ If you want to learn more about the specs, all tickets are available by followin
 - Highlights - Controller method to remove highlights by id [#178](https://github.com/visual-space/visual-editor/issues/178)
 - Demos - Demo page for multiple editors in scrollable parent [#161](https://github.com/visual-space/visual-editor/issues/161)
 
-## [0.9.0] Inputs - Keyboard Shortcuts [#163](https://github.com/visual-space/visual-editor/issues/163)
+**Inputs - Keyboard Shortcuts [#163](https://github.com/visual-space/visual-editor/issues/163)**
 - Added hotkeys for toolbar actions (e.g.: CTRL + B makes the selected text bold).
 - Added ordered list on key combination (1. + space) at the beginning of a line and (- + space) creates bullet list.
 - Fixed the wrong ordering number bug in ordered lists and code block. [#158](https://github.com/visual-space/visual-editor/issues/158)
 - Added nested bullets with TAB key. [#11](https://github.com/visual-space/visual-editor/issues/11)
 
-## [0.8.0] Improved file/folders structure [#174](https://github.com/visual-space/visual-editor/issues/174)
+**Improved file/folders structure [#174](https://github.com/visual-space/visual-editor/issues/174)**
 - Sys - Improve file/folders structure
 - Add demo images in readme.
 - Grouped demo pages navigation menu in categories.
@@ -129,7 +147,7 @@ If you want to learn more about the specs, all tickets are available by followin
 - Move code that is closely related to other modules to the respective modules
 - Renamed `EditorRendererInner` to `EditorTextAreaRenderer` following the conventions for editable text line.
 
-## [0.7.0] Custom Embeds [#157](https://github.com/visual-space/visual-editor/issues/157)
+**Custom Embeds [#157](https://github.com/visual-space/visual-editor/issues/157)**
 * Demos - Demo page for adding new items in document.
 * Headings - Added text selection for headers [#195](https://github.com/visual-space/visual-editor/issues/195)
 * Embeds - Separated embed builders based on the type of embed.
@@ -149,7 +167,7 @@ If you want to learn more about the specs, all tickets are available by followin
 * Headings - Added text selection for headers [#197](https://github.com/visual-space/visual-editor/issues/197)
 * Demos - Demo page for limited length headings. [#199](https://github.com/visual-space/visual-editor/issues/199)
 
-## [0.6.0] Headings List [#140](https://github.com/visual-space/visual-editor/issues/140)
+**Headings List [#140](https://github.com/visual-space/visual-editor/issues/140)**
 * Created a new demo page for showcasing the custom styles. Demo custom styles can pe altered by modifying the parameters found in 'demo-custom-styles.const.dart'. [#95](https://github.com/visual-space/visual-editor/issues/95)
 * Exposed public method to access the headings after rendering headings from the document. The client code can read the text and the position (rectangles) of every heading. Similar to markers and highlights, we are storing this information in the internal state store after rendering. [#135](https://github.com/visual-space/visual-editor/issues/135)
   * Improved the null safety for the operation attributes. The getter was guaranteeing that the array will contain at least one AttributeM. Which is not true.
@@ -159,7 +177,7 @@ If you want to learn more about the specs, all tickets are available by followin
 * Added `onReplaceTextComplete()` a callback for detecting when the document plain text has changed but timed to be triggered after the build. Such that we can extract the latest rectangles as well. [#155](https://github.com/visual-space/visual-editor/issues/155)
 * Markers - Fixed: Extracting markers on non-scrollable editor yields global position instead of document position for the text line. [#160](https://github.com/visual-space/visual-editor/issues/160)
 
-## [0.5.0] Markers [#69](https://github.com/visual-space/visual-editor/issues/69)
+**Markers [#69](https://github.com/visual-space/visual-editor/issues/69)**
 * Added custom markers. Multiple marker types can be defined. The client app can define callbacks for hovering the markers.
   * Split the AttributeM static properties in methods in multiple files
   * Refactored the `DropdownButton` in Toolbar to make it more generic
@@ -189,7 +207,7 @@ If you want to learn more about the specs, all tickets are available by followin
   same id will be deleted. Markers can be hidden or deleted.
 * Added scroll behavior to the majority of toolbars and created a new page to differentiate between a toolbar with a horizontal scroll and a wrapping one. [#129](https://github.com/visual-space/visual-editor/issues/129)
 
-## [0.4.0] Bug Fixing
+**Bug Fixing**
 * Fixed issue with `EditorController` being reinitialised on setState(). Usually setState() should not be used. However there are scenarios when the host code might request the entire editor to update (for example when changing styles). Prior to this fix the editor was crashing completely. When a client app triggers `setState()` it also rebuilds the `EditorController` if the first controller instance is not cached by the developer. When a new controller is created a new internal state store object is created as well. In this state store we also keep references towards several important classes: ScrollController, FocusNode, EditorRenderer. The issue came from the fact that these references were not properly renewed. In many places of the code base we have code snippets that depend on the latest refs being available. The fix was to patch the newly created state store with the proper refs. In the old Quill Repo this was present but due to the lack of documentation this code got discarded. Now this fix restores this functionality but with the necessary changes to make it work within the refactored codebase of Visual editor. [#77](https://github.com/visual-space/visual-editor/issues/77)
 * Added delta json preview page. In this page you can see the json output as you type in the editor. Very helpful for learning quickly how the delta format works. [#66](https://github.com/visual-space/visual-editor/issues/66)
 * Fixes related to the architecture cleanup refactoring. During the refactoring, despite our best efforts, some bugs showed up:
@@ -202,7 +220,7 @@ If you want to learn more about the specs, all tickets are available by followin
   * Fixed the scroll controller which overlays over the toolbar buttons.
   * Fixed the toolbar stretching and irregular distance between buttons.
   * 
-## [0.3.0] Architecture Refactoring [#1](https://github.com/visual-space/visual-editor/issues/1)
+**Architecture Refactoring [#1](https://github.com/visual-space/visual-editor/issues/1)**
 * Cleaning up editor.dart
 * Improved docs [#2](https://github.com/visual-space/visual-editor/issues/2)
 * Break editor.dart in multiple files
@@ -228,10 +246,10 @@ If you want to learn more about the specs, all tickets are available by followin
 * Added first automatic test [#3](https://github.com/visual-space/visual-editor/issues/3)
 * Renamed class that was colliding with the `Text class from Flutter [#33](https://github.com/visual-space/visual-editor/issues/33)
 
-## [0.2.0] Highlights
+**Highlights**
 * Custom highlights. This feature was initially developed for Quill. However we had major issues with the existing architecture. Therefore we decided to fork and run a major refactoring.
 
-## [0.1.0] Quill Fork
+**Quill Fork**
 * Rich text editor forked from [Flutter Quill](https://github.com/singerdmx/flutter-quill) and based on the Delta format.
 
 Join on [discord](https://discord.gg/XpGygmXde4) to get advice and help or follow us on [YouTube Visual Coding](https://www.youtube.com/channel/UC2-5lfNbbErIds0Iuai8yfA) to learn more about the architecture of Visual Editor and other Flutter apps.

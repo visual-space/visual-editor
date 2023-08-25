@@ -118,7 +118,7 @@ class _CustomToolbarPageState extends State<CustomToolbarPage> {
     final deltaJson = await rootBundle.loadString(
       'lib/toolbar/assets/custom-toolbar.json',
     );
-    final document = DocumentM.fromJson(jsonDecode(deltaJson));
+    final document = DeltaDocM.fromJson(jsonDecode(deltaJson));
 
     setState(() {
       _controller = EditorController(

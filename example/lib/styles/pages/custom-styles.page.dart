@@ -185,17 +185,17 @@ class _CustomStylesPageState extends State<CustomStylesPage> {
 
     setState(() {
       _controllerHeadings = EditorController(
-        document: DocumentM.fromJson(
+        document: DeltaDocM.fromJson(
           jsonDecode(headingsDeltaJson),
         ),
       );
       _controllerParagraphs = EditorController(
-        document: DocumentM.fromJson(
+        document: DeltaDocM.fromJson(
           jsonDecode(paragraphsDeltaJson),
         ),
       );
       _controllerListQuotesAndSnippets = EditorController(
-        document: DocumentM.fromJson(
+        document: DeltaDocM.fromJson(
           jsonDecode(listsDeltaJson),
         ),
       );

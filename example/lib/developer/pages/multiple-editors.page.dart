@@ -108,8 +108,8 @@ class _MultipleEditorsPageState extends State<MultipleEditorsPage> {
     final deltaJson = await rootBundle.loadString(
       'lib/developer/assets/multiple-editors.json',
     );
-    final document1 = DocumentM.fromJson(jsonDecode(deltaJson)[0]);
-    final document2 = DocumentM.fromJson(jsonDecode(deltaJson)[1]);
+    final document1 = DeltaDocM.fromJson(jsonDecode(deltaJson)[0]);
+    final document2 = DeltaDocM.fromJson(jsonDecode(deltaJson)[1]);
 
     setState(() {
       _controller1 = EditorController(

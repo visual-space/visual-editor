@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-import '../../document/models/document.model.dart';
+import '../../document/models/delta-doc.model.dart';
 import '../../editor/widgets/editor-textarea-renderer.dart';
 import '../../shared/state/editor.state.dart';
 
 // ignore: must_be_immutable
 class EditorWidgetRenderer extends MultiChildRenderObjectWidget {
   final ViewportOffset? offset;
-  final DocumentM document;
+  final DeltaDocM document;
   final TextDirection textDirection;
   late EditorState _state;
 

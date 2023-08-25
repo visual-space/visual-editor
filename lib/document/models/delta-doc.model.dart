@@ -21,16 +21,16 @@ final _du = DeltaUtils();
 // not slightly more accessible for experienced devs.
 // Read editor.md for a full breakdown of the editor architecture.
 // @@@ TODO Copy to docs
-class DocumentM {
+class DeltaDocM {
   late DeltaM delta;
   final history = HistoryM();
 
-  DocumentM() {
+  DeltaDocM() {
     delta = DeltaM();
     _du.insert(delta, '\n');
   }
 
-  DocumentM.fromJson(List data) {
+  DeltaDocM.fromJson(List data) {
     delta = _documentUtils.fromJson(data);
   }
 }

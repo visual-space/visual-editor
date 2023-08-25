@@ -1,6 +1,7 @@
-import 'package:flutter/src/services/text_editing.dart';
+import 'package:flutter/material.dart';
 
-import '../../document/models/document.model.dart';
+import '../../document/controllers/document.controller.dart';
+import '../../document/models/delta-doc.model.dart';
 import '../../editor/services/editor.service.dart';
 import '../../embeds/services/embeds.service.dart';
 import '../../highlights/services/highlights.service.dart';
@@ -26,7 +27,7 @@ import '../../styles/services/styles.service.dart';
 // - selection - The currently selected text
 // - update() - Replaces with new delta operations the content of the document (updates the document)
 // - clear() - Empties the document
-// - replaceText() - Replaces a range of text with the new text or an embed
+// - replace() - Replaces a range of text with the new text or an embed
 // - formatSelection() - Applies custom styles to the selected text
 // Full documentation in controller.md and state-store.md
 class EditorController {
@@ -41,9 +42,11 @@ class EditorController {
 
   final _state = EditorState();
 
-  EditorController({DocumentM? document}) {
-    _state.document.document = document ?? DocumentM();
+  EditorController({DeltaDocM? document}) {
+    // Document
+    _state.document.document = document ?? DeltaDocM();
 
+    // Services
     _editorService = EditorService(_state);
     _stylesService = StylesService(_state);
     _selectionService = SelectionService(_state);
@@ -52,22 +55,24 @@ class EditorController {
     _embedsService = EmbedsService(_state);
     _keyboardService = KeyboardService(_state);
     _linksService = LinksService(_state);
+
+    // Controllers
+    _initControllersAndCacheControllersRefs();
   }
 
   // === DOCUMENT ===
 
-  late final document = _editorService.document;
+  DeltaDocM get document => _editorService.document;
   late final changes$ = _editorService.changes$;
-  late final plainText = _editorService.plainText;
-  late final docLength = _editorService.docLength;
+  TextEditingValue get plainText => _editorService.plainText;
+  int get docLength => _editorService.docLength;
   late final selectionPlainText = _editorService.getSelectionPlainText;
   late final update = _editorService.update;
   late final clear = _editorService.clear;
-  late final replaceText = _editorService.replaceText;
+  late final replace = _editorService.replace;
   late final compose = _editorService.compose;
   late final addLinkToSelection = _editorService.addLinkToSelection;
   late final getSelectionLinkAttributeValue = _editorService.getSelectionLinkAttributeValue;
-  late final getHeadingsByType = _editorService.getHeadingsByType;
   late final queryNode = _editorService.queryNode;
   late final close = _editorService.close;
   late final isClosed = _editorService.isClosed;
@@ -87,6 +92,7 @@ class EditorController {
   late final updateSelectedTextFontSize = _stylesService.updateSelectionFontSize;
   late final changeSelectionColor = _stylesService.changeSelectionColor;
   late final indentSelection = _stylesService.indentSelection;
+  late final getHeadingsByType = _editorService.getHeadingsByType;
 
   // === CURSOR / SELECTION ===
 
@@ -119,8 +125,8 @@ class EditorController {
 
   // === HISTORY ===
 
-  late final hasUndo = _state.refs.historyController.hasUndo;
-  late final hasRedo = _state.refs.historyController.hasRedo;
+  bool get hasUndo => _state.refs.historyController.hasUndo;
+  bool get hasRedo => _state.refs.historyController.hasRedo;
   late final undo = _state.refs.historyController.undo;
   late final redo = _state.refs.historyController.redo;
   late final clearHistory = _state.refs.historyController.clearHistory;
@@ -138,8 +144,8 @@ class EditorController {
 
   // === CODE ===
 
-  late final enableButtonsInCodeSelection = _selectionService.enableButtonsInCodeSelectionAndRunBuild;
-  late final disableButtonsInCodeSelection = _selectionService.disableButtonsInCodeSelectionAndRunBuild;
+  late final enableButtonsInCodeSelection = _selectionService.enableSelectionStylingButtons;
+  late final disableButtonsInCodeSelection = _selectionService.disableSelectionStylingButtons;
 
   // === KEYBOARD ===
 
@@ -151,5 +157,23 @@ class EditorController {
   // Read more in EditorStateReceiver doc comment.
   void setStateInEditorStateReceiver(EditorStateReceiver receiver) {
     receiver.cacheStateStore(_state);
+  }
+
+  // Document related controllers
+  // Editor controller uses other children controllers to delegate various tasks.
+  // Ex: DocumentController controls the document model.
+  void _initControllersAndCacheControllersRefs() {
+    // Document Controller
+    _state.refs.documentController = DocumentController(
+      _state.document.document,
+      _state.document.emitChange,
+      _editorService.composeCacheSelectionAndRunBuild,
+    );
+    _state.refs.documentControllerInitialised = true;
+
+    // History Controller
+    _state.refs.historyController =
+        _state.refs.documentController.historyController;
+    _state.refs.historyControllerInitialised = true;
   }
 }

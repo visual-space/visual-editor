@@ -8,7 +8,7 @@ import 'package:flutter/services.dart';
 
 import '../../cursor/widgets/floating-cursor.painter.dart';
 import '../../doc-tree/services/coordinates.service.dart';
-import '../../document/models/document.model.dart';
+import '../../document/models/delta-doc.model.dart';
 import '../../selection/services/selection-handles.service.dart';
 import '../../selection/services/selection-renderer.service.dart';
 import '../../shared/models/editable-box-renderer.model.dart';
@@ -26,7 +26,7 @@ class EditorTextAreaRenderer extends MultilineTextAreaRenderer
   late final CoordinatesService _coordinatesService;
   late final SelectionHandlesService _selectionHandlesService;
 
-  late DocumentM document;
+  late DeltaDocM document;
   Rect? floatingCursorRect;
   late TextPosition floatingCursorTextPosition;
 
@@ -66,6 +66,7 @@ class EditorTextAreaRenderer extends MultilineTextAreaRenderer
         floatingCursorRect: floatingCursorRect,
         state: _state,
       );
+
   late EditorState _state;
 
   EditorTextAreaRenderer({

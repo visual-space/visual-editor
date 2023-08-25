@@ -1,7 +1,7 @@
+import '../models/delta-doc.model.dart';
 import '../models/delta/delta-changes.model.dart';
 import '../models/delta/delta.model.dart';
 import '../models/delta/operations.enum.dart';
-import '../models/document.model.dart';
 import '../models/history/change-source.enum.dart';
 import '../models/history/history.model.dart';
 import '../models/nodes/revert-operations.model.dart';
@@ -13,8 +13,8 @@ import '../services/delta.utils.dart';
 // User only means that we are in coop editing mode.
 // In coop mode the history stacks can be rebased with the remote document.
 class HistoryController {
-  final DocumentM _document;
-  final Function(DeltaM deltaRes, int? length)?
+  final DeltaDocM _document;
+  final Function(DeltaM deltaRes, int? length, bool emitEvent)?
       _composeCacheSelectionAndRunBuild;
   final _du = DeltaUtils();
 
@@ -42,22 +42,20 @@ class HistoryController {
   }
 
   // Returns back metrics that could be useful to client code for
-  RevertOperationM undo() {
+  RevertOperationM undo([bool emitEvent = true]) {
     final revertOp = _restoreDocumentAndUpdateHistoryStacks(
       _document,
       _history.stack.undo,
       _history.stack.redo,
+      emitEvent,
     );
 
     return revertOp;
   }
 
-  RevertOperationM redo() {
+  RevertOperationM redo([bool emitEvent = true]) {
     final revertOp = _restoreDocumentAndUpdateHistoryStacks(
-      _document,
-      _history.stack.redo,
-      _history.stack.undo,
-    );
+        _document, _history.stack.redo, _history.stack.undo, emitEvent);
 
     return revertOp;
   }
@@ -134,9 +132,10 @@ class HistoryController {
   // Updates the history stacks to indicate the current state of the document (older or newer doc state).
   // Depending on the direction, one stack adds a new history and the other stack removes it.
   RevertOperationM _restoreDocumentAndUpdateHistoryStacks(
-    DocumentM document,
+    DeltaDocM document,
     List<DeltaM> sourceStack,
     List<DeltaM> destinationStack,
+    bool emitEvent,
   ) {
     if (sourceStack.isEmpty) {
       return RevertOperationM(false, 0);
@@ -167,7 +166,7 @@ class HistoryController {
 
     // Apply recovered history state to document
     _history.ignoreChange = true;
-    _composeCacheSelectionAndRunBuild?.call(deltaRes, extent);
+    _composeCacheSelectionAndRunBuild?.call(deltaRes, extent, emitEvent);
     _history.ignoreChange = false;
 
     // Metrics (if needed)

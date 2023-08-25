@@ -138,7 +138,7 @@ class _DeltaSandboxPageState extends State<DeltaSandboxPage> {
           config: EditorConfigM(
             placeholder: 'Enter text',
             padding: EdgeInsets.fromLTRB(15, 0, 15, 0),
-            onBuildComplete: _updateJsonPreview,
+            onBuildCompleted: _updateJsonPreview,
           ),
         ),
       );
@@ -164,7 +164,7 @@ class _DeltaSandboxPageState extends State<DeltaSandboxPage> {
 
   void _setupEditorController() {
     _editorController = EditorController(
-      document: DocumentM.fromJson(
+      document: DeltaDocM.fromJson(
         jsonDecode(LOREM_LIPSUM_DOC_JSON),
       ),
     );
@@ -179,7 +179,7 @@ class _DeltaSandboxPageState extends State<DeltaSandboxPage> {
     final doc = await rootBundle.loadString(
       'lib/developer/assets/delta-sandbox.json',
     );
-    final delta = DocumentM.fromJson(jsonDecode(doc)).delta;
+    final delta = DeltaDocM.fromJson(jsonDecode(doc)).delta;
 
     _editorController.update(
       delta,
@@ -206,7 +206,7 @@ class _DeltaSandboxPageState extends State<DeltaSandboxPage> {
     _jsonInputController.addListener(() {
       // Update editor only if the change was emitted by the json input
       if (!_focusNode.hasFocus) {
-        final delta = DocumentM.fromJson(
+        final delta = DeltaDocM.fromJson(
           jsonDecode(_jsonInputController.text),
         ).delta;
 

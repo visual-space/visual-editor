@@ -160,7 +160,7 @@ class _HighlightsPageState extends State<HighlightsPage> {
     final deltaJson = await rootBundle.loadString(
       'lib/markers/assets/highlights.json',
     );
-    final document = DocumentM.fromJson(jsonDecode(deltaJson));
+    final document = DeltaDocM.fromJson(jsonDecode(deltaJson));
 
     setState(() {
       _controller = EditorController(

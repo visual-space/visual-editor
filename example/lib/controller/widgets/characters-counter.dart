@@ -8,19 +8,19 @@ import '../models/character-counter.model.dart';
 // Displayed near every heading that exceeded the length limit.
 // It shows how many characters are above the limit.
 // The information about the counters is got directly from the controller.
-class CharacterCountersSmart extends StatefulWidget {
+class CharacterCounters extends StatefulWidget {
   final HeadingsCounterController headingsController;
 
-  const CharacterCountersSmart({
+  const CharacterCounters({
     required this.headingsController,
     Key? key,
   }) : super(key: key);
 
   @override
-  State<CharacterCountersSmart> createState() => _CharacterCountersSmartState();
+  State<CharacterCounters> createState() => _CharacterCountersState();
 }
 
-class _CharacterCountersSmartState extends State<CharacterCountersSmart> {
+class _CharacterCountersState extends State<CharacterCounters> {
   late final StreamSubscription _counters$L;
   List<CharacterCounterM> _counters = [];
 

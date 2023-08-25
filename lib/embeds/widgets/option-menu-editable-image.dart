@@ -130,7 +130,7 @@ class OptionMenuEditableImage extends StatelessWidget with EditorStateReceiver {
           final offset = _embedsService.getEmbedOffset().offset;
           final newSelection = TextSelection.collapsed(offset: offset);
 
-          _editorService.replaceText(offset, 1, '', newSelection);
+          _editorService.replace(offset, 1, '', newSelection);
           Navigator.pop(context);
         },
       );

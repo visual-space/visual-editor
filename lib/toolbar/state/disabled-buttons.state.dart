@@ -9,33 +9,14 @@
 // Buttons can be disabled by the categories they are added inside the toolbar.
 // For example: ToggleStyleButton, ImageButton, VideoButton, etc.
 class DisabledButtonsState {
-  // Selection styling buttons.
   bool isSelectionStylingEnabled = true;
-
-  // Selection image button.
   bool isSelectionImageEnabled = true;
-
-  // Selection indent button.
   bool isSelectionIndentEnabled = true;
-
-  // Selection color button.
   bool isSelectionColorEnabled = true;
-
-  // Selection checklist button.
   bool isSelectionChecklistEnabled = true;
-
-  // Selection camera button.
   bool isSelectionCameraEnabled = true;
-
-  // Selection video button.
   bool isSelectionVideoEnabled = true;
-
-  // Selection alignment button.
   bool isSelectionAlignmentEnabled = true;
-
-  // Selection header button.
   bool isSelectionHeaderEnabled = true;
-
-  // Selection dropdown button.
   bool isSelectionDropdownEnabled = true;
 }

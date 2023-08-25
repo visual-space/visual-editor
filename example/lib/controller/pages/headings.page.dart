@@ -102,7 +102,7 @@ class _HeadingsPageState extends State<HeadingsPage> {
             scrollController: _scrollController,
             focusNode: _focusNode,
             config: EditorConfigM(
-              onBuildComplete: _updateHeadings,
+              onBuildCompleted: _updateHeadings,
             ),
           ),
         ),
@@ -124,7 +124,7 @@ class _HeadingsPageState extends State<HeadingsPage> {
     final result = await rootBundle.loadString(
       'lib/controller/assets/headings.json',
     );
-    final document = DocumentM.fromJson(jsonDecode(result));
+    final document = DeltaDocM.fromJson(jsonDecode(result));
     setState(() {
       _controller = EditorController(
         document: document,

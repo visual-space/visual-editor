@@ -1,5 +1,3 @@
-import 'package:visual_editor/search/state/search-state.dart';
-
 import '../../controller/state/paste.state.dart';
 import '../../cursor/state/cursor.state.dart';
 import '../../document/state/document.state.dart';
@@ -14,6 +12,7 @@ import '../../inputs/state/pressed-keys.state.dart';
 import '../../markers/state/markers-types.state.dart';
 import '../../markers/state/markers-visibility.state.dart';
 import '../../markers/state/markers.state.dart';
+import '../../search/state/search-state.dart';
 import '../../selection/state/last-tap-down.state.dart';
 import '../../selection/state/selected-link.state.dart';
 import '../../selection/state/selection-layers.state.dart';
@@ -51,7 +50,8 @@ class EditorState {
   final search = SearchState();
 
   // Editor
-  late EditorConfigM config;
+  // We need an initial value if the controller is used before the editor is rendered
+  EditorConfigM config = EditorConfigM();
   final runBuild = RunBuildState();
   final styles = StylesState();
   final platformStyles = PlatformStylesState();

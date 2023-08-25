@@ -59,7 +59,7 @@ class _ReadOnlyPageState extends State<ReadOnlyPage> {
     final deltaJson = await rootBundle.loadString(
       'lib/styles/assets/read-only.json',
     );
-    final document = DocumentM.fromJson(jsonDecode(deltaJson));
+    final document = DeltaDocM.fromJson(jsonDecode(deltaJson));
 
     setState(() {
       _controller = EditorController(

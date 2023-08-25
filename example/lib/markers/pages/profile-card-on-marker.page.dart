@@ -120,7 +120,7 @@ class _ProfileCardOnMarkerPageState extends State<ProfileCardOnMarkerPage> {
     final deltaJson = await rootBundle.loadString(
       'lib/markers/assets/profile-card-on-marker.json',
     );
-    final document = DocumentM.fromJson(jsonDecode(deltaJson));
+    final document = DeltaDocM.fromJson(jsonDecode(deltaJson));
 
     setState(() {
       _controller = EditorController(

@@ -44,7 +44,7 @@ class EmbedsService {
       final length = selection.extentOffset - index;
       final image = EmbedM(IMAGE_EMBED_TYPE, imageUrl);
 
-      _editorService.replaceText(index, length, image, null);
+      _editorService.replace(index, length, image, null);
     }
   }
 
@@ -54,7 +54,7 @@ class EmbedsService {
       final index = selection.baseOffset;
       final length = selection.extentOffset - index;
 
-      _editorService.replaceText(
+      _editorService.replace(
         index,
         length,
         EmbedM(VIDEO_EMBED_TYPE, videoUrl),

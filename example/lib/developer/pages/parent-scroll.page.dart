@@ -213,7 +213,7 @@ class _ParentScrollPageState extends State<ParentScrollPage> {
             placeholder: 'Enter text',
             highlights: _getHighlights(onHighlightTap),
             markerTypes: _getMarkerTypes(onMarkerTap),
-            onBuildComplete: () {
+            onBuildCompleted: () {
               onExtractMarkersCompleted(controller.getAllMarkers());
               _updateMarkerAttachments();
             },
@@ -237,9 +237,9 @@ class _ParentScrollPageState extends State<ParentScrollPage> {
     final deltaJson = await rootBundle.loadString(
       'lib/developer/assets/parent-scroll.json',
     );
-    final document1 = DocumentM.fromJson(jsonDecode(deltaJson)[0]);
-    final document2 = DocumentM.fromJson(jsonDecode(deltaJson)[1]);
-    final document3 = DocumentM.fromJson(jsonDecode(deltaJson)[2]);
+    final document1 = DeltaDocM.fromJson(jsonDecode(deltaJson)[0]);
+    final document2 = DeltaDocM.fromJson(jsonDecode(deltaJson)[1]);
+    final document3 = DeltaDocM.fromJson(jsonDecode(deltaJson)[2]);
 
     setState(() {
       _controller1 = EditorController(

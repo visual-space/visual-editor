@@ -8,7 +8,7 @@ For example if you want to have a button that every time is pressed adds a new e
 
  ```dart
 final docLen = _controller.document.length;
-_controller.replaceText(docLen - 1, 0, '\n', null);
+_controller.replace(docLen - 1, 0, '\n', null);
 ```
 
 ## How to apply attributes to text via the controller

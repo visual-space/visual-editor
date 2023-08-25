@@ -255,15 +255,17 @@ class _TextLineState extends State<TextLine> {
           )
         : null;
 
+    final inlineStyle = _textLineStylesService.getInlineTextStyle(
+      textNode,
+      defaultStyles,
+      nodeStyle,
+      lineStyle,
+      isLink,
+    );
+
     return TextSpan(
       text: textNode.value,
-      style: _textLineStylesService.getInlineTextStyle(
-        textNode,
-        defaultStyles,
-        nodeStyle,
-        lineStyle,
-        isLink,
-      ),
+      style: inlineStyle,
       recognizer: recognizer,
       mouseCursor: canLaunchLink ? SystemMouseCursors.click : null,
     );

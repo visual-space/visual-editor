@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../editor/services/run-build.service.dart';
 import '../../styles/services/styles.service.dart';
 import '../../toolbar/models/dropdown-option.model.dart';
+import '../../toolbar/services/toolbar.service.dart';
 import '../../visual-editor.dart';
 import '../state/editor-state-receiver.dart';
 import '../state/editor.state.dart';
@@ -87,6 +88,7 @@ class EditorDropdown<T> extends StatefulWidget with EditorStateReceiver {
 class _EditorDropdownState<T> extends State<EditorDropdown<T>> {
   late final RunBuildService _runBuildService;
   late final StylesService _stylesService;
+  late final ToolbarService _toolbarService;
 
   List<DropDownOptionM<T>> _selectedOptions = [];
   StreamSubscription? _runBuild$L;
@@ -95,10 +97,12 @@ class _EditorDropdownState<T> extends State<EditorDropdown<T>> {
   void initState() {
     _runBuildService = RunBuildService(widget._state);
     _stylesService = StylesService(widget._state);
+    _toolbarService = ToolbarService(widget._state);
 
-    super.initState();
-    _subscribeToRunBuild();
     _selectedOptions = [...widget.initialValue];
+
+    _subscribeToRunBuild();
+    super.initState();
   }
 
   @override
@@ -106,14 +110,6 @@ class _EditorDropdownState<T> extends State<EditorDropdown<T>> {
     _runBuild$L?.cancel();
     super.dispose();
   }
-
-  @override
-  Widget build(BuildContext context) => _rectangleButton(
-        children: [
-          if (widget.icon != null) _icon(),
-          if (widget.iconOnly != true) _textAndArrow(),
-        ],
-      );
 
   @override
   void didUpdateWidget(covariant EditorDropdown<T> oldWidget) {
@@ -128,83 +124,72 @@ class _EditorDropdownState<T> extends State<EditorDropdown<T>> {
     }
   }
 
-  Widget _rectangleButton({required List<Widget> children}) {
-    final isSelectionDropdownEnabled =
-        widget._state.disabledButtons.isSelectionDropdownEnabled;
+  @override
+  Widget build(BuildContext context) => _rectangleButton(
+        children: [
+          if (widget.icon != null) _icon(),
+          if (widget.iconOnly != true) _textAndArrow(),
+        ],
+      );
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2.5),
-      child: Material(
-        child: InkWell(
-          onTap: isSelectionDropdownEnabled ? _displayOptionsMenu : null,
-          child: ConstrainedBox(
-            constraints: BoxConstraints.tightFor(
-              height: widget.iconSize * 1.75,
-            ),
-            child: Container(
-              padding: EdgeInsets.fromLTRB(8, 0, 8, 0),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: children,
+  Widget _rectangleButton({required List<Widget> children}) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2.5),
+        child: Material(
+          child: InkWell(
+            onTap: isEnabled ? _displayOptionsMenu : null,
+            child: ConstrainedBox(
+              constraints: BoxConstraints.tightFor(
+                height: widget.iconSize * 1.75,
+              ),
+              child: Container(
+                padding: EdgeInsets.fromLTRB(8, 0, 8, 0),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: children,
+                ),
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
+      );
 
-  Widget _textAndArrow() {
-    final theme = Theme.of(context);
-    final isSelectionSizeEnabled =
-        widget._state.disabledButtons.isSelectionDropdownEnabled;
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          _selectedOptions.map((option) => option.name).join(' '),
-          style: TextStyle(
-            fontSize: widget.iconSize / 1.15,
-            color: isSelectionSizeEnabled
-                ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color
-                : theme.disabledColor,
+  Widget _textAndArrow() => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            _selectedOptions.map((option) => option.name).join(' '),
+            style: TextStyle(
+              fontSize: widget.iconSize / 1.15,
+              color: isEnabled ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color : theme.disabledColor,
+            ),
           ),
-        ),
-        SizedBox(
-          width: 3,
-        ),
-        Icon(
-          Icons.arrow_drop_down,
-          size: widget.iconSize / 1.15,
-          color: isSelectionSizeEnabled
-              ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color
-              : theme.disabledColor,
-        )
-      ],
-    );
-  }
+          SizedBox(
+            width: 3,
+          ),
+          Icon(
+            Icons.arrow_drop_down,
+            size: widget.iconSize / 1.15,
+            color: isEnabled ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color : theme.disabledColor,
+          )
+        ],
+      );
 
-  Widget _icon() {
-    final theme = Theme.of(context);
-    final isSelectionSizeEnabled =
-        widget._state.disabledButtons.isSelectionDropdownEnabled;
-
-    return Padding(
-      padding: EdgeInsets.only(
-        right: widget.iconOnly ? 0 : 6,
-      ),
-      child: Icon(
-        widget.icon,
-        size: widget.iconSize,
-        color: isSelectionSizeEnabled
-            ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color
-            : theme.disabledColor,
-      ),
-    );
-  }
+  Widget _icon() => Padding(
+        padding: EdgeInsets.only(
+          right: widget.iconOnly ? 0 : 6,
+        ),
+        child: Icon(
+          widget.icon,
+          size: widget.iconSize,
+          color: isEnabled ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color : theme.disabledColor,
+        ),
+      );
 
   // === UTILS ===
+
+  bool get isEnabled => _toolbarService.isStylingEnabled;
+
+  ThemeData get theme => Theme.of(context);
 
   // When the editor get refreshed by user interactions we read the text selection
   // and based on it we select the value of the dropdown.
@@ -216,8 +201,7 @@ class _EditorDropdownState<T> extends State<EditorDropdown<T>> {
     );
   }
 
-  Map<String, AttributeM>? get _attributes =>
-      _stylesService.getSelectionStyle().attributes;
+  Map<String, AttributeM>? get _attributes => _stylesService.getSelectionStyle().attributes;
 
   void _displayOptionsMenu() {
     final popupMenuTheme = PopupMenuTheme.of(context);
@@ -233,11 +217,7 @@ class _EditorDropdownState<T> extends State<EditorDropdown<T>> {
             key: ValueKey(option),
             value: option,
             child: Row(
-              children: [
-                _optionName(option),
-                if (widget.countAttributeLayersByOption != null)
-                  _optionCounter(option)
-              ],
+              children: [_optionName(option), if (widget.countAttributeLayersByOption != null) _optionCounter(option)],
             ),
           ),
       ],
@@ -256,9 +236,7 @@ class _EditorDropdownState<T> extends State<EditorDropdown<T>> {
     return count > 0
         ? Text(
             '(${_countMarkers(option)})',
-            style: TextStyle(
-              fontSize: 11,
-            ),
+            style: TextStyle(fontSize: 11),
           )
         : SizedBox.shrink();
   }
@@ -279,14 +257,8 @@ class _EditorDropdownState<T> extends State<EditorDropdown<T>> {
 
     return RelativeRect.fromRect(
       Rect.fromPoints(
-        button.localToGlobal(
-          Offset.zero,
-          ancestor: overlay,
-        ),
-        button.localToGlobal(
-          button.size.bottomLeft(Offset.zero),
-          ancestor: overlay,
-        ),
+        button.localToGlobal(Offset.zero, ancestor: overlay),
+        button.localToGlobal(button.size.bottomLeft(Offset.zero), ancestor: overlay),
       ),
       Offset.zero & overlay.size,
     );
@@ -305,9 +277,7 @@ class _EditorDropdownState<T> extends State<EditorDropdown<T>> {
         selectedOptions = widget.getOptionsByCustomAttribute!(attribute.value);
       } else {
         // Primitive Value
-        selectedOptions = widget.options
-            .where((option) => option.value == attribute.value)
-            .toList();
+        selectedOptions = widget.options.where((option) => option.value == attribute.value).toList();
       }
 
       // Default value.

@@ -71,10 +71,7 @@ class MarkersService {
 
     // Markers are stored as json data in the styles
     final jsonMarkers = markers?.map((marker) => marker.toJson()).toList();
-    final attribute = AttributeUtils.fromKeyValue(
-      AttributesM.markers.key,
-      jsonMarkers,
-    );
+    final attribute = AttributeUtils.fromKeyValue(AttributesM.markers.key, jsonMarkers);
 
     // Add to document
     _stylesService.formatSelection(attribute);
@@ -91,12 +88,8 @@ class MarkersService {
         );
 
         final index = marker.textSelection?.baseOffset ?? 0;
-        final length = (marker.textSelection?.extentOffset ?? 0) -
-            (marker.textSelection?.baseOffset ?? 0);
-        final markerAttribute = AttributeUtils.fromKeyValue(
-          AttributesM.markers.key,
-          null,
-        );
+        final length = (marker.textSelection?.extentOffset ?? 0) - (marker.textSelection?.baseOffset ?? 0);
+        final markerAttribute = AttributeUtils.fromKeyValue(AttributesM.markers.key, null);
 
         _stylesService.formatTextRange(index, length, markerAttribute);
       }

@@ -8,6 +8,7 @@ import '../../../shared/models/editor-icon-theme.model.dart';
 import '../../../shared/state/editor-state-receiver.dart';
 import '../../../shared/state/editor.state.dart';
 import '../../../styles/services/styles.service.dart';
+import '../../services/toolbar.service.dart';
 import '../toolbar.dart';
 
 // Moves text to the right or to the left
@@ -45,6 +46,7 @@ class IndentButton extends StatefulWidget with EditorStateReceiver {
 class _IndentButtonState extends State<IndentButton> {
   late final StylesService _stylesService;
   late final RunBuildService _runBuildService;
+  late final ToolbarService _toolbarService;
 
   StreamSubscription? _runBuild$L;
 
@@ -52,9 +54,10 @@ class _IndentButtonState extends State<IndentButton> {
   void initState() {
     _stylesService = StylesService(widget._state);
     _runBuildService = RunBuildService(widget._state);
+    _toolbarService = ToolbarService(widget._state);
 
-    super.initState();
     _subscribeToRunBuild();
+    super.initState();
   }
 
   @override
@@ -66,8 +69,7 @@ class _IndentButtonState extends State<IndentButton> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isIndentEnabled = widget._state.disabledButtons.isSelectionIndentEnabled;
-    final iconColor = isIndentEnabled ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color : theme.disabledColor;
+    final iconColor = isEnabled ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color : theme.disabledColor;
     final iconFillColor = widget.iconTheme?.iconUnselectedFillColor ?? theme.canvasColor;
 
     return IconBtn(
@@ -82,11 +84,13 @@ class _IndentButtonState extends State<IndentButton> {
       buttonsSpacing: widget.buttonsSpacing,
       fillColor: iconFillColor,
       borderRadius: widget.iconTheme?.borderRadius ?? 2,
-      onPressed: isIndentEnabled ? () => _stylesService.indentSelection(widget.isIncrease) : null,
+      onPressed: isEnabled ? () => _stylesService.indentSelection(widget.isIncrease) : null,
     );
   }
 
   // === UTILS ===
+
+  bool get isEnabled => _toolbarService.isStylingEnabled;
 
   // In order to update the button state after each selection change check if button is enabled.
   void _subscribeToRunBuild() {

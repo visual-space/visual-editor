@@ -5,6 +5,7 @@ The example above illustrates one potential use case for rules. However there ar
 
 
 ## Architecture (WIP)
+The rules list is applied in pure functional fashion. No GUI operations are executed in the rules code.
 
 
 ## Delete Rules

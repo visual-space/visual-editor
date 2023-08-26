@@ -26,10 +26,7 @@ class AutoExitBlockRule extends InsertRuleM {
       return true;
     }
 
-    return before.data is String &&
-        (before.data as String).endsWith('\n') &&
-        after!.data is String &&
-        (after.data as String).startsWith('\n');
+    return before.data is String && (before.data as String).endsWith('\n') && after!.data is String && (after.data as String).startsWith('\n');
   }
 
   @override
@@ -76,9 +73,7 @@ class AutoExitBlockRule extends InsertRuleM {
     final nStyle = _stylesUtils.fromJson(nextNewLine.operation!.attributes);
     final nextStyle = _stylesUtils.getBlockExceptHeader(nStyle);
 
-    if (nextNewLine.operation != null &&
-        nextNewLine.operation!.attributes != null &&
-        nextStyle == blockStyle) {
+    if (nextNewLine.operation != null && nextNewLine.operation!.attributes != null && nextStyle == blockStyle) {
       // We are not at the end of this block, ignore.
       return null;
     }
@@ -86,9 +81,7 @@ class AutoExitBlockRule extends InsertRuleM {
     // Here we now know that the line after `cur` is not in the same block
     // therefore we can exit this block.
     final attributes = curr.attributes ?? <String, dynamic>{};
-    final k = attributes.keys.firstWhere(
-      AttributesTypesM.blockKeysExceptHeader.contains,
-    );
+    final k = attributes.keys.firstWhere(AttributesTypesM.blockKeysExceptHeader.contains);
     attributes[k] = null;
 
     // retain(1) should be '\n', set it with no attribute

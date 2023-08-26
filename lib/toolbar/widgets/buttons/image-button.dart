@@ -12,6 +12,7 @@ import '../../../shared/state/editor-state-receiver.dart';
 import '../../../shared/state/editor.state.dart';
 import '../../models/media-pick.enum.dart';
 import '../../models/media-picker.type.dart';
+import '../../services/toolbar.service.dart';
 import '../dialogs/link-dialog.dart';
 import '../toolbar.dart';
 
@@ -61,6 +62,7 @@ class _ImageButtonState extends State<ImageButton> {
   late final RunBuildService _runBuildService;
   late final EmbedsService _embedsService;
   late final MediaLoaderService _mediaLoaderService;
+  late final ToolbarService _toolbarService;
 
   StreamSubscription? _runBuild$L;
 
@@ -69,9 +71,10 @@ class _ImageButtonState extends State<ImageButton> {
     _runBuildService = RunBuildService(widget._state);
     _embedsService = EmbedsService(widget._state);
     _mediaLoaderService = MediaLoaderService(widget._state);
+    _toolbarService = ToolbarService(widget._state);
 
-    super.initState();
     _subscribeToRunBuild();
+    super.initState();
   }
 
   @override
@@ -80,19 +83,14 @@ class _ImageButtonState extends State<ImageButton> {
     super.dispose();
   }
 
+  // TODO Needs cleanup
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final isSelectionImageEnabled =
-        widget._state.disabledButtons.isSelectionImageEnabled;
-
-    final iconColor = isSelectionImageEnabled
-        ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color
-        : widget.iconTheme?.disabledIconColor ?? theme.disabledColor;
-    final iconFillColor = isSelectionImageEnabled
-        ? (widget.iconTheme?.iconUnselectedFillColor ?? theme.canvasColor)
-        : widget.iconTheme?.disabledIconFillColor ?? theme.disabledColor;
+    final iconColor = isEnabled ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color : widget.iconTheme?.disabledIconColor ?? theme.disabledColor;
+    final iconFillColor =
+        isEnabled ? (widget.iconTheme?.iconUnselectedFillColor ?? theme.canvasColor) : widget.iconTheme?.disabledIconFillColor ?? theme.disabledColor;
 
     return IconBtn(
       icon: Icon(
@@ -106,16 +104,17 @@ class _ImageButtonState extends State<ImageButton> {
       size: widget.iconSize * 1.77,
       fillColor: iconFillColor,
       borderRadius: widget.iconTheme?.borderRadius ?? 2,
-      onPressed: isSelectionImageEnabled ? () => _insertImage(context) : null,
+      onPressed: isEnabled ? () => _insertImage(context) : null,
     );
   }
 
-  // === PRIVATE ===
+  // === UTILS ===
+
+  bool get isEnabled => _toolbarService.isStylingEnabled;
 
   Future<void> _insertImage(BuildContext context) async {
     if (widget.onImagePickCallback != null) {
-      final selector = widget.mediaPickSettingSelector ??
-          _mediaLoaderService.selectMediaPickSetting;
+      final selector = widget.mediaPickSettingSelector ?? _mediaLoaderService.selectMediaPickSetting;
       final source = await selector(context);
 
       if (source != null) {
@@ -146,8 +145,6 @@ class _ImageButtonState extends State<ImageButton> {
       ),
     ).then(_embedsService.insertInSelectionImageViaUrl);
   }
-
-  // === UTILS ===
 
   // In order to update the button state after each selection change check if button is enabled.
   void _subscribeToRunBuild() {

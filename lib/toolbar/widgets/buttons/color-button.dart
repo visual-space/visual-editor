@@ -12,6 +12,7 @@ import '../../../shared/state/editor.state.dart';
 import '../../../shared/translations/toolbar.i18n.dart';
 import '../../../shared/utils/color.utils.dart';
 import '../../../styles/services/styles.service.dart';
+import '../../services/toolbar.service.dart';
 import '../toolbar.dart';
 
 // Controls color styles (text color and text background).
@@ -50,6 +51,7 @@ class ColorButton extends StatefulWidget with EditorStateReceiver {
 class _ColorButtonState extends State<ColorButton> {
   late final RunBuildService _runBuildService;
   late final StylesService _stylesService;
+  late final ToolbarService _toolbarService;
 
   var _isToggledColor = false;
   var _isToggledBackground = false;
@@ -65,6 +67,7 @@ class _ColorButtonState extends State<ColorButton> {
   void initState() {
     _runBuildService = RunBuildService(widget._state);
     _stylesService = StylesService(widget._state);
+    _toolbarService = ToolbarService(widget._state);
 
     super.initState();
     _cacheToggledColors();
@@ -75,33 +78,6 @@ class _ColorButtonState extends State<ColorButton> {
   void dispose() {
     _runBuild$L?.cancel();
     super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    _cacheButtonsColors();
-    final isSelectionColorEnabled =
-        widget._state.disabledButtons.isSelectionColorEnabled;
-    final theme = Theme.of(context);
-
-    return IconBtn(
-      highlightElevation: 0,
-      hoverElevation: 0,
-      buttonsSpacing: widget.buttonsSpacing,
-      size: widget.iconSize * iconButtonFactor,
-      icon: Icon(
-        widget.icon,
-        size: widget.iconSize,
-        color: isSelectionColorEnabled
-            ? widget.background
-                ? _iconColorBgr
-                : _iconColor
-            : theme.disabledColor,
-      ),
-      fillColor: widget.background ? _fillColorBgr : _fillColor,
-      borderRadius: widget.iconTheme?.borderRadius ?? 2,
-      onPressed: isSelectionColorEnabled ? _showColorPicker : null,
-    );
   }
 
   @override
@@ -118,7 +94,34 @@ class _ColorButtonState extends State<ColorButton> {
     }
   }
 
+  @override
+  Widget build(BuildContext context) {
+    _cacheButtonsColors();
+    final theme = Theme.of(context);
+
+    return IconBtn(
+      highlightElevation: 0,
+      hoverElevation: 0,
+      buttonsSpacing: widget.buttonsSpacing,
+      size: widget.iconSize * iconButtonFactor,
+      icon: Icon(
+        widget.icon,
+        size: widget.iconSize,
+        color: isEnabled
+            ? widget.background
+                ? _iconColorBgr
+                : _iconColor
+            : theme.disabledColor,
+      ),
+      fillColor: widget.background ? _fillColorBgr : _fillColor,
+      borderRadius: widget.iconTheme?.borderRadius ?? 2,
+      onPressed: isEnabled ? _showColorPicker : null,
+    );
+  }
+
   // === UTILS ===
+
+  bool get isEnabled => _toolbarService.isStylingEnabled;
 
   void _subscribeToRunBuild() {
     _runBuild$L =

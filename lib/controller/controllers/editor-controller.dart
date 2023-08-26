@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/services/text_editing.dart';
 import '../../doc-tree/services/coordinates.service.dart';
 import '../../document/controllers/document.controller.dart';
 import '../../document/models/delta-doc.model.dart';
@@ -14,6 +13,7 @@ import '../../selection/services/selection.service.dart';
 import '../../shared/state/editor-state-receiver.dart';
 import '../../shared/state/editor.state.dart';
 import '../../styles/services/styles.service.dart';
+import '../../toolbar/services/toolbar.service.dart';
 
 // Encapsulates the state of the editor and shares it with the paired toolbar/buttons.
 // The state is protected from public access to avoid client code dependencies to the internal architecture.
@@ -43,6 +43,7 @@ class EditorController {
   late final CoordinatesService _coordinatesService;
   late final LinksService _linksService;
   late final SelectionRendererService _selectionRendererService;
+  late final ToolbarService _toolbarService;
 
   final _state = EditorState();
 
@@ -61,6 +62,7 @@ class EditorController {
     _linksService = LinksService(_state);
     _coordinatesService = CoordinatesService(_state);
     _selectionRendererService = SelectionRendererService(_state);
+    _toolbarService = ToolbarService(_state);
 
     // Controllers
     _initControllersAndCacheControllersRefs();
@@ -86,7 +88,7 @@ class EditorController {
 
   // === TEXT STYLES ===
 
-  late final formatSelectedTextByStyle = _stylesService.formatSelectedTextByStyle;
+  late final formatSelectedTextByStyle = _stylesService.formatTextRangeWithStyle;
   late final formatSelectedText = _stylesService.formatTextRange;
   late final formatSelection = _stylesService.formatSelection;
   late final selectionStyle = _stylesService.getSelectionStyle;
@@ -148,10 +150,9 @@ class EditorController {
   late final removeSelectionLink = _linksService.removeSelectionLink;
   late final getOffsetForLinkMenu = _linksService.getOffsetForLinkMenu;
 
-  // === CODE ===
+  // === TOOLBAR ===
 
-  late final enableButtonsInCodeSelection = _selectionService.enableSelectionStylingButtons;
-  late final disableButtonsInCodeSelection = _selectionService.disableSelectionStylingButtons;
+  late final toggleStylingButtons = _toolbarService.toggleStylingButtons;
 
   // === KEYBOARD ===
 

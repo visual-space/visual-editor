@@ -19,12 +19,7 @@ class ApplyCheckListAction extends Action<ApplyChecklistIntent> {
   @override
   void invoke(ApplyChecklistIntent intent, [BuildContext? context]) {
     _stylesService.formatSelection(
-      _stylesService.hasSelectionChecklistAttr()
-          ? AttributeUtils.clone(
-              AttributesAliasesM.unchecked,
-              null,
-            )
-          : AttributesAliasesM.unchecked,
+      _stylesService.hasSelectionChecklistAttr() ? AttributeUtils.clone(AttributesAliasesM.unchecked, null) : AttributesAliasesM.unchecked,
     );
   }
 

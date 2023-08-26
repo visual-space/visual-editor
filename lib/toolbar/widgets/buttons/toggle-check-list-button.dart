@@ -64,33 +64,16 @@ class _ToggleCheckListButtonState extends State<ToggleCheckListButton> {
     _toolbarService = ToolbarService(widget._state);
     _stylesService = StylesService(widget._state);
 
-    super.initState();
-
     _isToggled = _getIsToggled();
 
     _subscribeToRunBuild();
+    super.initState();
   }
 
   @override
   void dispose() {
     _runBuild$L?.cancel();
     super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isSelectionCheckListEnabled = widget._state.disabledButtons.isSelectionChecklistEnabled;
-
-    return ToggleButton(
-      context: context,
-      icon: widget.icon,
-      buttonsSpacing: widget.buttonsSpacing,
-      fillColor: widget.fillColor,
-      isToggled: _isToggled,
-      onPressed: isSelectionCheckListEnabled ? _toggleAttribute : null,
-      iconSize: widget.iconSize,
-      iconTheme: widget.iconTheme,
-    );
   }
 
   @override
@@ -107,7 +90,21 @@ class _ToggleCheckListButtonState extends State<ToggleCheckListButton> {
     }
   }
 
+  @override
+  Widget build(BuildContext context) => ToggleButton(
+        context: context,
+        icon: widget.icon,
+        buttonsSpacing: widget.buttonsSpacing,
+        fillColor: widget.fillColor,
+        isToggled: _isToggled,
+        onPressed: isEnabled ? _toggleAttribute : null,
+        iconSize: widget.iconSize,
+        iconTheme: widget.iconTheme,
+      );
+
   // === UTILS ===
+
+  bool get isEnabled => _toolbarService.isStylingEnabled;
 
   void _subscribeToRunBuild() {
     _runBuild$L = _runBuildService.runBuild$.listen(
@@ -117,8 +114,7 @@ class _ToggleCheckListButtonState extends State<ToggleCheckListButton> {
     );
   }
 
-  Map<String, AttributeM>? get _attributes =>
-      _stylesService.getSelectionStyle().attributes;
+  Map<String, AttributeM>? get _attributes => _stylesService.getSelectionStyle().attributes;
 
   bool? _getIsToggled() {
     if (!(_documentControllerInitialised && _attributes != null)) {
@@ -139,14 +135,11 @@ class _ToggleCheckListButtonState extends State<ToggleCheckListButton> {
       return false;
     }
 
-    return attribute.value == AttributesAliasesM.unchecked.value ||
-        attribute.value == AttributesAliasesM.checked.value;
+    return attribute.value == AttributesAliasesM.unchecked.value || attribute.value == AttributesAliasesM.checked.value;
   }
 
   void _toggleAttribute() {
-    final attribute = _isToggled!
-        ? AttributeUtils.clone(AttributesAliasesM.unchecked, null)
-        : AttributesAliasesM.unchecked;
+    final attribute = _isToggled! ? AttributeUtils.clone(AttributesAliasesM.unchecked, null) : AttributesAliasesM.unchecked;
 
     _stylesService.formatSelection(attribute);
   }

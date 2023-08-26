@@ -9,6 +9,7 @@ import '../../../shared/models/editor-icon-theme.model.dart';
 import '../../../shared/state/editor-state-receiver.dart';
 import '../../../shared/state/editor.state.dart';
 import '../../../styles/services/styles.service.dart';
+import '../../services/toolbar.service.dart';
 import '../toolbar.dart';
 import 'shared/toggle-button.dart';
 
@@ -51,6 +52,7 @@ class ToggleStyleButton extends StatefulWidget with EditorStateReceiver {
 class _ToggleStyleButtonState extends State<ToggleStyleButton> {
   late final RunBuildService _runBuildService;
   late final StylesService _stylesService;
+  late final ToolbarService _toolbarService;
 
   bool? _isToggled;
   StreamSubscription? _runBuild$L;
@@ -59,35 +61,17 @@ class _ToggleStyleButtonState extends State<ToggleStyleButton> {
   void initState() {
     _runBuildService = RunBuildService(widget._state);
     _stylesService = StylesService(widget._state);
+    _toolbarService = ToolbarService(widget._state);
 
-    super.initState();
     _cacheIsToggled();
     _subscribeToRunBuild();
+    super.initState();
   }
 
   @override
   void dispose() {
     _runBuild$L?.cancel();
     super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isStylingEnabledInSelection =
-        widget._state.disabledButtons.isSelectionStylingEnabled;
-
-    return ToggleButton(
-      context: context,
-      icon: widget.icon,
-      buttonsSpacing: widget.buttonsSpacing,
-      fillColor: widget.fillColor,
-      isToggled: _isToggled,
-      onPressed: isStylingEnabledInSelection
-          ? () => _stylesService.toggleAttributeInSelection(widget.attribute)
-          : null,
-      iconSize: widget.iconSize,
-      iconTheme: widget.iconTheme,
-    );
   }
 
   @override
@@ -104,7 +88,21 @@ class _ToggleStyleButtonState extends State<ToggleStyleButton> {
     }
   }
 
+  @override
+  Widget build(BuildContext context) => ToggleButton(
+        context: context,
+        icon: widget.icon,
+        buttonsSpacing: widget.buttonsSpacing,
+        fillColor: widget.fillColor,
+        isToggled: _isToggled,
+        onPressed: isEnabled ? () => _stylesService.toggleAttributeInSelection(widget.attribute) : null,
+        iconSize: widget.iconSize,
+        iconTheme: widget.iconTheme,
+      );
+
   // === UTILS ===
+
+  bool get isEnabled => _toolbarService.isStylingEnabled;
 
   void _subscribeToRunBuild() {
     _runBuild$L = _runBuildService.runBuild$.listen(
@@ -117,8 +115,7 @@ class _ToggleStyleButtonState extends State<ToggleStyleButton> {
       return false;
     }
 
-    return _isToggled =
-        _stylesService.isAttributeToggledInSelection(widget.attribute);
+    return _isToggled = _stylesService.isAttributeToggledInSelection(widget.attribute);
   }
 
   bool get _documentControllerInitialised {

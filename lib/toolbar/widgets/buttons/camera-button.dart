@@ -9,6 +9,7 @@ import '../../../shared/models/editor-icon-theme.model.dart';
 import '../../../shared/state/editor-state-receiver.dart';
 import '../../../shared/state/editor.state.dart';
 import '../../models/media-picker.type.dart';
+import '../../services/toolbar.service.dart';
 import '../toolbar.dart';
 
 // Insert in the document images capture via the camera.
@@ -56,6 +57,7 @@ class CameraButton extends StatefulWidget with EditorStateReceiver {
 class _CameraButtonState extends State<CameraButton> {
   late final MediaLoaderService _mediaLoaderService;
   late final RunBuildService _runBuildService;
+  late final ToolbarService _toolbarService;
 
   StreamSubscription? _runBuild$L;
 
@@ -63,6 +65,7 @@ class _CameraButtonState extends State<CameraButton> {
   void initState() {
     _mediaLoaderService = MediaLoaderService(widget._state);
     _runBuildService = RunBuildService(widget._state);
+    _toolbarService = ToolbarService(widget._state);
 
     _subscribeToRunBuild();
     super.initState();
@@ -77,8 +80,7 @@ class _CameraButtonState extends State<CameraButton> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isSelectionCameraEnabled = widget._state.disabledButtons.isSelectionCameraEnabled;
-    final iconColor = isSelectionCameraEnabled ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color : theme.disabledColor;
+    final iconColor = isEnabled ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color : theme.disabledColor;
     final iconFillColor = widget.iconTheme?.iconUnselectedFillColor ?? (widget.fillColor ?? theme.canvasColor);
 
     return IconBtn(
@@ -93,7 +95,7 @@ class _CameraButtonState extends State<CameraButton> {
       size: widget.iconSize * 1.77,
       fillColor: iconFillColor,
       borderRadius: widget.iconTheme?.borderRadius ?? 2,
-      onPressed: isSelectionCameraEnabled
+      onPressed: isEnabled
           ? () => _handleCameraButtonTap(
                 context,
                 widget.controller,
@@ -106,7 +108,65 @@ class _CameraButtonState extends State<CameraButton> {
     );
   }
 
-  // === PRIVATE ===
+  Widget _videoButton(
+    BuildContext context,
+    OnVideoPickCallback onVideoPickCallback,
+    FilePickImpl? filePickImpl,
+  ) =>
+      Padding(
+        padding: EdgeInsets.only(top: 15),
+        child: TextButton.icon(
+          icon: const Icon(
+            Icons.movie_creation,
+            color: Colors.orangeAccent,
+            size: 40,
+          ),
+          label: const Text(
+            'Video',
+            style: TextStyle(color: Colors.black87),
+          ),
+          onPressed: () {
+            _mediaLoaderService.insertVideo(
+              context,
+              ImageSource.camera,
+              onVideoPickCallback,
+              filePickImpl: filePickImpl,
+              webVideoPickImpl: widget.webVideoPickImpl,
+            );
+          },
+        ),
+      );
+
+  Widget _photoButton(
+    BuildContext context,
+    OnImagePickCallback onImagePickCallback,
+    FilePickImpl? filePickImpl,
+    WebImagePickImpl? webImagePickImpl,
+  ) =>
+      TextButton.icon(
+        icon: const Icon(
+          Icons.photo,
+          color: Colors.cyanAccent,
+          size: 40,
+        ),
+        label: const Text(
+          'Photo',
+          style: TextStyle(color: Colors.black87),
+        ),
+        onPressed: () {
+          _mediaLoaderService.pickImage(
+            context,
+            ImageSource.camera,
+            onImagePickCallback,
+            filePickImpl: filePickImpl,
+            webImagePickImpl: webImagePickImpl,
+          );
+        },
+      );
+
+  // === UTILS ===
+
+  bool get isEnabled => _toolbarService.isStylingEnabled;
 
   Future<void> _handleCameraButtonTap(
     BuildContext context,
@@ -164,57 +224,6 @@ class _CameraButtonState extends State<CameraButton> {
       webVideoPickImpl: widget.webVideoPickImpl,
     );
   }
-
-  Widget _videoButton(BuildContext context, OnVideoPickCallback onVideoPickCallback, FilePickImpl? filePickImpl) {
-    return Padding(
-      padding: EdgeInsets.only(top: 15),
-      child: TextButton.icon(
-        icon: const Icon(
-          Icons.movie_creation,
-          color: Colors.orangeAccent,
-          size: 40,
-        ),
-        label: const Text(
-          'Video',
-          style: TextStyle(color: Colors.black87),
-        ),
-        onPressed: () {
-          _mediaLoaderService.insertVideo(
-            context,
-            ImageSource.camera,
-            onVideoPickCallback,
-            filePickImpl: filePickImpl,
-            webVideoPickImpl: widget.webVideoPickImpl,
-          );
-        },
-      ),
-    );
-  }
-
-  TextButton _photoButton(BuildContext context, OnImagePickCallback onImagePickCallback, FilePickImpl? filePickImpl, WebImagePickImpl? webImagePickImpl) {
-    return TextButton.icon(
-      icon: const Icon(
-        Icons.photo,
-        color: Colors.cyanAccent,
-        size: 40,
-      ),
-      label: const Text(
-        'Photo',
-        style: TextStyle(color: Colors.black87),
-      ),
-      onPressed: () {
-        _mediaLoaderService.pickImage(
-          context,
-          ImageSource.camera,
-          onImagePickCallback,
-          filePickImpl: filePickImpl,
-          webImagePickImpl: webImagePickImpl,
-        );
-      },
-    );
-  }
-
-  // === UTILS ===
 
   // In order to update the button state after each selection change check if button is enabled.
   void _subscribeToRunBuild() {

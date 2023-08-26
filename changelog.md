@@ -20,6 +20,7 @@ If you want to learn more about the specs, all tickets are available by followin
   - Rinse and repeat
 - Renamed `replaceText()` back to `replace()`. Technically speaking this is the correct name. It was change some months ago due to poor understanding on our side of the Quill API. We wanted a name that made it simpler to understand what `update()`, `replace()`, `compose()` do. These methods were very poorly documented. However the naming is correct. They are short names mostly because these are public API methods. Now why they are duplicated is explained in the updated documentation.
 - Improved docs. [#204](https://github.com/visual-space/visual-editor/issues/204)
+- Toolbar - Disable Styling Options For Code Blocks, Cleanup [#230](https://github.com/visual-space/visual-editor/issues/230) - Some very bad design choices have been made in the state store architecture and in the callstack overall. Especially calling runBuild twice because the delayed btn enabled state bug was not properly fixed at the root.
 
 
 ## Overlay - Custom overlay [#209](https://github.com/visual-space/visual-editor/issues/209)

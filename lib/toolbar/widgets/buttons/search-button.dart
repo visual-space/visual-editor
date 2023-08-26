@@ -60,6 +60,8 @@ class SearchButton extends StatelessWidget with EditorStateReceiver {
     );
   }
 
+  // === UTILS ===
+
   void _initSearchBar() {
     _state.refs.overlayEntry = OverlayEntry(
       builder: (context) => Positioned(

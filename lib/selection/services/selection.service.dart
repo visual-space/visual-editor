@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 
 import '../../cursor/services/caret.service.dart';
 import '../../doc-tree/services/coordinates.service.dart';
@@ -12,6 +11,7 @@ import '../../editor/services/editor.service.dart';
 import '../../editor/services/run-build.service.dart';
 import '../../inputs/services/keyboard.service.dart';
 import '../../shared/state/editor.state.dart';
+import '../../toolbar/services/toolbar.service.dart';
 import 'selection-handles.service.dart';
 import 'selection-renderer.service.dart';
 
@@ -29,6 +29,7 @@ class SelectionService {
   late final SelectionRendererService _selectionRendererService;
   late final SelectionHandlesService _selectionHandlesService;
   late final KeyboardService _keyboardService;
+  late final ToolbarService _toolbarService;
   final _nodeUtils = NodeUtils();
 
   final EditorState state;
@@ -40,6 +41,7 @@ class SelectionService {
     _selectionRendererService = SelectionRendererService(state);
     _selectionHandlesService = SelectionHandlesService(state);
     _keyboardService = KeyboardService(state);
+    _toolbarService = ToolbarService(state);
   }
 
   // === MOVE CURSOR ===
@@ -141,11 +143,8 @@ class SelectionService {
     required SelectionChangedCause cause,
     Offset? to,
   }) {
-    _handleDisabledButtonsInSelection();
-
     final fromPosition = _coordinatesService.getPositionForOffset(from);
-    final toPosition =
-        to == null ? null : _coordinatesService.getPositionForOffset(to);
+    final toPosition = to == null ? null : _coordinatesService.getPositionForOffset(to);
     var baseOffset = fromPosition.offset;
     var extentOffset = fromPosition.offset;
 
@@ -169,8 +168,7 @@ class SelectionService {
   // Selects all text, brings into view and triggers build().
   void selectAll(
     SelectionChangedCause cause,
-    RemoveSpecialCharsAndUpdateDocTextAndStyleCallback
-        removeSpecialCharsAndUpdateDocTextAndStyle,
+    RemoveSpecialCharsAndUpdateDocTextAndStyleCallback removeSpecialCharsAndUpdateDocTextAndStyle,
   ) {
     removeSpecialCharsAndUpdateDocTextAndStyle(
       _plainText.copyWith(
@@ -193,8 +191,6 @@ class SelectionService {
     Offset to, {
     required SelectionChangedCause cause,
   }) {
-    _handleDisabledButtonsInExtendedSelection();
-
     final selOrigin = state.selection.origin;
 
     // The below logic does not exactly match the native version because
@@ -205,7 +201,7 @@ class SelectionService {
 
     final selection = state.selection.selection;
     final toPosition = _coordinatesService.getPositionForOffset(to);
-    TextSelection? newSelection;
+    var newSelection = TextSelection.collapsed(offset: 0);
 
     // From extent offset
     if (toPosition.offset < selOrigin.baseOffset) {
@@ -225,10 +221,7 @@ class SelectionService {
     }
 
     // Cache selection + Trigger Build
-    cacheSelectionAndUpdGuiElems(
-      newSelection ?? TextSelection.collapsed(offset: 0),
-      cause,
-    );
+    cacheSelectionAndUpdGuiElems(newSelection, cause);
   }
 
   // === UPDATE GUI ===
@@ -242,19 +235,13 @@ class SelectionService {
   // Brings the caret into view by scrolling the viewport.
   // TODO Double check if the floating cursor still works fine after merging the duplication
   //  prevention code in one single method (Adrian Ian 2023).
-  void cacheSelectionAndUpdGuiElems(
-    TextSelection newSelection,
-    SelectionChangedCause cause,
-  ) {
+  void cacheSelectionAndUpdGuiElems(TextSelection newSelection, SelectionChangedCause cause) {
     // Prevent duplicate selection render
-    final focusingEmpty = newSelection.baseOffset == 0 &&
-        newSelection.extentOffset == 0 &&
-        !state.refs.focusNode.hasFocus;
+    final focusingEmpty = newSelection.baseOffset == 0 && newSelection.extentOffset == 0 && !state.refs.focusNode.hasFocus;
+    final sameSelectionFromKb = newSelection == state.selection.selection && cause != SelectionChangedCause.keyboard;
+    final duplicateSelection = !focusingEmpty && sameSelectionFromKb;
 
-    final sameSelectionFromKb = newSelection == state.selection.selection &&
-        cause != SelectionChangedCause.keyboard;
-
-    if (!focusingEmpty && sameSelectionFromKb) {
+    if (duplicateSelection) {
       return;
     }
 
@@ -264,8 +251,7 @@ class SelectionService {
     cacheSelectionAndRunBuild(newSelection, ChangeSource.LOCAL);
 
     // Show Selection Handles
-    state.refs.widget.selectionHandlesController?.handlesVisible =
-        _selectionHandlesService.shouldShowSelectionHandles();
+    state.refs.widget.selectionHandlesController?.handlesVisible = _selectionHandlesService.shouldShowSelectionHandles();
 
     // Request Keyboard
     if (!state.keyboard.isVisible) {
@@ -293,11 +279,9 @@ class SelectionService {
   }
 
   // Store the new selection extent values and runs the build to update the document widget tree.
-  void cacheSelectionAndRunBuild(
-    TextSelection textSelection,
-    ChangeSource source,
-  ) {
+  void cacheSelectionAndRunBuild(TextSelection textSelection, ChangeSource source) {
     cacheSelection(textSelection, source);
+    _toggleStylingButtonsIfCodeSelection();
     _runBuildService.runBuild();
     callOnSelectionChanged();
   }
@@ -312,44 +296,6 @@ class SelectionService {
       extentOffset: math.min(selection.extentOffset, end),
     );
     state.styles.toggledStyle = StyleM();
-  }
-
-  // === UPDATE BUTTONS ===
-
-  void disableSelectionStylingButtons() {
-    state.disabledButtons.isSelectionStylingEnabled = false;
-    state.disabledButtons.isSelectionImageEnabled = false;
-    state.disabledButtons.isSelectionIndentEnabled = false;
-    state.disabledButtons.isSelectionColorEnabled = false;
-    state.disabledButtons.isSelectionChecklistEnabled = false;
-    state.disabledButtons.isSelectionCameraEnabled = false;
-    state.disabledButtons.isSelectionVideoEnabled = false;
-    state.disabledButtons.isSelectionAlignmentEnabled = false;
-    state.disabledButtons.isSelectionHeaderEnabled = false;
-    state.disabledButtons.isSelectionDropdownEnabled = false;
-  }
-
-  void disableSelectionStylingButtonsAndRunBuild() {
-    disableSelectionStylingButtons();
-    _runBuildService.runBuild();
-  }
-
-  void enableSelectionStylingButtons() {
-    state.disabledButtons.isSelectionStylingEnabled = true;
-    state.disabledButtons.isSelectionImageEnabled = true;
-    state.disabledButtons.isSelectionIndentEnabled = true;
-    state.disabledButtons.isSelectionColorEnabled = true;
-    state.disabledButtons.isSelectionChecklistEnabled = true;
-    state.disabledButtons.isSelectionCameraEnabled = true;
-    state.disabledButtons.isSelectionVideoEnabled = true;
-    state.disabledButtons.isSelectionAlignmentEnabled = true;
-    state.disabledButtons.isSelectionHeaderEnabled = true;
-    state.disabledButtons.isSelectionDropdownEnabled = true;
-  }
-
-  void enableSelectionStylingButtonsAndRunBuild() {
-    enableSelectionStylingButtons();
-    _runBuildService.runBuild();
   }
 
   // === CALLBACKS ===
@@ -384,43 +330,12 @@ class SelectionService {
 
   // === PRIVATE ===
 
-  // Disables/enables toolbar buttons in certain situations.
-  void _handleDisabledButtonsInSelection() =>
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        // Disable styling in code blocks and inline code.
-        final selectionIsCodeBlock = state.refs.controller
-            .selectionStyle()
-            .attributes
-            .containsKey('code-block');
-        final selectionIsInlineCode = state.refs.controller
-            .selectionStyle()
-            .attributes
-            .containsKey('code');
+  // We disable the styling options if the selection contains inline code or code blocks.
+  void _toggleStylingButtonsIfCodeSelection() {
+    final selectionIsCodeBlock = state.refs.controller.selectionStyle().attributes.containsKey('code-block');
+    final selectionIsInlineCode = state.refs.controller.selectionStyle().attributes.containsKey('code');
+    final isCodeSelected = selectionIsCodeBlock || selectionIsInlineCode;
 
-        if (selectionIsCodeBlock || selectionIsInlineCode) {
-          disableSelectionStylingButtonsAndRunBuild();
-        } else {
-          enableSelectionStylingButtonsAndRunBuild();
-        }
-      });
-
-  // Disables/enables toolbar buttons in certain situations.
-  // Currently if some part of the selection contains code we are disabling buttons for the whole selection.
-  void _handleDisabledButtonsInExtendedSelection() =>
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        // Disable styling in code blocks and inline code.
-        final allSelectionStyles =
-            state.refs.controller.getAllSelectionStyles();
-        var selectionContainsCode = false;
-
-        for (final style in allSelectionStyles) {
-          selectionContainsCode = style.attributes.containsKey('code-block') ||
-              style.attributes.containsKey('code');
-
-          if (selectionContainsCode) {
-            disableSelectionStylingButtonsAndRunBuild();
-            break;
-          }
-        }
-      });
+    _toolbarService.toggleStylingButtons(!isCodeSelected);
+  }
 }

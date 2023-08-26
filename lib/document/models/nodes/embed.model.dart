@@ -12,15 +12,15 @@ class EmbedM {
   // The data payload of this object.
   final dynamic payload;
 
-  const EmbedM(this.type, [
+  const EmbedM(
+    this.type, [
     this.payload = '',
   ]);
 
   // Used for explicit type conversion
   factory EmbedM.fromObject(Object? obj) => _embedUtils.fromObject(obj);
 
-  Map<String, dynamic> toJson() =>
-      {
+  Map<String, dynamic> toJson() => {
         type: payload,
       };
 }

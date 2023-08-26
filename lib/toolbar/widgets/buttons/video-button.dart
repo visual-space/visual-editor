@@ -12,6 +12,7 @@ import '../../../shared/state/editor-state-receiver.dart';
 import '../../../shared/state/editor.state.dart';
 import '../../models/media-pick.enum.dart';
 import '../../models/media-picker.type.dart';
+import '../../services/toolbar.service.dart';
 import '../dialogs/link-dialog.dart';
 import '../toolbar.dart';
 
@@ -64,12 +65,14 @@ class VideoButton extends StatefulWidget with EditorStateReceiver {
 
 class _VideoButtonState extends State<VideoButton> {
   late final RunBuildService _runBuildService;
+  late final ToolbarService _toolbarService;
 
   StreamSubscription? _runBuild$L;
 
   @override
   void initState() {
     _runBuildService = RunBuildService(widget._state);
+    _toolbarService = ToolbarService(widget._state);
 
     _subscribeToRunBuild();
     super.initState();
@@ -84,13 +87,11 @@ class _VideoButtonState extends State<VideoButton> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isSelectionVideoEnabled =
-        widget._state.disabledButtons.isSelectionVideoEnabled;
 
-    final iconColor = isSelectionVideoEnabled
+    final iconColor = isEnabled
         ? widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color
         : widget.iconTheme?.disabledIconColor ?? theme.disabledColor;
-    final iconFillColor = isSelectionVideoEnabled
+    final iconFillColor = isEnabled
         ? (widget.iconTheme?.iconUnselectedFillColor ?? theme.canvasColor)
         : widget.iconTheme?.disabledIconFillColor ?? theme.disabledColor;
 
@@ -106,11 +107,13 @@ class _VideoButtonState extends State<VideoButton> {
       size: widget.iconSize * 1.77,
       fillColor: iconFillColor,
       borderRadius: widget.iconTheme?.borderRadius ?? 2,
-      onPressed: isSelectionVideoEnabled ? () => _insertVideo(context) : null,
+      onPressed: isEnabled ? () => _insertVideo(context) : null,
     );
   }
 
-  // === PRIVATE ===
+  // === UTILS ===
+
+  bool get isEnabled => _toolbarService.isStylingEnabled;
 
   Future<void> _insertVideo(BuildContext context) async {
     if (widget.onVideoPickCallback != null) {
@@ -146,8 +149,6 @@ class _VideoButtonState extends State<VideoButton> {
       ),
     ).then(widget._embedsService.insertInSelectionVideoViaUrl);
   }
-
-  // === UTILS ===
 
   // In order to update the button state after each selection change check if button is enabled.
   void _subscribeToRunBuild() {

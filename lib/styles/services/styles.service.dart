@@ -32,17 +32,25 @@ class StylesService {
     _toolbarService = ToolbarService(state);
   }
 
+  bool get isSelectionCode {
+    final isSelectionInlineCode = getSelectionStyle().attributes.containsKey('code');
+    final isSelectionBlockCode = getSelectionStyle().attributes.containsKey('code-block');
+    return isSelectionInlineCode || isSelectionBlockCode;
+  }
+
   // === FORMAT ===
 
   // Add multiple styles at once on the selected text
-  void formatSelectedTextByStyle(int index, int len, StyleM style) {
+  void formatTextRangeWithStyle(int index, int len, StyleM style) {
     style.attributes.forEach((key, attr) {
       formatTextRange(index, len, attr);
     });
   }
 
-  // Formats the text by adding a new attribute to the selected text.
+  // Formats the text by adding a new attribute to the selected text and run build.
   // Based on the executed change, we reset the text selection range.
+  // Blocks the addition of styles on code inlines or blocks.
+  // If a new code inline or block was added/removed we toggle to styling options accordingly.
   // Ex: deleting text will decrease the text selection.
   void formatTextRange(
     int index,
@@ -50,20 +58,29 @@ class StylesService {
     AttributeM? attribute, [
     bool emitEvent = true,
   ]) {
-    if (len == 0 &&
-        attribute!.isInline &&
-        attribute.key != AttributesM.link.key) {
+    final isAttrCode = attribute?.key == 'code' || attribute?.key == 'code-block';
+
+    // Block non-code attr in code selection
+    if (isSelectionCode && !isAttrCode) {
+      return;
+    }
+
+    // Adding or removing code in selection toggles the styling buttons
+    final newAttrIsCode = isAttrCode && !isSelectionCode;
+    _toolbarService.toggleStylingButtons(!newAttrIsCode);
+
+    // Cache Toggled Style
+    // If no text was selected we store the new style in memory to later reuse it when typing new chars.
+    if (len == 0 && attribute!.isInline && attribute.key != AttributesM.link.key) {
       // Add the attribute to our toggledStyle.
       // It will be used later upon insertion.
       state.styles.updateToggledStyle(attribute);
     }
 
-    final change = state.refs.documentController.format(
-      index,
-      len,
-      attribute,
-      emitEvent,
-    );
+    // Apply the new styles
+    final change = state.refs.documentController.format(index, len, attribute, emitEvent);
+
+    // Update selection if changed
     final selection = state.selection.selection;
 
     // Transform selection against the composed change and give priority to the change.
@@ -82,45 +99,16 @@ class StylesService {
     // Update Layout
     _runBuildService.runBuild();
 
+    // Callback
     if (!sameSelection) {
       _selectionService.callOnSelectionChanged();
     }
   }
 
-  // Applies an attribute to a selection of text
+  // Applies an attribute to a selection of text (except code blocks)
   void formatSelection(AttributeM? attribute, [bool emitEvent = true]) {
     final selection = state.selection.selection;
-
-    // Styling is disabled for selection that contains code blocks and inline code at this point.
-    // (!) Must be added here in order to prevent applying style when using hotkeys too (e.g. Ctrl + B = applies bold attr).
-    final isSelectionCode =
-        getSelectionStyle().attributes.containsKey('code') ||
-            getSelectionStyle().attributes.containsKey('code-block');
-
-    // We must check that the attr applied is code or inline code in order to enable the
-    // clear format button.
-    final isAttrCode =
-        attribute?.key == 'code' || attribute?.key == 'code-block';
-
-    // Don't apply attr that is not code to code selection
-    if (isSelectionCode && !isAttrCode) {
-      return;
-    }
-
-    // Applying code attr over selection (that is not code), without changing selection,
-    // buttons color remains enabled, so we must disable and refresh the editor.
-    //
-    // Using the clear format button (without changing selection) which returns
-    // the same attr as code we must also check that the selection is not code
-    // in order to make it work properly and set buttons color to enable.
-    if (isAttrCode && !isSelectionCode) {
-      _selectionService.disableSelectionStylingButtonsAndRunBuild();
-    } else {
-      _selectionService.enableSelectionStylingButtonsAndRunBuild();
-    }
-
-    formatTextRange(
-        selection.start, selection.end - selection.start, attribute, emitEvent);
+    formatTextRange(selection.start, selection.end - selection.start, attribute, emitEvent);
   }
 
   // === GET STYLES ===
@@ -162,8 +150,7 @@ class StylesService {
   // Checks if selection contains a checklist attribute or not.
   bool hasSelectionChecklistAttr() {
     final attrs = getSelectionStyle().attributes;
-    var attribute =
-        _toolbarService.getToolbarButtonToggler()[AttributesM.list.key];
+    var attribute = _toolbarService.getToolbarButtonToggler()[AttributesM.list.key];
 
     if (attribute == null) {
       attribute = attrs[AttributesM.list.key];
@@ -176,8 +163,7 @@ class StylesService {
       return false;
     }
 
-    return attribute.value == AttributesAliasesM.unchecked.value ||
-        attribute.value == AttributesAliasesM.checked.value;
+    return attribute.value == AttributesAliasesM.unchecked.value || attribute.value == AttributesAliasesM.checked.value;
   }
 
   // === TOGGLE STYLE ===
@@ -203,10 +189,9 @@ class StylesService {
   // Toggles on/off the specified attribute in the current selection
   void toggleAttributeInSelection(AttributeM attribute) {
     final isToggled = isAttributeToggledInSelection(attribute);
+    final toggledAttribute = isToggled ? AttributeUtils.clone(attribute, null) : attribute;
 
-    formatSelection(
-      isToggled ? AttributeUtils.clone(attribute, null) : attribute,
-    );
+    formatSelection(toggledAttribute);
   }
 
   void clearSelectionFormatting() {

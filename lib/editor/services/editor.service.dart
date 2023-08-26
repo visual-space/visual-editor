@@ -115,7 +115,7 @@ class EditorService {
       ignoreFocus: ignoreFocus,
       emitEvent: emitEvent,
     );
-    var currDocDelta = state.refs.documentController.document.delta;
+
     compose(
       delta,
       const TextSelection.collapsed(offset: 0),
@@ -549,7 +549,7 @@ class EditorService {
             ? plainText.length - offset
             : styles[i + 1].offset;
 
-        _stylesService.formatSelectedTextByStyle(index, length, style);
+        _stylesService.formatTextRangeWithStyle(index, length, style);
       }
     }
   }

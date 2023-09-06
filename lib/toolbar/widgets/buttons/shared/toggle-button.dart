@@ -53,17 +53,23 @@ class ToggleButton extends StatelessWidget {
 
   // === UTILS ===
 
-  Color? _getToggleColor() => isToggled == true
-      ? (iconTheme?.iconSelectedColor ?? _theme.primaryIconTheme.color)
-      : (iconTheme?.iconUnselectedColor ?? _theme.iconTheme.color);
+  Color? _getToggleColor() {
+    if (isToggled == true) {
+      return iconTheme?.iconSelectedColor ?? _theme.primaryIconTheme.color;
+    } else {
+      return iconTheme?.iconUnselectedColor ?? _theme.iconTheme.color;
+    }
+  }
 
-  Color _getDisableToggleColor() =>
-      iconTheme?.disabledIconColor ?? _theme.disabledColor;
+  Color _getDisableToggleColor() => iconTheme?.disabledIconColor ?? _theme.disabledColor;
 
-  Color _getFillColor() => isToggled == true
-      ? (iconTheme?.iconSelectedFillColor ?? _theme.toggleableActiveColor)
-      : (iconTheme?.iconUnselectedFillColor ?? _theme.canvasColor);
+  Color _getFillColor() {
+    if (isToggled == true) {
+      return iconTheme?.iconSelectedFillColor ?? Theme.of(context).primaryColor;
+    } else {
+      return iconTheme?.iconUnselectedFillColor ?? _theme.canvasColor;
+    }
+  }
 
-  Color _getDisabledFillColor() =>
-      iconTheme?.disabledIconFillColor ?? (fillColor ?? _theme.canvasColor);
+  Color _getDisabledFillColor() => iconTheme?.disabledIconFillColor ?? (fillColor ?? _theme.canvasColor);
 }

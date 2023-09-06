@@ -1,13 +1,12 @@
 name: visual_editor
 description: A rich text editor supporting mobile and web (Demo App @ visualspace.app)
-version: 0.0.3
-#author: Visual Space, Adrian Moisa
+version: 0.0.1
 homepage: https://visualspace.app
 repository: https://github.com/visual-space/visual-editor
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
-  flutter: ">=3.0.0"
+  sdk: ">=2.17.0 <4.0.0"
+  flutter: ">=3.10.0"
 
 dependencies:
   flutter:
@@ -16,7 +15,7 @@ dependencies:
   flutter_colorpicker: ^1.0.3
   flutter_keyboard_visibility: ^5.2.0
   image_picker: ^0.8.5
-  photo_view: ^0.13.0
+  photo_view: ^0.14.0
   quiver: ^3.1.0
   string_validator: ^0.3.0
   url_launcher: ^6.1.0
@@ -28,7 +27,7 @@ dependencies:
   i18n_extension: ^4.2.1
   gallery_saver: ^2.3.2
   device_info_plus: ^3.2.3
-  google_fonts: ^3.0.1
+  google_fonts: ^4.0.4
 
 dev_dependencies:
   flutter_test:

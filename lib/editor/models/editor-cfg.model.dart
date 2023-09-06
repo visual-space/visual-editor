@@ -140,6 +140,10 @@ class EditorConfigM {
   // Later the markers can be enabled using: _controller.toggleMarkers()
   final bool? markersVisibility;
 
+  // Configuration of handler for media content inserted via the system input method.
+  // See [https://api.flutter.dev/flutter/widgets/EditableText/contentInsertionConfiguration.html]
+  final ContentInsertionConfiguration? contentInsertionConfiguration;
+
   // === CALLBACKS ===
 
   // Returns whether gesture is handled
@@ -220,6 +224,7 @@ class EditorConfigM {
     this.highlights = const [],
     this.markerTypes = const [],
     this.markersVisibility = true,
+    this.contentInsertionConfiguration,
 
     // Callbacks
     this.onTapDown,

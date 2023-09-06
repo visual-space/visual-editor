@@ -12,21 +12,23 @@ import 'search-bar-action-btn.dart';
 // Everytime a char is typed we search the final string in the entire document and highlight matches
 // A counter of the total matches will be displayed on the toolbar.
 // In the feature, more features will be add such as navigate trough matches and matches positions slimbar will be added
-class SearchBar extends StatefulWidget {
+// TODO Review if there's a better solution:
+// Added VE suffix to avoid collision with SearchBar from flutter.
+class SearchBarVE extends StatefulWidget {
   final EditorController editorController;
   final EditorState state;
 
-  SearchBar({
+  SearchBarVE({
     required this.editorController,
     required this.state,
     Key? key,
   }) : super(key: key);
 
   @override
-  State<SearchBar> createState() => _SearchBarState();
+  State<SearchBarVE> createState() => _SearchBarVEState();
 }
 
-class _SearchBarState extends State<SearchBar> {
+class _SearchBarVEState extends State<SearchBarVE> {
   final _controller = TextEditingController();
   final _fieldFocus = FocusNode();
   late StreamSubscription _changes$L;

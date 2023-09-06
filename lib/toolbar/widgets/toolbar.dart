@@ -483,7 +483,7 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
           ),
         if (customButtons.isNotEmpty)
           if (showDividers) _divider(),
-        for (var customIcon in customButtons)
+        for (final customIcon in customButtons)
           IconBtn(
             highlightElevation: 0,
             buttonsSpacing: toolbarSectionSpacing,

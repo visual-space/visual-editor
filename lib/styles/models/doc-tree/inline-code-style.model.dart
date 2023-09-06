@@ -37,12 +37,15 @@ class InlineCodeStyle {
     if (lineStyle.containsKey(AttributesAliasesM.h1.key)) {
       return header1 ?? style;
     }
+
     if (lineStyle.containsKey(AttributesAliasesM.h2.key)) {
       return header2 ?? style;
     }
+
     if (lineStyle.containsKey(AttributesAliasesM.h3.key)) {
       return header3 ?? style;
     }
+
     return style;
   }
 
@@ -51,9 +54,11 @@ class InlineCodeStyle {
     if (identical(this, other)) {
       return true;
     }
+
     if (other is! InlineCodeStyle) {
       return false;
     }
+
     return other.style == style &&
         other.header1 == header1 &&
         other.header2 == header2 &&
@@ -63,6 +68,5 @@ class InlineCodeStyle {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(style, header1, header2, header3, backgroundColor, radius);
+  int get hashCode => Object.hash(style, header1, header2, header3, backgroundColor, radius);
 }

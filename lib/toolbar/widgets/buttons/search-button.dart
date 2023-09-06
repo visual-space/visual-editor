@@ -10,10 +10,8 @@ class SearchButton extends StatelessWidget with EditorStateReceiver {
   final EditorController controller;
   final IconData icon;
   final double iconSize;
-
   final EditorIconThemeM? iconTheme;
   final double buttonsSpacing;
-
   late EditorState _state;
 
   SearchButton({
@@ -37,10 +35,8 @@ class SearchButton extends StatelessWidget with EditorStateReceiver {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final overlayState = Overlay.of(context);
-
     final iconColor = iconTheme?.iconUnselectedColor ?? theme.iconTheme.color;
-    final iconFillColor =
-        iconTheme?.iconUnselectedFillColor ?? theme.canvasColor;
+    final iconFillColor = iconTheme?.iconUnselectedFillColor ?? theme.canvasColor;
 
     return IconBtn(
       icon: Icon(
@@ -67,7 +63,7 @@ class SearchButton extends StatelessWidget with EditorStateReceiver {
       builder: (context) => Positioned(
         top: 0,
         right: 100,
-        child: SearchBar(
+        child: SearchBarVE(
           state: _state,
           editorController: controller,
         ),

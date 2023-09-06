@@ -144,7 +144,7 @@ class _SelectAlignmentButtonsState extends State<SelectAlignmentButtons> {
                 borderRadius: BorderRadius.circular(widget.iconTheme?.borderRadius ?? 2),
               ),
               fillColor: _valueToText[_value] == _valueString[index]
-                  ? (widget.iconTheme?.iconSelectedFillColor ?? theme.toggleableActiveColor)
+                  ? (widget.iconTheme?.iconSelectedFillColor ?? Theme.of(context).primaryColor)
                   : (widget.iconTheme?.iconUnselectedFillColor ?? theme.canvasColor),
               // Export a nice and clean version of this method in the styles service. Similar to other buttons.
               onPressed: isEnabled

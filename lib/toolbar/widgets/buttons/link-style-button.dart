@@ -97,16 +97,12 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
             widget.icon ?? Icons.link,
             size: widget.iconSize,
             color: isToggled
-                ? (widget.iconTheme?.iconSelectedColor ??
-                    theme.primaryIconTheme.color)
-                : (widget.iconTheme?.iconUnselectedColor ??
-                    theme.iconTheme.color),
+                ? (widget.iconTheme?.iconSelectedColor ?? theme.primaryIconTheme.color)
+                : (widget.iconTheme?.iconUnselectedColor ?? theme.iconTheme.color),
           ),
           fillColor: isToggled
-              ? (widget.iconTheme?.iconSelectedFillColor ??
-                  theme.toggleableActiveColor)
-              : (widget.iconTheme?.iconUnselectedFillColor ??
-                  theme.canvasColor),
+              ? (widget.iconTheme?.iconSelectedFillColor ?? Theme.of(context).primaryColor)
+              : (widget.iconTheme?.iconUnselectedFillColor ?? theme.canvasColor),
           borderRadius: widget.iconTheme?.borderRadius ?? 2,
           onPressed: () => _openLinkDialog(context),
         ),
@@ -136,7 +132,7 @@ class _LinkStyleButtonState extends State<LinkStyleButton> {
   }
 
   void _openLinkDialog(BuildContext context) {
-    if(!_documentControllerInitialised) {
+    if (!_documentControllerInitialised) {
       return;
     }
 

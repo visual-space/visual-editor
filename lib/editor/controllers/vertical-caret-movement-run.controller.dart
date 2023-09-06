@@ -6,8 +6,7 @@ import '../widgets/editor-textarea-renderer.dart';
 
 // Handles the movement of the caret up and down the document.
 // TODO Currently the motion is completely broken. Needs review (check if Quill has the same issue).
-class VerticalCaretMovementRunController
-    extends BidirectionalIterator<TextPosition> {
+class VerticalCaretMovementRunController extends Iterator<TextPosition> {
   VerticalCaretMovementRunController(
     this._renderer,
     this._currentTextPosition,
@@ -28,7 +27,6 @@ class VerticalCaretMovementRunController
     return true;
   }
 
-  @override
   bool movePrevious() {
     _currentTextPosition = _renderer.getTextPositionAbove(_currentTextPosition);
     return true;

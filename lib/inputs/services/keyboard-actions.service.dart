@@ -199,7 +199,7 @@ class KeyboardActionsService {
     // This isn't enough. Newline characters.
     boundary = ExpandedTextBoundary(
       WhitespaceBoundary(plainText),
-      WordBoundary(state.refs.renderer, plainText),
+      WordBoundaryVE(state.refs.renderer, plainText),
     );
 
     final mixedBoundary = intent.forward

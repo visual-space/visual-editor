@@ -403,6 +403,18 @@ class VisualEditorState extends State<VisualEditor>
     // TODO: implement performSelector
   }
 
+  @override
+  void insertContent(KeyboardInsertedContent content) {
+    assert(state.config.contentInsertionConfiguration?.allowedMimeTypes.contains(content.mimeType) ?? false);
+    state.config.contentInsertionConfiguration?.onContentInserted.call(content);
+  }
+
+  @override
+  bool get liveTextInputEnabled {
+    // TODO: implement liveTextInputEnabled
+    return false;
+  }
+
   // Required to avoid circular reference between EditorService and KeyboardService.
   // Ugly solution but it works.
   bool updGuiAndBuildViaHardwareKbEvent(_) => _keyboardService.updGuiAndBuildViaHardwareKeyboardEvent(

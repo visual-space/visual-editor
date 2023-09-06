@@ -61,7 +61,7 @@ class ToggleButton extends StatelessWidget {
       iconTheme?.disabledIconColor ?? _theme.disabledColor;
 
   Color _getFillColor() => isToggled == true
-      ? (iconTheme?.iconSelectedFillColor ?? _theme.toggleableActiveColor)
+      ? (iconTheme?.iconSelectedFillColor ?? _theme.colorScheme.secondary)
       : (iconTheme?.iconUnselectedFillColor ?? _theme.canvasColor);
 
   Color _getDisabledFillColor() =>

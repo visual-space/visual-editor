@@ -5,3 +5,4 @@
 /build
 .flutter-plugins
 .flutter-plugins-dependencies
+.vscode

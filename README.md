@@ -65,9 +65,9 @@ Inside of delta document you can inject any type of custom embed. Custom embeds 
 ## Link Menu
 Clicking on a link/text (which is set as a link) opens the link menu, which displays the url of the link, in order to open the link into another tab, beside the URL, there are 3 buttons. One for removing the link, leaving the text as it is without the link attribute. Second the edit link which opens the edit link menu. Third is the copy to clipboard menu.
 
-<p align="center">
-    <img src="https://user-images.githubusercontent.com/72706978/222151071-191321dd-24ba-45f7-a3cc-9a393476b4e8.mp4"/>
-</p>
+<div align="center">
+  <video src="https://user-images.githubusercontent.com/72706978/222151071-191321dd-24ba-45f7-a3cc-9a393476b4e8.mp4" />
+</div>
 
 
 ## Planned Features

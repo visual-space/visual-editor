@@ -701,4 +701,28 @@ class VisualEditorState extends State<VisualEditor>
       onScroll();
     }
   }
+  
+
+  // === CONFIG FROM `TextSelectionDelegate` ===
+  // By default, liveTextInput, lookUp, searchWeb and share are disabled.
+
+  @override
+  void insertContent(KeyboardInsertedContent content) {
+        assert(widget.config.contentInsertionConfiguration?.allowedMimeTypes
+            .contains(content.mimeType) ??
+        false);
+    widget.config.contentInsertionConfiguration?.onContentInserted.call(content);
+  }
+  
+  @override
+  bool get liveTextInputEnabled => false;
+  
+  @override
+  bool get lookUpEnabled => false;
+  
+  @override
+  bool get searchWebEnabled => false;
+  
+  @override
+  bool get shareEnabled => false;
 }

@@ -291,7 +291,7 @@ class SelectionHandlesController {
         link: _state.selectionLayers.toolbarLayerLink,
         showWhenUnlinked: false,
         offset: -editingRegion.topLeft,
-        child: _textSelectionControls.buildToolbar(
+        child:  _textSelectionControls.buildToolbar(
           context,
           editingRegion,
           baseLineHeight,

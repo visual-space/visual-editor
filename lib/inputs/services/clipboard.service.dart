@@ -180,7 +180,7 @@ class ClipboardService {
   ToolbarOptions toolbarOptions() {
     final enable = state.config.enableInteractiveSelection;
 
-    return ToolbarOptions(
+    return  ToolbarOptions(
       copy: enable,
       cut: enable,
       paste: enable,

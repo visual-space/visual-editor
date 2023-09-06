@@ -25,7 +25,7 @@ import '../models/expanded-text-boundary.dart';
 import '../models/line-break.model.dart';
 import '../models/mixed.boundary.model.dart';
 import '../models/whitespace-boundary.model.dart';
-import '../models/word-boundary.model.dart';
+import '../models/word-boundary.model.dart' as models;
 import 'clipboard.service.dart';
 
 // Recognizes standard keyboard interactions and triggers document changes accordingly.
@@ -199,7 +199,7 @@ class KeyboardActionsService {
     // This isn't enough. Newline characters.
     boundary = ExpandedTextBoundary(
       WhitespaceBoundary(plainText),
-      WordBoundary(state.refs.renderer, plainText),
+      models.WordBoundary(state.refs.renderer, plainText),
     );
 
     final mixedBoundary = intent.forward

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide SearchBar;
 
 import '../../../search/search-bar.dart';
 import '../../../shared/state/editor-state-receiver.dart';

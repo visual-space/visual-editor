@@ -1,5 +1,9 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:gallery_saver/gallery_saver.dart';
+import 'package:gal/gal.dart';
+import 'package:path/path.dart';
 
 import '../../shared/state/editor.state.dart';
 import '../../shared/translations/toolbar.i18n.dart';
@@ -54,11 +58,15 @@ class OptionMenuForReadOnlyImage extends StatelessWidget {
         icon: Icons.save,
         color: Colors.greenAccent,
         text: 'Save'.i18n,
-        onPressed: () {
+        onPressed: () async {
           final _imageUrl = _mediaLoaderService.appendFileExtensionToImageUrl(
             imageUrl,
           );
-          GallerySaver.saveImage(_imageUrl).then(
+
+          // Download image to gallery
+          final imagePath = '${Directory.systemTemp.path}/${basename(_imageUrl)}';
+          await Dio().download(_imageUrl, imagePath);
+          await Gal.putImage(imagePath).then(
             (_) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -68,6 +76,7 @@ class OptionMenuForReadOnlyImage extends StatelessWidget {
               Navigator.pop(context);
             },
           );
+          ;
         },
       );
 

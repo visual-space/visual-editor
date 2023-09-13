@@ -260,10 +260,10 @@ packages:
     dependency: "direct main"
     description:
       name: gal
-      sha256: "1bdef5879e4569910cfd8c77f460f98fcb7a1f910026af1daa80869856c67d66"
+      sha256: "170af7a7d930393611aeb86e02c0e30a9447d0f0b83bc8bee1a4d19f0436bcff"
       url: "https://pub.dev"
     source: hosted
-    version: "1.9.1"
+    version: "2.1.0"
   google_fonts:
     dependency: "direct main"
     description:

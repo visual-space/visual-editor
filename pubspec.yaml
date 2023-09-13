@@ -27,7 +27,7 @@ dependencies:
   i18n_extension: ^9.0.2
   device_info_plus: ^9.0.3 
   google_fonts: ^5.1.0
-  gal: ^1.9.1
+  gal: ^2.0.0
   dio: ^5.3.2
   path: ^1.8.3
 

@@ -25,9 +25,11 @@ dependencies:
   youtube_player_flutter: ^8.0.0
   diff_match_patch: ^0.4.1
   i18n_extension: ^9.0.2
-  gallery_saver: ^2.3.2
   device_info_plus: ^9.0.3 
-  google_fonts: ^4.0.4
+  google_fonts: ^5.1.0
+  gal: ^1.9.1
+  dio: ^5.3.2
+  path: ^1.8.3
 
 dev_dependencies:
   flutter_test:

@@ -22,19 +22,12 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
-
-	<!-- gal: Required -->
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>We need add only access to save medias</string>
-	<!-- gal: Required -->
-
-	<!-- gal: Required for ios < 14 or saving to album -->
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>We need access to save medias</string>
-	<!-- gal: Required for ios < 14 or saving to album -->
-
+	<key>LSApplicationCategoryType</key>
+	<string></string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>We need add only access to save medias</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Need to save image</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

@@ -136,7 +136,7 @@ class SelectionHandlesService {
 
     final controller = state.refs.widget.selectionHandlesController;
     final hasSelection = controller == null;
-    final hasToolbarAlready = controller!.toolbar != null;
+    final hasToolbarAlready = hasSelection ? true : controller!.toolbar != null;
 
     if (hasSelection || hasToolbarAlready) {
       return false;

@@ -412,6 +412,11 @@ class DocumentController {
   NodePositionM queryChild(int offset) {
     // TODO: prevent user from moving caret after last line-break.
     final nodePos = _contUtils.queryChild(rootNode, offset, true);
+    
+    // If the node is null, we return the rootNode's `NodeM`.
+    if (nodePos.node == null) {
+      return NodePositionM(rootNode.defaultChild, 0);
+    }
 
     if (nodePos.node is LineM) {
       return nodePos;

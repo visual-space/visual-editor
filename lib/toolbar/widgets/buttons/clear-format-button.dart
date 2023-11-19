@@ -9,7 +9,7 @@ import '../toolbar.dart';
 
 // Removes text formatting
 // ignore: must_be_immutable
-class ClearFormatButton extends StatefulWidget with EditorStateReceiver {
+class ClearFormatButton extends StatefulWidget implements EditorStateReceiver {
   final IconData icon;
   final double iconSize;
   final EditorController controller;

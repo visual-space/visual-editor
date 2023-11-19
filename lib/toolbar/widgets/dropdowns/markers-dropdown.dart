@@ -17,7 +17,7 @@ import '../../models/dropdown-option.model.dart';
 // to convert them into selected dropdown options.
 // Applies one of the available marker types.
 // ignore: must_be_immutable
-class MarkersDropdown extends StatelessWidget with EditorStateReceiver {
+class MarkersDropdown extends StatelessWidget implements EditorStateReceiver {
   late final MarkersService _markersService;
 
   final double iconSize;

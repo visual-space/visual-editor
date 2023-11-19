@@ -12,7 +12,7 @@ import 'node.model.dart';
 // necessarily mean the embed will look according to that style.
 // For instance, applying "bold" style to an image gives no effect, while adding a "link" to
 // an image actually makes the image react to user's action.
-class EmbedNodeM extends LeafM {
+base class EmbedNodeM extends LeafM {
   // Refer to https://www.fileformat.info/info/unicode/char/fffc/index.htm
   static const kObjectReplacementCharacter = '\uFFFC';
   static const kObjectReplacementInt = 65532;

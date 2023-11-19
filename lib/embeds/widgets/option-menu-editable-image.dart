@@ -19,7 +19,7 @@ import 'simple-dialog-item.dart';
 
 // Option menu for editable images that can: resize, copy or remove the image
 // ignore: must_be_immutable
-class OptionMenuEditableImage extends StatelessWidget with EditorStateReceiver {
+class OptionMenuEditableImage extends StatelessWidget implements EditorStateReceiver {
   late final EditorService _editorService;
   late final ClipboardService _clipboardService;
   late final StylesService _stylesService;

@@ -7,7 +7,7 @@ final _leafUtils = LeafUtils();
 
 // A leaf in Visual Editor document tree.
 // Contents of this node, either a String if this is a Text or an Embed if this is an BlockEmbed.
-abstract class LeafM extends NodeM {
+abstract base class LeafM extends NodeM {
   Object value;
 
   factory LeafM(Object data) => _leafUtils.newLeaf(data);

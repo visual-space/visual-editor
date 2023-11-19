@@ -22,7 +22,7 @@ import '../state/editor.state.dart';
 // Use getOptionsByCustomAttribute in case the custom attribute you defined
 // uses as values complex objects instead of primitives.
 // ignore: must_be_immutable
-class EditorDropdown<T> extends StatefulWidget with EditorStateReceiver {
+class EditorDropdown<T> extends StatefulWidget implements EditorStateReceiver {
   final IconData? icon;
   final bool iconOnly; // Only show the icon, hide the selected value text
   final double iconSize;

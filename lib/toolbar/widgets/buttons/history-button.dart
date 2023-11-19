@@ -12,7 +12,7 @@ import '../toolbar.dart';
 
 // Navigates through the history states of the document
 // ignore: must_be_immutable
-class HistoryButton extends StatefulWidget with EditorStateReceiver {
+class HistoryButton extends StatefulWidget implements EditorStateReceiver {
   final IconData icon;
   final double iconSize;
   final bool isUndo;

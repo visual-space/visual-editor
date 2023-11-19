@@ -17,7 +17,7 @@ import '../toolbar.dart';
 
 // Adds links in the selected text
 // ignore: must_be_immutable
-class LinkStyleButton extends StatefulWidget with EditorStateReceiver {
+class LinkStyleButton extends StatefulWidget implements EditorStateReceiver {
   final EditorController controller;
   final IconData? icon;
   final double iconSize;

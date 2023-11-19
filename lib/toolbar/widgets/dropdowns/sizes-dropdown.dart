@@ -12,7 +12,7 @@ import '../../models/font-sizes.const.dart';
 
 // Controls the size of the currently selected text
 // ignore: must_be_immutable
-class SizesDropdown extends StatelessWidget with EditorStateReceiver {
+class SizesDropdown extends StatelessWidget implements EditorStateReceiver {
   late final StylesService _stylesService;
 
   final Map<String, int> fontSizes;

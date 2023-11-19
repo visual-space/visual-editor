@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gallery_saver/gallery_saver.dart';
+// import 'package:gallery_saver/gallery_saver.dart'; // Stuck on http 0.13.0
 
 import '../../shared/state/editor.state.dart';
 import '../../shared/translations/toolbar.i18n.dart';
@@ -58,16 +58,19 @@ class OptionMenuForReadOnlyImage extends StatelessWidget {
           final _imageUrl = _mediaLoaderService.appendFileExtensionToImageUrl(
             imageUrl,
           );
-          GallerySaver.saveImage(_imageUrl).then(
-            (_) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Saved'.i18n),
-                ),
-              );
-              Navigator.pop(context);
-            },
-          );
+          // TODO restore restore `GallerySaver.saveImage`.
+          //  It was disabled due to conflict of libraries.
+          //  gallery_saver disabled for now because we really need http ^1.0.0 for google fonts latest.
+          // GallerySaver.saveImage(_imageUrl).then(
+          //   (_) {
+          //     ScaffoldMessenger.of(context).showSnackBar(
+          //       SnackBar(
+          //         content: Text('Saved'.i18n),
+          //       ),
+          //     );
+          //     Navigator.pop(context);
+          //   },
+          // );
         },
       );
 

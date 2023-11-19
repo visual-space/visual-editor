@@ -18,7 +18,7 @@ import '../toolbar.dart';
 // Controls color styles (text color and text background).
 // When pressed, a color palette modal is displayed.
 // ignore: must_be_immutable
-class ColorButton extends StatefulWidget with EditorStateReceiver {
+class ColorButton extends StatefulWidget implements EditorStateReceiver {
   final IconData icon;
   final double iconSize;
   final bool background;

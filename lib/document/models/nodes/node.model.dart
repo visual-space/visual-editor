@@ -11,7 +11,7 @@ final _stylesUtils = StylesUtils();
 // The offset property is relative to parent.
 // documentOffset provides absolute offset of this node within the document.
 // A node is considered mounted when the parent property is not `null`.
-abstract class NodeM extends LinkedListEntry<NodeM> {
+abstract base class NodeM extends LinkedListEntry<NodeM> {
   ContainerM? parent;
   StyleM style = StyleM();
 

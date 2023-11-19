@@ -14,7 +14,7 @@ import '../toolbar.dart';
 
 // Insert in the document images capture via the camera.
 // ignore: must_be_immutable
-class CameraButton extends StatefulWidget with EditorStateReceiver {
+class CameraButton extends StatefulWidget implements EditorStateReceiver {
   final IconData icon;
   final double iconSize;
   final Color? fillColor;

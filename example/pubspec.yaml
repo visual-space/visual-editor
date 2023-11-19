@@ -14,10 +14,10 @@ dependencies:
   flutter:
     sdk: flutter
 
-  cupertino_icons: ^1.0.4
-  path_provider: ^2.0.9
-  filesystem_picker: ^2.0.0
-  file_picker: ^4.5.1
+  cupertino_icons: 1.0.6
+  path_provider: 2.1.1
+  filesystem_picker: 4.0.0
+  file_picker: 6.1.1
   visual_editor:
     path: ../
 

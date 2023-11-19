@@ -18,7 +18,7 @@ import 'shared/toggle-button.dart';
 
 // Toggles checkboxes on and off.
 // ignore: must_be_immutable
-class ToggleCheckListButton extends StatefulWidget with EditorStateReceiver {
+class ToggleCheckListButton extends StatefulWidget implements EditorStateReceiver {
   final IconData icon;
   final double iconSize;
   final Color? fillColor;

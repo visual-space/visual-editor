@@ -7,7 +7,7 @@ import 'node.model.dart';
 // For each operation container looks for a child at specified
 // index position and forwards operation to that child.
 // Most of the operation handling logic is implemented by Line and Text.
-abstract class ContainerM<T extends NodeM?> extends NodeM {
+abstract base class ContainerM<T extends NodeM?> extends NodeM {
   final LinkedList<NodeM> _children = LinkedList<NodeM>();
 
   // === QUERIES ===

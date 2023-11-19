@@ -14,7 +14,7 @@ final _blockUtils = BlockUtils();
 // - Text Alignment
 // - Text Direction
 // - Code Block
-class BlockM extends ContainerM<LineM?> {
+base class BlockM extends ContainerM<LineM?> {
   // Creates new unmounted Block.
   @override
   NodeM newInstance() => BlockM();

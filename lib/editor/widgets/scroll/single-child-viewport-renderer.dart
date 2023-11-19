@@ -206,6 +206,7 @@ class RenderSingleChildViewport extends RenderBox
     RenderObject target,
     double alignment, {
     Rect? rect,
+    Axis? axis, // Unused, only Axis.vertical supported by this viewport.
   }) {
     rect ??= target.paintBounds;
     if (target is! RenderBox) {

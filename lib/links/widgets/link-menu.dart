@@ -16,7 +16,7 @@ import '../services/links.service.dart';
 // When tapping links this menu opens, displaying the url of the link,
 // and 3 buttons (edit link, remove link from text/url, and copy link to clipboard)
 // ignore: must_be_immutable
-class LinkMenu extends StatefulWidget with EditorStateReceiver {
+class LinkMenu extends StatefulWidget implements EditorStateReceiver {
   final EditorController controller;
   late EditorState _state;
 

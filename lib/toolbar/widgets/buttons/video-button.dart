@@ -18,7 +18,7 @@ import '../toolbar.dart';
 
 // Adds video in the document.
 // ignore: must_be_immutable
-class VideoButton extends StatefulWidget with EditorStateReceiver {
+class VideoButton extends StatefulWidget implements EditorStateReceiver {
   late final EmbedsService _embedsService;
   late final MediaLoaderService _imageVideoUtils;
 

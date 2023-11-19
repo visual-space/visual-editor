@@ -6,7 +6,7 @@ import '../../../shared/state/editor.state.dart';
 import '../../../visual-editor.dart';
 
 // ignore: must_be_immutable
-class SearchButton extends StatelessWidget with EditorStateReceiver {
+class SearchButton extends StatelessWidget implements EditorStateReceiver {
   final EditorController controller;
   final IconData icon;
   final double iconSize;

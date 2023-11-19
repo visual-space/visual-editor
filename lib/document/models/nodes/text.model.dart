@@ -5,7 +5,7 @@ import 'node.model.dart';
 // Text is a leaf node of a document tree.
 // Parent of a text node is always a Line, and as a consequence text
 // node's value cannot contain any line-break characters.
-class TextM extends LeafM {
+base class TextM extends LeafM {
   TextM([String text = ''])
       : assert(!text.contains('\n')),
         super.val(text);

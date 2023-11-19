@@ -14,7 +14,7 @@ import '../../models/dropdown-option.model.dart';
 // Controls the header style of the currently selected text.
 // ignore: must_be_immutable
 class HeaderStylesDropdown extends StatelessWidget
-    with EditorStateReceiver {
+    implements EditorStateReceiver {
   late final StylesService _stylesService;
 
   final Map<String, int> headerStyles;

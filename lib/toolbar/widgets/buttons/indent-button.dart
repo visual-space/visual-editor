@@ -13,7 +13,7 @@ import '../toolbar.dart';
 
 // Moves text to the right or to the left
 // ignore: must_be_immutable
-class IndentButton extends StatefulWidget with EditorStateReceiver {
+class IndentButton extends StatefulWidget implements EditorStateReceiver {
   final IconData icon;
   final double iconSize;
   final EditorController controller;

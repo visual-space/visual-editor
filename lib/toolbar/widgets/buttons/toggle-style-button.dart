@@ -15,7 +15,7 @@ import 'shared/toggle-button.dart';
 
 // Toggles on or off various styles in the document (bold, italic, underline, etc)
 // ignore: must_be_immutable
-class ToggleStyleButton extends StatefulWidget with EditorStateReceiver {
+class ToggleStyleButton extends StatefulWidget implements EditorStateReceiver {
   // Used internally to retrieve the state from the EditorController instance to which this button is linked to.
   // Can't be accessed publicly (by design) to avoid exposing the internals of the library.
   final AttributeM attribute;

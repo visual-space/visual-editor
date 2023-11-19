@@ -18,7 +18,7 @@ import '../toolbar.dart';
 
 // Adds an image.
 // ignore: must_be_immutable
-class ImageButton extends StatefulWidget with EditorStateReceiver {
+class ImageButton extends StatefulWidget implements EditorStateReceiver {
   final IconData icon;
   final double iconSize;
   final Color? fillColor;

@@ -125,7 +125,7 @@ To prevent direct access to the store we created a base class `EditorStateReceiv
 Beware, it's not recommended to access directly the state store in your client code (unless you know exactly what you are doing). When the internal editor architecture changes, you'll have to upgrade as well. Ideally make a PR or request us to expose in the public API the hooks you need.
 
 ```dart
-class ColorButton extends StatefulWidget with EditorStateReceiver {
+class ColorButton extends StatefulWidget implements EditorStateReceiver {
   final IconData icon;
   late EditorState _state;
 

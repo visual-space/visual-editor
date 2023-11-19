@@ -65,7 +65,7 @@ import 'styles/services/styles-cfg.service.dart';
 // The VisualEditor class implements TextSelectionGesturesBuilderDelegate.
 // This base class is used to separate the features related to gesture detection and gives the opportunity to override them.
 // ignore: must_be_immutable
-class VisualEditor extends StatefulWidget with EditorStateReceiver {
+class VisualEditor extends StatefulWidget implements EditorStateReceiver {
   final EditorController controller;
   final FocusNode focusNode;
   final ScrollController? scrollController;
@@ -409,11 +409,18 @@ class VisualEditorState extends State<VisualEditor>
     state.config.contentInsertionConfiguration?.onContentInserted.call(content);
   }
 
+  // TODO: implement liveTextInputEnabled
   @override
-  bool get liveTextInputEnabled {
-    // TODO: implement liveTextInputEnabled
-    return false;
-  }
+  bool get liveTextInputEnabled => false;
+
+  @override
+  bool get lookUpEnabled => false;
+
+  @override
+  bool get searchWebEnabled => false;
+
+  @override
+  bool get shareEnabled => false;
 
   // Required to avoid circular reference between EditorService and KeyboardService.
   // Ugly solution but it works.

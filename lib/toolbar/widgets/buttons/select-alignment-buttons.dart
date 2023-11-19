@@ -19,7 +19,7 @@ import '../toolbar.dart';
 // Renders 3 buttons for the 3 potential alignments (left, center, right)
 // TODO Split in methods
 // ignore: must_be_immutable
-class SelectAlignmentButtons extends StatefulWidget with EditorStateReceiver {
+class SelectAlignmentButtons extends StatefulWidget implements EditorStateReceiver {
   final EditorController controller;
   final double iconSize;
   final EditorIconThemeM? iconTheme;

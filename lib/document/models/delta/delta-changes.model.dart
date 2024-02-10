@@ -1,4 +1,3 @@
-import '../../../visual-editor.dart';
 import '../history/change-source.enum.dart';
 import 'delta.model.dart';
 

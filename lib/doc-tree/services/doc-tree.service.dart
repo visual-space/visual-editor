@@ -8,7 +8,6 @@ import '../../document/models/history/change-source.enum.dart';
 import '../../document/models/nodes/block.model.dart';
 import '../../document/models/nodes/line.model.dart';
 import '../../document/models/nodes/node.model.dart';
-import '../../document/services/delta.utils.dart';
 import '../../document/services/placeholder.service.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../links/models/link-action-menu.enum.dart';
@@ -22,6 +21,7 @@ import '../models/vertical-spacing.model.dart';
 import '../widgets/editable-text-block.dart';
 import '../widgets/editable-text-line-widget-renderer.dart';
 import '../widgets/text-line.dart';
+import 'utils/doc-tree.utils.dart';
 
 // Provides the widgets of the doc-tree as described by the document.
 // Each new breakline represents a new textline, which generates an EditableTextLine widget.
@@ -37,7 +37,7 @@ class DocTreeService {
   late final StylesService _stylesService;
   late final SelectionService _selectionService;
   late final PlaceholderService _placeholderService;
-  final _du = DeltaUtils();
+  final _dtu = DocTreeUtils();
 
   final EditorState state;
 
@@ -52,19 +52,18 @@ class DocTreeService {
   List<Widget> buildDocumentTree() {
     final docWidgets = <Widget>[];
     var indentLevelCounts = <int, int>{};
-    final nodes =
-        _placeholderService.getDocOrPlaceholderCtrl().rootNode.children;
+    final nodes = _placeholderService.getDocOrPlaceholderCtrl().rootNode.children;
     final renderers = <EditableTextLineWidgetRenderer>[];
 
     for (final node in nodes) {
       // Line
       if (node is LineM) {
-        final renderer = getEditableTextLineFromNode(node);
+        final renderer = _getEditableTextLineFromNode(node);
         renderers.add(renderer);
 
         docWidgets.add(
           Directionality(
-            textDirection: _du.getDirectionOfNode(node),
+            textDirection: _dtu.getDirectionOfNode(node),
             child: renderer,
           ),
         );
@@ -75,7 +74,7 @@ class DocTreeService {
 
         // Block
       } else if (node is BlockM) {
-        final renderer = getEditableTextBlockFromNode(
+        final renderer = _getEditableTextBlockFromNode(
           node,
           node.style.attributes,
           indentLevelCounts,
@@ -84,7 +83,7 @@ class DocTreeService {
         // TODO Unify duplicated code
         docWidgets.add(
           Directionality(
-            textDirection: _du.getDirectionOfNode(node),
+            textDirection: _dtu.getDirectionOfNode(node),
             child: renderer,
           ),
         );
@@ -112,7 +111,7 @@ class DocTreeService {
   // Nodes are defined in the delta json using new line chars "\n"
   // An editable text line is composed of a underlying text line (text spans)
   // and the editable text line wrapper (which renders text selection, markers and highlights).
-  EditableTextLineWidgetRenderer getEditableTextLineFromNode(LineM node) {
+  EditableTextLineWidgetRenderer _getEditableTextLineFromNode(LineM node) {
     final editor = state.refs.widget;
 
     // Text spans with text styling from flutter
@@ -148,7 +147,7 @@ class DocTreeService {
     return editableTextLine;
   }
 
-  Widget getEditableTextBlockFromNode(
+  Widget _getEditableTextBlockFromNode(
     BlockM node,
     Map<String, AttributeM<dynamic>> attributes,
     Map<int, int> indentLevelCounts,
@@ -288,42 +287,30 @@ class DocTreeService {
       final int? level = attrs[AttributesM.header.key]!.value;
       switch (level) {
         case 1:
-          return isLastLine
-              ? defaultStyles!.h1!.lastLineSpacing
-              : defaultStyles!.h1!.verticalSpacing;
+          return isLastLine ? defaultStyles!.h1!.lastLineSpacing : defaultStyles!.h1!.verticalSpacing;
         case 2:
-          return isLastLine
-              ? defaultStyles!.h2!.lastLineSpacing
-              : defaultStyles!.h2!.verticalSpacing;
+          return isLastLine ? defaultStyles!.h2!.lastLineSpacing : defaultStyles!.h2!.verticalSpacing;
         case 3:
-          return isLastLine
-              ? defaultStyles!.h3!.lastLineSpacing
-              : defaultStyles!.h3!.verticalSpacing;
+          return isLastLine ? defaultStyles!.h3!.lastLineSpacing : defaultStyles!.h3!.verticalSpacing;
         default:
           throw 'Invalid level $level';
       }
     }
 
-    return isLastLine
-        ? defaultStyles!.paragraph!.lastLineSpacing
-        : defaultStyles!.paragraph!.verticalSpacing;
+    return isLastLine ? defaultStyles!.paragraph!.lastLineSpacing : defaultStyles!.paragraph!.verticalSpacing;
   }
 
   // Updates the checkbox positioned at [offset] in document by changing its attribute according to [value].
   void _handleCheckboxTap(int offset, bool value) {
     if (!state.config.readOnly) {
       state.scrollAnimation.disabled = true;
-      final attribute =
-          value ? AttributesAliasesM.checked : AttributesAliasesM.unchecked;
+      final attribute = value ? AttributesAliasesM.checked : AttributesAliasesM.unchecked;
 
       _stylesService.formatTextRange(offset, 0, attribute);
 
       // Checkbox tapping causes text selection to go to offset 0.
       // Stop toggling those two buttons.
-      state.toolbar.buttonToggler = {
-        AttributesM.list.key: attribute,
-        AttributesM.header.key: AttributesM.header
-      };
+      state.toolbar.buttonToggler = {AttributesM.list.key: attribute, AttributesM.header.key: AttributesM.header};
 
       // Go back from offset 0 to current selection.
       SchedulerBinding.instance.addPostFrameCallback((_) {
@@ -337,8 +324,7 @@ class DocTreeService {
 
   Future<LinkMenuAction> _linkActionPicker(NodeM linkNode) async {
     final link = linkNode.style.attributes[AttributesM.link.key]!.value!;
-    final linkDelegate = state.config.linkActionPickerDelegate ??
-        defaultLinkActionPickerDelegate;
+    final linkDelegate = state.config.linkActionPickerDelegate ?? defaultLinkActionPickerDelegate;
 
     return linkDelegate(
       state.refs.widget.context,

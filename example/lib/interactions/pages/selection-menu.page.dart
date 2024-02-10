@@ -3,6 +3,9 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:visual_editor/document/models/material/offset.model.dart';
+import 'package:visual_editor/document/models/material/text-box.model.dart';
+import 'package:visual_editor/document/models/material/text-direction.enum.dart';
 import 'package:visual_editor/shared/models/selection-rectangles.model.dart';
 import 'package:visual_editor/visual-editor.dart';
 
@@ -38,8 +41,8 @@ class _SelectionMenuPageState extends State<SelectionMenuPage> {
 
   // Cache used to temporary store the rectangle and line offset as
   // delivered by the editor while the scroll offset is changing.
-  var _rectangle = TextBox.fromLTRBD(0, 0, 0, 0, TextDirection.ltr);
-  Offset? _lineOffset = Offset.zero;
+  var _rectangle = TextBoxM.fromLTRBD(0, 0, 0, 0, TextDirectionE.ltr);
+  OffsetM? _lineOffset = OffsetM.zero;
 
   // (!) This stream is extremely important for maintaining the page performance when updating the quick menu position.
   // The _positionQuickMenuAtRectangle() method will be called many times per second when scrolling.
@@ -47,8 +50,8 @@ class _SelectionMenuPageState extends State<SelectionMenuPage> {
   // We will update only the SelectionQuickMenu via the stream.
   // By using this trick we can prevent Flutter from running expensive page updates.
   // We will target our updates only on the area that renders the quick menu (far better performance).
-  final _quickMenuOffset$ = StreamController<Offset>.broadcast();
-  var _quickMenuOffset = Offset.zero;
+  final _quickMenuOffset$ = StreamController<OffsetM>.broadcast();
+  var _quickMenuOffset = OffsetM.zero;
 
   @override
   void initState() {
@@ -137,9 +140,7 @@ class _SelectionMenuPageState extends State<SelectionMenuPage> {
     final document = DeltaDocM.fromJson(jsonDecode(result));
 
     setState(() {
-      _controller = EditorController(
-        document: document,
-      );
+      _controller = EditorController(document: document);
     });
   }
 
@@ -240,24 +241,16 @@ class _SelectionMenuPageState extends State<SelectionMenuPage> {
     }
   }
 
-  void _positionQuickMenuAtRectangle(
-    TextBox rectangle,
-    Offset? lineOffset,
-    double scrollOffset,
-  ) {
+  void _positionQuickMenuAtRectangle(TextBoxM rectangle, OffsetM? lineOffset, double scrollOffset) {
     final hMidPoint = rectangle.left + (rectangle.right - rectangle.left) / 2;
     const topBarHeight = 55;
     const menuHeight = 30;
     const menuHalfWidth = 33;
 
     // Menu Position
-    final offset = Offset(
-      hMidPoint - menuHalfWidth,
-      (lineOffset?.dy ?? 0) +
-          rectangle.top -
-          scrollOffset +
-          topBarHeight -
-          menuHeight,
+    final offset = OffsetM(
+      dx: hMidPoint - menuHalfWidth,
+      dy: (lineOffset?.dy ?? 0) + rectangle.top - scrollOffset + topBarHeight - menuHeight,
     );
     _quickMenuOffset = offset;
     _quickMenuOffset$.sink.add(offset);

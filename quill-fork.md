@@ -4,6 +4,7 @@ While building the [Visual Space](https://visualspace.app) platform we begun usi
 ## Major Improvements Compared To Quill
 Check out the [changelog](https://github.com/visual-space/visual-editor/blob/develop/changelog.md) for a detailed review of what was changed. Also there's a [migration](https://github.com/visual-space/visual-editor/blob/develop/migration-guide.md) guide for users migrating from Quill.
 
+- **Processing Of Delta Docs Server Side** - `DocumentController` can be used in a dart backed to process delta documents, same code as the frontend.  
 - **[Maintainable Architecture](https://github.com/visual-space/visual-editor/issues/1)** - Source code was split in modules. Files were split in smaller files. A distinct state management layer was introduced. Class names have been simplified. We replaced the `ChangedNotifiers` with standalone streams. We simplified the `build()` methods. We merged the `Editor` and `RawEditor` in one file.
 - **[Extended Documentation](https://github.com/visual-space/visual-editor/issues/2)** - We are continuously adding in depth documentation to make it easier for new contributors to extend the source code. Quill has very little documentation and it lacks in depth explanation over the architecture. Our goal is to cover both new features and the legacy ones in detailed documentation.
 - **[Demo Pages](https://github.com/visual-space/visual-editor/issues/63)** - We've provided simple, concise demo pages to exemplify how to use Visual Editor for the various tasks you have.

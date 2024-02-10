@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 
 import '../../shared/state/editor.state.dart';
 import '../../shared/translations/toolbar.i18n.dart';
-import '../services/media-loader.service.dart';
+// import '../services/media-loader.service.dart'; // PARKED, maybe we will restore
 import 'image-tap-wrapper.dart';
 import 'simple-dialog-item.dart';
 
 // TODO: TEST ON MOBILE
 // Dialog for image read only that can save the image or zoom on the image.
 class OptionMenuForReadOnlyImage extends StatelessWidget {
-  late final MediaLoaderService _mediaLoaderService;
+  // late final MediaLoaderService _mediaLoaderService;
 
   final String imageUrl;
   final Widget child;
@@ -21,7 +21,7 @@ class OptionMenuForReadOnlyImage extends StatelessWidget {
     required this.child,
     Key? key,
   }) : super(key: key) {
-    _mediaLoaderService = MediaLoaderService(state);
+    // _mediaLoaderService = MediaLoaderService(state);
   }
 
   @override
@@ -55,9 +55,9 @@ class OptionMenuForReadOnlyImage extends StatelessWidget {
         color: Colors.greenAccent,
         text: 'Save'.i18n,
         onPressed: () {
-          final _imageUrl = _mediaLoaderService.appendFileExtensionToImageUrl(
-            imageUrl,
-          );
+          // final _imageUrl = _mediaLoaderService.appendFileExtensionToImageUrl(
+          //   imageUrl,
+          // );
           // TODO restore restore `GallerySaver.saveImage`.
           //  It was disabled due to conflict of libraries.
           //  gallery_saver disabled for now because we really need http ^1.0.0 for google fonts latest.

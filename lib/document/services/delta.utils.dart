@@ -1,18 +1,14 @@
 import 'dart:math' as math;
-import 'dart:ui';
 
 import 'package:collection/collection.dart';
 import 'package:diff_match_patch/diff_match_patch.dart' as dmp;
 
 import '../const/special-chars.const.dart';
 import '../controllers/delta.iterator.dart';
-import '../models/attributes/attributes-aliases.model.dart';
-import '../models/attributes/attributes.model.dart';
 import '../models/delta/data-decoder.type.dart';
 import '../models/delta/delta.model.dart';
 import '../models/delta/diff.model.dart';
 import '../models/delta/operation.model.dart';
-import '../models/nodes/node.model.dart';
 import 'nodes/operations.utils.dart';
 
 // Handles the mutations of the delta operations list.
@@ -98,8 +94,7 @@ class DeltaUtils {
 
       if (lastOp.isDelete && operation.isInsert) {
         index -= 1; // Always insert before deleting
-        final nLastOp =
-            (index > 0) ? delta.operations.elementAt(index - 1) : null;
+        final nLastOp = (index > 0) ? delta.operations.elementAt(index - 1) : null;
 
         if (nLastOp == null) {
           delta.operations.insert(0, operation);
@@ -109,9 +104,7 @@ class DeltaUtils {
       }
 
       if (lastOp.isInsert && operation.isInsert) {
-        if (_opUtils.hasSameAttributes(lastOp, operation) &&
-            operation.data is String &&
-            lastOp.data is String) {
+        if (_opUtils.hasSameAttributes(lastOp, operation) && operation.data is String && lastOp.data is String) {
           _mergeWithTail(delta, operation);
 
           return;
@@ -466,15 +459,11 @@ class DeltaUtils {
     var end = oldText.length;
     final deltaLength = newText.length - end;
 
-    for (final limit = math.max(0, cursorPosition - deltaLength);
-        end > limit && oldText[end - 1] == newText[end + deltaLength - 1];
-        end--) {}
+    for (final limit = math.max(0, cursorPosition - deltaLength); end > limit && oldText[end - 1] == newText[end + deltaLength - 1]; end--) {}
 
     var start = 0;
 
-    for (final startLimit = cursorPosition - math.max(0, deltaLength);
-        start < startLimit && oldText[start] == newText[start];
-        start++) {}
+    for (final startLimit = cursorPosition - math.max(0, deltaLength); start < startLimit && oldText[start] == newText[start]; start++) {}
 
     final deleted = (start >= end) ? '' : oldText.substring(start, end);
     final inserted = newText.substring(start, end + deltaLength);
@@ -527,16 +516,6 @@ class DeltaUtils {
     }
 
     return diff;
-  }
-
-  TextDirection getDirectionOfNode(NodeM node) {
-    final direction = node.style.attributes[AttributesM.direction.key];
-
-    if (direction == AttributesAliasesM.rtl) {
-      return TextDirection.rtl;
-    }
-
-    return TextDirection.ltr;
   }
 
   // === JSON ===

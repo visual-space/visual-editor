@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 
 import '../../doc-tree/services/rectangles.service.dart';
+import '../../document/models/material/offset.model.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../shared/state/editor.state.dart';
 
@@ -128,18 +129,19 @@ class HighlightsHoverService {
     var highlightIsHovered = false;
 
     for (final line in highlight.rectanglesByLines!) {
-      final pointer = Offset(
-        eventPos.dx - (line.docRelPosition.dx),
-        eventPos.dy - (line.docRelPosition.dy),
+      final pointer = OffsetM(
+        dx: eventPos.dx - (line.docRelPosition.dx),
+        dy: eventPos.dy - (line.docRelPosition.dy),
       );
       final editorOffset = state.refs.renderer.localToGlobal(Offset.zero);
+      final _editorOffset = OffsetM(dx: editorOffset.dx, dy: editorOffset.dy);
 
       // Search For Hits
       for (final rectangle in line.rectangles) {
         final isHovered = _rectanglesService.isRectangleHovered(
           rectangle,
           pointer,
-          editorOffset,
+          _editorOffset,
         );
 
         if (isHovered) {

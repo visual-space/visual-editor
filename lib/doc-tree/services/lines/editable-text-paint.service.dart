@@ -46,8 +46,7 @@ class EditableTextPaintService {
       // Code
       if (cfg.inlineCodeStyle.backgroundColor != null) {
         for (final node in cfg.line.children) {
-          final isInlineCodeOrCodeBlock = node is! TextM ||
-              !node.style.containsKey(AttributesM.inlineCode.key);
+          final isInlineCodeOrCodeBlock = node is! TextM || !node.style.containsKey(AttributesM.inlineCode.key);
 
           if (isInlineCodeOrCodeBlock) {
             continue;
@@ -69,11 +68,7 @@ class EditableTextPaintService {
         // Draw Markers
         markers.forEach((marker) {
           final markerType = _getMarkerType(marker);
-
-          final isHovered = state.markers.hoveredMarkers.firstWhereOrNull(
-                (_marker) => _marker.id == marker.id,
-              ) !=
-              null;
+          final isHovered = state.markers.hoveredMarkers.firstWhereOrNull((_marker) => _marker.id == marker.id) != null;
 
           if (markerType?.isVisible == true) {
             _rectanglesService.drawRectangles(
@@ -88,10 +83,7 @@ class EditableTextPaintService {
       }
 
       // Cursor above text (iOS)
-      if (state.refs.focusNode.hasFocus &&
-          cursorController.show.value &&
-          cfg.containsCursor() &&
-          !cursorController.style.paintAboveText) {
+      if (state.refs.focusNode.hasFocus && cursorController.show.value && cfg.containsCursor() && !cursorController.style.paintAboveText) {
         _paintCursor(cfg, offset);
       }
 
@@ -100,10 +92,7 @@ class EditableTextPaintService {
       cfg.context.paintChild(cfg.underlyingText as RenderObject, offset);
 
       // Cursor bellow text (Android)
-      if (state.refs.focusNode.hasFocus &&
-          cursorController.show.value &&
-          cfg.containsCursor() &&
-          cursorController.style.paintAboveText) {
+      if (state.refs.focusNode.hasFocus && cursorController.show.value && cfg.containsCursor() && cursorController.style.paintAboveText) {
         _paintCursor(cfg, offset);
       }
 
@@ -116,8 +105,7 @@ class EditableTextPaintService {
           cfg.selection,
           false,
         );
-        final selectedRects = cfg.selectedRects ??
-            cfg.underlyingText?.getBoxesForSelection(local);
+        final selectedRects = cfg.selectedRects ?? cfg.underlyingText?.getBoxesForSelection(local);
 
         _paintSelection(cfg.context, offset, selectedRects);
       }
@@ -168,8 +156,7 @@ class EditableTextPaintService {
   }
 
   Color _getMarkerColor(bool isHovered, MarkerTypeM? markerType) {
-    return (isHovered ? markerType?.hoverColor : markerType?.color) ??
-        Colors.blue.withOpacity(0.1);
+    return (isHovered ? markerType?.hoverColor : markerType?.color) ?? Colors.blue.withOpacity(0.1);
   }
 
   void _paintSelection(
@@ -192,11 +179,8 @@ class EditableTextPaintService {
     PaintingContext context,
     Offset offset,
   ) {
-    final isHovered = state.highlights.hoveredHighlights
-        .map((_highlight) => _highlight.id)
-        .contains(highlight.id);
-    final paint = Paint()
-      ..color = isHovered ? highlight.hoverColor : highlight.color;
+    final isHovered = state.highlights.hoveredHighlights.map((_highlight) => _highlight.id).contains(highlight.id);
+    final paint = Paint()..color = isHovered ? highlight.hoverColor : highlight.color;
 
     if (highlightedRects.isNotEmpty) {
       for (final box in highlightedRects) {
@@ -237,9 +221,7 @@ class EditableTextPaintService {
         editable: cfg.underlyingText,
         style: cursorController.style,
         prototype: cfg.caretPrototype,
-        color: cursorController.isFloatingCursorActive
-            ? cursorController.style.backgroundColor
-            : cursorController.color.value,
+        color: cursorController.isFloatingCursorActive ? cursorController.style.backgroundColor : cursorController.color.value,
         devicePixelRatio: cfg.devicePixelRatio,
       );
 }

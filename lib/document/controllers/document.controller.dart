@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import '../../rules/controllers/rules.controller.dart';
 import '../../rules/models/rule-type.enum.dart';
 import '../../rules/models/rule.model.dart';
@@ -9,6 +7,7 @@ import '../models/delta-doc.model.dart';
 import '../models/delta/delta-changes.model.dart';
 import '../models/delta/delta.model.dart';
 import '../models/history/change-source.enum.dart';
+import '../models/material/test-selection.model.dart';
 import '../models/nodes/block.model.dart';
 import '../models/nodes/embed.model.dart';
 import '../models/nodes/leaf.model.dart';
@@ -101,14 +100,9 @@ class DocumentController {
   DocumentController(
     this.document,
     this._emitDocChange,
-    final Function(DeltaM deltaRes, int? length, bool emitEvent)?
-        _composeCacheSelectionAndRunBuild,
+    final Function(DeltaM deltaRes, int? length, bool emitEvent)? _composeCacheSelectionAndRunBuild,
   ) {
-    historyController = HistoryController(
-      document,
-      _composeCacheSelectionAndRunBuild,
-    );
-
+    historyController = HistoryController(document, _composeCacheSelectionAndRunBuild);
     initDocument(document.delta);
   }
 
@@ -207,7 +201,6 @@ class DocumentController {
 
     if (shouldDelete) {
       final deleteDelta = delete(index, length, emitEvent);
-
       changeDelta = _du.compose(changeDelta, deleteDelta);
     }
 
@@ -227,7 +220,6 @@ class DocumentController {
     bool emitEvent,
   ) {
     assert(index >= 0 && len >= 0 && attribute != null);
-
     var deltaRes = DeltaM();
 
     final changeDelta = _rulesController.apply(
@@ -289,9 +281,7 @@ class DocumentController {
     // Nodes Operations
     for (final operation in deltaRes.toList()) {
       // Styles
-      final style = operation.attributes != null
-          ? _stylesUtils.fromJson(operation.attributes)
-          : null;
+      final style = operation.attributes != null ? _stylesUtils.fromJson(operation.attributes) : null;
 
       // Apply the changes from the new delta model (operations)
       // to modify the document model (nodes).
@@ -337,9 +327,7 @@ class DocumentController {
 
     // Apply Change To Doc Delta + Cache New Delta
     try {
-      document.delta = overrideRootNode
-          ? changeDelta
-          : _du.compose(document.delta, changeDelta);
+      document.delta = overrideRootNode ? changeDelta : _du.compose(document.delta, changeDelta);
     } catch (e) {
       throw 'Delta compose failed.';
     }
@@ -388,14 +376,18 @@ class DocumentController {
 
     final currDelta = _nodeUtils.toDelta(node);
 
-    return currDelta.length == 1 &&
-        currDelta.first.data == '\n' &&
-        currDelta.first.key == 'insert';
+    return currDelta.length == 1 && currDelta.first.data == '\n' && currDelta.first.key == 'insert';
   }
 
   // Returns plain text within the specified text range.
   String getPlainTextAtRange(int index, int len) {
     final nodePos = queryChild(index);
+
+    // Fail safe if the document is empty
+    if (nodePos.node == null) {
+      return '';
+    }
+
     final line = nodePos.node as LineM;
 
     return _lineUtils.getPlainText(line, nodePos.offset, len);
@@ -415,6 +407,11 @@ class DocumentController {
 
     if (nodePos.node is LineM) {
       return nodePos;
+    }
+
+    // Fail safe if the document is empty
+    if (nodePos.node == null) {
+      return NodePositionM(null, 0);
     }
 
     final block = nodePos.node as BlockM;
@@ -449,7 +446,6 @@ class DocumentController {
   StyleM collectStyle(int index, int length) {
     final nodePos = queryChild(index);
     final line = nodePos.node as LineM;
-
     return _lineUtils.collectStyle(line, nodePos.offset, length);
   }
 
@@ -457,7 +453,6 @@ class DocumentController {
   List<PasteStyleM> collectAllIndividualStyles(int index, int length) {
     final nodePos = queryChild(index);
     final line = nodePos.node as LineM;
-
     return _lineUtils.collectAllIndividualStyles(line, nodePos.offset, length);
   }
 
@@ -465,7 +460,6 @@ class DocumentController {
   List<StyleM> collectAllStyles(int index, int length) {
     final nodePos = queryChild(index);
     final line = nodePos.node as LineM;
-
     return _lineUtils.collectAllStyles(line, nodePos.offset, length);
   }
 
@@ -492,16 +486,11 @@ class DocumentController {
     for (final operation in delta.toList()) {
       // Only insert operations
       if (!operation.isInsert) {
-        throw ArgumentError.value(
-          delta,
-          'Document can only contain insert operations but ${operation.key} found.',
-        );
+        throw ArgumentError.value(delta, 'Document can only contain insert operations but ${operation.key} found.');
       }
 
       // Init styles (from generic delta to models)
-      final style = operation.attributes != null
-          ? _stylesUtils.fromJson(operation.attributes)
-          : null;
+      final style = operation.attributes != null ? _stylesUtils.fromJson(operation.attributes) : null;
 
       // Embeds to models
       final data = _documentUtils.mapEmbedsToModels(operation.data);
@@ -519,10 +508,7 @@ class DocumentController {
     final lastNode = rootNode.last;
 
     // Remove last empty line
-    if (lastNode is LineM &&
-        lastNode.parent is! BlockM &&
-        lastNode.style.isEmpty &&
-        rootNode.childCount > 1) {
+    if (lastNode is LineM && lastNode.parent is! BlockM && lastNode.style.isEmpty && rootNode.childCount > 1) {
       _contUtils.remove(rootNode, lastNode);
     }
   }
@@ -533,27 +519,21 @@ class DocumentController {
     _rulesController.setCustomRules(customRules);
   }
 
-  List<TextSelection> getSearchMatches(String searchedText) {
-    final matches = <TextSelection>[];
+  // === SEARCH ===
+
+  List<TextSelectionM> searchText(String text) {
+    final matches = <TextSelectionM>[];
     var prevLineLength = 0;
 
     for (final node in rootNode.children) {
       if (node is LineM) {
-        _searchLine(
-          searchedText,
-          node,
-          prevLineLength,
-          matches,
-        );
+        _searchLine(text, node, prevLineLength, matches);
         prevLineLength += node.charsNum;
       } else if (node is BlockM) {
-        for (final line in Iterable.castFrom<dynamic, LineM>(node.children)) {
-          _searchLine(
-            searchedText,
-            line,
-            prevLineLength,
-            matches,
-          );
+        final block = Iterable.castFrom<dynamic, LineM>(node.children);
+
+        for (final line in block) {
+          _searchLine(text, line, prevLineLength, matches);
           prevLineLength += line.charsNum;
         }
       }
@@ -566,15 +546,13 @@ class DocumentController {
     String searchedText,
     LineM line,
     int prevLineLength,
-    List<TextSelection> matches,
+    List<TextSelectionM> matches,
   ) {
     var index = -1;
+
     while (true) {
       index = line.toPlainText().toLowerCase().indexOf(
-            RegExp(
-              searchedText,
-              caseSensitive: false,
-            ),
+            RegExp(searchedText, caseSensitive: false),
             index + 1,
           );
 
@@ -583,7 +561,7 @@ class DocumentController {
       }
 
       matches.add(
-        TextSelection(
+        TextSelectionM(
           baseOffset: prevLineLength + index,
           extentOffset: prevLineLength + index + searchedText.length,
         ),

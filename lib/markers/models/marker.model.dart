@@ -1,11 +1,14 @@
-import 'package:flutter/material.dart';
+import '../../document/models/material/offset.model.dart';
+import '../../document/models/material/test-selection.model.dart';
+import '../../document/models/material/text-box.model.dart';
 
 // Used to render permanent highlights on top of document.
 // Added manually via the toolbar and programmatically via the controller.
 // Removed manually using an attached widget or programmatically via the controller.
 // Widget attachments can be linked to the position of a widget using the pixel coordinates data.
 // Read more in markers.md
-@immutable
+// @immutable - neither material or foundation work in server dart.
+// They both require dart:ui.
 class MarkerM {
   // We need ids, otherwise we don't have a reliable means of deleting
   // arbitrary markers from a stack of markers that share the same text span.
@@ -43,16 +46,16 @@ class MarkerM {
   // An additional model was created to make a clear distinction between the marker as retrieved from the delta document (MarkerM)
   // and the markers that have been rendered and their coordinates are now known.
   // (!) Added at runtime
-  final List<TextBox>? rectangles;
+  final List<TextBoxM>? rectangles;
 
   // Global position relative to the viewport of the EditableTextLine that contains the marker.
   // We don't expose the full TextLine to avoid access from the public scope to the private scope.
   // (!) Added at runtime
-  final Offset? docRelPosition;
+  final OffsetM? docRelPosition;
 
   // When reading the delta json we want to understand from which chars up to which chars the marker is defined.
   // (!) Added at runtime
-  final TextSelection? textSelection;
+  final TextSelectionM? textSelection;
 
   MarkerM({
     required this.id,
@@ -82,16 +85,16 @@ class MarkerM {
         'rectangles: $rectangles,'
         'docRelPosition: $docRelPosition,'
         'textSelection: $textSelection,'
-      ')';
+        ')';
   }
 
   MarkerM copyWith({
     String? id,
     String? type,
     dynamic data,
-    List<TextBox>? rectangles,
-    Offset? docRelPosition,
-    TextSelection? textSelection,
+    List<TextBoxM>? rectangles,
+    OffsetM? docRelPosition,
+    TextSelectionM? textSelection,
   }) =>
       MarkerM(
         id: id ?? this.id,

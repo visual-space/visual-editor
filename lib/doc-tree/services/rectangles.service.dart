@@ -3,6 +3,10 @@ import 'package:flutter/rendering.dart';
 import '../../document/models/attributes/attribute-scope.enum.dart';
 import '../../document/models/attributes/attribute.model.dart';
 import '../../document/models/attributes/attributes.model.dart';
+import '../../document/models/material/offset.model.dart';
+import '../../document/models/material/test-selection.model.dart';
+import '../../document/models/material/text-box.model.dart';
+import '../../document/models/material/text-direction.enum.dart';
 import '../../document/models/nodes/line.model.dart';
 import '../../document/models/nodes/node.model.dart';
 import '../../document/services/nodes/node.utils.dart';
@@ -50,12 +54,23 @@ class RectanglesService {
 
     if (lineContainsHighlight) {
       final local = _selectionRendererService.getLocalSelection(line, selection, false);
-      final nodeRectangles = underlyingText.getBoxesForSelection(local);
-      final docRelPosition = underlyingText.localToGlobal(const Offset(0, 0), ancestor: state.refs.renderer);
+      final nodeRectangles = _mapTextBoxFromMaterialToVe(
+        underlyingText.getBoxesForSelection(local),
+      );
+      final docRelPosition = underlyingText.localToGlobal(
+        Offset.zero,
+        ancestor: state.refs.renderer,
+      );
       rectangles = SelectionRectanglesM(
-        textSelection: local,
+        textSelection: TextSelectionM(
+          baseOffset: local.baseOffset,
+          extentOffset: local.extentOffset,
+        ),
         rectangles: nodeRectangles,
-        docRelPosition: docRelPosition,
+        docRelPosition: OffsetM(
+          dx: docRelPosition.dx,
+          dy: docRelPosition.dy,
+        ),
       );
     }
 
@@ -73,11 +88,7 @@ class RectanglesService {
   // If the markers are available early, then we can use the same method as for highlights and also have the markers ready earlier in the callstack.
   // So far we did not do this because we realised a bit late in the game what would be the optimal solution.
   // And also at the moment it's not that big of a problem. Maybe we will improve in the future.
-  List<MarkerM> getMarkersToRender(
-    Offset effectiveOffset,
-    LineM line,
-    RenderContentProxyBox? underlyingText,
-  ) {
+  List<MarkerM> getMarkersToRender(Offset effectiveOffset, LineM line, RenderContentProxyBox? underlyingText) {
     final allMarkers = <MarkerM>[];
 
     // Iterate trough all the children of a line.
@@ -108,9 +119,15 @@ class RectanglesService {
           // When a new marker is inserted it is passed to the format() method, then to the rules and then to composes().
           // Once compose completes, it then calls the runBuild() which means a new build() cycle starts.
           // During the build we always have access to the selection values, once again by looking at the document data.
-          textSelection: TextSelection(baseOffset: nodeOffset, extentOffset: nodeOffset + node.charsNum),
+          textSelection: TextSelectionM(
+            baseOffset: nodeOffset,
+            extentOffset: nodeOffset + node.charsNum,
+          ),
           rectangles: rectangles,
-          docRelPosition: docRelPosition,
+          docRelPosition: OffsetM(
+            dx: docRelPosition?.dx ?? 0,
+            dy: docRelPosition?.dy ?? 0,
+          ),
         );
 
         // Collect markers and pixel coordinates
@@ -123,12 +140,20 @@ class RectanglesService {
 
   // A node can host multiple attributes, one of them is the markers attribute.
   List<MarkerM> _getTheMarkersAttributeFromNode(NodeM node) {
-    return node.style.attributes.values
+    final markers = node.style.attributes.values
         .firstWhere(
           (attribute) => attribute.key == AttributesM.markers.key,
           orElse: () => AttributeM('', AttributeScope.INLINE, null),
         )
-        .value;
+        .value as List<MarkerM>;
+
+    return markers.map((marker) {
+      return MarkerM(
+        id: marker.id,
+        type: marker.type,
+        data: marker.data,
+      );
+    }).toList();
   }
 
   // === HEADINGS ===
@@ -215,10 +240,7 @@ class RectanglesService {
 
     // Iterate trough all the children of a line.
     // Children are fragments containing a unique combination of attributes.
-    final lineContainsSelection = _lineContainsSelection(
-      line,
-      textSelection,
-    );
+    final lineContainsSelection = _lineContainsSelection(line, textSelection);
 
     for (final node in line.children) {
       final hasLink = node.style.containsKey(AttributesM.link.key);
@@ -233,9 +255,15 @@ class RectanglesService {
             final nodeRectangles = getRectanglesFromNode(node, underlyingText);
 
             rectangles = SelectionRectanglesM(
-              docRelPosition: docRelPosition,
+              docRelPosition: OffsetM(
+                dx: docRelPosition.dx,
+                dy: docRelPosition.dy,
+              ),
               rectangles: nodeRectangles,
-              textSelection: local,
+              textSelection: TextSelectionM(
+                extentOffset: local.extentOffset,
+                baseOffset: local.baseOffset,
+              ),
             );
           }
         }
@@ -266,22 +294,24 @@ class RectanglesService {
   }
 
   // Get the rectangles needed to encompass a slice of text (node).
-  List<TextBox> getRectanglesFromNode(
-    NodeM node,
-    RenderContentProxyBox? underlyingText,
-  ) {
+  // Note: Here we are converting from material models to VE models.
+  // The goals is to avoid any material classes in our code such that we can run on server.
+  // More explanations in the models and controller.md.
+  List<TextBoxM> getRectanglesFromNode(NodeM node, RenderContentProxyBox? underlyingText) {
     final textRange = TextSelection(
       baseOffset: _nodeUtils.getOffset(node),
       extentOffset: _nodeUtils.getOffset(node) + node.charsNum,
     );
-    final rectangles = underlyingText!.getBoxesForSelection(textRange);
+    final rectangles = _mapTextBoxFromMaterialToVe(
+      underlyingText!.getBoxesForSelection(textRange),
+    );
 
     return rectangles;
   }
 
   // Draws the rectangles as provided on the canvas.
-  List<TextBox> drawRectangles(
-    List<TextBox> rectangles,
+  List<TextBoxM> drawRectangles(
+    List<TextBoxM> rectangles,
     Offset effectiveOffset,
     PaintingContext context,
     Color backgroundColor,
@@ -290,7 +320,17 @@ class RectanglesService {
     final paint = Paint()..color = backgroundColor;
 
     for (final box in rectangles) {
-      final rect = box.toRect().translate(0, 1).shift(effectiveOffset);
+      // Note: Here we are converting from VE models to material models.
+      // The goals is to avoid any material classes in our code such that we can run on server.
+      // More explanations in the models and controller.md.
+      final _box = TextBox.fromLTRBD(
+        box.left,
+        box.top,
+        box.right,
+        box.bottom,
+        box.direction == TextDirectionE.rtl ? TextDirection.rtl : TextDirection.ltr,
+      );
+      final rect = _box.toRect().translate(0, 1).shift(effectiveOffset);
 
       // Square corners
       if (radius == null) {
@@ -318,7 +358,7 @@ class RectanglesService {
     return rectangles;
   }
 
-  bool isRectangleHovered(TextBox area, Offset pointer, Offset offset) {
+  bool isRectangleHovered(TextBoxM area, OffsetM pointer, OffsetM offset) {
     final x = pointer.dx - offset.dx;
     final y = pointer.dy - offset.dy;
     final xHovered = area.left < x && x < area.right;
@@ -332,4 +372,17 @@ class RectanglesService {
     final lineOffset = _nodeUtils.getDocumentOffset(line);
     return lineOffset <= selection.end && selection.start <= lineOffset + line.charsNum - 1;
   }
+
+  // Note: Here we are converting from material models to VE models.
+  // The goals is to avoid any material classes in our code such that we can run on server.
+  // More explanations in the models and controller.md.
+  List<TextBoxM> _mapTextBoxFromMaterialToVe(List<TextBox> rectangles) => rectangles
+      .map((rect) => TextBoxM(
+            left: rect.left,
+            top: rect.top,
+            right: rect.right,
+            bottom: rect.bottom,
+            direction: rect.direction == TextDirection.ltr ? TextDirectionE.ltr : TextDirectionE.rtl,
+          ))
+      .toList();
 }

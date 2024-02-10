@@ -79,3 +79,33 @@ All nodes inherit from `NodeM`. The node inherits from the `LinkedListEntry`. Th
 
 ## Conversion To Other Data Formats (TBD)
 
+
+## Edit Delta Docs In Dart Server
+You can edit delta docs on the server side using `DocumentController`. This can come in handy for a couple of scenarios:
+- **SEO** - You can get retrieve the plain text of a delta doc and then render it as a plain old html document using whatever server side technology you desire.
+- **Elastic Search** - If you need to write a search feature for a large number of documents, once again, you will need the plain text server side. Again running the visual editor on the server side is super handy.
+- **Coop Editing** - In case you want to implement a master server to compare the edits of multiple users, again you can run doc edits on the dart server itself.
+
+**Importing Visual Editor Server**
+By importing the server side library we ensure that no `dart:ui` dependencies are imported. Note that both the frontend and server versions of the library use the same code. They are just different export files.
+
+```dart
+import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf/shelf_io.dart' as shelf_io;
+import 'package:visual_editor/visual-editor-server.dart';
+
+//...
+// Convert delta text to plain text
+final document = DeltaDocM.fromJson(jsonDecode(deltaText));
+final plainText = DocumentController(document, null, null).toPlainText();
+```
+
+
+## Avoiding material/dart:ui imports on server
+This section includes detailed explanation of what architectural modifications were needed to be able to run Visual Editor on the server. Several approaches were attempted until we landed on the final solution.
+- **Conditional Imports To Avoid Importing Material In Doc Controller When On Server** - Because we run the library on the server we do not have access at UI proprieties. Because of that, we needed to avoid any file that uses `flutter/material`, `dart:ui` etc. In some cases we made 2 types of files, one for the normal use and one for the server (eg. `marker.model.dart` and `marker.model.server.dart`) which are imported conditionally.
+- **Conditional Import Does Not Work On Android** - After testing we spotted that the trick does not work with the mobile build. The mobile build attempts to load the trimmed down server version of `MarkerM` on mobile thus leading to a bunch of static checking errors. After some more research (Fed '24) we concluded that there's no way to differentiate server only. Therefore we have to explore other ways to deal with `MarkerM`. `MarkerM` had some properties (rectangles data to render the marker) that were passed at runtime from the doc tree to the state store for convenience. Instead of requesting the rectangles again when hovering a marker we now have them cached. We had to split this cache from the marker models and separate it in a dedicated map. This cut the remaining dependence on the server side.
+- **Conditional Imports for Markers Models - Does Not Work** - For markers we collected some UI pixel data to store it in the markers model such that it's easier to render. The normal model uses `material` to render rectangles, text selection etc. and for the server version we kept the proprieties but we used `dynamic`. For now some features are disabled on server. If we need them, we can go to the extreme solution of replicating our own models and them mapping to material models when passing the document to the doc tree.
+- **MarkerM and MarkerM** - Once we figured out that the conditional imports wont be working we tried creating 2 layers of models. The basic one and the enriched one. The goals was to add the material models on the extended model and use them only in the rendering pipeline. Since we collect the rectangles only after rendering that should have worked. However there was also `TextSelection` used from material to store the base and offset. The text selection is used later when we need to delete markers. Again for convenience it was added on the marker model post init. The trouble is that this step happens on document init in the `DocumentController`. Which means once again we are forced to import material in `DocumentController`.
+- **Duplicating Material Models** - To completely detach these chunks of code from material we had to create our own replicas/models after material. These are pure data and have not dependence on material. Once we migrated the models to this setup most of the code could be reverted to the original state. The only changes that needed to be done were to map out to material models once again in the rendering pipeline in the place where we paint rectangles in the canvas. Everything else works as is.
+

@@ -1,6 +1,7 @@
 import '../../document/models/attributes/attribute-scope.enum.dart';
 import '../../document/models/attributes/attribute.model.dart';
 import '../../document/models/attributes/attributes.model.dart';
+import '../../document/models/material/test-selection.model.dart';
 import '../../document/services/nodes/attribute.utils.dart';
 import '../../shared/state/editor.state.dart';
 import '../../shared/utils/string.utils.dart';
@@ -60,7 +61,10 @@ class MarkersService {
     }
 
     final marker = MarkerM(
-      textSelection: state.selection.selection.copyWith(),
+      textSelection: TextSelectionM(
+        extentOffset: state.selection.selection.extentOffset,
+        baseOffset: state.selection.selection.baseOffset,
+      ),
       id: getTimeBasedId(),
       type: markerTypeId,
       data: data,

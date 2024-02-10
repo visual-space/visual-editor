@@ -1,6 +1,8 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:visual_editor/document/models/material/offset.model.dart';
+import 'package:visual_editor/document/models/material/text-box.model.dart';
+import 'package:visual_editor/document/models/material/text-direction.enum.dart';
 import 'package:visual_editor/highlights/models/highlight.model.dart';
 import 'package:visual_editor/markers/models/marker.model.dart';
 import 'package:visual_editor/shared/models/selection-rectangles.model.dart';
@@ -14,8 +16,8 @@ import 'package:visual_editor/shared/models/selection-rectangles.model.dart';
 class SelectionMenuController {
   // Cache used to temporary store the rectangle, line offset and relative position
   // as delivered by the editor while the scroll offset is changing.
-  var _rectangle = TextBox.fromLTRBD(0, 0, 0, 0, TextDirection.ltr);
-  Offset? _lineOffset = Offset.zero;
+  var _rectangle = TextBoxM.fromLTRBD(0, 0, 0, 0, TextDirectionE.ltr);
+  OffsetM? _lineOffset = OffsetM.zero;
   double _relPos = 0;
 
   // (!) This stream is extremely important for maintaining the page performance when updating the quick menu position.
@@ -24,8 +26,8 @@ class SelectionMenuController {
   // We will update only the SelectionQuickMenu via the stream.
   // By using this trick we can prevent Flutter from running expensive page updates.
   // We will target our updates only on the area that renders the quick menu (far better performance).
-  final quickMenuOffset$ = StreamController<Offset>.broadcast();
-  var quickMenuOffset = Offset.zero;
+  final quickMenuOffset$ = StreamController<OffsetM>.broadcast();
+  var quickMenuOffset = OffsetM.zero;
 
   void displayQuickMenuOnMarker(
     MarkerM marker,
@@ -105,8 +107,8 @@ class SelectionMenuController {
   // === PRIVATE ===
 
   void _positionQuickMenuAtRectangle(
-    TextBox rectangle,
-    Offset? lineOffset,
+    TextBoxM rectangle,
+    OffsetM? lineOffset,
     double scrollOffset,
     double relPos,
   ) {
@@ -114,9 +116,9 @@ class SelectionMenuController {
     const menuHeight = 31;
 
     // Menu Position
-    final offset = Offset(
-      hMidPoint,
-      (lineOffset?.dy ?? 0) +
+    final offset = OffsetM(
+      dx: hMidPoint,
+      dy: (lineOffset?.dy ?? 0) +
           relPos +
           rectangle.top -
           scrollOffset -

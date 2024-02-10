@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:visual_editor/document/models/material/text-box.model.dart';
 
 import '../models/marker-and-relative-position.model.dart';
 import '../models/markers-attachments-position.dart';
@@ -98,11 +99,8 @@ class _MarkersAttachmentsState extends State<MarkersAttachments> {
     }
   }
 
-  double _getMarkerPosition(MarkerAndRelPos marker, TextBox? rectangle) =>
-      (marker.marker.docRelPosition?.dy ?? 0) +
-      (rectangle?.top ?? 0) +
-      marker.relativePosition -
-      _scrollOffset;
+  double _getMarkerPosition(MarkerAndRelPos marker, TextBoxM? rectangle) =>
+      (marker.marker.docRelPosition?.dy ?? 0) + (rectangle?.top ?? 0) + marker.relativePosition - _scrollOffset;
 
   void _subscribeToMarkers() {
     _markers$L = widget.markers$.stream.listen(

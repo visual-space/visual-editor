@@ -1,13 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:visual_editor/document/models/material/offset.model.dart';
 
 // Any kind of widget can be attached to markers and highlights when tapping them.
 // Notice we use a stream to pass the updates instead of using setState on the parent widget which contains the editor.
 // By using the stream we avoid heavy re-renders of the editor and we maintain maximum performance.
 class SelectionQuickMenu extends StatefulWidget {
-  final Offset offset;
-  final StreamController<Offset> offset$;
+  final OffsetM offset;
+  final StreamController<OffsetM> offset$;
 
   SelectionQuickMenu({
     required this.offset,
@@ -19,7 +20,7 @@ class SelectionQuickMenu extends StatefulWidget {
 }
 
 class _SelectionQuickMenuState extends State<SelectionQuickMenu> {
-  Offset _offset = Offset.zero;
+  OffsetM _offset = OffsetM.zero;
   late StreamSubscription _markers$L;
 
   @override

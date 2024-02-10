@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/gestures.dart';
 
 import '../../doc-tree/services/rectangles.service.dart';
+import '../../document/models/material/offset.model.dart';
 import '../../shared/state/editor.state.dart';
 import '../models/marker-type.model.dart';
 import '../models/marker.model.dart';
@@ -54,12 +55,8 @@ class MarkersHoverService {
     });
 
     // Added, Removed
-    final addedIds = _hoveredMarkersIds
-        .where((id) => !_prevHoveredMarkersIds.contains(id))
-        .toList();
-    final removedIds = _prevHoveredMarkersIds
-        .where((id) => !_hoveredMarkersIds.contains(id))
-        .toList();
+    final addedIds = _hoveredMarkersIds.where((id) => !_prevHoveredMarkersIds.contains(id)).toList();
+    final removedIds = _prevHoveredMarkersIds.where((id) => !_hoveredMarkersIds.contains(id)).toList();
 
     // (!) Beware that the callback need to be invoked in a particular order.
     // If changing this service don't mix-up the order of the events.
@@ -136,19 +133,16 @@ class MarkersHoverService {
     var isHovered = false;
 
     // Sync Pointer To Lines
-    final pointer = Offset(
-      eventPos.dx - (marker.docRelPosition?.dx ?? 0),
-      eventPos.dy - (marker.docRelPosition?.dy ?? 0),
+    final pointer = OffsetM(
+      dx: eventPos.dx - (marker.docRelPosition?.dx ?? 0),
+      dy: eventPos.dy - (marker.docRelPosition?.dy ?? 0),
     );
     final editorOffset = state.refs.renderer.localToGlobal(Offset.zero);
+    final _editorOffset = OffsetM(dx: editorOffset.dx, dy: editorOffset.dy);
 
     // Search For Hits
     for (final rectangle in marker.rectangles ?? []) {
-      isHovered = _rectanglesService.isRectangleHovered(
-        rectangle,
-        pointer,
-        editorOffset,
-      );
+      isHovered = _rectanglesService.isRectangleHovered(rectangle, pointer, _editorOffset);
 
       // Exit search loop early as soon as the first hit is found (perf)
       if (isHovered) {

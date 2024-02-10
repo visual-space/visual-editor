@@ -2,6 +2,10 @@
 If you want to learn more about the specs, all tickets are available by following the hashtag links.
 
 
+## Visual Editor Server [#246](https://github.com/visual-space/visual-editor/issues/246)
+- A subset of the library was exported in `visual-editor-server.dart`. It containers the `DocumentContorller` and `DeltaDocM` model. These imports can be used in any dart backend to process delta documents server side. By importing the server side library we ensure that no `dart:ui` dependencies are imported. Note that both the frontend and server versions of the library use the same code. They are just different export files.
+
+
 ## Various Fixes
 - Moved `DocumentController` in `EditorController` [#222](https://github.com/visual-space/visual-editor/issues/222)
 - Fixed missing placeholder. When generating the doc tree we were no longer reading from the document param. It was bypassed by reading straight form the state store. This param provided the placeholder doc in case the user doc was empty. We had to separate the placeholder document generation logic to a dedicated service `PlaceholderService`.

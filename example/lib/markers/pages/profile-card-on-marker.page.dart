@@ -3,6 +3,9 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:visual_editor/document/models/material/offset.model.dart';
+import 'package:visual_editor/document/models/material/text-box.model.dart';
+import 'package:visual_editor/document/models/material/text-direction.enum.dart';
 import 'package:visual_editor/visual-editor.dart';
 
 import '../../shared/widgets/demo-page-scaffold.dart';
@@ -31,8 +34,8 @@ class _ProfileCardOnMarkerPageState extends State<ProfileCardOnMarkerPage> {
 
   // Cache used to temporary store the rectangle and line offset as
   // delivered by the editor while the scroll offset is changing.
-  var _rectangle = TextBox.fromLTRBD(0, 0, 0, 0, TextDirection.ltr);
-  Offset? _lineOffset = Offset.zero;
+  var _rectangle = TextBoxM.fromLTRBD(0, 0, 0, 0, TextDirectionE.ltr);
+  OffsetM? _lineOffset = OffsetM.zero;
   ProfileCardM _profile = ProfileCardM();
 
   // (!) This stream is extremely important for maintaining the page performance when updating the profile card position.

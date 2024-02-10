@@ -1,9 +1,16 @@
 ![Visual-editor-teaser](https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/visual-editor-teaser.jpg)
 
-Visual Editor is a Rich Text editor for [Flutter] originally forked from [Flutter Quill]. The editor is built around the powerful [Quilljs Delta] document format originally developed by QuillJs. Delta documents can be easily converted to JSON, the encoding is easy to read and modify and offers many extensibility options. This document explains the reasons [why we forked Quill](https://github.com/visual-space/visual-editor/blob/develop/QUILL_FORK.md) and the improvements that were made.
+Visual Editor is a Rich Text editor for [Flutter] originally forked from [Flutter Quill]. The editor is built around the powerful [Quilljs Delta] document format originally developed by QuillJs. Delta documents can be easily converted to JSON, the encoding is easy to read and modify and offers many extensibility options. This document explains the reasons [why we forked Quill](https://github.com/visual-space/visual-editor/blob/develop/quill-fork.md) and the improvements that were made.
 <p align="center">
   <img src="https://github.com/visual-space/visual-editor/blob/develop/example/assets/github/visual-editor-demo.gif"/>
 </p>
+
+
+## Edit Delta Docs In Dart Server
+You can edit delta docs on the server side using `DocumentController`. This can come in handy for a couple of scenarios:
+- **SEO** - You can get retrieve the plain text of a delta doc and then render it as a plain old html document using whatever server side technology you desire.
+- **Elastic Search** - If you need to write a search feature for a large number of documents, once again, you will need the plain text server side. Again running the visual editor on the server side is super handy.
+- **Coop Editing** - In case you want to implement a master server to compare the edits of multiple users, again you can run doc edits on the dart server itself.
 
 
 ## Highlights
@@ -64,10 +71,6 @@ Inside of delta document you can inject any type of custom embed. Custom embeds 
 
 ## Link Menu
 Clicking on a link/text (which is set as a link) opens the link menu, which displays the url of the link, in order to open the link into another tab, beside the URL, there are 3 buttons. One for removing the link, leaving the text as it is without the link attribute. Second the edit link which opens the edit link menu. Third is the copy to clipboard menu.
-
-<p align="center">
-    <img src="https://user-images.githubusercontent.com/72706978/222151071-191321dd-24ba-45f7-a3cc-9a393476b4e8.mp4"/>
-</p>
 
 
 ## Planned Features

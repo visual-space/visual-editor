@@ -221,8 +221,7 @@ class _ParentScrollPageState extends State<ParentScrollPage> {
               _hideQuickMenu();
             },
             onSelectionCompleted: (rectangles) {
-              final isCollapsed =
-                  rectangles.first?.textSelection.isCollapsed ?? true;
+              final isCollapsed = rectangles.first?.textSelection.isCollapsed ?? true;
 
               onSelectionChanged(rectangles);
               if (!isCollapsed) {
@@ -359,8 +358,7 @@ class _ParentScrollPageState extends State<ParentScrollPage> {
   void _calculateEditorsRelativePosition() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _editor2RelPos = _key1.currentContext?.size?.height ?? 0;
-      _editor3RelPos =
-          _editor2RelPos + (_key2.currentContext?.size?.height ?? 0);
+      _editor3RelPos = _editor2RelPos + (_key2.currentContext?.size?.height ?? 0);
     });
   }
 }

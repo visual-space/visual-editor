@@ -1,3 +1,6 @@
+import 'dart:html' if (dart.library.html) 'dart:html';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'controller/pages/add-elements.page.dart';
@@ -25,6 +28,12 @@ import 'toolbar/pages/wrapping-toolbar.page.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(DemoApp());
+
+  // Clear web console on reset
+  if (kIsWeb) {
+    // Debugging utility, clears the chrome developer console on hot reload
+    window.console.clear();
+  }
 }
 
 // A simple demo app that showcases the Visual Editor in many configurations.

@@ -141,14 +141,18 @@ class _SearchBarVEState extends State<SearchBarVE> {
       );
 
   void _cacheMatches(String text) {
-    final matchesSelection =
-        widget.state.refs.documentController.getSearchMatches(text);
+    final matchesSelection = widget.state.refs.documentController.searchText(text);
     final matches = <SearchMatchM>[];
 
+    // Note that we are converting from TextSelectionM to TextSelection (material)
+    // This step helps us maintain the document controller 100% functional in a dart backend.
     matchesSelection.forEach((selection) {
       matches.add(
         SearchMatchM(
-          textSelection: selection,
+          textSelection: TextSelection(
+            baseOffset: selection.baseOffset,
+            extentOffset: selection.extentOffset,
+          ),
         ),
       );
     });

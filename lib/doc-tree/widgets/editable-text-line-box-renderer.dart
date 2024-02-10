@@ -57,8 +57,7 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
   late StreamSubscription _toggleMarkers$L;
   late StreamSubscription _toggleMarkersByTypes$L;
   Offset _cachedOffset = Offset(0, 0);
-  void Function(List<MarkerM> markers)
-      cacheRenderedMarkersCoordinatesInStateStore;
+  void Function(List<MarkerM> markers) cacheRenderedMarkersCoordinatesInStateStore;
   late EditorState _state;
 
   // Creates new editable paragraph render box.
@@ -338,12 +337,8 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
 
   bool containsCursor() {
     return _containsCursor ??= cursorController.isFloatingCursorActive
-        ? _nodeUtils.containsOffset(
-            line,
-            cursorController.floatingCursorTextPosition.value!.offset,
-          )
-        : selection.isCollapsed &&
-            _nodeUtils.containsOffset(line, selection.baseOffset);
+        ? _nodeUtils.containsOffset(line, cursorController.floatingCursorTextPosition.value!.offset)
+        : selection.isCollapsed && _nodeUtils.containsOffset(line, selection.baseOffset);
   }
 
   @override
@@ -362,8 +357,7 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
   ) {
     if (selection.isCollapsed) {
       return TextSelectionPoint(
-        Offset(0, preferredLineHeight(selection.extent)) +
-            getOffsetForCaret(selection.extent),
+        Offset(0, preferredLineHeight(selection.extent)) + getOffsetForCaret(selection.extent),
         null,
       );
     }
@@ -380,17 +374,13 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
 
   @override
   TextRange getLineBoundary(TextPosition position) {
-    final lineDy = getOffsetForCaret(position)
-        .translate(0, 0.5 * preferredLineHeight(position))
-        .dy;
+    final lineDy = getOffsetForCaret(position).translate(0, 0.5 * preferredLineHeight(position)).dy;
     final lineBoxes = _getBoxes(
       TextSelection(
         baseOffset: 0,
         extentOffset: line.charsNum - 1,
       ),
-    )
-        .where((element) => element.top < lineDy && element.bottom > lineDy)
-        .toList(growable: false);
+    ).where((element) => element.top < lineDy && element.bottom > lineDy).toList(growable: false);
 
     return TextRange(
       start: getPositionForOffset(Offset(lineBoxes.first.left, lineDy)).offset,
@@ -400,8 +390,7 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
 
   @override
   Offset getOffsetForCaret(TextPosition position) {
-    return _underlyingText!.getOffsetForCaret(position, _caretPrototype) +
-        (_underlyingText!.parentData as BoxParentData).offset;
+    return _underlyingText!.getOffsetForCaret(position, _caretPrototype) + (_underlyingText!.parentData as BoxParentData).offset;
   }
 
   @override
@@ -439,9 +428,7 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
 
   double get cursorWidth => cursorController.style.width;
 
-  double get cursorHeight =>
-      cursorController.style.height ??
-      preferredLineHeight(const TextPosition(offset: 0));
+  double get cursorHeight => cursorController.style.height ?? preferredLineHeight(const TextPosition(offset: 0));
 
   // === RENDER BOX OVERRIDES ===
 
@@ -472,8 +459,7 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
       markNeedsPaint();
     });
 
-    _toggleMarkersByTypes$L =
-        _state.markersTypes.toggleMarkersByTypes$.listen((_) {
+    _toggleMarkersByTypes$L = _state.markersTypes.toggleMarkersByTypes$.listen((_) {
       markNeedsPaint();
     });
   }
@@ -535,9 +521,7 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
 
     final horizontalPadding = _resolvedPadding!.left + _resolvedPadding!.right;
     final verticalPadding = _resolvedPadding!.top + _resolvedPadding!.bottom;
-    final leadingWidth = _leading == null
-        ? 0
-        : _leading!.getMinIntrinsicWidth(height - verticalPadding).ceil();
+    final leadingWidth = _leading == null ? 0 : _leading!.getMinIntrinsicWidth(height - verticalPadding).ceil();
     final underlyingTextWidth = _underlyingText == null
         ? 0
         : _underlyingText!
@@ -555,9 +539,7 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
 
     final horizontalPadding = _resolvedPadding!.left + _resolvedPadding!.right;
     final verticalPadding = _resolvedPadding!.top + _resolvedPadding!.bottom;
-    final leadingWidth = _leading == null
-        ? 0
-        : _leading!.getMaxIntrinsicWidth(height - verticalPadding).ceil();
+    final leadingWidth = _leading == null ? 0 : _leading!.getMaxIntrinsicWidth(height - verticalPadding).ceil();
     final underlyingTextWidth = _underlyingText == null
         ? 0
         : _underlyingText!
@@ -577,10 +559,7 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
     final verticalPadding = _resolvedPadding!.top + _resolvedPadding!.bottom;
 
     if (_underlyingText != null) {
-      return _underlyingText!.getMinIntrinsicHeight(
-            math.max(0, width - horizontalPadding),
-          ) +
-          verticalPadding;
+      return _underlyingText!.getMinIntrinsicHeight(math.max(0, width - horizontalPadding)) + verticalPadding;
     }
 
     return verticalPadding;
@@ -593,10 +572,7 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
     final verticalPadding = _resolvedPadding!.top + _resolvedPadding!.bottom;
 
     if (_underlyingText != null) {
-      return _underlyingText!.getMaxIntrinsicHeight(
-            math.max(0, width - horizontalPadding),
-          ) +
-          verticalPadding;
+      return _underlyingText!.getMaxIntrinsicHeight(math.max(0, width - horizontalPadding)) + verticalPadding;
     }
 
     return verticalPadding;
@@ -605,8 +581,7 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
   @override
   double computeDistanceToActualBaseline(TextBaseline baseline) {
     _resolvePadding();
-    return _underlyingText!.getDistanceToActualBaseline(baseline)! +
-        _resolvedPadding!.top;
+    return _underlyingText!.getDistanceToActualBaseline(baseline)! + _resolvedPadding!.top;
   }
 
   @override
@@ -628,9 +603,7 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
     }
 
     final innerConstraints = constraints.deflate(_resolvedPadding!);
-    final indentWidth = textDirection == TextDirection.ltr
-        ? _resolvedPadding!.left
-        : _resolvedPadding!.right;
+    final indentWidth = textDirection == TextDirection.ltr ? _resolvedPadding!.left : _resolvedPadding!.right;
 
     _underlyingText!.layout(innerConstraints, parentUsesSize: true);
     (_underlyingText!.parentData as BoxParentData).offset = Offset(
@@ -645,20 +618,13 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
         maxHeight: _underlyingText!.size.height,
       );
       _leading!.layout(leadingConstraints, parentUsesSize: true);
-      (_leading!.parentData as BoxParentData).offset = Offset(
-        0,
-        _resolvedPadding!.top,
-      );
+      (_leading!.parentData as BoxParentData).offset = Offset(0, _resolvedPadding!.top);
     }
 
     size = constraints.constrain(
       Size(
-        _resolvedPadding!.left +
-            _underlyingText!.size.width +
-            _resolvedPadding!.right,
-        _resolvedPadding!.top +
-            _underlyingText!.size.height +
-            _resolvedPadding!.bottom,
+        _resolvedPadding!.left + _underlyingText!.size.width + _resolvedPadding!.right,
+        _resolvedPadding!.top + _underlyingText!.size.height + _resolvedPadding!.bottom,
       ),
     );
 
@@ -796,8 +762,7 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
 
   TextPosition? _getPosition(TextPosition textPosition, double dyScale) {
     assert(textPosition.offset < line.charsNum);
-    final offset = getOffsetForCaret(textPosition)
-        .translate(0, dyScale * preferredLineHeight(textPosition));
+    final offset = getOffsetForCaret(textPosition).translate(0, dyScale * preferredLineHeight(textPosition));
     if (_underlyingText!.size.contains(
       offset - (_underlyingText!.parentData as BoxParentData).offset,
     )) {
@@ -829,7 +794,6 @@ class EditableTextLineBoxRenderer extends EditableBoxRenderer {
 
   bool _lineContainsSelection(TextSelection selection) {
     final lineOffset = _nodeUtils.getDocumentOffset(line);
-    return lineOffset <= selection.end &&
-        selection.start <= lineOffset + line.charsNum - 1;
+    return lineOffset <= selection.end && selection.start <= lineOffset + line.charsNum - 1;
   }
 }

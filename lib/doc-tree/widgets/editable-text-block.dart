@@ -4,7 +4,6 @@ import '../../document/models/attributes/attributes-aliases.model.dart';
 import '../../document/models/attributes/attributes.model.dart';
 import '../../document/models/nodes/block.model.dart';
 import '../../document/models/nodes/line.model.dart';
-import '../../document/services/delta.utils.dart';
 import '../../document/services/nodes/node.utils.dart';
 import '../../highlights/models/highlight.model.dart';
 import '../../links/models/link-action.picker.type.dart';
@@ -13,9 +12,12 @@ import '../../shared/state/editor.state.dart';
 import '../../styles/models/cfg/editor-styles.model.dart';
 import '../models/vertical-spacing.model.dart';
 import '../services/lines/text-block.utils.dart';
-import '../style-widgets.dart';
+import '../services/utils/doc-tree.utils.dart';
 import 'editable-text-block-widget-renderer.dart';
 import 'editable-text-line-widget-renderer.dart';
+import 'styles/bullet-point.dart';
+import 'styles/checkbox-point.dart';
+import 'styles/number-point.dart';
 import 'text-line.dart';
 
 final _textBlockUtils = TextBlockUtils();
@@ -24,7 +26,7 @@ final _textBlockUtils = TextBlockUtils();
 // Lines have leading (number, bullet, checkbox) and body (text).
 // ignore: must_be_immutable
 class EditableTextBlock extends StatelessWidget {
-  final _du = DeltaUtils();
+  final _dtu = DocTreeUtils();
   final _nodeUtils = NodeUtils();
 
   final BlockM block;
@@ -160,7 +162,7 @@ class EditableTextBlock extends StatelessWidget {
         state: _state,
       );
 
-      final nodeTextDirection = _du.getDirectionOfNode(line);
+      final nodeTextDirection = _dtu.getDirectionOfNode(line);
 
       children.add(
         Directionality(
